@@ -1,0 +1,14 @@
+= Photography
+
+== White Balance
+
+== Raw Images
+- Contains minimally processed data from the image sensor 
+- Raw image files are sometimes called digital negatives, as they fulfill the same role as negatives in film photography: that is, the negative is not directly usable as an image, but has all of the information needed to create an image. 
+- Like a photographic negative, a raw digital image may have a wider dynamic range or color gamut than the eventual final image format, and it preserves most of the information of the captured image. 
+- Raw image formats are intended to capture as closely as possible (i.e. at the best of the specific sensor's performance) the radiometric characteristics of the scene, that is, physical information about the light intensity and color of the scene.
+- Raw files thus contain the full resolution (typically 12- or 14-bit) data as read out from each of the camera's image sensor pixels.
+- To obtain an image from a raw file, this mosaic of data must be converted into standard RGB form. This is often referred to as "raw development". 
+  - ?? Why cant this be a 1:1 trafo ??
+
+- Nearly all digital cameras can process the image from the sensor into a JPEG file using settings for white balance, colour saturation, contrast, and sharpness that are either selected automatically or entered by the photographer before taking the picture. Cameras that produce raw files save these settings in the file, but defer the processing

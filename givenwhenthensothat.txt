@@ -1,0 +1,185 @@
+The given-when-then-sothat DSL is a format for a specification in prose. We use it for our test names which are really specifications in prose.
+
+
+== Explanation ==
+A single Flori unit test is composed of the two following specifications specifying what the program ''should'' do (see also [[Automated Test#Program specification forms|program specification forms]]):
+# The specification in prose in the form of the given-when-then-sothat DSL presented on this page. This is the test name. 
+# The specification by giving one or more examples. This is the implementation of the test.
+
+To provide you with a mental image, here's an example of a test name. The specification (aka test) specififies an implementation of COM's IUnknown interface. Say the test's .cpp contains this fragment:
+<pre>
+TEST(UnknownFakeTest, MAKE_TEST_NAME4(
+    reference_count_is_one,
+    Release,
+    deletes_object,
+    memory_leaks_are_automatically_prevented))
+{ ... }
+</pre>
+
+The same thing rewritten in readable prose is the following. The underlined text corresponds 1:1 to above input / test name, the non-underlined was automatically added. I.e. [[#TestDox]]'s output contains this corresponding fragment:
+
+:<tt>GIVEN <u>reference count is one</u></tt>
+::<tt>WHEN <u>Release</u> is called</tt>
+::<tt>THEN it <u>deletes object</u></tt>
+::<tt>SO THAT <u>memory leaks are automatically prevented</u></tt>
+
+
+The following explains what the given, when, then and sothat / because clauses should talk about:
+
+;Given
+:Describe the initial state of the test fixture (UUT and its DOCs). If the initial state of the test is uninteresting, just 'the normal happy day case', you can leave the given clause away.
+;When
+:Describe the key action that is exercised. Typically you will state the method name which you exercise. Optionally also describe input parameters.
+;Then
+:Describe expected outcome. E.g. 
+:*expected return values (direct return value or out parameters)
+:*expected new state of the UUT and/or DOCs
+:*methods which are expected to be called a certain amount of times and/or in a certain order (testable using mock or spy objects).
+;Sothat / Because
+:Explains the rational for the specification. Tells the reader why the specification exists. You don't need to write that clause if the rational of the specification is obvious. Also consider the the following use case. You add a new feature. An 'old' specification which has no sothat clause fails. You read the specification and you think "This specification is useless. I delete it and my tests will become green". Thus having a sothat clause helps to prevent the case that a specification that really makes sense is removed because the maintainer didn't understood that it truly does make sense.
+
+
+There is a 1:1 relation between the given-when-then clauses of the test name and the test sections in the test implementation. If you like, you even can see the whole thing as a finite state machine (see [https://sites.google.com/site/unclebobconsultingllc/the-truth-about-bdd this] post). The following table visualizes the relation between these three views:
+
+{| class="wikitable"
+|-
+! scope="row"|Test name
+|GIVEN...
+|WHEN...
+|THEN...
+|-
+! scope="row"|Test section
+|setup
+|exercise
+|verify & mock expectations
+|-
+! scope="row"|State machine
+|current state of whole system & complex input params
+|event & simple input params
+|new state of whole system & event's outputs
+|}
+
+Use underscores to separate words within a clause. In the testdox output, the underscores are replaced by spaces. Thus identifiers in camel case are untouched by testdox. '<tt>MAKE_TEST_NAME( MyCoolMethod_WITH_two_equal_strings , returns_0 )</tt>' results in '<tt>WHEN MyCoolMethod is called WITH two equal strings | THEN it returns 0</tt>'
+
+== Keywords ==
+
+Keyword strings which can occur within a clause:
+
+{| class="wikitable"
+|-
+|<tt>GIVEN_</tt> <br/> <tt>WHEN_</tt> <br/> <tt>THEN_</tt> <br/> <tt>SOTHAT_</tt> <br/> <tt>BECAUSE_</tt> <br/> 
+|Optionally each clause can be prefixed which it's type to explicitly define the clause type. Technically there is no difference between SOTHAT and BECAUSE; depending on your use case one or the other results in more fluently readable prose. The output will contain either "SO THAT" or "BECAUSE", whichever you chose; "SO THAT" is the default which is used when you dont't explicitely say which one you want.
+|-
+|<tt>_BUT_</tt> <br/> <tt>_AND_</tt>
+|Each clause can be subdivided into sub clauses using these keywords as separators. This is useful to enhance the correlation between a test name clause and its corresponding test implementation section. If the verify test section does two things, then probably also the THEN clause needs to state these two things. Also it enhances the readability, most over all the readability of the prose text which testdox prints, since the two sub clauses being separated by AND / BUT are printed on separate lines.
+|-
+|<tt>_WITH_</tt>
+|Intended for the WHEN clause to separate the method name from it's inputs. 
+|-
+|}
+
+== Macros ==
+
+The basic set of macros. Mnemonic: each clause is optional, but the order given-when-then must remain.
+
+{| class="wikitable"
+|-
+|<tt>MAKE_TEST_NAME4</tt>(given, when, then, sothat_or_because)
+|As described in the main part of this wiki page.
+|-
+|<tt>MAKE_TEST_NAME</tt>(given,when,then) <br/> <tt>MAKE_TEST_NAME3</tt>(given,when,then)
+|As above, but for the case when you only want to provide the three clauses given when then.
+|-
+|<tt>MAKE_TEST_NAME2</tt>(clause1,clause2)
+|As above, but for the case when you only want to provide two clauses. When clause types are not explicitly defined, then the first is the WHEN clause and the second is the THEN clause. 
+|-
+|<tt>MAKE_TEST_NAME1</tt>(clause)
+|As above, but for the case when you only want to provide one clause. When the clause types is not explicitly defined, then it is the WHEN clause. 
+|-
+|-
+|}
+
+Macros extending the above basic macros:
+
+{| class="wikitable"
+|-
+|<tt>MAKE_DISABLED_TEST_NAME4</tt>(given,when,then,sothat_or_because)<br/>
+<tt>MAKE_DISABLED_TEST_NAME3</tt>(given,when,then)<br/>
+<tt>MAKE_DISABLED_TEST_NAME</tt>(given,when,then)<br/>
+<tt>MAKE_DISABLED_TEST_NAME2</tt>(clause1,clause2)<br/>
+<tt>MAKE_DISABLED_TEST_NAME1</tt>(clause)
+|As the basic macros, but marks the test as disabled, which is a gtest feature documented [http://code.google.com/p/googletest/wiki/AdvancedGuide#Temporarily_Disabling_Tests here].
+|-
+|<tt>MAKE_CHARACTERIZATION_TEST_NAME4</tt>(given,when,sothat_or_because)<br/>
+<tt>MAKE_CHARACTERIZATION_TEST_NAME3</tt>(given,when,then)<br/>
+<tt>MAKE_CHARACTERIZATION_TEST_NAME</tt>(given,when,then)<br/>
+<tt>MAKE_CHARACTERIZATION_TEST_NAME2</tt>(clause1,clause2)<br/>
+<tt>MAKE_CHARACTERIZATION_TEST_NAME1</tt>(clause)
+|As the basic macros, but marks the test as a [[Automated_Test#Characterization_Test|characterization test]].
+|-
+|<tt>MAKE_DISABLED_CHARACTERIZATION_TEST_NAME4</tt>(given,when,then,sothat_or_because)<br/>
+<tt>MAKE_DISABLED_CHARACTERIZATION_TEST_NAME3</tt>(given,when,then)<br/>
+<tt>MAKE_DISABLED_CHARACTERIZATION_TEST_NAME</tt>(given,when,then)<br/>
+<tt>MAKE_DISABLED_CHARACTERIZATION_TEST_NAME2</tt>(clause1,clause2)<br/>
+<tt>MAKE_DISABLED_CHARACTERIZATION_TEST_NAME1</tt>(clause)
+|As the basic macros, but marks the test as [http://code.google.com/p/googletest/wiki/AdvancedGuide#Temporarily_Disabling_Tests disabled]and as a [[Automated_Test#Characterization_Test|characterization test]].
+|-
+|}
+
+
+== TestDox ==
+
+Flori's tool testdox (copied the idea from [http://en.wikipedia.org/wiki/TestDox TestDox]) extracts the test names from the test source files and creates a nicely readable output. That output is a conveniently readable specification of the program / the UUT. Also the output of google test (i.e. Flori's modified variant) makes use of testdox. See above chapter [[#Explanation]] for an example.
+
+Mini how to: 
+* testdox current file: In MS Visual Studio, menu Tools / External Tools... press button Add. In the edit fields fill in: 
+:* Title:=testdox
+:* Command:=python.exe
+:* Arguments:=W:\DieBonder\PC\UnitTests\testdox\testdox $(ItemPath)
+:* Check box 'Use Output Window'. 
+: Press OK. When you now currently have a unittest2 source code file open, you can select menu Tools / testdox to get the nicely readable list of specifications defined by your test source code. 
+* testdox everything in UnitTest2 project associated with current project: Useful to see all the specifications for the productive code of the current project. That ''additionally'' also creates a testdox.html file in the UnitTest2 directory, which you might find even more convenient to read. 
+:Create a 2nd 'external tool' with the steps as in previous point, with the following things different:
+:* Title:=testdox all
+:* Command:=W:\DieBonder\PC\UnitTests\testdox\testdoxall.bat
+:* Arguments:= [i.e. leave empty]
+:* Initial directory:=$(ProjectDir)\..\UnitTest2
+:* To get the additional HTML output, you need to have [http://www.methods.co.nz/asciidoc/ AsciiDoc] installed (in <tt>C:\Program Files (x86)\asciidoc</tt>). You can download AsciiDoc from [http://sourceforge.net/projects/asciidoc/ here].
+
+You get a more detailed help by running '<tt>testdox --help</tt>' in the shell.
+
+
+== Benefits ==
+* The Given When Then DSL helps to think clearly about what the requirements of the feature I'm going to implement are. With the three parts Given When Then it is less likely to forget to think about an important part of the requirement. 
+* TDD together with enforcing to use the given-when-then DSL kindly forces one to really think about requirements before implementing them in productive code. And it enhances readability / maintainability for any reader to come.
+
+
+== FAQ ==
+
+;Where to state input
+:Whether input parameters belong into the GIVEN clause or the WHEN clause must be decided on a case by case basis. E.g. whether you say '<tt>GIVEN two equal strings, WHEN Equal is called, THEN it returns true</tt>' or '<tt>WHEN Equal is called WITH two equal strings, THEN it returns true</tt>' is a judgement call. When you choose to put them into the WHEN clause, separate the method name from the list of input parameters using the keyword <tt>[[#Keywords|_WITH_]]</tt>.
+
+
+== Origins ==
+
+The given-when-then-sothat DSL Flori uses for its unit test names has its origin in how commonly specifications are written at other test/specification levels: 
+
+;User story (scrum)
+:"As a ''<role>'' I want ''<goal/desire>'' So that ''<benefit>''"
+;Acceptance Tests
+:"Given ''<initial state>'' When ''<key action>'' Then ''<desired outcome/new state>''"
+;Unit Tests
+:"Test ..." or "Should ..."
+
+Historically test names began with "test". Dan North came up with the idea that test names should start with "Should" and should be whole sentences, see [http://dannorth.net/introducing-bdd/ introducing bdd]. The idea was that test names are really specifications. Flori took his idea further and uses a more expressive DSL to write such specifications - it overtook the given-when-then DSL which was already defined by acceptance tests. Flori additionaly also overtook the sothat clause from the DSL used by user stories. Implicitely Flori unit test names also overtook the 'As a' clause of the user story - its always implictely "As a software engineer". This is because unit tests are commonly defined that way. They are an instrument from the SW engineers for the SW engineers. So at the end, the DSL Flori uses for its test names which are really specifications is merging all the benefits of DSLs of other specification levels together.
+
+
+== Discussion ==
+
+Discussion left for the interested reader:
+
+In case you think having to write such a rather long given-when-then-sothat specification: I don't think it is additional time. You need to think about the specification of the productive code you are going to write anyway. So the additional typing time hardly is significant. And what is also important, you're thoughts are written down in prose, and are useful in all eternity for any future reader. You're thoughts in your head on the other side will vanish and at most remain hidden in ''your'' head, accessible to nobody.
+
+
+== See Also ==
+* [[Testing]] Parent level page with all the testing links

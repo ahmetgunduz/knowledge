@@ -1,0 +1,341 @@
+\documentclass{article}
+
+\begin{document}
+\author{Florian Kaufmann}
+\title{Ruby Summary}
+\date{\today}
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+
+\section{Structure of a Ruby program}
+
+\begin{verbatim}
+## RUBY
+## ---------------------------------------------------------------------------
+        
+RubyScript = Body;       
+
+## 1) Not exact because none of the LoopJmpExp are allowed
+Body = %simple#^1 BodyLoopJmp;
+
+## 1) Not exact because a \n doesn't terminate a statement if it's obviusly
+## incomplete, e.g. has a trailing binary operator.
+BodyLoopJmp = %simple#%1 ( (Exp|SpecialBlock) (\n|\;){l?} )*;     
+
+## 1) Not exact because of the LoopJmpExp only retry is allowed
+BodyRetry = %simple#^1 BodyLoopJmp;     
+            
+SpecialBlock = ('BEGIN | 'END) `{ Body `} ;
+              
+## Expressions / Operators
+## ---------------------------------------------------------------------------
+              
+Exp = DefExp | FlowCtrlExp | MethCallExp | OpExp | Term;
+
+OpExp = Exp BinOp Exp | UnPreOp Exp | Exp UnPostOp | TernaryOp;
+  
+## Similar to "if Bool then Exp else Exp end"
+TernaryOp = Bool `? Exp#IfTrue `: Exp#IfFalse ;
+  
+Term = `( Exp `) | GenDelInput | TermLit | TermMisc | ExtName;
+              
+BinOp = `; | ...;
+              
+%ruleprecedence =               
+              
+## 
+## ---------------------------------------------------------------------------
+Integer= Exp; ## responds to to_int
+String = Exp; ## responds to to_str
+Array  = Exp; ## responds to to_ary
+Hash   = Exp; ## responds to to_hash
+Symbol = Exp; ## responds to to_sym
+       
+Bool   = Exp; ## Exp is in boolean context       
+       
+Class  = Exp; ## of class Class
+       
+Regex  = Exp; ## of class Regex
+       
+## Flow control / error handling
+## ---------------------------------------------------------------------------
+## See also
+## - the ternary operator ?:   
+## - In ruby doc: Kernel.(catch|throw|raise|fail|exit|abort)
+        
+FlowCtrlExp = IfExp | UnlessExp | CaseExp | LoopExp | ModifiedExp |
+  BeginEndBlock | LoopJmpExp;   
+
+IfExp =
+  'if Bool Then Body 
+  ('elsif Bool Then Body)*
+  ['else Body ]
+  'end;
+  
+UnlessExp =  
+  'unless Bool Then Body
+  ['else Body]
+  'end;
+
+## Each comparision is tested against target with comparsion===target
+CaseExp =
+  'case Exp#Target
+  ('when Exp#Comparison Then Body)+
+  ['else Body]
+  'end;
+
+LoopExp =
+  ('while|'until) Bool Do BodyLoopJmp 'end |
+  
+  ## infinite loop. loop is actually an iterator
+  'loop CodeBlock0Arg#Body |
+  
+  ## Actually only syntax sugar for "(Exp).each do |CBArgs| Body end"
+  'for CBArgs 'in Exp#Collection Do BodyLoopJmp 'end;
+  
+ModifiedExp =
+  ## while/until: If the body is an BeginEndBlock, the test expression is only
+  ## evaluated after the body has been executed for the first time. Else, the
+  ## test expression is evaluated before a possible execution of the body.
+  Exp#Body ('if|'unless|'while|'until) Bool |
+  
+  ## Rescued are StandartError and its children
+  Exp 'rescue Exp;
+            
+## Not everywhere these keywords are allowed. See Body,BodyRetry,BodyLoopJmp
+LoopJmpExp =
+  'break [Arg]| ## continue at stmt following loop
+  'redo       | ## repeat loop from start, without condition/inc
+  'retry      | ## repeat loop from start, again evaluation condition
+  'next [Arg] ; ## skip to end of loop, i.e. start next iteration
+  
+  Arg = @\( Exp @\)?; ## Return value of block
+            
+BeginEndBlock = 'begin BodyWithErrorHandling 'end;
+        
+## See Kernel.raise how to raise exceptions
+## 1) When an excpetion is raised in code, the next 'enclosing' rescue is
+## searched, until one is found for which's parameter "parameter===$!" is true.
+## 2) If a Name is given after the param list, it is set to $!.
+BodyWithErrorHandling =
+  Body#Code
+  ['rescue#^1 RescueParamList [`=> Name]#^2 Then BodyRetry ]
+  ['else Body]    ## if no exception raised in code
+  ['ensure Body]; ## always
+            
+  RescueParamList = ( Class `, {l0} )*;
+  
+Then =  'then | `: | \n;
+
+Do = 'do | \: | \n;
+  
+## Literals
+## ---------------------------------------------------------------------------
+   
+%sidetree              
+Lit =
+  TermLit |
+  RangeLit | ## created using operators .. / ... 
+  RegexLit ; 
+
+TermLit = NumLit | StringLit | ArrayLit | HashLit | SymbolLit | BuiltinLit; 
+                       
+NumLit = IntLit | FloatLit | CharIntVal;
+
+IntLit %=
+  '[1-9][\_?(DecDigit\_{l0})+] | ## decimal based 
+  "0b"      (BinDigit\_{l0})*  | ## binary based 
+  "0"       (OctDigit\_{l0})*  | ## octal based 
+  "0x"      (HexDigit\_{l0})*  ; ## hex based 
+
+FloatLit %=
+  %simple
+  (DecDigitSeq |. \.DecDigitSeq) ["e"DecDigitSeq];
+              
+## The integer value of the given char
+CharIntVal %= \?(\\'[CM]\-)*\A;
+              
+## see also w/W quote, which are also sort of array literals
+ArrayLit = `[ ( exp `, {l?} )* `] ;
+             
+## The key obj must respond to the hash method
+HashLit = `{ Val `} | "Hash[" Val `] ;
+  Val = ( exp#key ( `, | `=> ) exp#value `, {l?} )*;        
+              
+## The start & end obj must be comparable with their <=> operator and must
+## support the succ method.             
+RangeLit = exp #start (`.. #EndExcl | `... #EndIncl ) exp #end; 
+
+## see also q/Q quote, which are also sort of string literals
+StringLit = SimpleStringLit | HereString |
+  SimpleStringLit SimpleStringLit#*implicit concatenation*#;
+              
+## See also GenDelInput
+SimpleStringLit %=              
+  %simple              
+  \' ... \'  | ## single quote
+  \" ... \"  ; ## double quote
+  
+## The following construct will be replaced by the here document. It the - is
+## present, the delimiter might be indented. If the delimiter is within quotes,
+## the here document is altered according to the respective quoting rules.
+HereString %= `<< `- ? (Identifier|SimpleStringLit)#del; 
+  
+SymbolLit %= `: Name; 
+  
+## see also the %r GenDelInput
+RegexLit %= `/ ... `/ Option*;   
+  Option = 'i #CaseInsensitive | 'o #SubstituteOnce | 'm #Multiline |
+    'x #ExtendedMode;
+  
+BuiltinLit =                       
+  'nil   | ## singleton instance of class NilClass
+  'false | ## singleton instance of class FalseClass
+  'true  | ## singleton instance of class TrueClass
+  '__FILE__ | ## name of current source file
+  '__LINE__;  ## the current line number in the source file
+  
+## General delimited input.
+## 1) Can spawn over newlines.
+GenDelInput =
+  %simple
+  \%(QuoteType|>'Q)QuoteDel ... #^1 ~~QuoteDel 
+  %exact              
+  ## ??? defaullt Q
+  %tok("%q" QuoteDel qBody ~~QuoteDel) |
+  %tok("%Q" QuoteDel QBody ~~QuoteDel) |
+  %tok("%w" QuoteDel wBody ~~QuoteDel) |
+  %tok("%W" QuoteDel WBody ~~QuoteDel) |
+  %tok("%r" QuoteDel rBody ~~QuoteDel) |
+  %tok("%x" QuoteDel xBody ~~QuoteDel) ;
+              
+## If ( { { < the closing delimiter is the matching delimiter, taking into
+## account nested delimiter pairs. Even spaces, newlines are allowed as
+## delimiter.
+QuoteDel %= \A;
+              
+QuoteType %=
+  'q | ## as string literal with single quotes
+  'Q | ## as string literal with double quotes
+  'w | ## Space separated word list -> array of strings. Space might be escaped with \.
+       ## Literal backslashes are \\
+  'W | ## Additionally, all the normal double-quoted string substitutions are
+       ## made.
+  'r | ## Regex Pattern
+  'x;  ## Shell Command 
+
+## Classes / Methods
+## ---------------------------------------------------------------------------
+
+DefExp = ClassDef | MethodDef;   
+   
+ClassDef =
+  'class ConstName (\N|\;)
+  ClassBody
+  'end;   
+   
+## Not exact because body may not contain class/module definitions. 
+MethodDef =
+  'def DefName MethodArgs (\N|\;)
+  %simple#^1 BodyWithErrorHandling %end
+  'end;
+          
+  ## convention is to use parantheses when there are parameters and leave them
+  ## away when there aren't any parameters 
+  MethodArgs = @\( Args |.<\,> ArgsWD |.<\,> Rest |.<\,> Proc @\)?;
+             
+  Args  = ( LocalName \,{l0} )+;
+  ArgsWD= ( LocalName `= Exp#Init \,{l0} )+;
+  Rest  = \*LocalName;
+  Proc  = \&LocalName;
+  
+## If Exp is given, it's a singleton method of the obj given by Exp's value.
+DefName = [Exp `. ]MethodName; 
+  
+MethodName = SimpleMethodName | OpName;
+
+OpName = `[] | `[]= | `** | `<< | `>> | `<= | `=> | `<=> | `== | `=== | `!= |
+  `=~ | `!~ | `+@ | `-@ | '[!~+\-*/%&\^|<>];
+  
+MethCallExp = ;  
+  
+CodeBlock = `{ CBArgsOuter Body `} | 'do CBArgsOuter BodyLoopJmp 'end; 
+ CBArgsOuter = [ `| CBArgs `| ];
+ 
+CBArgs = Args |.<\,> Rest;
+ Args = ( Name `, {l0} )+;
+ Rest = \*Name;
+              
+## Number of arguments the block will receive
+CodeBlock0Arg = Block;
+CodeBlock1Arg = Block;
+CodeBlock2Arg = Block;
+              
+## ???
+## ---------------------------------------------------------------------------
+ExtName =
+  Name  |
+  'self |
+  'super;
+              
+## Lexxer
+## ---------------------------------------------------------------------------
+        
+%patternprecedence = Keywords, Name, 
+        
+Keywords %= '__FILE__ | '__LINE__ | 'BEGIN | 'END | 'alias | 'and | 'begin |
+  'break | 'case | 'class | 'def | "defined?" | 'do | 'else | 'elsif | 'end |
+  'ensure | 'false | 'for | 'if | 'in | 'module | 'next | 'nil | 'not | 'or |
+  'redo | 'rescue | 'retry | 'return | 'self | 'super | 'then | 'true | 'undef |
+  'unless | 'until | 'when | 'while | 'yield;
+              
+Name %=
+  l n*        | ## local variable | wordsep _
+  N '[?!-]?   | ## simple method name | should start with lowercase
+  `@ N        | ## instance variable | start with l
+  `@@ N       | ## class variable | 
+  u n*        | ## constant, class, module. Constant use _ , others CamelCase.
+  `$ N        | ## global variable
+  `$ d        | ## standart global variable
+  `$ '[^\w\s] | ## dito
+  `$- n       ; ## dito
+ 
+  l %= '[a-z_];  ## lower case letter
+  u %= '[A-Z];   ## upper case letter
+  d %= '[0-9];   ## digit
+  n %= l|u|d;    ## name character
+  N %= (l|u) n*; ## name
+         
+DecDigit %= '[0-9];
+BinDigit %= '[01];
+OctDigit %= '[0-7];
+HexDigit %= '[0-9a-fA-F];
+         
+%discard         
+Comment %= `# \A*? $$;
+
+%discard         
+Docu %= $^ "=begin" \A*? $^ "=end" \A*? $$
+
+%discard         
+DataSection %= $^"__END__"$$ \A*? $';
+
+              
+            
+#* Todo:
+- ClassBody
+- catch (a Kernel method)
+- lambda
+- Kernel
+- Iterators
+- `` backquote (a Kernel method)
+- alias
+- yield
+- defined?
+- undef  
+- module *#
+\end{verbatim}
+
+\end{document}

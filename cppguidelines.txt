@@ -1,0 +1,682 @@
+Currently there is a discussion to modify these rather old [[Flori_SW#Guidelines|Flori SW Guidelines]]. These old rules stem from the old days of Flori when there where many not-so-experienced C++ developers. Also, the Flori global guidelines where quite general, and each MPS added its own more specific MPS-guidelines. Now with the collective code ownership introduced by scrum we need to have one single Flori global guideline so everybody conveniently can work with the complete code. On this page, everybody can post his opinion what you would add or modify or delete or whatever.
+
+
+== Purpose ==
+The following defines the purpose of the SW guidelines.
+* Common look and feel / uniformity. 
+** It is ''much'' easier to spot irregularities which really possibly indicate a bug. If everything is irregular, you don't see the irregularities anymore which ''should'' catch your attention.
+** Most people find it irritating if the something is named / formatted / commented / ... differently at different places. Most people find it conforting when it is always done the same way. In general there is no reason to not do it always the same way.
+* Define what is readable / maintainable. Everybody claims to want to have maintainable readable code. However which of two options is more readable is often a judgement call. So this guideline defines what the Flori projects finds more readable / maintainable and what less. This helps also in reviews or pair prograiming when the participants cannot agree upon what is more readable - the Flori guideline gives the ultimate answer what is more readable.
+
+Notable points which the guidelines should ''not'' do, or ''not'' talk about.
+* How to design. What principles / design patterns to use. Any level is meant: on a method scope and on a project scope. That is just a too large scope; if we want to do that, then we should put such things in a clearly separate document.
+
+== Corner stones of guidelines ==
+The concrete guidelines have to be based upon the following corner stones. They are ordered after priority, from highest to lowest
+
+=== Prio 1) No redundancy aka no duplication ===
+Redundancy is the primary enemy of a well-designed system. It represents additional work, additional risk, and additional unnecessary complexity. 
+
+Redundancy is to be avoided in every aspect, at all levels. E.g. that includes comments.
+
+=== Prio 2) Consistency is King. Local consistency over guidelines ===
+Don't introduce inconsistency into an otherwise consistent code. The order of priority, from highest to lowest: consistency within method, consistency within file, consistency within ms studio project, adhere to Flori guidelines
+
+
+See also:
+* The following gives the rational for the above statement: Chapter 'Background' (top of page) and 'Parting Words' (bottom of page) of [http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml Google C++ Style Guide]
+
+=== Prio 3) Definition of readable/maintainable code: when code reads like prose ===
+The goal is that the source code is almost already an English text in plain prose, with no additional distracting clutter. The more source code is readable like plain English prose, the better. This is because then the code is almost exactly how you think in your mind, and you don't have to make any transformations in your mind which take away thought energy.
+
+Readable/maintainable code has a rather high priority, since code is ''much'' more often read than written or modified. Also to be able to modify, naturally one first has to read and properly understand the code. Thus the time needed to write the code for the first time is almost irrelevant, since compared to the summed up time of that code fragment readings, the reading part will be much larger anyway.
+
+=== Prio 4) Properly use IDE instead making guidelines working around (apparent) problems in IDE ===
+Instead making guidelines to work around apparent problems of the IDEs, improve your knowledge on howto use the IDE, and/or improve / properly configure the IDE. By knowing how to use it properly, by configuring it properly, by enhancing it with addons from the Net or self written ones. By teaching people (pair programming, coding dojos, phasings, ...) how to use these features.
+
+An example is (I think), the misguided 'guideline' to write <tt>if (false == foo())</tt> instead the <tt>if (!foo())</tt>. That guideline has its root in the argument that the ! is easy to miss. But that is a problem of the editor / IDE not highlighting it for you! You should configure / enhance your editor so it does highlight such easy to miss important things. 
+
+Another example is trailing closing block braces ala <tt>} // end if</tt>. That is redundant!. Use the IDE to highlight / go to matching braces, or to collapse whole blocks.
+
+=== Prio 5) Make guidelines such that living them is feasible with our given tools ===
+A guideline which is hard to life with our given tools will consequently be ignored in daily life, just because it's a too big burden. However naturally we can customize / enhance our IDEs such that they support living a given guideline. 
+
+For example spacing / indentation guidelines should be such that they match how studio / iDev do automatic indention, (class, method, ...) template insertion etc. From that follows that possibly PC projects have different formatting guidelines than RTOS projects. Naturally we might customize the formatting settings of our IDEs to match our wishes.
+
+Implicitly that corner stones means that we ''do'' bind the guidelines to our current IDEs, opposed to trying to have the guidelines completely independent of whatever IDEs we currently use.
+
+=== Prio 6) Creativity & education over paternalism & restriction ===
+Guidelines shall ''not'' to patronize the SW engineers by restrictions and banning of certain constructs. Many guidelines exist because the inventors of the guideline were afraid our SW engineers don't understand certain constructs / concepts. But if that is really the case, it's better to educate. We do that by pair programming, code reviews, C++ training presentations, coding dojos, [https://github.com/bkleinen/CPPKoans koans], [http://en.wikipedia.org/wiki/Kata_%28programming%29 katas] etc.
+
+Every SW engineer following the 'last boy scout rule' will also refactor ill used constructs that he sees (which he do can easily also thanks to unit tests). Thank's to Git blame, he can also remind the author of the ill used construct and show him the more elegant solution.
+
+Many constructs / ideas make the code better readable and maintainable - naturally ''if'' properly used. But almost anything can be ill used - one can write horrible statements with simple operators such as = + -. Certainly there have been bugs in connection with say the break statement - but there also have been bugs with improper use of ++ or even more simple things such as + - =. And just because of that we don't prohibit using ++ + - = etc.
+
+The terms 'creativity' is meant in the sense of 'a good appropriate solution' which is conform with other guidelines. It is not meant in the sense 'everybody can do what he wants without caring about conformity'.
+
+== Header files ==
+
+=== Self contained header files for reusability ===
+Each file (.cpp or .h) must be self contained. It must #include, #import, forward declare ''everything'' it uses. Being self contained is important so that file can easily be reused in another project. Typically each file is used in at least two projects: the main project and its associated unittest2 project.
+
+=== Order of includes ===
+From near to far. I.e. first from own project, then from other Flori projects, then from 3rd party libraries, then from system libraries. Rational: That helps to reduce the chance of having the unwanted case that a file is accidentaly not self contained but currently by chance still compiles, because it got the indentifiers from earlier #includes.
+
+=== Stdafx.h ===
+Stdafx.h's purpose is to speed up compilation time. Each file in the project still has to #include / #import / forward declare everything it uses. It's not stdafx's purpose not having to do that. Exception: files which are really Flori globally used by virtually every file: ProjectFlori.h and gtest.h/FloriGMock.h for unittest2 projects.
+
+May only contain #includes, #imports, forward declarations. Everything else, #defines, typedefs etc must go into other header files.
+
+Rational: self contained header files, see corresponding point.
+
+== Comments ==
+
+=== Corner stone: no redundancy over extensive documentation ===
+If the code is already self explaining, see next point, adding comments would be redundant since it just repeats what the code already says without adding anything new. 
+
+Extensive documentation is redundant to the code and additionally redundant within itself, since the same thing is explained multiple times, each time from a slightly different angle.
+
+It's true that widely used APIs (Java, .Net, ...) mostly are quite extensive. Each identifier (class, method, member ...) has a brief part ''and'' a rather long detail part ''and'' detailed \param \return parts. ''If'' all that information I read as a reader is true, then the redundancy is admitingly a good thing. Humans learn by repetition, and by getting explained the same thing from different angles, and by getting a lot of examples. Such extensive documentation gives a sense of security that I as a reader truly understand what the method does or the variable/class is for. 
+
+But those benefits come at a very high cost: For the maintainers of such documentation it is a nightmare to keep all that redundant information consistent. Note the point, maintaining is the problem, not so much writting the docu for the first time. When changing code / docu it needs people reviewing the change to check the docu is consistent within itself wand with the code, and it's likely that every now and then there is a 'documentation bugfix'.
+
+If the maintainers fail updating a comment at all or not at all places corretly, then we have the worst case: Comments which lie at the reader. This is in general worse than having no comment at all. The reader will draw wrong conclusions, use it incorrectly, resulting in bugs, it may take some time until discovering that the docu was lying. In such a case there are hight costs for the bug hunt. And unless a lot of effort is invested in correctly maintaining the docu, it will happen that the docu is lying a not neglectible amount of times.
+
+For nearly all methods in the Flori project that effort of ''properly'' maintaining correct consistent docu / comments is not worth it, and rendundancy-free has a ''much'' higher priority. Unless we have a ''much'' better review culture, I have a near zero confidence that in practice over time docu / comments with already only little redundancy are always kept up to date with the code and within itself.
+
+=== Corner stone: Self explaining code doesn't need comments ===
+It shall be the goal towards which we strive, even though we may often do not achieve it in practice: truly 'geiler' code is readable like English prose, is totally self explaining, and thus ''truly'' doesn't need comments. 
+
+The need for a comment is actually a code smell. It is a sign that the code sadly is not self explaining enough. 
+
+Stated a bit provokatively: the general attitude should be ''much'' closer to "comments are code smells", opposed to having an attidue towards "comments inherently make code readable and everything should be commented". 
+
+Refactor before you comment. So if you feel that the current code is not easily understandable and should be amended by a comment, first try to refactor / rename the code such that it becomes easily understandable and truly doesn't need to be amended with a comment.
+
+=== Corner stone: Only state valuable information, no non-information (aka code repetition aka redundancy) ===
+A comment states only valuable information which the reader cannot easily find out by himself by just quickly looking at the code.
+
+The opposite is non-information, i.e. simple (code) repetition. Non-information is essentially the same as our hatred redundancy. Don't comment facts that the reader easily can find out himself by just quickly looking at the code. The reader is a programmer, she knows that ++foo increments foo by one. She knows that GetName() gets the name.
+
+As always with redundancy, bad comments only containing non-information, are much more prone to become outdated, no longer matching the code, and thus lying, which is a horrible thing.
+
+Bad comments are ''worse'' than no comment at all. Because they are / can be misleading, lying, add just clutter of non-information and thus (being clutter) reduce readability. When an area of code has many bad comments, then even the good ones are not trusted or not read anymore, since experience tells the reader that this particular area has only crap comments.
+
+=== Document one single idea only once ===
+No redundancy: If exactly the same idea occurs at multiple places (see following examples), only document one place, all other places just referring (e.g. using Doxygen's <tt>\see</tt>) to that one place. 
+* set of overloaded methods. 
+* set of overritten methods. iDev helps nicely in marking methods which overwrite a virtual method or implement an abstract method, and it also helps in jumping to the source place, i.e. to the place where the documentation is (assuming only the root method is documented). For MS Studio I don't know.
+* set of methods delegating to the next (e.g. idl, coclass, ao, rtosbase, rtosmodule, i-rtosmodule, actual implementation, ...)
+* setter, getter, member variable
+
+I personally feel really bad about such redundant comments: I have virtually ''zero'' confidence that they still match and still tell exactly the same thing. And that urges me  having to check that the comments still match by doing a diff on only the comments (which is possible with EMACS, but not with any other IDE I know - so I wonder what all the other people do when they are confronted with two redundant comment blocks). And I really hate to do that work of doing a diff - but what other option do I have?!
+
+If an counter argument is that it is not feasible to easily go to the one place actually having the documentation with our IDEs, then lets first try to make it happen. Maybe the IDEs already have some (hidden) support, or there are tools/plugins on the net, or we write our own.
+
+=== Don't document what a method does at caller side ===
+No redundancy. Commenting at the caller side what the called method does is redundant as hell! That should be documented in one single place, the method's documentation. There are N calls, doing it at every call is N-times redundant! Arghhh! See also next point.
+
+If you still think the calling code is not understandable enough, then its very likely that you should rename the called method and/or change the parameter list of that method.
+
+Use your IDE to quickly see the documentation and the signature of a called method.
+
+=== Don't document arguments at the caller side ===
+No redundancy. Sometimes on the callerside we feel that it's hard to understand what an argument means. So instead <tt>foo(true)</tt> it is amended with a comment like <tt>foo(/*is_new=*/true)</tt>. That is redundant to the declaration / documentation of the method. If every caller of N caller does that, you have N-fold redundancy! See also above point.
+
+* Design your method's signature so it is easy readable and understandable at the caller side
+** Avoid bools unless its abvious at caller side what 'true' or 'false' means. Use enumerations instead.
+* Use your IDE to get a glimps (e.g. in a tooltip or in a small box somewhere) 
+** on the signature of the method, which contains the parameter names which gives you a hint on what the parameter is for
+** on the methdos documentation documenting all parameters
+
+
+=== Classes shall ''no longer'' have the <tt>collaborators responsibilities</tt> sections  ===
+No redundancy. The class comment template is just 
+
+<pre>
+/** Brief description. 
+
+Detailed description.
+
+\ingroup MyGroup */
+</pre>
+
+* Responsibilities: The brief and the detailed part of the comment shall already talk about the responsibilities of a class. On what else can they talk? The responsibility of a class is what makes a class up. Thus an additional responsibilities section is almost always redundant.
+* Collaborators: Is redundant to the class' declaration which already contains all collaborators aka associations. Again, truly noteworthy collaborators are allready mentioned in the brief and detailed part.
+* Actual purpose of CRC cards: The origins of responsibilities and collaborators sections lie in CRC cards. But CRC cards are intended to be a communication and sketch tool ''during'' a collaborative design phase. The CRC way of structuring information is ''not'' meant for documenting existing / 'finished' classes / design.
+
+The current guideline has proven to be a flop:
+* Currently these sections are there, but extremely often empty, which is just ugly distracting clutter. Better nothing than such clutter.
+* Currently ''if'' the sections are non-empty, they almost always contain non-information, i.e. information that is trivial to find out by looking at the code and thus doesn't has any value.
+* And even ''if'' the above two points are ok, then almost certainly the sections are redundant to the brief / detailed part.
+* So at the bottom line, there is almost no class comment making proper use of collaborators / responsibilities sections.
+
+=== Use <tt>\brief \return \param</tt> etc only when it really adds valuable information ===
+No redundancy. The Doxygen comment template is just a simple <tt>/** Brief description. Detailed description. */</tt>. 
+* Only use <tt>\brief</tt> when you really mean to. Everything up to the first dot is already brief. Everything after is the detailed part. Thus unless you really want multi sentence brief part, \brief is redundant. Note that a multi sentence brief also hardly makes sense - it's not brief anymore, is it?
+* Only use <tt>\param</tt> when you really mean to. Usually the brief part, or at least the detailed part already talk about the method's parameters, referring to them by their identifier. Thus often using <tt>\param</tt> only leads to redundancy. Thus only use <tt>\param</tt> if you really feel you indeed can add valuable information without being too redundant.
+* Don't use the parameter attributes <tt>[in] [out]</tt> etc. That is redundant to the naming prefix of our identifiers (i_ for input, o_ for output, x_ for in-out).
+* Only use <tt>\return</tt> when you really mean to. 
+** As with <tt>\param</tt>, usually the brief or detailed part already talk about the return value, so writing it again in an additional \return section is redundant.
+** For methods returning an standard case EHRESULT, there is no sense talking about it, everybody knows how EHRESULT works and that S_OK means success. That is just non-information. Just leave the <tt>\return</tt> section completely away.
+** For methods returning actual information, i.e. not some error info, try writing a the brief part of the Doxygen method comment starting with '/** Returns ...' and no additional \return section.
+
+It's true that widely used APIs (Java, .Net, ...) mostly do have a brief part ''and'' a rather long detail part ''and'' detailed \param \return parts. See my thoughts in a subchapter somewhere above talking about why in the Flori project no redundancy has a higher priority than extensive documentation.
+
+=== Use indicative verbs / Tell what name does/provides from names's perspective ===
+Comments shall use indicative verbs in 3rd person (Does, returns, moves, ...). Note that this is different from command method names, which should use imperative verbs (Do, Move, ...). See also naming guidelines.
+
+That implicitly means that you should describe what the name (e.g. method) does / provides from the perspective of the name. I.e. don't comment like "To move...", "To get ...".
+
+=== No comments ala '// end if' behind a closing block brace ===
+No redundancy. The source code already says exactly what the comment redundantly adds. For normally long blocks, it's easy to spot the matching brace anyway. For long blocks - well don't write long blocks. And if you still have to deal with a long block, use your IDE to highlight or go to the matching brace or to (temporarily) collapse the block. Such comments are ugly ''redundancy'', they clutter code with distracting non-information.
+
+=== Javadoc style (<tt>/** \keyword</tt>) Doxygen comment syntax ===
+Uniformity. Don't use other syntaxes such as e.g. Qt style <tt>/*! @keyword</tt>
+
+=== Markdown syntax (_emphasis_) for formatting in Doxygen comments ===
+Uniformity & readability. Use the [http://www.doxygen.nl/markdown.html Markdown] markup language to format Doxygen comments with emphasis text, strong text, code text, tables, chapters, pictures, links etc etc.
+<pre>
+It is _very_ important that you read that *important* table
+| Right | Center | Left  |
+|------:|:------:|:------|
+| 10    | 10     | 10    |
+| 1000  | 1000   | 1000  |
+</pre>
+
+Instead the outdated Doxygen keywords and HTML tags ala
+<pre>
+It is \e very important that you read that \b important table
+<table>
+<tr><th>Right</th>...</tr>
+<tr>...</tr>
+...
+</table>
+</pre>
+
+The Markdown syntax generally leads to better readable comments than the old Doxygen keywords / HTML tag syntax.
+
+=== No file header comment / banner [already confimed] ===
+[Already confirmed by HKO, i.e. this guideline is in effect already now]
+
+File header comments / banners such as the follwing do not add any valuable information. They just clutter the code and should thus be omitted.
+<pre>
+//..begin "File Description"
+/*--------------------------------------------------------------------------------*
+   Company    : Flori SA, Hinterbergstrasse 32, CH 6330 Cham
+   Copyright © 2000-2003 Flori SA
+  --------------------------------------------------------------------------------*
+   Tool       : objectiF 4.7, FloriCodeSSvr V1.3.79
+   Description:
+ *--------------------------------------------------------------------------------*/
+//..end "File Description"
+</pre>
+
+
+=== No ObjectiF comments (//.. begin "UTF...") [already confimed] ===
+[Already confirmed by HKO, i.e. this guideline is in effect already now]
+
+We will drop ObjectiF. Thus the comments needed by Objectif which look like <tt>//..begin "UTF..."</tt> and <tt>//..end "UTF..."</tt> respectively should no longer be used. They contain no information (to us humans) and thus just clutter the code.
+
+=== Section banner comments ===
+Only use section banner if they really help the reader to get a better overview. Note that unless our IDE recognizes such a banner, they are almost worthless. In a small file, you implicitely have an overview because it is a small file. In a large file - well don't have large files, but if you do nevertheless - these sections ''only'' help if the IDE supports collapsing the code inbetween them. 
+
+Example what I mean with a section banner comment
+<pre>
+////////////////////////////////////////////////
+// construction / destruction
+////////////////////////////////////////////////
+</pre>
+
+=== No comments ala /** constructor */ or /** destructor */ ===
+No non-information. Every programmer can instanteniously see that a method is a ctor or dtor by quickly glancing at the code. Such comments are just distracting clutter. 
+
+If an argument for such comments is a whish to highlight ctors/dtors somehow, then the answer is: Let's configure the IDE such that ctors/dtors are highlighted using colors/fonts(most probably by using the syntax highlightening preferences).
+
+
+=== No empty comments [already confirmed] ===
+[Already confirmed by HKO, i.e. this guideline is in effect already now]
+
+No non-information. An empty comment is just distracting clutter.
+
+If an argument for empty comments is that always having a comment helps to spot a method/member declaration/definition, then the answer is: Let's configure the IDE such that these declarations/definitions are highlighted (most probably by using the syntax highlightening preferences).
+
+=== No * borderlines at beginning and/or end of block comment lines ===
+
+Some people / projects like to ammend comment blocks with * like this
+
+<pre>
+/* Lorem ipsum dolor sit amet, consectetur adipisicing elit, 
+ * sed do eiusmod tempor incididunt ut labore et dolore magna 
+ * aliqua. Ut enim ad minim veniam, quis nostrud exercitation 
+ * ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+ */
+</pre>
+
+That stems from the time when IDEs could't highlight comment blocks and it thus helped to spot comments more easely. Nowadays they are superfluous. They are now needless clutter. Depending on the IDE they also make writing comments a bit more cumbersome.
+
+
+=== Comment if / else / for / ... clauses ''befor'' clause ===
+
+Make clear to which statements a comment applies. Thus it should be 
+
+<pre>
+// Lorem ipsum dolor sit amet
+if (...) {
+  ...
+  ...
+  ...
+  
+  // Ut enim ad minim veniam
+  ...
+  ...
+  ...
+} 
+// consectetur adipisicing elit
+else {
+  ...
+}
+</pre>
+
+opposed to
+
+<pre>
+if (...) {
+  // Lorem ipsum dolor sit amet
+  ...
+  ...
+  ...
+
+  // Ut enim ad minim veniam
+  ...
+  ...
+  ...
+} 
+else {
+  // consectetur adipisicing elit
+  ...
+}
+</pre>
+
+The reason is that it is then clear to which fragment of code the comment applies. In the 2nd variant, if say the if clause has many statements, grouped with blank lines, does the comment apply to the whole clause or only to the first block of statements delimited by a blank line?
+
+When a rather long sequence of statements has to be commented which is itself grouped into blank line delimited groups, consider introducing a block, to make clear that the comment applies to the whole block.
+<pre>
+...
+
+// Lorem ipsum dolor sit amet
+{
+  ...
+  ...
+
+  ...
+  ...
+  ...
+
+  // Ut enim ad minim veniam
+  ...
+  ...
+}
+
+...
+</pre>
+
+== Naming ==
+
+=== Goal: (Calling) code becomes readable like prose ===
+Really, the corner stone for easy readable code are good names. Good names are ''very very'' important. With good names, and other things in addition, the code can be read like plain English prose.
+
+Judge the quality of a name ...
+* ... by reading code that calls / references that name. That calling code should read like English prose and feel good. I.e. the name should feel good from the caller perspective (occuring N times). That perspective is more important than the definition / declaration perspective (occuring only once).
+* ... by thinking about the comment the declaration needs. If it truly doesn't need a comment, that is a very good sign. If it needs a comment, all (sub)words of the name should also appear the in the brief part of the comment. It doesn't make sense that the name (which is like an extremely brief comment) uses other words than the brief comment.
+
+=== Be consistent: the same thing is named always ''exactly'' the same ===
+Naturally the base name is meant what should be consistent. Our Flori prefixes <tt>m_f</tt> etc are not taken into account.
+
+* E.g. whenever a name refers to the 'needle foil height', exactly the string 'NeedleFoilHeight' is the base name of all names. E.g. ''not'' NeFoilHeight on the IDL, FoilHeightNeedle on the AO, FoilNeedleSurface on the inco tree.
+* Similarly, a notable often seen point concerning our often seen classes AO, InterfaceContainer, RTOSBase: A method or a member reference/pointer to the components own AO is named exactly the same. E.g when there is PPSeqAO, then it's CMyClass::m_pAO, not CMyClass::m_pActiveObject. When its CPPSeqRTOSBase, then it's CMyClass::RTOSBase(), not CMyClass::BaseRTOS().
+* When there is a set of ideas which are similar, but not identical, choose the names such that each name has a part which is always exactly the same to emphasis the similar part, and the rest of the individual names make clear what the difference is. E.g. all the following is about different positions of the needle, thus the common part which is always exactly the same is 'NeedlePos':  ActualNeedlePos, NeedlePosDuringProcess, NeedlePosDuringProcessMax, NeedlePosDuringProcessMin.
+
+Why should you name the same thing differently? Either it is a good name or it isn't. Choose the good / best name everywhere. When you come up with a better name, do not just use the new better name for new identifiers, rename the old identifiers as well.
+
+When quite different names are synonymous, that forces the poor reader to have a table in mind. E.g. say {lorem, bar, fred} are synonyms, and { ipsum, foo, bob } are synonyms. When ever the reader sees such a name, hes thought energy is drained by being forced to first remember the lookuptable and second lookup the identifier in the table in his mind.
+
+This guideline also makes renamings much more feasible. With an simple interactive text search replace you can rename all names having to do with e.g. NeedleFoilHeight to NeedleFoilSurfaceHeight. In pick place where we adhere to this guideline, I had in 7 years no problem with such simple text renamings, and I do rename often.
+
+=== Flori specific names / abbreviation ===
+This chapter makes the last general guideline concrete for often seen Flori names. The point is global consistency, not that we take exactly the following names. The following list is just a proposal.
+
+Since these are Flori global names, and virtually every MPS / component uses them, and they are used very often throughout the code, I strongly advice to use the abbreviated form. The disadvantage of abbreviations is that readers might not know what the abbreviation means; but in this case that is hardly an argument. Every new SW engineer in the Flori project will know what these abbreviations mean after only say 2 3 hours working in the code for the rest of his Flori membership. So the costs endure only during 2 3 hours per person in his whole Flori career. However the the advantage of abbreviations, shorter code, more oversight, more sight on the really important stuff pays for the rest of the Flori career, say a couple of years. So to me its clear when I compare 2 3 hours costs to a couple of years benefit!
+
+* Mod, not module
+* Seq, not sequencer
+* Crd, not coordinator
+* AO, not ActiveObject
+* Ifc, not InterfaceContainer
+* RTOSBase
+* RT, RTOS
+
+=== McOverall Package/File/Class Prefixes ===
+New guidelines for prefixes of McOverall projects, files and classes (all files/classes or only exported ones?).
+Naming Guideline extensions:
+Naming of McOverall project groups:
+* The following prefixes are defined for the projects, files and classes <br> [[image:ATComponentPrefix1.png]]
+
+Naming of Services projects:
+* Classes, Files and Projects from Services have the prefix SE<CamelCaseOfProject><ProjName>
+* Because Services have many projects it has special prefixes for some projects (also because of effort on changing them)  
+* CalibrationService, ConfigMgr and TeachService(Type) are not to change yet because it is not yet defined if they are moved to the Controllers <br> [[image:ATComponentPrefix2.png]]
+* Naming of RTOS interface dependent projects -> SERT (also FloriINCO, FloriSlaveLib)
+* May remove “Flori” in names (-> Flori..)
+* Definition starting now for (all?) new files, projects and classes. Prio have projects that export header files: When changing folder -> then change at least also project
+* RTOSExport also prefix, e.g. SEExp, PPExp?
+
+=== Use the MPS-component prefix only for names in global scope ===
+No redundancy: Use the MPS-component prefix (PPBAMod, PPSeq, ...) only for names in the global scope. The purpose of these prefixes is a pseudo namespace, since the Flori project does not use proper C++ namespaces. So when inside a class, it makes absolutely no sense to have again these prefixes, that is redundant and clutters the code with non-information.
+
+So it's PPBAMod::MoveBAX, not PPBAMod::PPBAMoveBAX or PPBAMod::PPMoveBAX. It's PPBAMyClass::m_pAO, not PPBAMyClass::m_pPPBAModAO.
+
+=== Query methods with no arg should be named like the variable they represent ===
+A query method which takes no arguments (see chapter above) shall should be named like the variable they represent. I.e. it shall ''not'' have a Get prefix. Rational: better OO due to better abstraction.
+
+Why is it better abstraction? A (const) query method and a member variable should be indistinguishable from the caller view of point. The caller should not care if he references a variable or a method. In pure OO languages, which C++ or Java are ''not'', that is implicitly the case. In C++, that is not really possible (a method call has parenthesis, a variable reference has not), by at least we can approximate it by having the same rule for the names.
+
+Note that also libraries like STL adhere to this rule. E.g. its std::string::length(), not std::string::getlength(). Same for size(), begin(), end() etc.
+
+=== Commands should be named beginning with an imperative verb ===
+Commands/action (i.e. a method that has side effects, but does not return information other than error info) should be named beginning with an [http://en.wikipedia.org/wiki/Grammatical_mood#Imperative imperative] verb (opposed to e.g. an [http://en.wikipedia.org/wiki/Grammatical_mood#Indicative indicative] verb). The emphasis is that the code can be read like English prose from the caller perspective, not from the callee perspective (i.e. definition / declaration).
+
+=== Enumeration type names are nouns in singular ===
+The name shall look good from the caller perspetive. So its "enum EColor { ... };", not "enum EColors { ... };". Because on the client side, "EColor eShapeColor;" feels better than "EColors eShapeColor;", since eShapeColor represents one single color, i.e. its type is one single color, not multiple colors.
+
+=== Collection object names are nouns in plural ===
+For example "std::list<...> Names;". This is brief and feels natural in client code, e.g. "for (auto& Name : Names) {....}". 
+
+Don't embed the type of the collection into the object name. So we dont't want "std::list<...> NameList;". This is too much redundancy.
+
+A noun in singular ''and'' no reference to the collection type is worst, so we definitely don't want "std::list<...> Name;". The object name should have at least some hint that it is about multiple things opposed to one single thing.
+
+== Formatting ==
+
+=== Soft limit for column width (aka line length) is 80 ===
+
+* It's just a human ergonomic fact that the eyes & brain start to stumble when lines get too long. E.g. the eye looses the current line, and/or when it is at the end of the current line, its not absolutely easiy to continue at the correct next line. That's why good typesetted books in general don't have lines longer than ca 70 characters. 
+* That's the world wide standard, why change it? I have never seen any trustworthy book or paper that proposes a max with of more than 100. 
+* We want to be able to have two files side by side. 
+** E.g. for diffs, e.g. in Git. It is in our line goals that we want to make more code reviews. A code review is more feasible if you easily can look at the diff. A diff is more easily understood if the files are side by side with graphical diff annotations. that we do more reviews that becomes more important. 
+** Also you can have e.g. header and source file side by side. 
+* Code with too long lines can't conveniently be read on a print out. 
+* An argument for long lines is that it makes methods shorter which is considered a good thing. But that misses the point of the advice 'have short methods'. That advice is about not doing too much, not having too much information in one method. It's no use packing 100 lines of 80 column code into 30 lines just to satisfy the criterion 'have short methods'.
+* Notable exceptions are environments where there is nearly no inteligence, only repetition. E.g. in classes only delegating calls, like e.g. the CoClass or the AO, or the sections where phf items and hmi keys are initialized and registered respectively. There I would but the whole method signature on one (long) line, a each call on one (long) line.
+
+* (axb) I do not agree: Points against this
+** (FLKA) All my points condenced: I don't indent to 'fight' hard over this guideline. As you said, the current guideline is a soft limit of 100 and I am fine with that.
+** 16:9 is ergonomic for the eyes thats why we have 16:9 monitors today
+*** (flka) Yes, it's true for 'overall-information'. Pictures, movies, ...
+** If you read a book with only one textcolor, I aggree on 70 chars. But we have color coding which separates the line of code into viewable sections. I think the comparison with the book lacks.
+*** (FLKA) Yes, the parts of a single line are visually seperated by syntax highlightening. Still my point is that when the eyes have reached the end of a 200 char column, then the eyes & brain will have troubles finding the beginning of the next line. Even more so if most lines are 200 chars long. 
+** I have not printed code since a very long time. With all our IDEs and tool this is not necessary any more.
+*** (FLKA) I agree in essence. I do print every once and then, but indeed very seldom.
+** If I do code comparison I do it on two monitors. That leave enough space for two files with long lines.
+*** (FLKA) Then you always have to extend the size of the diff tool (in our case mostly smartgit) over two monitors. I find this akward in generall - the toolbar and the menubar is split by the monitor boundary at an arbitrary place. With smartgit you do not only do diffs. So all the other information on the smartgit window is also split by the monitor boundary.
+** Somtimes if the name are readable (long) I have the break the code line at a virtual border and make it more 'unreadable' only to fulfill this guideline. The intention was never to shorten the methods but to have readable code.
+*** (FLKA) In my opinion this is exactly an example why too long named are ''not'' readable anymore. I know that in this one single point I disagree with most guidelines I have ever seen. But this is another topic :-)
+** From beginning we had the recommendation of line length 100 and it worked fine until now
+*** (FLKA) Sorry, mistake from my side. I thought we haven't one, because I don't feel that 100-column-guideline when I look at our code. But I don't care about 80 or 100, 100 is good to me.
+** Even 120 would be no problem (or 140 if you have a special case and you would have to unnaturally have to break your code line)
+*** (FLKA) As so often, it is not a black/white thing. There is no perfect max line lenght. In my opinion, for the above reasons, the longter the line the worse the ratio advantages to disadvantages. 
+
+IDE support:
+* MS Studio: [http://visualstudiogallery.msdn.microsoft.com/d0d33361-18e2-46c0-8ff2-4adea1e34fef/ Productivity Power Tools] Column Guides: right click into the editor window at the column where the column guide should be and choose "Guidelines/Add Guideline"
+
+See also:
+* [http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml#Line_Length Line Length] in Google C++ Style Guide
+** (axb) There they say its is controversial and they mostly do it so that their developers do not have to resize their windows and that they are consistent with their old code. <br>Extract: ''We recognize that this rule is controversial, but so much existing code already adheres to it, and we feel that consistency is important.''
+
+=== Indentation rules such that the line length limit is almost never hit ===
+
+E.g. if we would have the rule that argument list starts in column after opening brace, then the resulting line length can be very long:
+
+<pre>
+virtual const MyVeryVeryLongReturnType& MyLonLongMethodName(const MyLongLongType i_foo1 = "default argument 1",
+                                                            const MyLongLongType i_foo2 = "default argument 2",
+                                                            ...
+</pre>																		
+
+
+That can not happen, or at least much less frequently, when the argument list starts 1 level intended relative to the start of the initial line.
+
+<pre>
+virtual const MyVeryVeryLongReturnType& MyLonLongMethodName(
+  const MyLongLongType i_foo1 = "default argument 1",
+  const MyLongLongType i_foo2 = "default argument 2",
+  ...
+</pre>
+
+* (axb, vadz) Because if you always break the parameters the the new line code is not as readable. Therefore, proposal for a more readable code: As long as the line length is not hit you can have all arguments on the same line. But when it would hit it your have to do like proposed above break all parameters to new lines.
+
+
+A proposal meeting all the above points could be: 'fill' up to the soft limit, with the 2nd+ lines indendet by 1, like so:
+<pre>
+virtual const MyVeryVeryLongReturnType& MyLonLongMethodName( int foo0,
+  const MyLongLongType i_foo1 = "default argument 1", int foo2, int foo3, 
+  MyCoolType foo4, const MyLongLongType i_foo2 = "default argument 2", 
+  int foo5, ... )
+</pre>
+
+* Notable exceptions are environments where there is nearly no inteligence, only repetition. E.g. in classes only delegating calls, like e.g. the CoClass or the AO, or the sections where phf items and hmi keys are initialized and registered respectively. There I would but the whole method signature on one (long) line, a each call on one (long) line.
+
+== Misc ==
+																
+=== A method is ''either'' a query ''or'' a command / action ===
+Each method is either of the following. It is very bad style to have a method which does both things at the same time.
+* A query: does only return an answer but does not change state, i.e. does ''not'' have [http://en.wikipedia.org/wiki/Side_effect_%28computer_science%29 side effects]. In C++ terms, it should then be qualified as <tt>const</tt> method.
+* A command aka action: does change state, i.e. has [http://en.wikipedia.org/wiki/Side_effect_%28computer_science%29 side effects], but does not return an answer other than error-information
+
+
+=== Use auto to abbreviate long type names ===
+Prefer making use of C++11's keyword auto opposed to explicitely write the type.
+
+Thus it is <code>for ( auto iter = collection.begin(); ... )</code> opposed to <code>for ( std::unordered_multimap<std::pair<MyVeryLongKeyTypeName,MyVeryLongValueTypeName>>::iterator iter = collection.begin(); ...)</code>
+
+Rational: Better readability since there is less text to read. Use your IDE to see the type of the collection and / or iterator. It is not really about redundancy: stating the type again is partly redundant (you still can add const and/or add &), but any problems that arise from that redundancy are catched by the compiler since C++ is type safe.
+
+FLKA: I wrote this, but I have to confess I am not really sure how to write the guideline:
+* I think for long types it definitly should be a guideline. However for short / simple types we should not do it. E.g. the guideline should not command us to write <code>int i = 0; auto i2 = i;</code>. 
+* From my personal experience making typedefs doesn't help much. On one side they enhance readabily since they introduce a shorter alias, on the other hand then I have yet another new name I have to know about. But then again I maybe should follow my own guideline corner stone 'use your IDE': Yes there is a new type name, and if I don't know what it is, I should use the IDE to quickly tell me how that type is defined, e.g. by hoovering the mouse over it.
+
+=== Early returns are better than complicated nested constructs ===
+The less clutter code contains, the more readable it is. Eearly returns result in code which is more natural and has less deeply nested constructs, which in general enhances readability. Early returns are only a burden, if the reader always expects strictly sequentially code and expects that the end of the function is always reached - so the cure is to never expect that - as a reader always know that controll flow can jump out of the function or the loop.
+
+A common pattern is an early return at the beginning of the method which aborts if there's nothing todo:
+
+Good:
+<pre>
+void foo() 
+{
+  if ( NothingTodo() ) {
+    return;
+  }
+  ...
+  ... long code with further conditionals / loops ...
+  ...
+}
+</pre>
+
+Bad:
+<pre>
+void foo() 
+{
+  if ( ! NothingTodo() ) {
+    ...
+    ... long code with further conditionals / loops ...
+    ...
+  }
+}
+</pre>
+
+
+Another common example is a sequence of standart EHRESULT method calls.
+Good:
+<pre>
+EHRESULT foo() 
+{
+  EHRESULT ehr;
+  ehr += foo1();
+  ERETURN_IF_FAILED();
+  ehr += foo2();
+  ERETURN_IF_FAILED();
+  if (...) {
+    ehr += foo3();
+    ERETURN_IF_FAILED();
+  }
+  return ehr;
+}
+</pre>
+
+Bad:
+<pre>
+EHRESULT foo() 
+{
+  EHRESULT ehr;
+  ehr += foo1();
+  if ( S_OK!=ehr ) {
+    ehr += foo2();
+  }
+  if ( ... ) {
+    if ( S_OK != ehr ) {
+      ehr += foo3();
+    }
+  }
+  return ehr;
+}
+</pre>
+
+(axb) Also good?! (without early return possible!)
+<pre>
+EHRESULT foo() 
+{
+  try {
+    EHRESULT ehr;
+    ehr += foo1();
+    ETHROW_IF_FAILED(ehr);
+    ehr += foo2();
+    ETHROW_IF_FAILED(ehr);
+    if (...) {
+      ehr += foo3();
+      ETHROW_IF_FAILED(ehr);
+    }
+  } catch(EHRESULT& i_ehr) {
+    // do clean up / error handling
+  }
+  return ehr;
+}
+</pre>
+(flka) Commenting the above point. I assume you meant 'early returns are not ''intended''', but they are still possible. That style can lure into a false feeling of security. If you absolutely 'need' to call clean up code, that would be in the catch clause. However a single early return would introduce a bug. The ''only'' fool proof way in C++ to clean up things is to put clean up code in destructors (of helper classes).
+
+
+An often noted reason for a 'no early return' policy is that important cleaning up work at the end of the method can possibly not be exexuted. However the ''only'' way in C++ which lets you ''ensure'' your clean up code is really executed is by putting it in the destructor of a helper class and create a local object of that class in your method.
+
+=== Discourage using <tt>false==...</tt> or <tt>true==...</tt> ===
+
+# That habit is senseless, a Boolean expression is already true or false. 
+# Source code should be readable like English prose, see corner stones of guidelines. E.g. in the following, code and plain prose are virtually the same thing:
+<pre>
+code:   if ( PepperpotIsMounted() ) { ... }             
+prose:  if pepper pot is mounted then ...
+</pre>
+:But in the following, it is almost not possible to rewrite in prose, I made a try and it feels horrible: 
+<pre>
+code:   if ( true == PepperpotIsMounted() )
+prose:  if true equals 'pepperpot is mounted' then ...
+</pre>
+# If you think about it, that habit of putting <tt>true==</tt> or <tt>false==</tt> before any Boolean expression results in a new Boolean expression, which effectively means you get infinite recursion: <tt>if (true == (true == (... (true == foo())))))</tt>
+# A common heard argument for <tt>false==foo()</tt> is, that when writing only <tt>!foo()</tt>, the exclamation mark can easily be overlooked. The answer is that you should configure your IDE / editor such that it highlights negation operators / characters such as ! or ~ or the n in #ifndef. In case the Flori standart IDEs (currently MS visual studio and Eclpise/iDEV) do not support such a feature, we search for an (free) AddOn on the net, or simply write our own, it surely will be a small task.
+
+
+=== Don't define & declare constructors / destructors with empty implementation unless it really makes sense ===
+It clutters the code with needless constructs. Explicitely defining & declaring a ctor/dtor that is 100% equivalent to the automatically generated one is senseless and just clutters the code.
+
+Given your implementation would be empty, it makes sense to explicitely declare & define your own ctor / dtor if you're not happy with the automatic generated because of it's
+* signature (being ()) or 
+* access (being public) or
+* for dtor: being non-virtual for an class which is non-derived class or derives from classes all having an non-virtual dtor. You mostly wan't your dtor virtual. But as said, if you derive from a class, and due to the guideline that class' dtor should be virtual, your class' dtor is virtual as well and thus the default dtor can be a good choice for your class it you would implement an empty body anyway.
+
+=== Allow to define an empty implementation in the class' declaration ===
+Like so '<tt>class C { protected: C() {}; ... };</tt>'. Opposed to define it in the source file like so <tt>C::C() {}</tt> and declare it in the header file like so <tt>class C { protected: C(); ...};</tt>. Rational: have a bit less clutter.
+
+At least for interfaces where you don't wan't to have a .cpp file you need to allow that anyway for the destructor: <tt>class IMyInterface { virtual ~IMyInterface() {}; ... };</tt>
+
+=== Const correctness ===
+==== Don't make arguments passed by value const ====
+Such a construct is meaningless 
+* According to the C++ standart, to the compiler <tt>foo(int)</tt> and <tt>foo(const int)</tt>  are ''exactly'' the same thing. 
+* I presume the authors wanted to help C++ beginners by apparently making clear that the passed variale is not changed. But in reality the code is less readable and understandable, because no C++ book (at least that I know) suggests to make such a thing, so the C++ beginner will be confused about this senseless construct.
+* I can't give concrete examples, but sometimes even cppchecker barks at such constructs - since they are as said meaningless and confusing.
+* (axb) I'm not totally against this but it helps that you can not overwrite accidentally your in-parameters in the following method... of course the developers see that's an in-parameter with the prefix i_ ...
+** (flka) I support the idea to make as much const as possible. That includes local variables, and that also includes parameters. We can have everything together: The declaration in the header file is <tt>void foo(int i_nValue)</tt>, i.e ''not'' const. The definition in the source file however is <tt>void CMyClass:foo(const int i_Value) {...}</tt>, i.e. ''is'' const. I really like that solution. On the interface, i.e. to the clients, the const is not visible. But the implementation can choose to qualify it as const, to protect itself from modifying the parameter. I wanted to propose that solution on this page here in the first place. Howver I didn't dared, since in an earlier discussion years ago I was 'screamed down', because in the other person's opinion it was madness to have 'different' signatures in the definition and in the declaration. But as said, in reality, i.e. to the compiler, it is not different, it is exactly the same.
+
+
+=== Method/Function signature ===
+==== Regarding 'input' parameters, pass built-in types and STL iterators by value, other types by const reference ====
+This is a widely accepte rule, I think It's even in "The C++ Programmin Language" by Bjarne Stroustrup.
+
+
+=== Prefer references over pointers, except where NULL is a reasonable option ===
+* A reference can't be NULL, so you also never have to test for that case and just can access the refered object.
+* When using user-defined operators: Say the refered-to/pointed-to objects are of a custom type with user-defined operators. With references it looks like "a = b + c", with pointers it looks like "&a = &b + &c" which is ugly.
+
+Reference: "The C++ Programming Language (4th Edition)" by Bjarne Stroustrup, Chapter 7.7.4 Pointers and references.
+
+=== When working repeatedly with the same set of identifiers, always reference them in same order ===
+Say you have the set foo bar cool, then always reference them in that order: In the class declaration, when initializing, when deleting, when calling whatever on each of them etc. Rational: Uniformity. It makes it much easier to spot unwanted irregularities.
+
+* (axb) deleting -> reverse order?!
+** (flka) correct. However in the case of class members, you should initialize them in the constructors initializer list (as opposed to the constructors body). Since the destructor's implementation should mirror the constructor, regarding the members of the constructor's initializer list the destructors body is empty. I.e. the compiler takes care of destructing the members in reverse order for you.
+
+== Not for Flori, but for the next from-scratch C++ project ==
+This chapter is aimed at guideliens which we surely don't introduce into Flori because it's too late. Too much code as been written not conforming to them. It shall be a discussion in order to learn from each other what we could do better when we could start from scratch.
+
+=== Use exceptions instead return codes ===
+* When one call accidentally drops the error code, the error is lost. With exceptions, you can have general exception handlers at a few places which are virtually at the top of the call tree. E.g. in some basic method in an AO calling the dispatcher. Or in the method calling the method registered to an HMI command key. They can catch exceptions which are accidentaly not catched and can at least tell the operator that he's requested action did not complete. I think we allreay do that in Flori in order to be able to catch exceptions thrown by EASSERT 
+* Code gets quite more readable and lighter. Mainly because often you can build an simple expression opposed to many many statements. This is because thanks to exceptions:
+** you can use the return value as an operand, since the return type must not be the error code
+** you don't have to explicitely declare temporaries. Using return codes, the return value must be the error code, so the semantic return value of the method must go into an out parameter, i.e. the caller needs to provide an object, i.e. the caller needs to declare such an object.
+** if you're not interested in handling an error (an outer entity shall do that), then nothing at all has to be written. With error codes, you always have to write something in the manner of 'ERETURNED_IF_FAILED(ehr)'
+:For example in the following snippets, in which one you quicklier see what is going on?
+<pre>
+CMyCoolClass bar(const CMyCoolClass & a, const CMyCoolClass & b) 
+{
+  return foo( a.do() + b.do() );
+}
+</pre>
+<pre>
+EHRESULT bar(const CMyCoolClass & a, const CMyCoolClass & b, MyOtherClass& o_Result) 
+{
+  EHRESULT ehr;
+  MyOtherClass TmpA;
+  ehr += a.do(TmpA);
+  ERETURN_IF_FAILED(ehr);
+  MyOtherClass TmpB;
+  ehr += b.do(TmpB);
+  ERETURN_IF_FAILED(ehr);
+  MyOtherClass2 TmpAdd;
+  ehr += Add(TmpA, TmpB, TmpAdd);
+  ERETURN_IF_FAILED(ehr);
+  return foo(TmpAdd, o_Result);
+}
+</pre>
+
+* All modern languages I know (C++, Java, Python, Ruby)  advice to use exceptions
+
+References:
+* [http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml#Exceptions google-styleguide]. Google does ''not'' use exceptions - but they would use exceptions if they could begin from scratch, which is the scenario of this chapter.
+
+== Tool proposal: Flori guideline check ==
+Write a tool that checks whether code matches our Flori guidelines. E.g. with regexps in Python that would probably be rather easy
+
+== References / Other 'known' guidelines ==
+* [http://sharepoint/sites/Flori/RnD/Documents/Software/06_Technical/01_Guidelines/001_Guideline_reference.mmap Flori Guideline Overview (Mindmap)]
+* [http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml#Line_Length Google C++ Style Guide]. ''Very'' talented SW engineers work at Google, so I think that ''is'' a reference.
+* Book: "The Art of Readable Code"
+* Book: "Clean code"

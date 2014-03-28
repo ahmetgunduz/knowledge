@@ -1,0 +1,1 @@
+moved to .emacs.d/docs (git repo git://git.code.sf.net/p/sensorflo-emacs/code)

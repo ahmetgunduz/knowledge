@@ -1,0 +1,83 @@
+= Geld
+
+== Glossary
+Kurantmünze::
+  Eine Kurantmünze ist eine „vollwertige, umlaufende, gangbare, kursierende“
+  Münze, deren Wert durch das Metall, aus dem sie besteht, gedeckt ist. D. h.
+  der Kurswert entspricht (fast) ihrem Metallwert
+Bargeld::
+  Der Begriff Bargeld umfass die heutigen Scheidemünzen (Hartgeld) und die
+  Banknoten (Papiergeld).
+  Bargeld kann von Geschäfts- und Nichtbanken gehalten werden und ist in den
+  meisten Ländern gesetzliches Zahlungsmittel. Es wird von den Zentralbanken der
+  Staaten oder Staatengemeinschaften mit eigener Währung geschaffen und über
+  Geschäftsbanken in Umlauf gesetzt.
+Buchgeld::
+  ??        
+Fiatgeld::
+  Fiat-Money (auch Fiatgeld) ist Kreditgeld, bei dem seitens des Emittenten
+  keine Einlöseverpflichtung besteht und dessen Akzeptanz durch gesetzliche
+  Vorschriften - wie die Erklärung zum gesetzlichen Zahlungsmittel - erreicht
+  und sichergestellt wird. Fiatgeld wird Geld, indem es von den gesetzgebenden
+  Organen eines Staates dazu erklärt wird. Heutiges Zentralbankgeld ist
+  Fiatgeld.
+Geldmenge::    
+  Unter der Geldmenge oder Geldmengenaggregat versteht man in der Ökonomie den
+  gesamten Bestand an Geld, der in einer Volkswirtschaft zur Verfügung steht.
+  Die Summe aus Bargeld und Sichteinlagen wird auch reale Geldmenge genannt. Sie
+  deckt sich mit der Geldmenge M1. Die Geldmenge kann durch Geldschöpfung erhöht
+  und durch Geldvernichtung gesenkt werden.
+Giralgeld::
+  Siehe Buchgeld
+Kredit::
+  Ein Kredit (abgeleitet vom lateinischen credere „glauben“ und creditum „das
+  auf Treu und Glauben Anvertraute“) ist die Gebrauchsüberlassung von Geld
+  (Banknoten, Münzen, Giralgeld) oder vertretbaren Sachen (Warenkredit) auf
+  Zeit. Darlehensverträge, Abzahlungskäufe, Stundungen, Wechsel stellen typische
+  Beispiele für Kredite dar. Durch den Kreditnehmer im Regelfall
+  zurückzugewähren ist bei Geldkrediten der Nennbetrag der kreditieren Geldsumme
+  und bei Warenkrediten eine der kreditieren Ware gleiche Ware. Da der
+  Kreditnehmer nicht verpflichtet ist, dieselben Banknoten und Münzen oder
+  dieselbe Ware, die er empfangen hat, herauszugeben, darf er die Banknoten,
+  Münzen oder Waren nicht nur nutzen, sondern mit ihnen nach Belieben verfahren.
+  Oftmals ist ein Kredit entgeltlich, sodass durch den Kreditnehmer nebst
+  Rückgewähr des kreditierten Gegenstandes normalerweise Zinsen zu zahlen sind.
+Kreditgeld::
+  Kreditgeld ist eine Forderung gegenüber einer natürlichen oder juristischen
+  Person, die dazu verwendet werden kann, Waren und Dienstleistungen zu
+  erwerben. Scheidemünzen, Banknoten, Buchgeld und elektronisches Geld sind
+  Kreditgeld und stellen eine Forderung gegenüber dem jeweiligen Emittenten,
+  beispielsweise einer Bank, dar. Die Akzeptanz von Kreditgeld geschieht
+  aufgrund von Vertrauen gegenüber dem Emittenten oder aufgrund gesetzlicher
+  Vorschriften. Kreditgeld, dessen Akzeptanz auf gesetzlichen Vorschriften
+  beruht, bezeichnet man als Fiatgeld.
+Kurswert::
+  Der Kurswert ist der Wert, zu dem ein Zahlungsmittel in einer Transaktion
+  tatsächlich akzeptiert wird.
+Nennwert::
+  Der Nennwert gibt an, welchen gesetzlichen Wert ein Zahlungsmittel hat.   
+Nominalwert::  
+  Siehe Nennwert.
+Scheidemünze::
+  Scheidemünzen wurden Münzen zur Zeit des Kurantgeldes (in Deutschland
+  praktisch bis Anfang August 1914, dem Beginn des 1. Weltkrieges) genannt,
+  deren Metallwert geringer als ihr gesetzlicher Wert war. Seit 1915 sind in
+  Deutschland alle geprägten Münzen einschließlich der heutigen Euromünzen
+  „Scheidemünzen“.
+Sichteinlagen::
+  Sichteinlagen sind Einlagen bei Kreditinstituten, über die 'bei Sicht'
+  unbeschränkt verfügt werden kann. Das heißt, es gibt für Sichteinlagen keine
+  Kündigungsfristen, sie sind (bank-) täglich verfügbar.
+  
+  Für Kreditinstitute bedeuten Sichteinlagen hohe Kosten und vorrangig wenig
+  Ertrag, da die Gelder nur für kurzfristige Kredite ausgeliehen werden dürfen.
+  Allerdings bildet sich ein gewisser "Bodensatz" von Sichteinlagen, die
+  erfahrungsgemäß nicht zur Auszahlung verlangt werden, welcher somit auch für
+  die mittel- und langfristige Kreditvergabe verwendet werden kann.
+Zentralbankgeld::
+
+Kreditgeld
+  Scheidemünzen
+  Banknoten
+  Buchgeld
+  elektronisches Geld

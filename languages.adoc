@@ -1,0 +1,111 @@
+= Formal language theory terms        
+== Glossary        
+Sourcecode
+(Computer)(Program|Scrip)
+        
+(Computer)Language
+Formal language
+object language 
+       
+Syntax
+Metasyntax
+Natation
+context free grammar
+Formal grammar (sometimes just grammar).
+       
+BNF,EBNF
+
+
+== (Extended) Backus–Naur Form: (E)BNF
+Is a metasyntax +notation+ used to express context-free grammars:
+that is a formal way to describe formal languages.
+
+Is a metasyntax used to express context-free grammars:
+that is, a formal way to describe formal languages.
+             
+Backus–Naur form is one of the earliest metalanguages ... [from metalanguage]
+             
+BNF is a way of writing a grammar to define a language [handout8, ACM]             
+             
+== Formal language
+A formal language is a set of strings. A formal language is often defined by
+means of a formal grammar.
+             
+== Formal grammar
+Sometimes called abbreviated to grammar. Defined to be a 5-Typle... .
+
+== Object languages
+The language which a metalanguage is used to describe is the object language. 
+          
+== Metalanguage
+In logic and linguistics, a metalanguage is a language used to make statements
+about statements in another language which is called the object language.
+          
+... a metalanguage, which is used to describe either a natural language or a
+computer programming language. [from metasyntax]
+          
+Some of the widely used formal metalanguages for computer languages are
+Backus-Naur form(BNF), Extended Backus-Naur form(EBNF), Wirth Syntax
+Notation(WSN), and Augmented Backus-Naur form(ABNF). These metalanguages [from
+metasyntax]
+          
+== Syntax
+   
+In computer science, the syntax of a programming language is the set of rules
+that define the combinations of symbols [tokens?] that are considered to be
+syntactically correct programs in that language.
+
+[i.e. does not define a 'formal language', or just when the language which's
+alphabet are tokens]
+      
+We can define the syntax of a (programming) language using a BNF grammar
+[handout8, ACM]      
+              
+== Metasyntax
+A metasyntax describes the allowable structure and composition of phrases and
+sentences of a metalanguage.
+          
+The syntax of textual programming languages is usually defined using a
+combination of regular expressions (for lexical structure) and Backus-Naur Form
+(for grammatical structure) to inductively specify syntactic categories
+(nonterminals) and terminal symbols.
+
+== Lexical grammar
+   
+In computer science, a lexical grammar can be thought of as the syntax of
+tokens. That is, the rules governing how a character sequence is divided up into
+subsequences of characters, each of which represents an individual token.
+          
+          
+          
+          
+          
+          
+          
+All 3 are grammars (really? not by definition of a formal grammar), but in another (syntax or notation?)          
+          
+1)          
+exp = num ("+"|"*") num;
+num = "0" | ... | "9";
+
+2)
+exp : num '+' num
+    | num '*' num
+    ;    
+num : digit
+    | num digit ;
+digit :
+      
+3)      
+An expression is number followed by a '+' followed by a number or
+a number 
+
+
+
+
+
+
+Language = A set of strings
+Metalanguage =          
+Grammar = A 5-Tuple ...
+

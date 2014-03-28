@@ -1,0 +1,121 @@
+= Comments
+
+== Clean code is more imporant than comments
+
+
+- Better spend energy in clean code than good comment. If you feel like writing
+  a comment, think if you not better cleaned up the code.
+
+  // check to see if the employee is eligible fo full benefits
+  if (employee.flags && HOURLY_FLAG) && (emplyee.age > 65))
+
+  if (emplyee.isEligbleForFullBenefits()) 
+  
+- Prefer no comment over a lying/misinformative comment
+
+- The code is the truth.
+- The code is the *only* source of truly accurate information
+  
+SelfExplainingCode
+SelfExplainingCode plus (neccesairly noninformative) comment
+HalfExplaingCode + good comment
+<= HalfExplaingCode no comment
+misleading comment
+
+== Use variables/methods instead comments           
+           
+  // check to see if the employee is eligible fo full benefits
+  if (employee.flags && HOURLY_FLAG) && (emplyee.age > 65))
+
+  if (emplyee.isEligbleForFullBenefits()) 
+
+
+  
+  if (a&&b || !c && ~x )
+  
+  isFloir = a&&b;
+  hasNeedle = !c
+  if ( isFlori || hasNeedle ... )
+  
+== Misc reasons where to put comment
+   
+- for public api   
+   
+=== Document why you do it like you did it
+
+-   
+  // No hash is used, since the expected no of elements is below 5
+           
+- If you can't bring yourself to clean up a messy part, at least write a comment
+  which states possible problems (for a bug-searcher) and ideas for a improvement           
+  
+- Warning of consequences. Prevent others from making dangerous changes because
+  an issue is hard too see. 
+           
+- Emphasis of things wich might be otherwise overlooked
+
+- Calling methods of non-changable code (libs..). 
+
+           
+== Bad commnts
+
+- Truly redundant/obvious comments. Don't have rules that *every*
+  method/member/param/returnvalue *must* have a comment
+  
+  * Takes too much time to read
+  * Distracts from the important stuff
+  * Is no help to the reader
+  * Risk of disinformation
+  * We start to ignore such comments - they begin to lie as the code around changes
+  * Risk of copy paste erros much heigher because no thought is put into the
+    its just rewriting the identifiers name.
+  
+  /* add a new CD
+  @param i_sTitle The tilte of the cd
+  @param i_sAuthor The author of the cd */
+  void addNewCD( String i_sTitle, String i_sAuthor );
+  
+  /** Returns the day of the month
+      @return the day of the month */
+  public int GetDayOfMonth()
+  {
+    return m_nDayOfMonth;
+  }
+  
+  @returns S_OK when no error occured. .....
+  
+- closing brace comment
+  * Its the job of the IDE
+  * If, then only if its really a large block, i.e. only if its really a benefit
+    for the reader.
+    ** Even better: refactor the block to make it smaller
+  
+- Better refactor into smaller functions than to use banners
+- Use blocks { } with a normal comment at the top
+- Use banners sparingly. It attracks attention when seldom used. If overused,
+  they fall into background noise and be ignored.
+
+- Commented out code
+  * It's the job of the revision control system to remember old cold
+  * When we really need the code again, it won't be usable anyway. Most probably
+    starting from scratch will be faster anyway.
+  
+- Say what this function does. Not who calls it. That should not matter. And it
+  might change..., making the comment lie. 
+  
+== Misc           
+- Don't be noninformative:
+  i++// increment i
+  /\** A class that */ Class A {}   // however java api does that sometimes
+
+- Don't "document" a method at all it's N calls. 
+  
+  // do x and y and also z
+  ehr += foo();
+
+   
+- Comments *above* blocks, not after the branching statement.   
+           
+- No redundancy: when methods just propagate a call, only document the
+  api (or the place where the actually code body is). The other method comments
+  just refer to there

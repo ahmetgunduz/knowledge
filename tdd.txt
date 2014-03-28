@@ -1,0 +1,77 @@
+Test-driven development (TDD) is a software development process that relies on the repetition of a very short development cycle. TDD is taking the agile principle of building SW in verified steps (i.e. each with feedback) to the max. With three simple rules TDD enforces a) advancing in tiny verified steps and b) be focused. The duration of a step may be even below a minute. Each step is verified with [[Unit Test]]s. This is why unit tests must be really fast. When you really adhere to these rules, it is not possible to program for a too long time without feedback.
+
+
+== Explication ==
+
+The three TDD rules are:
+# '''Don't write any productive code until you have written a failing specification (aka test)'''
+# '''Don't write more of a specification (aka test) than is sufficient to fail or fail to compile'''
+# '''Don't write more productive code than is sufficient to pass the failing specification (aka test)'''
+
+
+Following you're always in one of the following states. You stay focused in your current state and can leave the state only when after receiving positive feedback.
+* Add new specification (aka test) or modify existing specification
+* Add new productive code or modify behavior of existing productive code 
+* Design / refactor test or productive code.
+
+Be focused & dislike code smells: Have a very strong focus on implementing the ''simplest quickest'' possible solution that satisfies the currently failing rule. See also 'fake it till you make it' below. That applies to writing productive code ''and'' test code. So the resulting temporary code is allowed to have code smells in it. But as soon as you have the green bar, you have to clean up all code smells in productive and test code with refactorings. But that's easy now since you have the green bar as feedback.
+
+Further benefits of first writing a failing test:
+* You know the test specifies something which is really currently absent in the productive code.
+* You know the test is not always green due to some mistake.
+* You can inspect the output of the failing test and possibly improve it if it's not informative enough. See [[UnitTest2_Practice#Good_output_for_good_defect_localization|Good output for good defect localization]]
+
+== Fake it till you make it & triangulation ==
+[http://en.wikipedia.org/wiki/Fake_it_till_you_make_it Fake it till you make it] and triangulation help to advance in baby steps and help not implementing more than required: Say you wrote a specification (aka test) for the length() method of a new own string class which wants 
+
+<pre>ASSERT_EQ( 0, CString("").length() )</pre>
+
+The simplest implementation of the length method satisfying this specification is
+
+<pre>return 0;</pre>
+
+So you have to write a further specification 
+
+<pre>ASSERT_EQ( 3, CString("foo").length() )</pre>
+
+The productive code could then look like 
+
+<pre>if (m_Data=="foo") return 3; else return 0;</pre>
+
+After the third specification, 
+
+<pre>ASSERT_EQ( 6, CString("foobar").length() )</pre>
+
+(hence triangulation), the productive code 
+
+<pre>if (m_Data=="foo") return 3; else if (m_Data=="foobar") return 6; else return 0;</pre>
+
+contains too much duplication / redundancy and must be refactored to become a general solution. As you can see, the more specific the specifications get, the more general the productive code gets, see also 'the transformation priority premise below'.
+
+==  The Transformation Priority Premise ==
+When pondering about which new specification you should write next, choose the one which presumably results in a transformation in productive code with the highest priority.
+
+From Uncle Bob's [http://blog.8thlight.com/uncle-bob/2013/05/27/TheTransformationPriorityPremise.html The Transformation Priority Premise]: Refactorings have counterparts called ''Transformations''. Refactorings are simple operations that change the structure of code without changing it’s behavior. ''Transformations'' are simple operations that change the behavior of code. Transformations can be used as the sole means for passing the currently failing test in the red/green/refactor cycle. ''Transformations'' have a priority, or a preferred ordering. When pondering about which out of many possible new specifications you should write next, choose the one which results in a transformation with the highest priority.
+
+Transformations, from high priority (simple) to low priority (complex):
+# ({}–>nil) no code at all->code that employs nil
+# (nil->constant)
+# (constant->constant+) a simple constant to a more complex constant
+# (constant->scalar) replacing a constant with a variable or an argument
+# (statement->statements) adding more unconditional statements.
+# (unconditional->if) splitting the execution path
+# (scalar->array)
+# (array->container)
+# (statement->recursion)
+# (if->while)
+# (expression->function) replacing an expression with a function or algorithm
+# (variable->assignment) replacing the value of a variable.
+
+== Benefits of TDD ==
+* Rather high code coverage, since each tiny tiny feature in productive code is ''only'' written when forced to by a specification (aka test)
+* The three TDD rule enforces the agile way of building in small verified steps
+* The ''current'' design is always adequate for the ''current'' specifications (aka tests, aka requirements). It prevents over-designing; implementing stuff which you at the end will never need. Stuff which is never needed is an unnecessary maintenance burden. This is also known as [http://en.wikipedia.org/wiki/YAGNI YAGNI] - You aren't gonna need it.
+* See also benefits of [[Unit Test|unit test]]
+
+== See Also ==
+* [[Testing]] Parent level page with all the testing links

@@ -1,0 +1,158 @@
+= Git
+
+== Inspection
+
+Contents of a file at a certain revision::
+  ++git show++. Alternatively use ++git checkout++ and you'll have the files in
+  your working directory.
+
+Human digestable name of a revision::
+  ++git name-rev++, ++git describe++
+
+Diff of two revisions::
+  ++git diff++
+
+Commit logs::
+  ++git log++ (++git-rev-list++ as the low level alternative from the plumbing section).
+
+Status of working tree / index file::
+  ++git status++
+
+== Transitions
+
+.Working tree -> Index file
+- ++git add FILEPATTERN...++ for new or changed files
+- ++git rm FILE...++
+- ++git mv ...++
+
+- ++git diff++ 
+
+- ++git reset PATH...++ Reset the index entries of the given path. 
+
+.Index file -> Repository aka HEAD
+- ++git commit++
+- ++git diff --cached++ 
+
+.Working tree -> Repository aka HEAD (i.e. direct, without using index)
+- ++git commit FILE...++. Ignores Index. Not for new files.
+- ++git commit -a++. Add changes from all known files.
+- ++git diff HEAD++
+
+.Index file -> Working tree
+- ++git mv ...++
+
+
+== Undo Mistakes
+In addition to what is under chapter transitions.
+
+++git revert++:: Add a new commit which undoes the given commit
+++git reset++::
+++git commit --amend++::
+++git checkout -f++:: Throw away local changes
+++git filter-branch++::
+++git rebase++::
+
+== Terms
+
+See also gitglossary(7) man page.
+
+== Questions
+
+What's the difference between ++git log++ and ++git rev-list++?::
+  They are mostly the same. log is from the porcelain layer, rev-list from
+  plumbing, thus rev-list is seldom used. There are only a few things rev-log
+  can do which log can't. See also
+  http://www.amailbox.org/mailarchive/git/2008/5/30/1983864/.
+
+Refspec for fetch::
+  Note that the fully qualified name for local branches is refs/heads/<name>, and for remote tracking branches its refs/remotes/<remote-name>/<name>. See also SPECIFYING REVISIONS in git-rev-parse(1). Thus fetching only some branches results in e.g. (`refs' already left away) ++fetch origin R8.0:remotes/origin/R8.0 R9.1:remotes/origin/R9.1++. Still, why does it now I don't mean a local branch FQN 'refs/remotes/origin/R9.1`? It `missinterprets' ++fetch origin R9.1:origin/R9.1++ and ++fetch origin R9.1:R9.1++. The more basic Question maybe is: what are the rules as in SPECIFYING REVISIONS in git-rev-parse(1) when creating (opposed to lookup) a ref name?
+	
+
+- What happens with the `branch name/reference' after merging?
+- Where is the beginning of a branch, i.e. up to where does ++git branch -d++
+  delete? Possibly the commit given when the branch was created?
+- What's the difference between a reamote branch and a branch. Why is it `only'
+  remote? I made a clone, didn't I?
+- upstream branch?
+- From http://stackoverflow.com/questions/67699/how-do-i-clone-all-remote-branches-with-git
+----------------------------------------------------------------------
+If you just want to take a quick peek at an upstream branch, you can check it out directly:
+$ git checkout origin/experimental
+But if you want to work on that branch, you'll need to create a local tracking branch:
+$ git checkout -b experimental origin/experimental
+----------------------------------------------------------------------
+Why is the first checkout not good enough? what happens if i do git commit there?
+- difference ++git reset++ +--hard+/+--soft+. Now does both completely remove
+  commits or not? Or is a new commit created which undoes the unwanted commits?
+- `You can check out those (remote) branches like a normal branch, but you should
+  not change them.' So, what would happen?
+- what exactly does ++git branch -d++ delete? Only the reference, or also commits?
+- difference revision - commit? Add to terms
+- What's the difference between ++git describe++ and ++git name-rev++?
+
+
+
+== Cotchas
+- After resolving merge conflicts, or after doing anything to your files after automatic merge without automatic commit, make sure to add all the changes you want to the index, and thus to the next commit, (typically all) with +git add+.
+- *rebase*: if you merge two branches which are based upon a commit with wrong eol (but the branch heads are ok), you're in hell. try use tortoise conflict editor, it doesn't see the whole file as in conflict.
+- *sync*: Pushing changes to remote how? Currently I push unmerged feature branches and merge on the `central' (aka ~vss) repo.
+
+== SmartGitHg
+
+=== cumbersome to use / missing featurres
+- See Guis/Rebase
+- when merging to branches, the commit message has includes the sha1 of the merged commit instead the branch name (may
+
+=== bugs
+- saves with eol unix style (mindestens merge conflict editor).
+  * find -iname '*.cpp' -o -iname '*.h' | xargs perl -ne 'if (/\n/ && !/\r\n/) { print "$ARGV:$.:"; close ARGV } if (eof) {close ARGV}'
+	* find -iname '*.cpp' -o -iname '*.h' | xargs perl -ne 'if (/\n/ && !/\r\n/) { print "$ARGV\n"; close ARGV }' | xargs unix2dos
+
+
+== Git command notes / howtos
+
+Summary of manuals tailored towards me. Notes on how to (best) use certain git commands
+
+== Fetch
+refspec:
+  src: <refname> applyied within the remote repo. Howto resolve, see git-rev-parse(1)/SPECIFYING REVISIONS/<refname>
+	dst: <refname> applyied within the local repo. Howto resolve, see ??? probably again git-rev-parse(1), but the name must be almost fully qualified, only "refs/" can be left away.
+	
+== Pull
+refspec: see chapter fetch
+
+Which branch to merge into HEAD: see git-pull(1)/DEFAULT BEHAVIOUR
+
+
+=== Rebase
+
+==== Cookbook
+- ++git rebase -i++
+- Edit, remove changes:
+  * ++git reset --soft++
+	* Edit index with smart git. That only works if one of the sides is the working tree. For that, you may have to unstage the file in question. Alternatively, you can use the edit index feature. 
+	* ++git commit -a -c HEAD{1}++
+	* ++git rebase --continue++
+
+==== Problems
+CLI::
+- Funny problems when files are on a cifs. It seems that they go away when client's clock is ahead of server's clock.
+Gitk::
+Does not offer it
+SmartGit::
+- Apperently can not nicely rebase two branches, only a commit onto a branch, or a branch onto its tracking branch.
+- The original head moves (which it shoudn't) and the from-branch is not moved (only the commits). 
+- Note the eol bug of the conflict resolution editor
+Tortoise::
+- _Bug_ I again haid funny eol problems when rebasing a branch upon another. One file had the wrong line teminator. Git (CLI) had no problem doing it.
+- _Bug_ Suash does not work, it behaves as pick
+- _Kludge_ List is inverse compared to how +git rebase -i+ does it.
+- Nice `interactive rebase' editor.
+- From Shell (i.e. context menu) can only rebase branches onto branches.
+- From Log can rebase current branch
+onto arbitrary commit.
+Git Extensions::
+- _Bug_ The last rewritten commit behaves funny, it seems to remove all files.
+
+=== Graphical log
+- Tortoise and QGit are the only ones that displays it in a way I find it convenient

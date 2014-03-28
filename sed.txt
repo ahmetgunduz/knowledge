@@ -1,0 +1,164 @@
+= Sed - stream editor
+
+== Notes
+   
+- Within commands chapter, there is often no explicit call to ps.clear where it
+  can be ommited, because it is done in readin_ps of the next cycle anyway.
+- gnu sed's implementation has the nc: part within readin_ps.   
+  
+== Structure  
+   
+--------------------------------------------------
+string ps; // pattern space
+string hs; // hold space
+string ob; // output buffer
+while ( !bQuit && readin_ps() ) {
+      
+ exec_cmds:  
+  
+ eoc: //end of cycle
+  print_ps unless ( -n option );
+  
+ nc: //next cycle  
+  print ob;
+  ob.clear();
+  
+ iq: //immediate quit  
+}
+
+bool readin_ps(appending=false) {
+  ps.read_line_from_input(appending);
+  ps.chomp_newline();
+  return ! ps.eof();
+}
+        
+void print_ps() {
+  print ps;
+  print "\n" if ps.input_had_newline();
+}
+--------------------------------------------------
+  
+== Syntax
+   
+--------------------------------------------------
+script = ((cmd|label) sep)+;
+       
+## func is executed if genaddr is true or if there is no genaddr.
+## semantic rules only allow certain addr (0,1,2) for certain funcs
+cmd = addr \!*genfunc; 
+    
+addr = 0addr | 1addr | 2addr;
+  
+0addr = (); ## always true
+
+1addr =
+  n |                 ## n-th line, first=1
+  n#first \~ n#step | ## every step-th starting at first 
+  \$ |                ## last line
+  addr_regex;         ## pattern-space matches regex
+
+addr_regex =
+  \/regex\/'[IM]? |
+  \\(\a)regex\1'[IM]?;      
+
+2addr = 
+  1addr \, 1addr | ## range, 2nd addr is incl.
+  1addr \, \+ n | 
+  1addr \, \~ n |
+  
+
+## as far as I understand POSIX, no spaces are allowed after : in gnu manual,
+## spaces are allowed
+label = \:\s+(\a+)$$
+
+n = '[0-9]+;  
+
+genfunc = func | \{ (func sep)* \};
+
+func = \a\s+arg?; ## \a is the function name
+
+## see also section 'common arguments'
+arg =
+  n |
+  (\a+)$$ |      ## filename / label
+  ((\a|\\\n)+)$$ ## text. The \ escaping the newlines are removed
+--------------------------------------------------
+
+
+== Commands
+
+=== Common arguments
+For the syntax, see definition of +arg+ in the Syntax chapter.
+    
+filename :: The special names +/dev/stdin+, +/dev/stdout+ and +/dev/stderr+ are recognized
+n :: a decimal number         
+text :: a newline is appended
+   
+=== Command description  
+a text:: ob += text + "\n"
+b [label]:: goto (label given ? label : eoc )
+c text:: print text if ( last line where addr true ); goto nc
+d :: goto nc
+D :: ps.clear_upto_1st_nl; goto ( ps.empty ? nc : exec_cmds)
+e :: ps = exec( ps )     
+e text:: ob += exec( text ) # no "\n" appended
+g :: ps = hs
+G :: ps += "\n" + hs
+h :: hs = ps     
+H :: hs += "\n" + ps  
+i text:: print text
+l n:: print ps, non-printable chars in c-style escaped form, linewrap
+      at column n (0 for dont wrap).
+n :: print_ps unless ( -n ); print ob; ob.clear(); readin_ps or exit
+N :: readin_ps(appending) or exit
+p :: print_ps
+P :: print_ps_upto_1st_nl  
+q [exit-code]:: bQuit=true; goto eoc
+Q [exit-code]:: bQuit=true; goto iq
+r filename:: ob += filename's content + "\n"
+R filename:: ob += read line from filename + "\n"
+s/regexp/replacment/flags :: Search-replace. Instead /, any char can be used.
+  +replaced+ is set to wheter a replacment was made. 
+t [label]:: if (replaced) { replaced = true; goto ( label given ? label : eoc) }
+T [label]::  if (!replaced) goto ( label given ? label : eoc ) 
+w filename:: write ps to filename
+W filename:: as w, but only up to 1st nl  
+x :: exchange(ps,hs)  
+y/src/dest/ :: Translitaterate src chars to dest chars. Instead /, any char can
+be used. Use \ to quote the delimiter char.
+z :: ps.clear()  
+ = :: print current_line_no + "\n"
+
+=== Overview
+--------------------------------------------------  
+pr pw: pattern space read/write
+hr hw: hold space read/write
+ob   : output buffer write
+cf   : control flow
+pr   : prints to stdout     
+o    : other actions
+--------------------------------------------------  
+     
+[options="header", cols="<,8*^"]     
+|=========================     
+|  |pr|pw|hr|hw|cf|ob|pr|o
+|a |  |  |  |  |  |x |  |
+|b |  |  |  |  |x |  |  |
+|d |  |x |  |  |x |  |  |
+|D |  |x |  |  |x |  |  |
+|g |  |x |x |  |  |  |  |
+|G |  |x |x |  |  |  |  |
+|h |x |  |  |x |  |  |  |
+|H |x |  |  |x |  |  |  |
+|i |  |  |  |  |  |  |x |
+|l |x |  |  |  |  |  |x |
+|n |x |x |  |  |x |  |x |
+|N |  |x |  |  |x |  |  |
+|p |x |  |  |  |  |  |x |
+|P |x |  |  |  |  |  |x |
+|q |  |  |  |  |x |  |  |
+|r |  |  |  |  |  |x |  |
+|w |x |  |  |  |  |  |  |
+|x |x |x |x |x |  |  |  |
+|=========================     
+

@@ -1,0 +1,27 @@
+= character encoding
+
+Character encoding pairs each character of an alphabet with something else, here
+a specific byte(sequence).
+
+ASCII:: 1 Byte per character, not using the MSB.
+ISO 8859:: 1 Byte per character.
+UTF-8:: asffads
+UNICODE:: 
+Universal Character Set (UCS):: Maps characters to integer numbers called code
+points. The xxx maps byte sequences to those code points.
+ANSI:: A misnomer meaning the Windows-1252 character encoding. Superset of ISO
+8859-1; differs by using displayable characters in the 0x80 to 0x9F range.
+Despite the (wrong) name, it never has been an ANSI standart.
+
+The unix command +file+ dedects wheter it's ascii, UTF-8, iso-8859-x.
+
+I think however the algorithm used mistakes certain iso-8859 as UTF-8, since
+UTF-8 is tested first. See e.g. http://en.wikipedia.org/wiki/ISO/IEC_8859-1. The
+following bytes are valid utf-8, thus an iso-8859 char from the lines 8-B
+followed by one from lines C-D are character sequences that would be
+misinterpreted as UTF-8. 
+
+Byte1: 10xx xxxx    0-3 -> 8-B
+Byte2: 110x xxxx    4-5 -> C-D
+
+There are even more, taking longer than 2byte UTF-8 sequences into account.

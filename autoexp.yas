@@ -1,0 +1,189 @@
+## Grammar of msvc's autoexp.dat file.
+## 
+## Micorosoft itself does not document it's own autoexp.dat, apart from a few
+## hints in the commentary section at the beginning of autoexp.dat. Rather
+## rudimentary 3rd party documentation is available here:
+## - https://svn.boost.org/trac/boost/wiki/DebuggerVisualizers
+## - http://www.virtualdub.org/blog/pivot/entry.php?id=120
+
+## If there is no rule for a class, the base classes are checked for a matching
+## rule.
+autoexpdat = specification+
+
+## questions regarding specelement* list:
+##   - multiple time the same one?
+##   - order important?
+##   - what if none given, i.e. empty list 
+specification = (typename\|{0})+ \{ specelement* \};
+
+typename = identifier
+  [\<((identifier#*type*#|\* #*match any*#)\,{0})*\>]; ## template arg list
+
+specelement =
+  ## one line preview used in Watch, QuickWatch, command window 
+  'preview \( previewexp \) |
+  'stringview \( stringviewexp \)  |
+  'children \( childrenexp \) ;
+
+previewexp = exp;
+childrenexp =
+  ## single child
+  exp |
+  ## children sequence
+  ## boost says:
+  ##   The written order is irrelevant, the displayed order is always sorted. 
+  ## the help in autoexp.dat says:
+  ##   Many visualizers use nested #()s. Why not use #(foo, bar) instead of
+  ##   #(#(foo), #(bar))? The former alphabetically sorts its fields, while the
+  ##   latter does not.
+  `#( (
+    ## explicit child item. When childname is not specified, it is implicitely
+    ## named ala [0], [1], ...
+    ([childname#*name*#\:] exp#*value*# \,{0})+) |
+    ## array 
+    ## - previewexp: how to display an item of the list. $e refers to the
+    ##   current object in the array, as given by the 'expr:' array field.
+   "#array" \( (array_field_and_exp \,{0})* \) \: previewexp | 
+    ## list
+   `#list \( (list_field_and_exp \,{0})* \) \: previewexp |
+    ## tree
+   `#tree \( (tree_field_and_exp \,{0})* \) \: previewexp |
+  ) \);
+array_field_and_exp =
+  `expr: exp | ## exp defines what $e is in array's 'previewexp'. $i=current index. 0<=$i<=size-1
+  `size: exp | ## exp defines size of array
+  `base: exp | ## exp defines the used index in the element name of the first element.
+               ## E.g. when 2, the elements are named [2],[3].... Defaults to 0.  
+  `rank: exp ; ## ???????????????????????????????????
+## Multiple ways define number of elements in the list  
+## - size field, see below
+## - skip field, see below
+## - if an element is seen for the 2nd time, traversal is stopped
+list_field_and_exp =
+  `head: exp | ## exp defines first node
+  `next: exp | ## exp defines next node
+  `size: exp | ## exp defines number of elements in the list
+  `skip: exp ; ## last element in list
+## in-order-traversal. See also list_field_and_exp 
+tree_field_and_exp =
+  `head: exp |
+  `left: exp | 
+  `right: exp |
+  `size: exp |
+  `skip: exp ;
+
+conditional_exp =
+  ## if 
+  `#if \( exp#*condition*# \) \( exp \)
+  (`#elif \( exp#*condition*# \) \( exp \))*
+  [`#else \( exp \)] |
+
+  ## switch
+  `#switch \( exp \)    
+  (`#case exp \( exp \))*
+  [`#default exp]
+  [`#except exp] ## ???????????????????????????
+
+previewexp_op = `$e ; ## current displayed object; 'this'
+## looser than c identifiers, e.g. brackets are allowed
+childname = ???;
+
+## = Expressions in the Debugger
+## http://msdn.microsoft.com/en-us/library/za56x861(v=vs.100).aspx
+##
+## == Expressions in Native C++
+## http://msdn.microsoft.com/en-us/library/y2t7ahxk(v=vs.100).aspx
+## The native C/C++ expression evaluator handles:
+## - Native C++ Language Expressions
+## - Assembly-Language Expressions
+## 
+## In addition to native C++ and assembly-language languages, the expression
+## evaluator recognizes two special syntax elements:
+## - Context Operator
+## - Format Specifiers
+## 
+## === Native C++ Language Expressions
+## http://msdn.microsoft.com/en-us/library/e0ysa1hs(v=vs.100).aspx
+##
+## The debugger accepts most Microsoft and ANSI C/C++ expressions; however, you
+## do need to be aware of the following:
+## - Unsupported Operators and Additional Operators
+## - Restrictions on Native C++ Expressions
+## 
+## ==== Unsupported Operators and Additional Operators
+## http://msdn.microsoft.com/en-us/library/99dwf401(v=vs.100).aspx
+## 
+## In native C++, debugger expressions do not support the following operators:
+## - comma operator
+## - conditional operator
+##
+## In native C++, debugger expressions do support the following additional
+## operators:
+## - The context operator ({ }) to specify the context of a symbol.
+## - Memory operators (BY, WO, and DW) to access memory. 
+##
+## ==== Restrictions on Native C++ Expressions
+## http://msdn.microsoft.com/en-us/library/0888kc6a(v=vs.100).aspx
+##
+## When you enter a C/C++ expression in a debugger window, these general
+## restrictions apply:
+## - You cannot call a constructor or destructor for an object, either
+##   explicitly or implicitly, using an expression that calls for construction
+##   of a temporary object.
+## - You cannot call a conversion function if the destination of the conversion
+##   is a class. Such a conversion involves the construction of an object.
+## - You can call functions that return an object or declare local objects.
+## - You cannot call the new or delete operators. 
+## - A debugger expression can call overloaded functions if an exact match
+##   exists or if a match does not require a conversion involving object
+##   construction.
+## - If you cast to a type, the type must be known to the debugger. .... Types
+##   created using typedef statements are not supported.
+exp = formatexp | stringconcatenatioxp | exp;
+stringconcatenationexp = `#( (exp\,{0})+ \);
+formatexp = \[exp\,formatspec\];
+
+## Format Specifiers in C++
+## http://msdn.microsoft.com/en-us/library/75w45ekt(v=vs.100).aspx
+## ??????????????????????
+## The special format <,t> specifies the name of the most-derived type of the
+## object. This is especially useful with pointers or references to a base
+## class.
+## ??????????????????????
+formatspec =
+  ## integers 
+  '[lh]?  ## l long, h short
+  ( '[di] | ##   signed decimal
+    'u    | ## unsigned decimal
+    'o    | ## unsigned octal 
+    '[xX]   ##          hex
+  ) |
+  ## floats
+  'f | ## normal
+  'e | ## scientific
+  'g | ## normal or scientific, whichever is shorter
+  ## chars/strings
+  'c | ## single character
+  's | ## zero terminated string
+  'su | ## unicode string ?????? which character encoding ?????
+  's8 | ## utf8 string
+  ## misc 
+  'hr | ## HRESULT or Win32 error code
+  'wc | ## Window class flag.
+  'wm | ## Windows message numbers
+  \!  | ## raw format, ignoring any data type views customizations
+  ## 1st op is an pointer/address
+  n; ## display as array of n elemenys
+
+
+op = stringliteral | #*???????????*#;
+
+
+## colons, parens or brackets in string literal seem to confuse parser
+stringliteral = \" ... \";
+
+n = \d+;
+
+## misc cotchas
+## - what is in C++ "\"\"" has now to be #(""",""")
+## - what is in C++ if(p) has now to be #if (p!=0)

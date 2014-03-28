@@ -1,0 +1,55 @@
+\documentclass{article}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beginnin stuff
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\author{Florian Kaufmann}
+\title{Pod}
+\date{\today}
+\maketitle
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{asf}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+Document = Block*;
+Block =
+  \='[a-zA-Z]
+  (Paragraph (BlankLine+)* )+
+  ($^"=cut"|$z);
+        
+Para =
+ %simple        
+ NonBlankLine+
+ %exact
+ (CmdPara|VerbPara|OrdinaryPara|DataPara);        
+        
+CmdPara = \='[a-zA-Z] NonBlankLine+;
+VerbPara = '[ \t] NonBlankLine+;         
+OrdinaryPara = ('[^= \t]|\='[^a-zA-Z]) NonBlankLine+;
+DataPara =
+ "=begin" (NonColonIdentifier) \n
+ NonBlankLine*
+ "=end" \1; 
+        
+NonBlankLine = ('[^\n\s]+)*\n;        
+BlankLine = \s*(\n;
+
+## document structure
+"=pod" (NonBlankLine+); ## Starts pod block. \1 is ignored
+"=cut" (NonBlankLine);  ## Ends pod block. \1 is ignored
+"=head"'[1-4] (NonBlankLine+); ## \1 is the heading
+              
+## lists              
+"=over" Number
+          
+          
+          
+## bug: NonBlankLine,BlankLine: eof at the end is also ok, it doesn't need to be \n
+\end{verbatim}
+
+\end{document}
+%%%

@@ -1,0 +1,54 @@
+= why emacs
+
+== fas
+- MS makes easy things easy and hard things (nearly) impossible.
+  * However MS decides for you what the easy things are. If your easy thing is
+    unimportant for MS, then you're fucked.
+
+== As in other IDEs
+And always for all (many) modes (programming/meta languages) 
+   
+- Templates (but more customizeable, always the same type on the same shortcut)
+- flyspell
+- flymake
+- search(-replace) in files
+  But also:
+  * via dired / find-dired & mark more complex selection of files
+  * interrupt search/replace and continue later
+  * tags-loop-continue
+- (keyboard)macros
+- support for (any) version ctrl system
+- highlightening
+- debugger (only nice ide for gdb/(perl?))  
+- spellcheck  
+  
+== As in other better IDEs
+- Programable
+- Good interface to *nix tools. Don't reinvent the wheel, let things be done by
+  tools that already exist and that are good at their job.
+  * dired
+  * find-dired
+  * find-grep-dired
+  * grep
+  * shell-command, shell-command-on-region, dired-do-shell-command
+  * shell
+  
+== No (direct) support
+- Refactoring - but with the given abilities (mark class/defun/kill/yank/tempos)
+  I'm sure you're faster than with a dialog based IDE.
+  
+== Emacs
+- Everybody can decide what is important for him, what has to be easy. There are
+  many many uses of Emacs.
+- Filladapt
+- Outlinemode for idl/h
+- Make modes for your own prog|markup language
+- Copy c++ method decl/def to def/decl
+
+== Other things in emacs
+- Play (simple) games
+- Calculator
+- Comint
+  - Maple
+  - Matlab
+  - ....

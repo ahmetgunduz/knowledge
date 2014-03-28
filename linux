@@ -1,0 +1,11 @@
+== USB Stick mounten
+fdisk -l  # DEV rauslesen
+mkdir <DIR>
+mount -t vfat <DEV> <DIR>
+
+== Locale / Languages
+e.g. en_US.utf8. 
+locale -a for a list of available locales
+
+== keyboard 
+loadkeys us

@@ -1,0 +1,182 @@
+\documentclass[a4paper]{report}
+
+\begin{document}
+
+\author{Florian Kaufmann}
+\title{Latex}
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+
+\subsection{History}
+
+\TeX is a typesetting system that was designed and mostly written in the
+ years 1978-83 by Donald E. Knuth. \TeX is spelled ``tech''. 
+ 
+\LaTeX is a document markup language and document preparation system
+setting up on \Tex{} and was designed 1982-85 by Leslie Lamport.
+
+Advantages of \LaTeX
+
+\begin{itemize}
+ \item Its free
+ \item All versions are backward compatible. You will virtually be able
+       to open a document in eternety.
+ \item Based on textfiles - so the source can be stored in a version
+       control system, such as subversion.
+ \item Supported by an incredible wide range of computer systems.
+ \item Output looks good because it is consistent over the whole (large)
+       document and because the look was made by professionals, not by
+       amateurs as in an typicall WYSIWYG document.
+ \item One can concentrate on the content and doesn't has to care about
+       the form.
+\end{itemize}
+
+\subsection{Basic document structure}
+
+\begin{verbatim}
+document = 
+  preamble
+  \begin{document}
+  documenttext
+  \end{document}; # follwing stuff is ignored
+\end{verbatim}
+
+\subsection{Character set}
+
+\LaTeX is based on the ASCII char set. Thus special characters can not
+directly be given.
+
+Some characters have a special meaning to \LaTeX. The full set of
+those meta characters together with their representation is listed in
+the following.
+
+\begin{verbatim}
+$  \$       ~  \~{}
+&  \&       ^  \^{}
+%  \%       "  \dq 
+#  \#       \  \textbacksslash 
+_  \_       |  \textbar        
+{  \{       <  \textless       
+}  \}       >  \textgreater    
+\end{verbatim}
+
+\subsection{Special punctuation characters}
+
+\begin{verbatim}
+hyphen: -: daughter-in-law
+en-dash: --: pages 13--67
+em-dash: ---: yes---or no?
+minus-sign: $-1$
+
+????: \~       # uperscript tilde
+tilde: \~{}    # 
+tilde: $\sim$  # bigger, more in the middle
+
+Ellipsis: \ldots # ...
+\end{verbatim}
+
+\subsection{Comments}
+
+\begin{verbatim}
+% Comment to end of line
+\begin{comment}
+multilinecomment
+\end{comment}
+\end{verbatim} 
+
+\subsection{commands}
+
+Commandnames are case sensitive. 
+
+\begin{verbatim}
+Command = 
+  \\(\W|\w+)
+  [\*]
+  [\[ (arg \,{f~} )+ \]]      ## optional arguments
+  [\{ (arg \,{f~} ){-,9} \}]; ## arguments
+\end{verbatim}
+
+In case of commands where the command name consists of letters and where
+there are no arguments, the command name, i.e. the command, is ended by
+the next non-letter character. For example a space, which however is
+then eaten up. To insert a space after that command, either use two
+spaces, or use \verb|\ |. Another way is to explicetely pass zero
+arguments like that \verb|\mycommand{}|.
+
+
+\subsection{Spaces, newlines}
+
+A period following an uppercase character is not taken as the end of a
+sentence. Use command $\backslash$@ before a period to tell Latex that that
+period is not the end of the sentence.
+
+\subsection{Structure}
+
+Paragagraphs: A new paragraph is started by either two or more empty
+lines or by the command \verb|\par|. 
+
+\section{Syntax}
+
+\begin{verbatim}
+Command = \\CmdName( \{ Arg \} | \[ Arg \] )+
+
+CmdName = (Letter+|^Letter)        
+        
+Letter = '[a-zA-Z];        
+        
+Name = 
+\end{verbatim}
+
+\section{Math}
+
+\begin{verbatim}
+\begin{math} ... \end{math}
+$ ... $
+\( ... \)
+
+\begin{displaymath} ... \end{displaymath}
+$$ ... $$
+\[ ... \]
+
+\begin{equation} ... \end{equation}
+
+\textrm{ ... }
+\end{verbatim}
+  
+Building blocks
+
+\begin{tabular}
+\verb|\lim_{l}| & Limes \\
+\verb|\sum_{from}^{to}| & Sum operator\\
+\verb|\int_{from}^{to}| & Integral \\
+\verb|\prod_{from}^{to}| & Product operator \\
+\verb|\frac{nom}{denom}| & Fraction \\
+\verb|\sqrt| & square root \\
+\verb|\sqrt[n]| & n-th root \\
+\verb|{n \choose k}| & binomial coefficient with braces \\
+\verb|{n \atop k}| & binomial coefficient without braces \\
+\verb|\begin{array}[...]...\end{array}| & Array environment. Usage similar to tabular. Usefull for matrixes, 
+\end{tabular} 
+
+Stuff over/under expressions.
+
+\begin{tabular}
+\verb|\overline| & \\
+\verb|\underline| & \\
+\verb|\overbrace| & \\
+\verb|\underbrace| & \\
+\verb|\widetilde| & \\
+\verb|\widehat| & \\
+\verb|\vec| & \\
+\verb|\overleftarrow| & \\
+\verb|\overrightarrow| & \\
+\end{tabular}
+
+
+
+\end{document}
+
+

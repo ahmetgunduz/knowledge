@@ -1,0 +1,53 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title & Abstract
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[a4paper]{report}
+\usepackage{verbatim}
+\begin{document}
+
+\author{Florian Kaufmann}
+\title{diff tools}
+\date{\today}
+\maketitle
+
+\begin{abstract}
+\end{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tableofcontents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{diff3}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{output format}
+
+\begin{verbatim}
+output = (2whunk|3whunk)*;
+       
+# the number tells which inputfile differs, the other two are equal       
+2whunk =
+  "===="file\n
+  (acommand|ccommand);
+       
+# all three files differ       
+3whunk =
+  "====\n"
+  (acommand|ccommand);
+  
+# The hunk is not present in given file after given line
+acommand =
+  file\:line"a\n";
+  
+# The hunk is present in given file in the given line range
+#   
+bcommand =  
+  file\:line#from[\,line#to]"c\n"
+  "  "inputline)*;
+
+\end{verbatim}
+                   
+\end{document}
+

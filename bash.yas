@@ -1,0 +1,47 @@
+Script        = List;       
+List          = SubList+; 
+SubList       = ( Pipe OpCombinePipe{~} )+ [OpEndSubList];
+OpCombinePipe = `&& #And   | `|| #Or;
+OpEndSubList  = `&  #Async | (`; | \n) #Sync;
+Pipe          = ['time [`-p ]] [\!]#NegateExitCode (Command \|{~} )+;  
+Command       = ( SimpleCommand | CompoundCommand ) [Redirections];
+SimpleCommand =
+  VariableAssignmentList |. (Word#Commandname Word*#Arguments);
+CompoundCommand = 	
+  `( List `) |            ## Executed in subshell.  
+  `{ List `} |            ## Executed in current shell. 
+  `(( ArithmeticExp `)) | ## Arithmetic evaluation 
+  `[[ CondExp `]] |	      ## Conditional Expression. 
+  FlowControlCommand;     ## See chapter flow control
+
+Token = Operator | Word;## A sequence of characters considered a single unit by the shell        
+Operator = ControlOperator | RedirectionOperator;
+ControlOperator = \n | `|| | `&& | `& | `; | `;; | `|  | `( | `) ;
+Word = ; ## A token that is not an operator is a word         
+MetaCharacter = Blank | \& | \; | \( | \) | \< | \>;  	## When unquoted, separates words.
+Blank = " " | \t;
+Name = '[a-zA-Z_]'[0-9a-zA-Z_]*;
+Identifier = Name;                
+KeyWord = ReservedWord; ## A word that has a special meaning to the shell        
+ReservedWord =
+  `! | `[[ | `]] | `{ | `} | 
+  'case | 'do | 'done | 'elif | 'else | 'esac |
+  'fi | 'for | 'function | 'if | 'in | 'select |
+  'then | 'time | 'until | 'while;
+
+Comment %= ; ## starts with # and extends up to the end of the line
+
+Command = ( SimpleCommand | CompoundCommand ) [Redirections];
+SimpleCommand =
+  VariableAssignmentList |. (Word#Commandname Word*#Arguments);
+CompoundCommand = 	
+  `( List `) |            ## Executed in subshell.  
+  `{ List `} |            ## Executed in current shell. 
+  `(( ArithmeticExp `)) | ## Arithmetic evaluation 
+  `[[ CondExp `]] |	      ## Conditional Expression. 
+  FlowControlCommand;     ## See chapter flow control
+Pipe = ['time [`-p ]] [\!]#NegateExitCode (Command \|{~} )+;  
+List           = SubList+; 
+SubList        = ( Pipe OpCombinePipe{~} )+ [OpEndSubList];
+OpCombinePipe  = `&& #And   | `|| #Or;
+OpEndSubList   = `&  #Async | (`; | \n) #Sync;

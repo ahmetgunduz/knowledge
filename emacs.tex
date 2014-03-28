@@ -1,0 +1,304 @@
+\documentclass[a4paper]{report}
+\usepackage{verbatim}
+\begin{document}
+
+\author{Florian Kaufmann}
+\title{}
+\date{\today}
+\maketitle
+
+\begin{abstract}
+\end{abstract}
+
+\tableofcontents
+
+\section{Comments}
+
+\subsection{Creating & killing}
+
+Creating comments out of thin air: comment-dwim (region not active)
+creates a new comment. If point is on an empty line, the new comment is
+aligned to the code. If prefix arg is specified, insert that many
+comment chars. If point is on an non-empty line, calls comment-indent
+which on a line without comment inserts a new comment.
+
+Commenting out regions: comment-dwim (region active) calls
+comment-region, which comments out using prefix arg comment characters;
+negative means delete that many. C-u comment-out-regions let's you
+specify the comment start delimiter explicitely.
+
+Removing comments: C-u [arg] comment-dwim (region not active) on a line
+with at least one comment calls kill-comment. kill-comment does kill the
+first comment on the next prefix arg lines. C-u comment-dwim (region
+active) removes the comments if the whole region is commented out. C-u
+comment-region removes one comment char. comment-region with neg prefix
+removes that many comment chars.
+
+\subsection{Editing existing}
+
+With auto-fill-mode turned on, simply type. Text is broken at
+current-fill-column. [???]
+
+Add new comment line: comment-indent-new-line like new-line-and-indent,
+comment delimiters remain ok. This command is intended for styles where
+you write a comment per line, starting a new comment (and terminating it
+if necessary) on each line. See comment-multi-line, comment-continue.
+
+c-indent-new-comment-line
+
+- newline-and-indent: ??
+
+To jump into the comment of the current line, use comment-dwim - which
+however at the same time also indents the comment.
+
+\subsection{Options}
+
+New comments are created using comment-start and comment-end. Some 
+commands can insert multiple comment chars. The char is the last
+nonwhite of comment-start. In case of commenting out regions
+comment-style determines various additional stuff. comment-continue is
+used instead comment-start on multiline comments (commenting out
+multiple lines, or continuing a comment). If nil, the its value is
+derived from comment-start by replacing its first char with a space.
+comment-padding 
+
+To find comments, e.g. to remove them or to tell if there is a comment on
+the line, the regexps comment-start-skip and comment-end-skip are
+used. 
+
+if fill-prefix is given, it is as prefix before ??comment-start?? for
+comment-indent-new-line, comment-indent, but not for comment-region.
+
+
+comment-start + add*char_start + padding
+padding + add*char_end + comment-end
+
+Options/Variables
+- comment-column: ToEOL begin here
+- c-indent-comment-alist: adaptively (depending on current line)
+determine value instead of comment-column
+- c-indent-comments-syntactically-p: ???
+- set-comment-column
+- comment-(start|end): For newly created comments [??? how to define ToEOF/Multiline?]
+- comment-(start|end)-skip: Regexp describing start/end of a comment
+upto its body. Probably used internaly for recognizing start/end of
+existing comments.
+- comment-continue: prefix for multiline comment. ??? Difference to all the
+fill prefixes?? It seems like fill-prefix is used if its non-nil.
+
+- comment-padding: for comment-region: spaces between text and comment
+  delimiters, or string to be inserted
+- comment-style: how comments look like created by comment-region 
+
+- comment-indent-function: to compute indentation for a comment
+- c-comment-prefix-regexp: ?? Determine line prefix when a new comment
+  line is made.
+- c-block-comment-prefix: Comment prefix when a \em{block} comment is broken
+  for the first time; because then there is no 2nd+ line from where the
+  prefix can be deduced.
+- comment-multi-line: ?
+- comment-fill-column replaces fill-column within comments
+- comment-empty-lines: comment-region does not comment empty lines.  
+
+\begin{verbatim}
+
+  // test  
++ 111     2                  
+  int i;                          
+
+insertions:        
+strings        
+1 comment-start                
+2 comment-end
+paddings
+a            
+recognitions:        
+\end{verbatim}
+
+\subsection{Filling}
+See main chapter filling.
+
+\subsection{Thoughts}
+
+Delimitertype
+  - ToEOF
+  - Multiline
+
+Content  
+  - PlainComment
+  - Documentation (POD,doxygen?,...)
+  
+Usual places
+  - End of code line, aligned with other comments
+  - On line bevore code, aligned with code
+  - Within code 
+
+- http://aurelien.tisne.free.fr/emacs-pages/emacs/prg-comment-doc.html
+- any template modes
+
+
+\subsection{wants}
+- dynamic comment-column
+- yank/kill comment text with filladapt's prefix/postfix removed
+
+
+
+
+\section{Skelletons/Templates}
+
+\section{Simply type}
+
+- Auto fill mode: auto newlines so text is always nicely aligned. Not
+  within code controlled by cc mode, see c-ignore-auto-fill.
+  ??? How to continue end-of-line-comments in general??
+  
+- cc mode / auto-newline minor mode: auto newlines when pressing certain
+  electric keys. electric minor mode seems to be a prequisite.
+
+- c-context-open-line  
+
+  
+\section{Beautify}
+
+\subsection{Misc}
+align: 
+
+\subsection{Filling}
+
+Adaptive fill mode enhances Emacs auto fill mode. Key improvment is that
+fill-prefix is dynamically determined. Also the boundaries of the
+current paragraph are located.
+
+?? Distinguish indendation of first line of paragraph to others
+?? EOL comment over multiple lines
+
+See also auto fill
+
+Variables:
+- c-ignore-auto-fill: list of contexts (e.g. string, ... ) where auto
+  fill mode is disabled
+- auto-fill-function: 
+- normal-auto-fill-function: auto-fill-function is initialized (when?)
+- comment-fill-column replaces fill-column within comments
+with it.
+
+\section{Simply write}
+
+\subsection{newlines/indenting}
+
+- Auto fill mode: is a minor mode in which lines are broken automatically
+when they become too long, and the text is nicely aligned.
+- newline-and-indent:
+- indent-new-comment-line: Alias for comment-indent-new-line 
+- comment-indent-new-line: ??
+- c-context-line-break: 
+- c-context-open-line:
+- c-indent-new-comment-line:
+
+\subsection{misc}
+- cc mode / c hungry delete mode
+  - c-electric-(backspace|delete-forward):
+  - c-hungry-delete-(backwards|forwards): As above, but doesn't need
+    minor mode; is usaly on own binding (i.e. not backspace,C-d)
+
+\section{Completion}
+cyclebuffer
+ido
+joc-toggle-buffer
+lcomp (list-completion hacks)
+minibuffer-complete-cycle
+
+ff-paths
+
+\section{Logical Hierarchy}
+
+\subsection{Outline mode}
+\begin{verbatim}
+
+leave = body
+
+e/c : show/hide current's headings body 
+s/d : show/hide subtree 
+ /l :     /hide subtree's bodies 
+ /t :     /hide all bodies
+a   : show/     everything
+
+tab  show children = show all direct subheadings
+k    show branches = show all subheadings, no bodies
+s    show subtree  = show everything
+
+l		 hide leaves = hide all bodies/leaves
+d    hide subtree = everything
+\end{verbatim}
+camel casse minor mode:
+cc mod / subword minor mode: as camel case mode
+
+\section{(book)marks}
+
+\subchapter{wants}
+- visualize (book)marks in buffer. Within buffer and/or at fringe.
+
+\section{window/frames}
+
+\section{help}
+sys-apropos
+
+\section{other window}
+
+display-buffer::
+switch-to-buffer::
+\... When the selected window is the minibuffer window or is strongly
+dedicated to its buffer (*note Dedicated Windows::), this function calls
+`pop-to-buffer'. ...
+pop-to-buffer(buffer-or-name &optional other-window norecord)::
+This command makes BUFFER-OR-NAME the current buffer and switches
+to it in some window, preferably not the window previously
+selected. 
+\... to be read ... !!!!
+window-dedicated-p::
+next-error::
+(if from-compilation-buffer
+        ;; If the compilation buffer window was selected,
+        ;; keep the compilation buffer in this window;
+        ;; display the source in another window.
+        (let ((pop-up-windows t))
+          (pop-to-buffer (marker-buffer mk) 'other-window))
+      (if (window-dedicated-p (selected-window))
+          (pop-to-buffer (marker-buffer mk))
+        (switch-to-buffer (marker-buffer mk))))
+
+
+
+
+pop-up-windows::
+  Non-nil means `display-buffer' should make a new window.
+compilation-goto-locus::
+display-buffer-reuse-frames::
+
+special-display-regexps::
+special-display-buffer-names::
+If regexp/name matches.... By default, special display means to give the
+buffer a dedicated frame. See `special-display-function'.
+
+same-window-regexps::
+same-window-buffer-names::
+\... If the buffer's name is in this list, `display-buffer' handles the buffer by
+switching to it in the selected window.
+
+special-display-function::
+This variable holds the function to call to display a buffer
+specially.  It receives the buffer as an argument, and should
+return the window in which it is displayed.  The default value of
+this variable is `special-display-popup-frame', see below.
+
+
+pop-up-frames::
+Whether `display-buffer' should make a separate frame.
+If nil, never make a seperate frame.
+If the value is `graphic-only', make a separate frame
+on graphic displays only.
+Any other non-nil value means always make a separate frame.
+  
+
+
+\end{document}

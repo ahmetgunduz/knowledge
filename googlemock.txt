@@ -1,0 +1,30 @@
+Googlemock is a library for writing and using C++ [[Automated_Test#Test_double|mock]]s and [[Automated_Test#Test_double|stub]]s. Differentiate that from [[Googletest]] which is a C++ testing framework. 
+
+
+
+== Overview ==
+
+First of all, make sure you know what a mock is by reading the chapter on [[Automated_Test#Test_double|Test double]]s. Note that there are multiple definitions of the term 'mock', so make sure you know what we in Flori mean.
+
+Second, equally important, only use a mock when it really is appropriate. You might better use the real object, or another form of [[Automated_Test#Test_double|Test double]] like a stub. See [[Unit_Test#When_to_isolate_unit_under_test|when to isolate unit under test]]
+
+The official manuals for googlemock are excellent and can be found [http://code.google.com/p/googlemock/wiki/Documentation here]. In Flori, googlemock is primarily but not exclusively used in UnitTest2 projects. For an how-to, see the [[UnitTest2 Practice]] page.
+
+== Flori's changes to Googlemock ==
+See [[UnitTest2_Practice#Global_settings|UnitTest2 Practice]] for Flori's changes to the way Googlemock works.
+
+== Flori projects which already use mocks ==
+For reference, you might want to look at Flori PC projects that already make use of googlemock:
+* PPForceMod (Pick & Place)
+* PPPPickerMord (Pick & Place)
+* PPCalibMod (Pick & Place)
+* PPSeqBaseLib (Pick & Place)
+* MCIDReaderService (Services)
+
+
+
+== See Also ==
+* [[Testing]] Parent level page with all the testing links
+
+
+[[Category:Tools]]

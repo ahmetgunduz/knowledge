@@ -1,0 +1,48 @@
+= Clean Code
+
+== Motivation
+
+Clean code
+  -> Readable & maintable code
+    -> easy adding of features and bugfixing
+
+Messy code
+  -> expensive adding of features / bugfixes
+  big apps become **un**maintainable and a financial loss
+  footnote:[We have a huge app, 150 man years, and many years to go]
+  footnote:[Small apps (a few man years) might get away with messy code]
+  
+== What is clean code? Guru answers
+catch-phrases from answers of programming gurus
+
+simple
+reads like prose        
+logic is straightforward        
+does not obscure the writters intent      
+each routine you read turns out to be pretty much what you expected
+does one thing well 
+provides one way, rather than many, for doing one thing
+minimal dependencies/API
+   
+== What is clean code? Your answer
+      
+When working with code I learn a lot by all those things that slow me down,
+impose a handicap. 
+   
+== The primal conundrum    
+   
+- experience shows that a messy code slows you down
+- yet you feel the pressure to make messes in order to meet deadlines
+  
+- the *only* way to make the deadline / to go fast
+  is to keep the code clean
+   
+== Quotes   
+Code Mess proport= Fö**s / Minute
+LeBlanc's law: Later equals never
+Do it or leave it          
+footnote:[Leave it: nicht doch aufschreiben: Wenn Problem genügend gross kommts
+einem schon wieder in den Sinn]   
+Take the time to go fast
+Boy scout rule: Leave the campground cleaner than you found it
+Broken window theory

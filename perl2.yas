@@ -1,0 +1,34 @@
+## $@%& and [] {} () are not really operators. This can be seen from that Genref
+## cannot have parentheses (on the outermost level at least).
+Terminal = %% Better Name !!!!
+  BuiltinName             |
+  '[$@%&] Genref          | ## funny char / dereference
+  `$ Genref `[ Scalar `]  | ## array subscribt
+  `@ Genref `[ List `]    | ## array slice
+  `$ Genref `{ Scalar `}  | ## hash subscribt
+  `@ Genref `{ List `}    | ## hash slice
+  `& Genref `( List `)    ; ## func call
+   "afsasfd" 
+   'afsdafsd 
+  `(afs  
+  `( List `) `[ List `] | ## list slice 
+   Scalar#ArrayRef `-> `[ Scalar `] | ## dereference + array subscribt
+   Scalar#HashRef  `-> `{ Scalar `} | ## dereference + hash subscribt
+   Scalar#SubRef   `-> `( List `);    ## dereference + func call
+
+Genref =
+  ChainOfIdentifier |
+  { Scalar#Ref } |
+  `$ Genref;
+   
+## part of Terminal
+Name = FullyQualifiedName =
+  FunnyChar.Identifier |
+  BuiltinName ;   
+
+BuiltinName =  
+   
+ChainOfIdentifier = ( Identifier ("::"|"`"){~} )+;   
+  
+## no
+## - dereference + array/hash slice

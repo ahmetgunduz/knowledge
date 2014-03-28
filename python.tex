@@ -1,0 +1,179 @@
+\documentclass{article}
+
+\begin{document}
+\author{Florian Kaufmann}
+\title{Python Summary}
+\date{\today}
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+
+\section{Yasmala}
+
+\begin{verbatim}
+## literals
+## ----------------------------------------------------------------------
+        
+Lit = NumLit | StringLit | ByteLit;        
+        
+NumLit = IntLit | FloatLit | ImagLit;        
+        
+IntLit %=
+ '0+               | 
+ '[1-9]  Digit*    | 
+ '0'[bB] BinDigit+ | 
+ '0'[oO] OctDigit+ | 
+ '0'[xX] HexDigit+ ;
+ 
+FloatLit %= PointFloat | ExpFloat;
+  PointFloat %= Digit* \. Digit+ | Digit+ \.;
+  ExpFloat %= (Digit+|PointFloat) '[eE]'[+-]?Digit+;
+        
+ImagLit %= (FloatLit|Digit+)'[jJ];
+
+## Adjancted string literals are concatenated
+StringLit = SimpleStringLit+;
+        
+## There are 3 binary 'switches'
+## 1) Single quote or double quote doesn't really make a difference.
+## 2.1) no prefix: escape seq allowd
+## 3.2) raw prefix: no esscape seq. 
+## 4) triple-quoted strings: Unqouted newlines are allowed.
+SimpleStringLit %=
+  '[rR] @( `"   | `'   )  ( RawStrEsc | \a )*?  ~~@ |
+  '[rR] @( `""" | `''' )  ( RawStrEsc | \A )*?  ~~@ |
+        @( `"   | `'   )  ( StrEscSeq | \a )*?  ~~@ |
+        @( `""" | `''' )  ( StrEscSeq | \A )*?  ~~@ ;
+  
+## the backslash and the following char are both literaly part of the literal
+RawEsc %= \\\a;
+       
+EscSeq %=
+  "\\\n" | ## discards both the backslash and the newline
+  "\\\\" | ## Backslash 
+  "\\'"  | ## Single quote 
+  "\\""  | ## Double quote 
+  "\\a"  | ## ASCII Bell (BEL)                  
+  "\\b"  | ## ASCII Backspace (BS)              
+  "\\f"  | ## ASCII Formfeed (FF)               
+  "\\n"  | ## ASCII Linefeed (LF)               
+  "\\r"  | ## ASCII Carriage Return (CR)        
+  "\\t"  | ## ASCII Horizontal Tab (TAB)        
+  "\\v"  | ## ASCII Vertical Tab (VT)           
+  "\\"OctDigit{1,3} | ## Character with octal value
+  "\\x"HexDigit{1,2}; ## Character with hex value 
+   
+StrEscSeq %=
+   EscSeq |
+   "\\N{" \a+?#name "}" | ## character name in the unicode database 
+   "\\u" HexDigit{4}    | ## charcter with 16-bit hex value
+   "\\U" HexDigit{8}    ; ## charcter with 32-bit hex value
+   
+## statements
+## ----------------------------------------------------------------------
+Stmt =  (SimpleStmt `; {l?} )+ NL | CompoundStmt; 
+     
+CompoundStmt = CondStmt | LoopStmt | DefStmt | TryStmt | WithStmt;
+             
+SimpleStmt = expr_stmt | del_stmt | pass_stmt | flow_stmt |
+             import_stmt | global_stmt | nonlocal_stmt | assert_stmt;             
+             
+DefStmt = FuncDef | ClassDef;         
+             
+Suite =
+  (SimpleStmt `; {l?} )+ NL |
+  NL Indent Stmt+ Dedent;
+        
+## control flow
+## ----------------------------------------------------------------------
+CondStmt = IfStmt;
+LoopStmt = WhileStmt | ForStmt;
+        
+IfStmt =
+  'if Bool `: Suite
+  ('elif Bool `: Suite )*
+  ['else `: Suite ];
+        
+WhileStmt =
+  'while Bool `: Suite
+  ['else `: Suite ] 
+  
+ForStmt =
+  'for TargetList 'in Iterable `: Suite
+  ['else `: Suite ];
+        
+TryStmt = TryStmt1 | TryStmt2;
+        
+TryStmt1 =
+  'try `: Suite
+  ('except [Exp ['as Taget]] `: Suite)+
+  ['else `: Suite]
+  ['finally `: Suite];
+  
+TryStmt2 =
+  'try `: Suite;
+
+WithStmt = 'with Exp 'as Target `: Suite;
+
+## definitions
+## ----------------------------------------------------------------------
+funcdef = 
+  Decorator*        
+  'def Name `( Params `) [`-> Test] `: Suite;
+  
+  Params  = (defparameter `, )*
+                 = (  `* [parameter] ("," defparameter)*
+                 = [, `** parameter]
+                 = | `** parameter
+                 = | defparameter [`, ] );
+  parameter      = identifier [`: expression];
+  defparameter   = parameter [`= expression];
+   
+Decorator = `@ DName [ `( [Args] `) ] NL;
+   
+DName = (Name `. {l0})+;
+      
+Args = Arg `,    
+   
+## lexxer        
+        
+%discard        
+Comment %= `# \a* \N;
+        
+## If more blanks than current indent level, else discard
+Indent %= %simple $$ '[ \t]* ;
+       
+## If less blanks than current indent level, else discard
+Dedent %= %simple $$ '[ \t]* ;
+       
+%discad        
+Blanks %= '[ \t\f]+ | BlankLine;
+       
+%discard       
+EscapedNewline %= \\\n;       
+               
+BlankLine %= $^ \s* $$
+       
+NL %= \n;
+
+        
+Keywords %= 'False | 'class | 'finally | 'is | 'return | 'None |
+ 'continue |'for | 'lambda | 'try | 'True | 'def | 'from |
+ 'nonlocal | 'while | 'and | 'del | 'global | 'not | 'with |
+ 'as | 'elif | 'if | 'or | 'yield | 'assert | 'else | 'import |
+ 'pass | 'break | 'except | 'in | 'raise;
+ 
+ReservedName %=
+ '_\w+ |     ## ???
+ '__\w+'__ | ## system-defined names
+ '__\w+;     ## class private names
+ 
+ 
+## Note: Python 3.0 introduces additional chars from outside the ASCII range.
+Name %= (\w-\d)\w+; ## length is really unlimted
+        
+ %lexerorder: Indent, Dedent, Blanks, Keywords, ReservedName, Name\end{verbatim}
+
+
+\end{document}

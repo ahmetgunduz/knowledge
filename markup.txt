@@ -1,0 +1,137 @@
+= Markup Languages
+Florian Kaufmann <sensorflo@gmail.com>
+
+== Existing languages
+
+Purpose:
+ tool docu
+ code docu
+ book, article, report
+ slideshow
+   
+TeX family: Latex, Texi, Tex
+roff familiy: roff, nroff, troff, groff, (history: runoff, )
+DocBook family: DocBook, LinuxDoc, Simplified DocBook
+POD
+RD, RDoc
+Wiki family:
+Lightweight: AsciiDoc, MarkDown, reStructuredText
+CHM([Microsoft compiled] HTML Help)             
+Doxygen               
+
+                      
+roff::  "I'll **R**un *off* a document"                    
+nroff:: newer roff        
+troff:: typesetter roff       
+groff:: GNU roff        
+LinuxDoc::
+  LinuxDoc is an SGML DTD which is similar to DocBook. It was created by Matt
+  Welsh and version 1.1 was announced [1] in 1994. It is primarily used by the
+  Linux Documentation Project.
+DocBook::
+  DocBook is a semantic markup language for technical documentation. 
+POD::
+CHM::
+  It has a set of web pages written in a subset of HTML and a hyperlinked table
+  of contents. CHM format is optimized for reading, as files are heavily
+  indexed. All files are compressed together with LZX compression.
+
+=== conversions  
+groff -> ps(groff),html(groff),Tex DVI(groff),txt(groff)
+reStructuredText -> html(rst2html), latex(rst2latex), ODF(rstd2odt), S5(rst2s5)
+Latex -> Tex?
+Tex -> DVI(TeX,pdfTeX), PDF(pdfTeX)
+DVI -> text(dvitype), pdf(dvipdf[m[x]]), ps(dvips), bitmap(dvipng), svg(dvisvg[m])
+PDF -> DVI(dvipdf,dvipdfm,dvipdfmx)
+DocBook -> X?HTML, EPUB, PDF, man pages, CHM
+CHM -> HTML(hh [windows], extract_chmLib, chm tools package), ??(chmdump)
+pod -> HTML(pod2html), man(pod2man), text(pod2text), html(pod2html),
+       latex(pod2latex), docbook(pod2docbook)
+html -> texi(html2texi)
+     
+=== historical dependence
+runoff -> (troff roff  nroff mal 100, alter name immer wieder wiederverwendet) ->  groff
+
+== Structure
+
+Documenttype: book, article, report, manpage, letter, presentation   
+   
+Documenttitle   
+Sections/Chapters   
+Paragraphs
+        
+Punctuation:
+Point : end of sentence / abbreviation / elippses
+Hyphenation :
+Quotes : " ' down up 
+        
+Formats:
+Verbatim
+Monospaced/Typewriter
+Bold/Strong
+Italic/Emphasis
+
+Embedded whatever        
+e.g. highlight embedded verbatim code        
+        
+Objects:
+Tables
+Images
+Attributes:
+  Caption
+        
+References:
+URLs
+To other docs
+To chapters within same doc
+To objects
+To biblio   
+        
+Special chapters/sections:
+Title(page)
+Forword             
+Aknowdlegment                    
+Abstract
+TableOfContents        
+...                       
+List of (Figures/Tables/Listings/Acronyms)                          
+Appendix
+Index/Glossary
+Bibliography
+
+Special whatever:
+Footnotes
+
+        
+== Syntax         
+        
+Metacharacters/strings/quotes must occurable within the text. Solutions:
+
+- Escape the metachars
+- User defined quotes/delimiters
+- Null-Metastrings/commands to
+
+How to represent special chars? (Umlaut, any given Unicode, ...)  
+  
+== Formating
+
+Verbatim is not equal to typewriter/monospaced (font), they are in general
+completely independent. 
+
+== My Lang           
+           
+The start of a new 'block' item (list,headers,sections,...) should be dedectable from
+the first line, so emacs ouline mode can be easely configured.
+           
+Paragraphs/ListItems in a way emacs/par/fmt can be easely used
+
+           
+== Glossary
+
+Meta character::
+Whites::
+Blanks::
+Commando::
+Delimiter (char/string)::
+Macro::
+Quote(s)::

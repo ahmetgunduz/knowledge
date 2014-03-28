@@ -1,0 +1,1394 @@
+\documentclass{article}
+
+\begin{document}
+\author{Florian Kaufmann}
+\title{Perl Summary}
+\date{\today}
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+
+This document is a rather dense summary of perl. It's mainly aimed to suit
+myself, but I nevertheless slightly try make it also usefull for others. Being a
+summary, it's not recommended for Perl beginners.
+
+It's mostly about Perl's syntax, because I find it hard to get a good overview
+from the documentation that comes with perl. However I like variabel (perlvar)
+and function (perlfunc) references, so no need to rewrite that information here.
+
+\section{Structure of a Perl program}
+
+\begin{verbatim}
+PerlScript =
+  ( Declaration | Statement )*
+  [ '__END__  | \x04 | \x14 ] ;
+\end{verbatim}
+
+A declaration can be put anywhere a statement can, but has no effect on the
+execution of the primary sequence of commands. Declarations all take effect at
+compile time.
+
+The logical end of a Perl script is specified by the token \verb|__END__| or a
+Control-D (ASCII 0x4) or a Control-Z (ASCII 0x14) character. Any following text
+is ignored, but may be read via the DATA file handle.
+
+Perl is, for the most part, a free-form language. The only exception to this are
+format declarations, for fairly obvious reasons.
+
+Typically all the declarations are put at the beginning or the end of
+the script.
+
+\subsection{Ignored}
+
+\begin{verbatim}
+Ignored =
+  %simple
+  `# ... \n       | ## comments until end of line
+  (\x04|\x14) ... | ## Control-D or Control-Z char until end of file
+\end{verbatim}
+
+\subsection{Comments}
+
+Text from an unqoted \verb|#| character until the end of the line is a comment,
+and is ignored. See also \verb|__END__|.
+
+\subsection{Typical script}
+
+The obligatory introduction example:
+
+\begin{verbatim}
+#!/usr/bin/perl
+print "hello world"
+\end{verbatim}
+
+A more complex example which shows some simple often seen constructs.
+
+\begin{verbatim}
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+# declaration of a global variable
+our $x; 
+
+# a subroutine declaration
+sub foo()
+{
+  # local declaration of a variable
+  my $x = 1;    
+
+  # the value of the last expression is the return value of the subroutine
+}
+
+# the actual script
+foo(); 
+foo(1,2,3);
+
+# end of the script
+__END__
+=pod
+... here comes the programs documentation in POD
+\end{verbatim}
+
+
+\section{Variables, Names, Data types}
+
+Perl has three built-in data types: scalars, arrays of scalars, and hashes
+(associative arrays) of scalars. Scalars are used to store numbers and strings
+and more.
+
+In Perl, variables don't have to be declared, they spring into existence when
+they are reffered to the first time. However, they can be declared, see
+\ref{??}.
+
+\begin{verbatim}
+$scalar_number = 3.14;
+$scalar_string = "hello world";
+@array  = ($number,$string);
+%hash   = ("age" => 31, )
+\end{verbatim}
+
+Before we look at those data types, let's see how to refer to variables.
+
+\subsection{Names and identifiers}
+
+A name uniquely identifies a variable/memory location. See also \ref{scope}.
+When using symbolic references the name can be an arbitrary string
+\ref{SymbRef}. 
+
+The funny character is somewhat like a type - namespace. E.g. \verb|$foo|,
+\verb|@foo|, \verb|%foo| etc are all different variables. The first is a scalar,
+the 2nd an array, the 3rd a hash.
+
+\begin{verbatim}
+Identifier = '[a-zA-Z_]'[a-zA-Z0-9_]{-250};
+
+BuiltinIdentifier = '[0-9]+ | '[^a-zA-Z0-9] | \^'[A-Z];
+
+## fully qualified identifier. Also called chain of identifiers
+FQIdentifier =
+  PackSep ?
+  ( Identifier PACKSEP {~}  )* ## package name
+  Identifier                   ## name within package
+  |
+  BuiltinIdentifier;
+ 
+  ## package separator
+  PackSep = `:: | `' ;         ## the 2nd form is dis-encouraged.
+
+        
+## fully qualified name 
+Name =
+  FunnyChar FQIdentifier |
+  \* FQIdentifier \{ GlobEntry \};
+  
+## selects the type of the variable
+FunnyChar = 
+  \$ | ## scalar
+  \@ | ## array
+  \% | ## hash
+  \& | ## subroutine
+  \* ; ## symbol table entry
+
+## also selects the type of the variable
+GlobEntry =      ## corresponding funny char
+  "SCALAR"     | ## $ scalar
+  "ARRAY"      | ## @ array
+  "HASH"       | ## % hash
+  "CODE"       | ## & subroutines
+  "GLOB"       | ## * symbol table entry
+  "IO"         | ##   file/dir handle
+  "FILEHANDLE" | ##   the same (old way)  
+  "NAME"       | ##   name of this entry
+  "PACKAGE"    ; ##   packacke name of this entry's symbol table
+\end{verbatim}
+
+As far as I understand it, perl documentation doesn't make a clear distinction
+between name, fully qualified name, identifier, chain of identifiers, variable.
+
+\subsection{Data types}
+
+\subsubsection{Scalars}
+Limits of numbers. Size/precission. Same with strings.
+
+\begin{verbatim}
+Scalar
++- Number
+|  +- Integer
+|  +- Floating Point
++- String
++- Bool 
++- Reference 
+\end{verbatim}
+
+\subsubsection{Arrays}
+
+\subsubsection{Hashes}
+
+\subsubsection{Subroutines}
+
+\subsubsection{Typeglobs}
+
+\begin{verbatim}
+TypeGlobAssignment =       
+                   
+  ## make lhs an alias to (all of) rhs
+  TypeGlob `= TypeGlob
+  TypeGlob `= \\TypeGlob           ## autodereference, i.e. same as above
+  TypeGlob `= "*{"String#Name"}"   ## explicit symbol table lookup
+  TypeGlob `= String#Name          ## implicit symbol table lookup, i.e. same as above
+
+  ## make lhs an alias to a part of lhs
+  TypeGlob = Reference   ## - only what reference points to becomes an alias
+                         ## - if the referee is a typeglob, it is
+                         ## autodereferenced
+\end{verbatim}
+
+
+\subsection{Literals}
+
+\subsubsection{Numeric literals}
+
+\begin{verbatim}
+NumericLiteral = IntegralNumericLiteral | FloatNumericLiteral;
+        
+## the underscore is convenient e.g. to seprate tousands 1_000_000.
+IntegralLiteral =
+  '[1-9]\_*(DecDigit\_*)*  |     # decimal based literal
+  "0b"(BinDigit\_*)*       |     # binary based literal
+  "0"(OctDigit\_*)*        |     # octal based literal
+  "0x"(HexDigit\_*)*       ;     # hex based literal
+
+FloatLiteral =
+  $simple
+  (DecDigitSeq |. \.DecDigitSeq) ["e"DecDigitSeq];
+  
+DecDigitSeq = (DecDigit|\_)+ / \_+;
+
+DecDigit = '[0-9];
+BinDigit = '[01];
+OctDigit = '[0-7];
+HexDigit = '[0-9a-fA-F];
+\end{verbatim}
+
+Note that this is about literals. Thus the radix prefixes and the underscore
+separators only work for literals, but not in other places such as string to
+number conversion, quoated string interpolation, reading from files.
+
+
+\subsubsection{String literals}
+
+Almost all of Perl's 'string literals' are not literals in a strict sense, they
+are actually operators \ref{Quotes}. The only real string literals are single
+quotes ( \verb|'hello world'| or \verb|q/hello world/|), also described here
+\ref{Quotes}, and bare words \ref{BareWors}.
+
+\label{BareWords}
+\subsubsection{Bare words}
+
+A word that has no other interpretation in the grammar will be treated as if it
+were a quoted string. Typically an other interpretation would be a reserved word
+or the name of a subroutine. Thus a bareword that consists entirely of lowercase
+letters risks conflict with future reserved words.
+
+The operator \verb|=>| forces its left-hand operator to be interpreted as a
+string. 
+
+See also \verb|use strict subs| (outlaw barewords enterely) and
+\verb|use warnigns| (outlaw only barewords enterely in lowercase).
+
+Typical constructs where barewords are handy:
+
+\begin{verbatim}
+$s = bart;   ## bart is a bareword
+$s = 'bart'; ## the same
+@a = ( homer, marge ); ## homer, marge are barwors
+
+## works altough if is a keyword and foo a subroutine
+sub foo; 
+@h = ( if => 1, foo => 4 ); 
+\end{verbatim}
+
+
+\subsubsection{List literals}
+
+Lists are created using the list argument separators \verb|,| and \verb|=>|
+\ref{ListArgSeparator}. So actually, IMHO, there is no such thing as a literal
+list, its just an expression containing the list argument operator.
+
+\verb|()| denotes the empy list. 
+
+
+\subsubsection{Miscellanous literal tokens}
+
+\begin{verbatim}
+\__LINE\__
+\__FILE\__
+\__PACKAGE\__
+\__DATA\__
+\__END\__
+\end{verbatim}
+
+\section{Context}
+Context <= ScalarContext | ListContext | InterpolativeContext
+ScalarContext <= VoidContext | ScalarSubTypeContext
+ScalarSubTypeContext <= StringContext | NumericContext | DontCareContext 
+DontCareContext <= BooleanContext
+
+The major contexts are scalar-, list- and void- context. Interpolative
+context might not really be counted as a context.
+
+ScalarContext =
+ListContext =
+
+VoidContext = 
+No body is interested in the result of the
+operation. E.g. ``1+foo();'' is evaluated in void context, because
+nobody wants the result. It passes the void context to foo, which is
+therefore also evaluated in void context.
+
+InterpolativeContext =
+Operands of quote-like operations are within interpolative
+context. It's not so clear wheter this is a 'real' context. Then
+again, some operations do behave special in intepolative context.
+
+ScalarSubTypeContext = 
+Operations can only know wheter they are in list, scalar or void
+context. They don't know about any of the scalar sub type contexts. In
+case of scalar context, they simply return a scalar. However Perl will
+then convert, if needed, the sub type of that scalar to the sub type
+as requested by the context. See also the scalar sub types.
+
+DontCareContext =
+The context doesn't care how the scalar should be treated (string,
+numeric, boolean), so no conversion between scalar subtypes will
+happen. An example for dont care context is if you assign a scalar
+variable, say \$a, to another scalar variable, say \$b. \$b just
+overtakes the same subtype as \$a.
+
+StringContext =
+NumericContext =
+
+Many operations are overloaded depending on the context. E.g. an
+array variable, say @a, returns a list of its element in list context,
+and the index of its last elment in scalar context. 
+
+What the current context is is determined as following. There are
+certain operations which impose a specific context on their operands.
+\begin{description}
+o\item [assignment operator] Imposes the 'type' of its left operand on
+  its right operand. If left operand is a scalar, it's scalar
+  context. If left operand is an array, a hash or a list it's list
+  context. This fact is not affected if the left hand list is
+  prepended with either of my our or local.
+\item [list operators]
+\item [list subscript]
+\item [prototypes]
+\item [default] All other operands just pass along the context
+  unaffeced. If a statement has none of the above operators which
+  impose a specific context, it's void context. 
+\end{itemize}
+
+Note that a subroutine call, or more generally a block, is also in a
+certain context. Thus the body of the subroutine might want to know in
+which context it is beeing called. The following operations that tell
+about the context they are in.
+\begin{description}
+\item [wantarray] Returns true if it's list context, false if its
+  scalar context and undef if its void context. Actually wantarray
+  really should have been named ``wantlist'', as stated in Programming
+  Perl.
+\end{description}
+
+\section{Casts / translations}
+As indicated by ScalarSubTypeContext, Perl sometimes automaticly
+translates sclars to numerics, strings, bools.  
+
+boolifacation 
+A scalar value is true if any of the follwing is true
+- not the defined null string ``''
+- not the numeric 0 (equivalent to 0.0 etc) 
+- not the string ``0'', which is the equivalent to the numeric 0
+- not undef, which looks like 0 in numeric context and ``'' in string context
+- a reference, which represents an address, which is never 0
+
+stringification
+
+numericfication
+
+\section{Declarations}
+
+(Name) Binding = In programming languages, name binding is the association of
+values/code with identifiers.
+
+  Static scoping = lexical scoping
+
+  Dynamic scoping =
+
+Lifetime =
+
+Multiple our/my declarations with the same name are allowed, but emit a warning if
+you have asked for them. Multiple my declrations mask the previous my.
+
+In Perl, variables don't have to be declared, unless you \verb|use strict|;
+
+Variables spring into existence when they are used for the first time
+\ref{AutoVivi}.
+
+In Perl there are only global variables, and ??? variables. Global variables are
+ordered into packages \ref{Packages}, or namespaces if you want. 
+
+Subroutines are always global. Named subroutines that is, to be exact. There are
+also unnamed subroutines.
+
+Expression Modifier.
+
+
+our
+  lifetime : program
+  scope : current scope. however, when fully qualified, it's global.
+  init value : no change
+
+\begin{verbatim}
+{
+SpecialExp |=
+  ( 'our | 'my ) DeclType? X DeclAttr? |
+  'local X;
+o
+  X = SimpleName | \( SimpleNameList \) ;
+
+DeclType = 'fields;
+
+} 
+
+## ????
+SimpleName = FunnyChar.Identifier
+SimpleVar = FunnyChar.FQIdentifier
+
+\end{verbatim}
+
+\subsection{Auto vivification}
+
+\subsection{Garbage collector}
+
+\subsubsection{my}
+my operator
+my (Type)Name [=InitValue]
+my ((Type1)Name1,...) [=InitList]
+The my operator declares the listed variables to be lexically confined to the enclosing block (see also below). All listed names must be legal lvalues. Lexical variables declared with my are totally hidden from the outside world, including any called subroutines. This is true if it's the same subroutine called from itself or elsewhere--every call gets its own copy. If no initializer is given for a particular variable, it is created with the undefined value. The declared variable is not introduced (is not visible) until after the current statement, i.e. my $x = $x; assigns the value of the old x to the new x.
+Lexical scopes of control structures are not bounded precisely by the braces that delimit their controlled blocks; control expressions are part of that scope, too, including the continue clause, including any elsif and else clauses
+
+while (my $line = <>) {
+
+        $line = lc $line;
+    } 
+continue {
+        print $line;
+    }
+
+The foreach
+ loop defaults to scoping its index variable dynamically in the manner of 
+local.  However, if the index variable is 
+prefixed with the keyword my
+, or if there is already a lexical by that name in scope, then a new lexical is created instead.  
+
+\section{Packages}
+
+Packages are Perl's namespaces.
+
+NameSpace <= SymbolTable | LexicalScope | SubNameSpace Package =
+SymbolTable Pad = LexicalScope
+
+SymbolTable
+Global namespace
+
+LexicalScope
+Lexical namespace
+
+SubNameSpace
+
+Each funny character has its own subnamespace. The names \$x and \@x
+refer to two different variables.
+
+\section{Subroutines}
+
+Arguments 
+
+All functions are passed as parameters one single flat list of
+scalars. Any arguments passed in show up in the array @_. The array @_ is a
+local array, but its elements are aliases for the actual scalar parameters. An
+error occurs if an element is written to but it is not updatable. ??? Exact
+conditions???. Assigning to the whole array @_ removes that aliasing, and does
+not update any arguments.
+
+Return value
+
+All functions return to their caller one single flat list of scalars. A return
+statement may be used to exit a subroutine, optionally specifying the returned
+value, which will be evaluated in the appropriate context (list, scalar, or
+void) depending on the context of the subroutine call.  Argument to return
+
+Nothing: If you specify no return value, the subroutine returns an empty list in
+list context, the undefined value in scalar context, or nothing in void context.
+One or more aggregates: If you return one or more aggregates (arrays and
+hashes), these will be flattened together into one large indistinguishable list.
+No return statement at all: If the last statent is an expression, its value is
+returned. If the last statement is a loop control structure like a foreach or a
+while , the returned value is unspecified. The empty sub returns the empty list.
+
+Call
+
+General
+
+Subroutines may be called recursively. Subroutines whose names are in all upper
+case are reserved to the Perl core,
+
+Hints:
+Perl does not have named formal parameters.
+
+sub foo {
+  my ( $param1, $param2 ) = @_;
+  ...
+}
+
+Since its an error to write to an constant argument passed to sub, its mostly
+better to return values using the return statement, instead changing the passed
+argument.
+
+\section{??????????}
+
+\subsection{Quotelike operators}
+
+Interpolation
+  Escape sequences
+  Escape transliterations
+  Variable interpolation
+  Regex context (regex literal interpolation, regex operators etc)
+
+The shown generic colum uses braces to delimit the operand(s) of the
+quote operator. However, you can use any nonalphanumeric,
+nonwhitespace delimiter you like\footnote{Earlier version of Perl
+  allowed also newline and space characters to be delimiters}. The
+closing delimiter must be the same as the opening delimiter, except
+for the following cases: If the opening delimiter is an opening
+parenthesis '(', bracket '[', brace '{' or angle bracket '<', the
+    closing delimiter must be the corresponding closing character. If
+    one of these embracing delimiters is used, embedded occurences of
+    the same delimiter are allowed, however these embedded characters must
+    match in pairs. In case of the binary quotation operators,
+    different delimiters can be used for the first and the second
+    operand. Whitespaces are allowed between the operator and the
+    first delimiter, and also between the closing and opening
+    delimiter of the first and second operand respectively. An
+    exception to this whitespace rule is when a hash '#' as delimiter
+    is used, in that case no whitespace is allowed.
+
+\begin{tabular}[l|l|l|l]
+
+  \caption{Interpolation: *=}
+  Customary & Generic & Description & Interpolation \\
+  \hline
+  ''     & q{}   & literal string    & no \\
+  ``''   & qq{}  & literal string    & yes \\
+  ``     & qx{}  & comand execution  & yes \\
+         & qw{}  & word list         & no \\
+  //     & m{}   & regex match     & yes \\
+         & s{}{} & regex substituion& yes \\
+         & tr{}{}& character translationn& no \\
+         & qr{}  & literal regex    & yes \\
+  <<EOF  &       & here document    & yes \\
+  \hline
+\end{tabular}
+
+\experimental
+
+Literal = 
+UnaryQuoteOp QD-O.Text.QD-C
+BinaryQuoteOp QD-O.Text.QD-C QD-O2.Text.QD-C2
+
+QD = # quote delimiter
+UnaryQuoteOperator = q|qq|qx|qw|m|qr 
+BinaryQuoteOperator2 = s|tr
+Text = 
+
+\section{Interpolation}
+
+You can embed literal newlines directly into a string literal,
+i.e. the literal can begin and end on different lines.
+
+Depending on the delimiter used for the quote operators, the enclosed
+literal string is interpolated or not, see ???????. Interpolation
+features basicly two things: escape sequences and variable
+interpolation.
+
+\subsection{Escape sequences}
+Perl provides ascii escape sequences also found in other languages,
+and adds some more escape sequences. Escape sequences, backslash
+interpolation, backslash sequences and backslashed character escapes
+are all synonyms. An escape sequence always starts with a backslash
+followed by some special chars as defined in the following tables. Any
+escape sequence found in a literal string is replaced with whatever
+the table 1 and 2 specify. The escape sequences defined in table 3 are
+replaced by the empty string. They affect the following character(s)
+though, according to the description in the table. Unlike C and other
+languages, Perl has no $\backslash$v for the vertical tab.
+
+What if character following backslash is not a valid escape sequence? 
+
+\begin{tabular}[l|l|l|l|l|l|l]
+
+  \caption{ASCII escape sequences. Available both within
+    interpolation and transliteration.
+    See also http://en.wikipedia.org/wiki/Ascii}[h]
+
+  escape        & oct & dec& hex  & abbr& CS    & description \\
+  \hline
+  $\backslash$a & 007 &  7 & 0x07 & BEL & \^{}G & bell \\
+  $\backslash$b & 010 &  8 & 0x08 & BS  & \^{}H & backspace \\
+  $\backslash$t & 011 &  9 & 0x09 & HT  & \^{}I & horizontal tab \\
+  $\backslash$n & 012 & 10 & 0x0a & LF  & \^{}J & line feed \\
+  $\backslash$f & 014 & 12 & 0x0c & FF  & \^{}L & form feed \\
+  $\backslash$r & 015 & 13 & 0x0d & CR  & \^{}M & carriage return \\
+  $\backslash$e & 033 & 27 & 0x1b & ESC & \^{}[ & escape \\
+  \hline
+\end{tabular}
+
+\begin{tabular}{l|l}
+  \caption{Backslash sequences specifying any
+    character. Available both within interpolation and
+    transliteration.\todo Valid range of the numbers is unkown. What
+    is if no number is given? (seems like it defaults to 0)}
+
+  escape         & description
+  \hline
+  $\backslash$0n & n is a octal number specficing ascii code\\
+  $\backslash$xn & n is a hex number specifing ascii code\\
+  $\backslash$cC & C is a control character specifing ascii code\\ 
+  $\backslash$x{n} & n is a hex number speficifing unicode\\
+  $\backslash$N{Name} & \todo  \\
+  \hline
+\end{tabular}
+
+\begin{tabular}[l|l]
+  \caption{Translation escapes. Only available within interpolation
+    but not within transliteration.}[h]
+  escape & description
+  \hline
+  $\backslash$u & force the next character to uppercase \\
+  $\backslash$l & force the next character to lowercase \\
+  $\backslash$U & force all following characters to uppercase \\
+  $\backslash$L & force all following characters to lowercase \\
+  $\backslash$Q & quote all following nonword (i.e. \$\^{}\_0-9a-zA-Z\$) characters \\
+  $\backslash$E & end $\backslash$U, $\backslash$L or $\backslash$Q \\
+  \hline
+\end{tabular}
+
+If use locale is in effect, the case map used by $\backslash$l ,
+$\backslash$L , $\backslash$u and $\backslash$U is taken from the
+current locale. See perllocale. If Unicode (for example,
+$\backslash$N{} or wide hex characters of 0x100 or beyond) is being
+used, the case map used by $\backslash$l , $\backslash$L ,
+$\backslash$u and $\backslash$U is as defined by Unicode.
+
+\redundantinfo
+
+BUT HOW IS IT WITHIN PERL???
+As a small reminder, different operating systems have a different
+understanding how to represent the end of a line in a text file. See
+also http://en.wikipedia.org/wiki/Newline.
+\begin{description}
+  \item [UNIX, Mac OS X] LF = $\backslash$n
+  \item [DOS,Windows] CR + LF = $\backslash$r + $\backslash$n
+  \item [Mac upto OS 9] CR = $\backslash$r   
+\end{description}
+
+
+\subsection{Variable interpolation}
+You can insert the values of certain variables directly into literal
+strings. They are then replaced by their value. It's really just a
+handy form of \ref{string concatenation}. Variable interplation might
+be only done for
+
+\begin{itemize}
+\item scalar/array \ref{variable}s. E.g. ``sclar = \$scalar'', ``array = \@array''.
+\item array/hash \ref{subscribt}s. E.g. ``2nd elemnt of array = \@array[1]'', ``email of flo = \$hash{'flo'}''
+\item array/hash \ref{slice}s
+\end{itemize}
+
+WHAT SEPARATORS are used when interpolating slices, arrays????????
+
+This list is terminal, nothing else interpolates. Notably hash
+variables don't interpolate.
+
+\section{Operators}
+
+Which operands are put into a specific context by the operands?
+Which operands just inherit the context of the operation?
+What are the overloaded semantics (even syntax?) of the operations?
+
+arity 
+  unary
+    post | pre
+  binary
+    infix | postfix | prefix | 'enclosing' [] | doubleenclosing ()[]
+
+arity, association,
+
+precedence table. Clearly name things. Make it clear that a parenthese for
+precedence is another thing than a parenthese in the list subscribt operator.
+
+
+\redundantinfo
+
+summary which terminal symbol is part of which syntax constructs
+its like an index table. maybe put it in the appendix. 
+
+  - any term symbol can be used for custom quotes.
+() 
+  - overwriting precedence
+  - part of sytax of the ()[] operator
+  - part of syntax of the subname() operator
+m
+  - matching operator
+
+
+\subsection{Sclices}
+ArraySubscript = \$ArrayGenRef[Scalar\_Index]    
+ArraySlice = \@ArrayGenRef[List\_Indexes]
+ListSlice = (List)[List\_Indexes]       
+
+The index of the first element of a list/array is 0. Subscribting
+returns the element with the given index. Slicing returns a list which
+contains the elements specified by the passed list of indexes.
+
+\subsection{Ranges}
+
+
+\begin{verbatim}
+
+scalar
+		string. Any size, limited only by memory
+		number
+		reference
+array of scalars. Elements indexed by numbers, starting at 0.
+hash (associative array) of scalars. Elements indexed by strings.
+Context/virtual datatypes
+Context determines how a expression is to be interpreted.
+
+scalar <= boolean | numeric | string | void | don't care
+
+lvalue, rvalue, non-lvalue???
+
+list and scalar are the two major contexts.
+
+void Void context just means the value has been discarded. It still counts as scalar context for functions that care whether or not they're being called in list context.
+
+boolean The number 0, the strings '0' and '' , the empty list () , and undef are all false in a boolean context. All other values are true. When evaluated as a string it is treated as '' , but as a number, it is treated as 0.
+
+Scalar = Expr
+Bool = Expr
+String = Expr
+Number = Expr
+Reference = Expr
+List = Expr
+Array = Expr
+Hash = Expr
+The expression is evaluated in bool, scalar, ... etc thus context. Thus an expression that must be evaluatable in bool, sclar, ... context.
+
+How context is determined
+In a reciprocal fashion, an operation provides either a scalar or a list context to each of its arguments.
+int(<STDIN>) here int operations provides scalar context for the <> operator. sort(<STDIN>) here sort operation provides list context for the <> operator. Assignment operator is special in that it uses its left argument to determine the context.
+
+Identifiers / Referencing values
+Values are usually referred to by name, or through a named reference. The first character of the name tells you to what sort of data structure it refers. 
+
+
+Declaration
+The only things you need to declare are report formats and subroutines (sometimes not even those).
+
+Variables
+A declaration can be put anywhere a statement can. 
+
+undef
+A variable holds the undefined value (undef) until it has been assigned a defined value, which is anything other than undef. In numeric context undef is treated as 0, in string context as "", when assigned to in reference context its an error.
+
+VariableDeclaration = my ListVar [= ListValues]
+Declares each variable in ListVar to be local to the encosing block. Each variable is initialized with the corresponding value in the list ListValues.
+ListVar must be put in parantheses if it contains more than one element.
+array ctors
+Initialized by literal lists.
+hash ctors
+A hash can be initialized using a literal list holding pairs of items to be interpreted as a key and a value. Often, operator '=>' instead ',' is used to separate key and value.
+%mymap = ('red'=> 0x00f , 'blue'=>0x0f0 , 'green'=>0xf00 );
+Subroutines
+SubroutineDeclaration = sub Identifier [(Proto)] [: Attribs]
+SubroutineDefintion = SubroutineDeclaration Block
+AnonymousSubroutineExpr = sub [(Proto)] [: Attribs] Block
+
+SoubroutineCall = [&]Identifier<[(]List[)]>
+
+Construct / Memmory
+Expressions / Statements
+Expressions
+Expr = 
+????
+http://www.linuxtopia.org/online_books/Perl/pickingUpPerl_10.html
+Statements
+
+Statement = SimpleStatement | ModifiedSimpleStatement | CompoundStatement
+??? return type ???
+SimpleStatement = Expr ;1
+ModifiedSimpleStatement = Expr StatementModifier ;1
+CompoundStatement = LoopCompoundStatement | ConditionalCompoundStatement
+StatementModifier = LoopStatementModifier | ConditionalStatementModifier
+1) Must be delimited by a semicolon, unless its the final statement in a block, in which case the semicolon is optional.
+
+
+GeneralBlock = 
+-) Block
+-) eval String			The content of the string is treated as a block 
+-) the source file
+In Perl, a sequence of statements that defines a scope is called a block. Sometimes a block is delimited by the file containing it (in the case of a required file, or the program as a whole), and sometimes a block is delimited by the extent of a string (in the case of an eval). But generally, a block is delimited by curly brackets, also known as braces. 
+
+Block = { ... }
+
+Label =
+
+Command =
+A call to a Perl command/function. It seems like perldoc uses command and function interchangabely.
+
+Flow control
+Conditional
+ConditionalStatementModifier = 
+-) if Bool
+-) unless Bool
+See definition of ModifiedSimpleStatement
+
+ConditionalCompoundStatement = if (Bool) Block (elsif (Bool) Block)* [else Block]
+
+ConditionalOperator =
+-) Bool ? Expr : Expr
+-) Expr or Expr
+-) Expr and Expr
+
+There is no switch statement. Substitutes are
+{ if (Bool1) { expr1; last;}
+   if (Bool2) { expr1; last;}
+   expr_default;
+}
+
+{ Bool1 && do { expr1; last; };
+  Bool2 && do { expr2; last; };
+  expr_default;
+}
+
+{ expr1, last if Bool1;
+  expr2, last if Bool2;
+  expr_default;
+}
+
+Loop
+LoopStatementModifier =  
+-) 1while Bool
+-) 1until Bool
+-) (for|foreach) List    $_ refers to the current element
+See definition of ModifiedSimpleStatement.
+1) While and until have a slightly special, tough natural, semantic when applied to a do-Block or do-Subroutine command, in which case the block executes once before the conditional is evaluated.
+
+LoopCompoundStatement =
+1) [Label:] while (Bool) Block [continue Block]a
+2) [Label:] until (Bool) Block [continue Block]a
+3) [Label:] (for|foreach) ( Expr ; Bool ; Expr ) Block [continue Block]a   
+4) [Label:] (for|foreach) [Var] (List) Block [continue Block]a
+5) [Label:] Block continue Block 
+3) About equal to expr1; while (Bool) {...} continue { expr3; }. Lexical scope of variables declared with my in expr1 is the for loop. for and foreach are synonyms.
+4) If var is ommited, $_ is used. Var references the items in the list, so writing to var changes the elements of the list. Foreach gets confused if elements are inserted/removed from the list within the loop body.for and foreach are synonyms.
+5) This compound statement might not really be a loop control statement, but I didn't wanted to make a new category for this special case.
+a) Block2 is executed just before the condition of block1 is evaluated again. Is also executed if within block1 next was called. If last/redo are called within block2 they behave as if they were called within block1.
+By experiment, continue can not be attached to any block, just to Blocks of LoopCompoundStatement. This is oposed to what the documentation of continue suggests. 
+Jumps
+It is not clear what the following exactly are: function calls? E.g. in C, "break;" is a jump-statement. "break,1;" is an error, thus break by itself is ???, at least its not an expression. It seams like function calls, since "last, 1;" seems to be valid and does what it should do.
+
+goto Label		Jumps to statement labeled with Label.
+goto Expr		Jumps to the label which results of the evaluation of Expr		
+next [Label]a		Starts the next iteration of a loop.  
+last [Label]a		Immediately exits the block in question. 
+redo [Label]a		Restarts the loop block without evaluating the conditional again
+die List
+dump [Label]
+exit [Expr]
+return [Expr]
+a) If label is ommited, the innermost enclosing block is refered. 
+Misc
+do Block
+Returns last command of block.? Usable to turn a block into a simple statement, which can be used in some of the following flow control constructs. Does not count as a loop (just a block counts as loop, see block). Thus next/last/redo are illegal for that block
+When modified by while or until, exuectues Block once before testing the loop condition.
+
+
+Literals
+??? Except for numeric literals, there are no true literals. String literals, list literals, range literals are actually expressions using operators like "" , ,(comma) , ..(range)???.
+
+QuoteOperators = 
+-) '...'  | qDel...Del	see SQStringLiteral
+-) "..." | qqDel...Del	see DQStringLiteral
+-) `...` | qxDel...Del
+-) qwDel...Del
+-) /.../ | mDel...Del
+-) qrDel...Del
+-) sDel...Del...Del
+-) trDel...Del...Del
+-) <<DelHere
+While we usually think of quotes as literal values, in Perl they function as operators, providing various kinds of interpolating and pattern matching capabilities. Perl provides customary quote characters for these behaviors, but also provides a way for you to choose your quote character for any of them. 
+
+Del...Del
+Del...Del...Del
+DelHere
+Non-bracketing delimiters use the same character fore and aft, but the four sorts of brackets () <> [] {} will all nest. Thus q{foo{bar}0} is the same as 'foo{bar}0'. However q{ '}' } does not work, I.e. there is no quote within a quote.
+There can be whitespace between the quote operator and the delimiter, except for #. that's because a seprated # would be treated as the start of a comment.
+
+Numeric literals
+
+
+SingleQuotedStringLiteral = '...' | qDel...Del      
+No interpolation, except for the escape sequences \' and \\. 
+
+DoubleQuotedStringLiteral = "..." | qqDel...Del
+Normal interpolation occures.
+
+lists literals
+We're not talking about arrays or hashes here, we're talking about lists!
+
+PlainListLiteral = <[(] ({,} List)* [,] [)]>
+Parentheses can be ommited if unambigous. 
+Each element is evaluated in list context.
+LISTs do automatic interpolation of sublists. That is, when a LIST is evaluated, each element of the list is evaluated in list context, and the resulting list value is interpolated into LIST just as if each individual element were a member of LIST. E.g. (@foo,%bar) is a 1Dimensional list of all elements of @foo followed by key/value pairs of %bar.
+The => operator is a synonym for the comma, but forces any word (consisting entirely of word characters) to its left to be interpreted as a string (as of 5.001). Typically used for hashes.
+
+QuatoedWordListLiteral = qwDel...Del    
+Produces a list of words using whitespaces as delimiters. E.g. qw/a b c/ is an abbreviated form of ( 'a', 'b', 'c' )
+
+RangeListLiteral = 
+1) ScalarFrom .. ScalarTo
+2) ScalarFrom ... ScalarTo    only different to .. in scalar context
+scalar context: Range returns ???. From to are in scalar context, interpreted as conditions.
+list context:
+Range returns a list. from and to are in scalar context. List is build as follows: 'aa'..'zz' = aa,ab,ac,...az,ba,bb,bc...,zx,zy,zz. When left operand is longer than right oprand: a..zz = a,b,...z,aa,ab,ac,...zx,zy,zz. Thus 'numeric' ranges like '1'..'100' are just a special case of the previously described case. If right operand longer, i.e. greater, empty list is returned. Each operand is evaluated in its integer form, thus 2.18..3.14 = 2..3. Negative values are valid. Ordergroups: a-z , A-Z, 0-9. Characters stay in theyr group and just count up, maybee never reching the desired character, because its in another group: 'aa'..'a9' = aa,ab,ac,...zy,zz. 
+??? what if only one of the operands is a string? What if characters are neither digits nor latin letters? What if characters are not in same Ordergroups?
+
+Regexes
+/.../    m{...}   pattern match
+        qr{...}    pattern
+s{...}{...}       substitution
+
+Interpolation
+No double interpolation, that is $x='$1'; print "the price is $x" prints "the price is $1". 
+- As in some shells, you can enclose the variable name in braces to disambiguate it from following alphanumerics (and underscores). "${x}y" instead "$xy" - xy would be the wrong variable name.
+- There can be any expression within the brackets of an array "$array[expr]".
+
+Escape sequences
+The following escape sequences are available in constructs that interpolate and in transliterations.
+    \t        tab             (HT, TAB)
+    \n     newline         (NL)
+    \r      return          (CR)
+    \f      form feed       (FF)
+    \b      backspace       (BS)
+    \a      alarm (bell)    (BEL)
+    \e     escape          (ESC)
+    \033   octal char  (ESC)
+    \x1b   hex char    (ESC)
+    \x{263a}   wide hex char   (SMILEY)
+    \c[     control char    (ESC)
+    \N{name}   named Unicode character
+
+The following escape sequences are available in constructs that interpolate but not in transliterations. 
+    \l        lowercase next char
+    \u      uppercase next char
+    \L      lowercase till \E
+    \U     uppercase till \E
+    \E     end case modification
+    \Q     quote non-word characters till \E
+
+special literals
+__LINE__
+__FILE__
+__END__|^D|^Z
+
+Std operations
+Math
+numeric
+**		exponentation
+-		negation / substraction
+<<
+>>
+logicical / relational
+!		not
+
+bitwise logical
+~		not
+
+Regex / binding operators
+target_scalar =~ regexliteral
+target_scalar !~ regexliteral
+String
+concatenate strings
+    str1 . str2
+    join expr,list
+insert substrings
+remove substrings
+reference substrings
+    split [regex[,str[,limit]]]
+information
+   length [str]
+
+List
+General:
+
+Reference/Subscript
+Array[Number_Inder]
+(List)[Number_Index]		
+Parens are part of the list subscript operator.
+Index start at 0. -1 is last, -2 2nd last etc. Returned scalar is a non-lvalue. If a nonexistent element is referenced, nothing happens.
+List[n] is actually a special case of list[list2]. 
+
+Reference/Slice
+Array[NumberList_Indexes]
+(List_1)[NumberList_Indexes]
+Parens are part of the list subscriptslice operator.
+
+Concatenate Lists
+List_1,List_2		
+List_1=>List_2
+1) Comma operator. Creates new list containing elements of the two passed lists.
+2) Synonym for comma operator, but forces left operand to be interpreted as a string. a=>1 gets 'a'=>1, which is 'a',1
+Returned list is a non-lvalue.
+
+Operations on each element
+map Block List
+map Expr,List	
+Evaluates block/expr for each element of list and returns the list of results. $_ refers to each element. 
+
+grep Block List
+grep Expr,List
+Evaluates block/expr for ech element, and returns the elements for which the result was true. $_ refers to each element.
+
+List_1 = List_2    
+Assign elementwise values of list 2 to list 1. If list 2 is greater, nothing happens. If list 1 is greater, ???. The first array in list1 receives all the rest of the remaining elements in list2.
+In scalar context, returns no of elements on right hand side.
+
+See also flow control statements such as for/foreach. 
+Arrays
+Inherits all from lists.
+
+Reference/Subscript
+$Array[Number_Index]		
+Returned scalar is an lvalue; thus changing the return value changes the elements in the array.
+
+Reference/Slice
+@Array[NumberList_Indexes]	
+Returned list is an lvalue; thus changing the return value changes the elements in the array.
+
+Get length
+$#Array	
+Returns index of last element (thus number of elements -1) as an lvalue scalar. Writing to this result changes the size of the array.
+
+@Array	in scalar context
+Returns the length of the array, I.e. the number of elements.
+
+ insert
+    Assign new value to # as in $#array=5
+remove
+    Assign new value to # as in $#array=5
+reference 
+    slices/subscribt) As in lists. $array[n] / @array[list]
+concatenate/splice
+
+Hashes
+Inherits all from lists. However order of elements in hashes is undefined.
+    subscribt) $hash[n] ('inherited' from lists) returns nth element - however order of elements is undefined
+    slices) $hash[list] ('inherited' from lists)
+
+Length
+%Hash		in scalar context
+If false, the hash is empty. More precisely, returns a string which consists of number of used buckets, followed by "/", followed by the number of allocated buckets. 
+
+Reference/Subscript
+$Hash{String_Key}	
+Returns an lvalue scalar; thus changing the return value changes the elements in the hash.
+
+Reference/Slice
+@Hash{StringList_Keys}	
+Returns the list of values referenced by StringList_Keys as an lvalue; thus changing the return value changes the elements in the hash.
+I/O operations
+Invoking external commands
+`...`	
+qxDel...Del
+$? contains the status of the command
+scalar context: returns the output of the invoked cmd as string
+list context: Each line of output is a list item. Set $/ for another terminator.
+The enclosed string is subject to interpolation as in double quotes. The result is the external command. The output of that command is the return value of `...`. 
+
+Streams/Files
+open
+open FileHandleExpr [ [,Mode] , (FileNameString|Reference) ]
+open FileHandleExpr , Mode , FileNameString , List
+If FileHandleExpr is an undefined variable, the variable is assigned a reference to a new anonymous filehandle. Otherwise, the result of the expression is used as the name of the filehandle wanted (so use strict 'refs' should not be in effect).
+If FileNameString is ommited, the scalar variable with the same name as FileHandle contains the filename. 
+
+Modetable
+<
+opened for input. 
+>
+opened for output, file is truncated if exists, and created otherwise.
+>>
+opened for output & appending, is created if not yet exists.
+
+read
+<TypeGlobExpr>
+readline(*TypeGlobExpr)
+scalar context: Returns next line from that file, incl. newline if there is any. undef at end of file or on error. When $/ is set to undef (sometimes known as file-slurp mode) and the file is empty, it returns '' the first time, followed by undef subsequently.
+list context: A list comporising all input lines is returned, one line per list element. 
+LoopBool context: 
+1) If the input symbol is the only thing in the cond expression in a loop control struct ( while(<>) or for(;<>;) ), the return value is automatically assigned to the global variable $_. $_ is not implicitely localized. 
+2) The assigned value, wheter assignment is explicit or implicit (e.g while(<>) or while(foo=<>)), the boolean value is false when result is undef, true otherwise. In the normal boolean context a line like "" or "0" would also evaluate to false.
+Null filehandle <>: Input comes from standart input, or from each file listed on the command line. 
+
+Predefined filehandles
+STDIN,stdin,STDOUT,stdout,STDERR,stderr are predefined filehandles. The lowercase versions do not work in packages where they would be interpreted as local identifiers rather than global.
+
+Conventions
+
+Filehandle identifiers should be all upppercase
+
+
+-p print and make a loop around program
+  LINE:
+    while (<>) {
+    ...     # your program goes here
+    } continue {
+    print or die "-p destination: $!\n";
+    }
+
+-n folllowing loop around program
+  LINE:
+    while (<>) {
+    ...     # your program goes here
+    }
+
+i edit in place
+g,i optional
+\end{verbatim}
+
+\subsubsection{quote regex} 
+
+\begin{verbatim}
+ qr/RegexLiteral/[RegexOption*]
+\end{verbatim}
+
+Typically used to store a regex in a scalar, which can then be referenced later
+in a regex search. E.g. \"\$r = qr/regex/; if ( \$target =~ /\$r/ ) ...\". Since
+Perl may compile the pattern at the moment of execution of qr() operator, using
+qr() may have speed advantages
+
+Interpolation: RegexLiteral is interpolated. However, as with m'', using ' as
+delimiter, i.e. qr'', disables interpolation.  Delimters:
+
+    i	Do case-insensitive pattern matching.
+    m	Treat string as multiple lines.
+    o	Compile pattern only once.
+    s	Treat string as single line.
+    x	Use extended regular expressions.
+
+\subsection{Pattern match \verb|=~| \verb|!~|}
+
+\begin{verbatim}
+[ String ("=~"|"!~")] \m\/ RegexLiteral \/ RegexOption*
+\end{verbatim}
+
+Searches regex in string.
+
+In \textbf{scalar context}, if regex matched, \verb|=~| returns true, \verb|!~|
+returns false. If the \textbf{g option} is used, each execution finds the next
+match, returning true if it matches, and false if there is no further match. A
+failed match normally resets the search position to the beginning of the string,
+but you can avoid that by adding the \textbf{c modifier}. Modifying the target
+string also resets the search position.
+
+In \textbf{list context} only \verb|=~| makes sense. However when \verb|!~| is
+used in list context, it's scalar return value is converted to a list. The
+following is thus only about \verb|=~|.
+
+If the \textbf{g option} is \textbf{not} used the list of matched subexpressions
+is returned, i.e. \verb|($1,$2,$3, ...)|. If there was no match, the empty list
+is returned. If there are no subexpressions in the regex pattern, the list
+\verb|(1)| is returned in case of a successful match.
+
+If the \textbf{g option is} used, a list of the substrings matched by any
+capturing parentheses is returned. Think of it like this: the 2D matrix 'retried
+match' x 'list of substrings' is returned as a 1D list. For 'retried match', see
+g option. E.g \verb|"abcd" =~ /(.)(.)/g| returnes \verb|("a","b","c","d")|.
+\verb|"aaxxaa" =~ /(a)*/g| returnes \verb|("a","","","a")|. If there is no capturing
+parentheses, the returned list is as if capturing parentheses were around the
+whole regex.
+
+
+Interpolation occurs within regex literal every time this regex search is
+evaluated. If the o option is supplied, the regex is compiled, and therefore
+interpolated, only once. The three variables \$(, \$) and \$| are not
+interpolated because there the \$ is interpreted as the regex's end of line
+anchor. If the delimiter ' as in m'RegexLiteral', no interpolation is performed.
+
+Delimiters: You can use any pair of non-alphanumeric, non-whitespace characters
+as delimiters. However, certain delimiters have a slightly special syntax and/or
+semantic:
+
+/RegexLiteral/ The initial m is optional.
+m?RegexLiteral? Only matches once. Matches again after a call to reset.
+m'RegexLiteral' No interpolation is performed on RegexLiteral.
+
+Defaults: If "String (=~|!~)" is omitted, \$\_ is searched. If the delimiter is /,
+m can be omitted.
+
+Even further notes: If the regex literal evaluates to the empty string, the last
+successfully matched regular expression is used instead. In this case, only the
+g and c options on the empty pattern is honored - the other flags are taken from
+the original pattern. If no match has previously succeeded, this will (silently)
+act instead as a genuine empty pattern (which will always match).
+
+\subsection{Regex search-substitue}
+
+\subsection{Regexoption}
+
+g global match
+The following makes only sense for =~, because !~ searches to the end.
+Every search starts where the last search ended, i.e. at pos(). The position after the last match can be read or set using the pos() function; see pos.
+How does \G exactly work? Why is needed? Whats the difference to \G.
+
+    c	Do not reset search position on a failed match when /g is in effect.
+    g	Match globally, i.e
+., find all occurrences.
+    i	Do case-insensitive pattern matching.
+    m	Treat string as multiple lines.
+    o	Compile pattern only once.
+    s	Treat string as single line.
+    x	Use extended regular expressions.
+
+\section{Regular expressions}    
+\section{Packages}
+A package is a namespace for symbols. The \verb|package| statement
+selects the 'current' package, until the end of the enclosing scope.
+
+namespace = domain of names
+
+
+\section{References}
+
+AnonymousReference: If the value to be referenced is not a variable
+but ana nonymous value. This value can only be accessed through the
+reference.
+
+\subsection(Hard refernces: Referencing}
+
+Reference = $\backslash$Value
+
+If the value is a list (remember to distinguish a list from an array
+or hash), things get slightly special: In list context, a list of
+references to the all elements of the list is returned in list
+context. Here, nested arrays or hashes are not interpolated into the
+list. In scalar context, a reference to the last element in the list
+is returned
+
+\begin{example}
+  \$Ref = $\backslash$( \$a, \@b, \%c ); # reference to \%c 
+  \$Ref = $\backslash$split(':','a:b:c'); # reference to 'c'. Subs return lists
+  \@ArrayOfRef = $\backslash$( \$a, \@b, \%c ) # same as ( $\backslash$\$a, $\backslash$\@b, $\backslash$%$c )
+  \@ArrayOfRef = $\backslash$split(':','a:b:c'); # references to $\backslash$'a' $\backslash$'b' and $\backslash$'c'
+\end{example}
+
+\RedundandInfo
+
+Remember that references are of scalar type. Thus you they are
+typically stored in variables like this: \$Reference=$\backslash$\$MyVariable;
+
+Scalar context. Eg \$Ref = ...
+
+References to scalars
+$\backslash$\$Scalar;       # \$Scalar
+$\backslash$1;              # 1
+$\backslash$'Hello';        # 'Hello'
+$\backslash$(1+2);          # 3
+$\backslash$(1,2,3,5,8);    # 8
+$\backslash$split(':','a:b:c') # 'c' 
+
+References to arrays
+\$Scaler2 = \$\$ScalarRef;
+
+References to hashes
+\$ArrayRef = $\backslash$\@Array;
+\$ArrayRef = [1,2,3];
+
+References to subs
+\@ArrayOfArrayRef = $\backslash$(1,2,3);
+
+References to filehandles
+
+List context. Eg \@ArrayOfRef = ...
+
+$\backslash$3 # list of 1 reference, which refers to the anonymous value 3
+$\backslash$(1,2,3,5,8) # list of 5 references. First ref to the anonymous value
+1, second ref to the anonymous value 2, ...
+$\backslash$split(':','a:b:c') # ref to the anymous scalar value 'c' 
+
+
+$\backslash$\@MyArray
+$\backslash$\%MyHash
+
+\subsubsection(Anonymous references}
+Reference <= AnonymousArrayReference | AnonymousListReference |
+AnonymousSubReference
+
+AnonymousScalarReference = $\backslash$ScalarExpr
+AnonymousArrayReference = [ ListExpr ] 
+AnonymousListReference = { ListExpr }
+AnonymousSubReference = sub Block
+
+The operators [] and {} and sub block are called anonymous array/hash/sub composer.
+
+Square brackets and braces work only as anonymous array/hash composer
+when the Perl parser expects a term. Braces could be misinterpreted as
+the start of a block. If you put a + in front of them, this doesn't
+happen. In interpolative context, they don't work either.
+
+\subsection(Hard references: Dereferencing}
+
+FunnyChar(Reference)
+
+The funny character must be the datatype of the value the reference
+refers to. If it does not match, as in \$r=$\backslash$1.0; @\$r;, a runtime
+error occures.
+Since references are of scalar type, and since the above
+referencing/dereferencing rules can be used recursively, \'\$rr =
+$\backslash$$\backslash$\'Hello\'; print \$\$\$rr;\' prints again Hello. 
+
+The reference to be dereferenced can also be the return value of a
+block. This is only mentioned because in a expression like \${\$Ref}
+it might not be obvious that the {} constitute a block.
+
+ReferenceToArray->[Index]
+ReferenceToHash->{Key}
+ReferenceToSub->(List)
+
+-> Is only needed between the identifier and the first opening
+brace/backet/parenthesis. For the further dimensions it is optional. 
+\$RefToArrayOfRefToHashes->[ArrayIndex][->]{HashKey}
+
+\end{document}
+
+\begin{verbatim}
+Exp = Exp BinOp Exp | UnPreOp Exp | Exp UnPostOp |
+      ListOp List | Term | SpecialCases;
+
+Term = Quote | `( Exp `) | Literal | InputOp | NullOp |
+       Variable | Funccall;
+
+SpecialCases =
+  `\ `( List `) |
+  `( List `) `= List ;
+\end{verbatim}
+
+
+\begin{verbatim}
+                                      
+             1             *          
+ Package 0---> Symbol O----> Type     
+   - Name       Table         Glob    
+                                      
+                                           
+                  Referee                               
+    
+\end{verbatim}    
+
+\begin{verbatim}
+package flori;
+
+A pragma is a module which influences some aspect of the compile time or run
+time behaviour of Perl, such as strict or warnings .
+
+the umbrella term would be compiler directive?
+  
+CompileTimeStatement = 'use ... | 'import ... | 'package ...  ;
+
+
+SpecialBlock =
+  'sub?
+  ( 'BEGIN | 'UNITCHECK | 'CHECK | 'INIT | 'END )
+  Block; 
+
+Proto = X \_? [ \; X ];
+  X = ( \\?FunnyChar | "\["FunnyChar+\] )*;
+
+eval
+do
+require
+use
+\end{verbatim}

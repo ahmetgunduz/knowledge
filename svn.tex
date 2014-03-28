@@ -1,0 +1,118 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title & Abstract
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[a4paper]{report}
+\usepackage{verbatim}
+\begin{document}
+
+\author{Florian Kaufmann}
+\title{Subversion Summary}
+\date{\today}
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tableofcontents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Short overview of tools that come with subversion.
+
+\begin{description}
+ \item[svn] The command-line client program.           
+ \item[svnversion] A program for reporting the state (in terms of revisions
+ of the items present) of a working copy.
+ \item[svnlook] A tool for directly inspecting a Subversion repository.  
+ \item[svnadmin] A tool for creating, tweaking or repairing a Subversion
+ repository.
+ \item[svndumpfilter] A program for filtering Subversion repository dump
+ streams.
+ \item[mod_dav_svn] A plug-in module for the Apache HTTP Server, used to make
+ your repository available to others over a network.
+ \item[svnserve] A custom standalone server program, runnable as a daemon
+ process or invokable by SSH. Another way to make your repository
+ available to others over a network.
+ \item[svnsync] A program for incrementally mirroring one repository to
+ another over a network.
+\end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Fundamental Concepts}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+SVN's core is a \textbf{repository}, a central store of data.  It's similar
+to a file server, but it rembers every change made.  
+
+A \textbf{conflict} is a situation where two clients check in the same file
+they have checked out earlier, and their changes do overlap.  Then the
+the later checking in has to \textbf{resolve} the conflict.  This is only
+possible with line based text files.  In case of binary files, they have
+to be \textbf{locked}, that is the file can only be checked out by the one
+client that locked it.  
+
+A \textbf{working copy} is an ordinary directory tree on your local system
+where you can work with the files as you like.  Subversion does only do
+something with these files if you explicitely tell it to do so.  The
+working copy usually corresponds to particular subtree/subdirectory of
+the repository.  
+
+To get a working copy, you must \textbf{check out} some subtree of the
+repository. When you finished making your changes, you \textbf{commit} (also
+called \textbf{checking in} or \textbf{publishing} or \textbf{making public}) to the
+repository.  \textbf{Updating} means to incorporate the latest version in
+the repository into the working directory.
+
+Transactions/changes to/from the repository are \textbf{atomic}, i.e. either
+all or none of the commanded changes happen. Eeach succesfull commit to
+the repository creates a new \textbf{revision}. Eeach revision is a natural
+number, incrementing by 1 with each successfull commit, and applies to a
+whole subtree in the repository, i.e. not to an individual file.
+
+A working copy contains some extra files, created and maintained by
+Subversion, in the \textbf{administrative directory} ``.svn''. 
+
+A file is \textbf{locally (un)changed}, if changes have been made to the
+copy in the working directory. Its \textbf{current}, if no changes to
+that file have been committed to the repository since its working
+revision. It's \textbf{out-of-date} otherwise.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Example}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Create a new repository and 'initialize' it with local files you already have.
+
+\begin{verbatim}
+$ svnadmin create /usr/local/svn/myproject
+$ svn import ~/src/myproject file:///usr/local/svn/myproject
+\end{verbatim}
+
+A client which doesn't have yet anything can now start by checking out
+the project's files from the repository to get his local working copy of
+the files.
+
+\begin{verbatim}
+$ svn checkout file:///usr/local/svn/myproject ~/src
+\end{verbatim}
+
+He can now do arbitrary changes to these files. 
+
+The client can also make changes to the 'file system' using 
+\verb@svn (add | delete | copy | move | mkdir)@. 
+
+
+\begin{description}
+ \item[A] The item has been scheduled for \textbf{addition} into the
+            repository.
+ \item[D] The item has been scheeduled for \textbf{deletion}
+ \item[C] The item is in state of \textbf{confict}, i.e. changes received
+            from the repository overlap with local changes.
+ \item[M] The item has been \textbf{modified}.
+\end{description}
+
+
+\end{document}

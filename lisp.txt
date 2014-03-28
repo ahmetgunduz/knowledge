@@ -1,0 +1,329 @@
+= Emacs Lisp
+
+XEmacs Lisp is a full computer programming language. However its designed for
+use in an editor, and thus has special features for that environment. Lisp (List
+Procesing language) was first developed in the late 50 at the MIT. Dozens of
+Lisp implementeations have been built over the years. XEmacs Lisp is largely
+inspired bz Maclisp, and a little by Common Lisp.
+
+== Literals
+
+() and nil are identical. It is the empty list or the truth value FALSE.
+Anything else is TRUE. t is the truth value TRUE. t and nil are special symbols
+that always evaluate to themselves, so you dont have to quote them. nil see () t
+is the truth value TRUE. see also ().
+  
+== Notation
+   
+form => resulting Lisp object
+form beeing macro call ==> new form =>
+resulting lisp object
+form == equivalent form
+|- printed text by examples
+error--> error message of an example
+signaling an error
+-!- indicates the location of point, the place
+between two characters
+        
+== Numbers
+   
+- integer: range depends on machine, at least 28bits. signed
+- floats: precision machine specific. read syntax as c
+  
+There are predicate functions that thest wheter the argument(s) is of a certain
+type. They return t if so, nil otherwise.
+     
+Predicates on numbers: floatp, integerp,numberp ...
+Predicates on lists: consp, atom, listp, ...
+           
+== Math functions
+
+\= returns t if all arguments are numerically
+equal. signals an error if the arguments are
+not numbers or markers
+/= returns t if no two arguments are
+numerically equal
+eq test wether two values are the same
+object. Does not report an error if object is
+not an integer.
+<
+<=
+>
+>=
+max
+min
+float	returns argument converted to
+floating point
+truncate	returns an integer by rounding
+towards zero
+floor		returns an integer by rounding
+towards neg inf
+ceiling		returns an integer by rounding
+towards pos inf
+round		returns an integer by rounding
+towards the nearest integer.
++1		returns argument plus one.
+-1		returns argument minus one.
+abs
++
+-
+*
+/
+%	returns integer remainder
+mod	returns modulo. Unlike %, mod
+returns welldefined result for neg arguments
+lsh	logical shift to left, or right if second arg
+is neg
+ash	arithmetic shift
+logand	bitwise and
+logior	logical (inclusive) or
+logxor	logical xor
+lognot	u
+not cond
+null cond identical to not. recommended to
+use for testing for an empty list
+and conds.. returns t if all conds are true.
+After a cond returns nil, the remaining are
+ignored
+or conds.. returns t if at least one of the
+conds is true. Ignores the remaing conds if it
+finds the first true.
+      
+== Lists
+   
+Build from cons cells. A cons cell is a CAR object and a CDR object. CAR object
+is the element in the list, CDR the remaining list. nil is the empty list.
+
+nth	 returns car of nth cons cell in list
+ndthcdr  returns cdr of nth cons cell in list
+c(a|d)*r a is for car, d for cdr. cadr x is
+equal to (car (cdr x))
+first	 equal to (nth 0 list), which is equal
+to car
+second	 equal to (nth 1 list)
+tenth	 likewise
+cons o1 o2	 to build lists. creates a new cons
+cell, o1 is its car, o2 its cdr
+list &rest	 creates a list with passed
+arguments as its elements
+make-list length o	 creates a list of given
+length, in which all elements have the
+identical object
+append &rest o
+reverse list
+setcar cons o
+setcdr cons o
+nconc, nreverse, n
+       
+== Sequences
+
+Relationship (indent = specification)
+Sequence
+sequence: ordered collection of elements
+array type: constant access time, length
+constant
+list type: not a single object, but made out of
+cons cells. O(n) access time
+sequences
+- sequencep o: returns t if object is a
+sequence
+- copy-sequence s: returns a copy of
+sequence. from the elements themselves no
+copies are made
+- length s: returns the number of elements in
+nthe sequence
+- elt s n: returns element n of sequence.
+array
+- arrayp o: return t if objec is an array
+- aref a i: returns element at index i
+- aset a i o: sets the element at index i to be
+the passed object and returns it
+- fillarray a o: set each element of the array
+to object
+vector
+vector can contain any objects. vectors are
+printet with square
+brackets around the elements. [a b b]. A
+vector is considered a
+constant for evaluation, the result of
+evaluationg it is the same
+vector.
+- vectorp o: returns true if object is a vector
+- vector &rest o: create and return a vector
+whose elements are the passed objects
+- make-vector l o: return new vector of
+length l all initialized to object
+- vconcat &rest s: returns a new vector
+containing all elements of the passed
+sequences
+bit vector printing representation #* as
+prefix to the bits. Bit
+vectors are considered constants for
+evaluation.
+symbols
+===============
+consists of four components
+- print name: A constant string that names
+the symbol for reading and printing
+- value:
+- function: function definition, kezmap,
+keyboard macro
+- property list:
+definition: a special form to define a symbol.
+Can include
+documentation. Not required in order to use
+a symbol. symbols are
+stored in vectors called "obarrays". Its
+elements are buckets. A
+bucket's value is an interned symbol whichs
+name hashes to that
+bucket, or 0 if the bucket is empty. No two
+symobls within a objarray
+can have the same name. A symbol in an
+obarray is called interned. A
+symbol must not neccesairly be interned
+(temporaries,...)
+- symbolp o: returns true if the object is a
+symbol
+- symbol-name s: returns the pritn name of
+symbol (a string)
+- intern
+- intern-soft
+- obarray
+- mapatoms
+- unintern
+proerty lists:
+evaluation
+================
+The lisp interpreter, or evaluator, computes
+the values of
+expressions.  A lisp object that is intended
+for evaluation is called
+an expression or a form.
+forms:
+- self evaluating forms: any form that is not
+a list or symbol. these
+forms evaluate to themselves. ex numbers,
+vectors
+- symbol forms: treated as a variable, the
+result is the variable's value
+- nonempty lists. The first element is
+examined (NOT evaluated) to determine
+what kind of form the list is.
+-- function indirection: if the first element is
+a symbol, then its function cell is
+used. This process might be iterative, since
+this can be a symbol again.
+-- function call: if the first element is a lisp
+function object, byte-code
+object or primitive function object. The
+arguments are evaluated from left
+to right.
+-- macro call: if the first element is a macro
+object.
+- special forms: primitive functions, not all
+arguments are evalueted. (if, and, ...)
+-- quote: returns its single argument as
+written. Provides a way to
+include constant symbols and lists which are
+not self-evaluating objects
+control structures
+=====================
+sequencing (all are special forms)
+- progn f..: evuales all forms, return the
+result of the final form
+- prog1 f1 f...: evaluates all forms, returns
+the result of f1
+- prog2 f1 f2 f...: evaluates all froms, returns
+the result of f2
+conditionals (all are speciall forms)
+- if cond thenform elseforms...
+- cond clauses...: each clause looks like (cond
+forms...). All clauses
+are tried in order by evaluationg the cond of
+each clause. If it finds
+a cond that returns t, the forms are
+evaluated. The remaining clauses
+are ignored.
+iteration (all are special forms)
+while cond forms
+non local exits
+- catch tag body: if nothing throws, the value
+of the last form is returned
+- throw tag value: value is used as catch.s
+return value
+varibles
+===============
+? I think in the manual what in c++ is called
+an identifier is called here variable.
+constants: 1) The special symbols nil and t 2)
+keyword symbols, that is symbols whose
+name begins with the character :. These
+symbols cannot be rebound nor can theyr
+value cell be changed
+void : variables whitchs value cell does not
+have a lisp object in it. note that nil is not
+the same as void.
+global : defvar, defconst, implicit with set,
+setq?
+local : let, let*, the arguments of a function
+buffer-local : make-local-variable
+buffer-local : A buffer-local variables
+binding is in effect when a particular buffer
+is current. global binding is shared by all
+buffers that dont have their own bindings.
+make-variable-buffer-local variable: makes
+the variable buffer-local in the current
+buffers if not already done so. The value is
+gettet from the global variable. Setq then
+only works on the buffer-local variable.
+setq-default: to set the value of a global
+variable which
+let (bindings...) forms...: each binding looks
+like (symbol valueform). All valueforms in
+the bindings are evaluated before any of the
+symbols are bound.
+let* (bindings...) forms...: as let, but now
+each variable is bound right after evaluating
+its valueform.
+makunbound s: make the binding of symbol
+void
+boundp s: returns t if varible (a symbol) is
+not void
+symbol-value s: returns the value of symbol.
+Used if the symbol which value we want is
+determined dynamicly, here with px. (setq x
+5) (setq px 'x) (symbol-value px) returns 5 [
+'px returns px, px returns x].
+defvar s initvalue docstring: define a symbol
+as a variable.
+scope: indefinite (also called dynamic) scope
+for local bindings. This means that any
+function textualy anywhere in the program
+might access a given binding of a variable.
+[C has static (also called lexical) scoping,
+where a varibale always refers to its nearest
+enclosing binding]
+extend (or lifetime): variables have dynamic
+extend. A variable lifetime is while the form
+that bound it is executing
+suppose a stack of bindings. At entry to a
+function or to a let form, new bindings can
+be pushed on the stack. At the end they are
+popped again. A variable is found by
+linearly searching through the stack
+beginning at the top.
+side nodes, yet unordered stuff
+==============================
+form: A Lisp expression that you can
+evaluate. Evaluating a form
+always produces a Lisp object.
+commands: interactive functions. only these
+functions can be bound to
+a keysequence
+(setq x 5)
+(setq y x)
+(setq z 'x)
+y
+z
+(eval z)

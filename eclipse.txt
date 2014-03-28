@@ -1,0 +1,25 @@
+= Eclipse
+
+workbench window:: one or more 'perspectives' can exist in it. Is the outermost window.
+perspective:: group of 'views' and 'editors' within 'workbench window'
+view:: visual component. Modis are saved immediatly. Typically to list/navigate information, display
+properties of active 'editor'.
+editor:: visual component. Typically to edit/browse a resource. Visual
+representations might be text/diagram/.... Modifications saved ala
+open-save-close cycle. Depending on the file type, the apropriate editor is
+used, which might also be an external editor.
+part:: the common thing that 'editors' and 'views' share. Can be active or inactive.
+Only one part (instance) can be active (highlighted title bar) at any given
+time. Determines content of status line
+
+== Questions
+
+- I want to (automaticly) specifiy which folders (even better: files) are part
+  of the project. Not only for viewing confort, also so the indexer gets not
+  confused looking at projects he shoudn't loook at (drivers but not
+  drivers_dev, PC but not RTOS)
+  - Siehe auch Properties / C|C++ General / Source Location
+- MKS plugin
+- Doxygen plugin
+
+
