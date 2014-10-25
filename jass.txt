@@ -1,0 +1,20 @@
+6 0/11
+8 0/8
+Banner 10
+Under 2
+Ober 3
+König 4
+As 11/0
+Trumpfpuur 20
+Näll 14
+
+3blatt 20
+4blatt 50
+5+blatt 100
+4bild 100
+4puur 200
+4näll 150
+Stöck (Trumpf Ober+König) 20
+
+De Letscht 5
+Matsch 100
