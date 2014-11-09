@@ -1,0 +1,119 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+= Documents
+Misc info about writing documents, typesetting, glyphs (punctuation, ...), ...
+
+
+=== Character encoding
+
+* http://www.joelonsoftware.com/articles/Unicode.html
+
+Todo: I saw something that named character entities don't always mean the same
+thing, it depends on something outer.
+
+=== Glyphs
+
+Todo: List possible representations (possibly plural!) in Unicode, HTML,
+Latex, AsciiDoc etc. See also character encoding.
+
+’ Apostrophe and also right single quotation mark.  The apostrophe in English
+  has three purposes: omission of letters, marking of possessive case, marking
+  as plural.  U+2019, HTML: &#8217; &rsquo;
+` grave accent or backtick / backquote, U+0060, 'GRAVE ACCENT'. 
+  Is a diacritical mark used in many written languages. Programmers have
+  used the grave accent symbol as a separate character for a number of
+  tasks. In this role, it is known as a backquote or backtick.
+̏ Double grave accent.
+  The double grave accent is a diacritic used in scholarly discussions of
+  the Croatian, Serbian, and sometimes Slovene languages.
+´ Acute accent, 
+  Is a diacritic used in many modern written languages with alphabets
+  based on the Latin, Cyrillic, and Greek scripts.
+˝ Double acute accent
+  Is a diacritic mark of the Latin script.
+' Typewriter single quotes aka typewriter apostrophe.
+  Used to emulate single right/left quotes or apostrophe or prime or vertical
+  line or acute accent.
+  U+0027, HTML: &#39; &apos;
+" Typewriter double quotes.  HTML: &quot; &#x22;
+  Used to emulate double quotes.
+
+‘’ single quotes (curly). HTML: &lsquo;&#x2018; &rsquo;&#x2019;
+‹› Single left/right angle quote. 'SINGLE RIGHT-POINTING ANGLE QUOTATION MARK', HTML: &lsaquo;&#x2039; &rsaquo;&#x203A;	
+‚  Single low-9 quote. U+201A, 'SINGLE LOW-9 QUOTATION MARK', HTML: &sbquo;&#x201A;
+“” double quotes (curly). HTML: &ldquo;&#x201C; &rdquo;&#x201D;
+«» left/right angle quote; guillemotright: 'RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK' &laquo;&#xAB; &raquo;&#xBB;
+„	Double low-9 quote. U+201E, 'DOUBLE LOW-9 QUOTATION MARK', HTML: &bdquo;&#x201E;
+  In English writing, quotation marks or inverted commas, also known
+  informally as quotes or speech marks[1] or as quote marks, quotemarks
+  or speechmarks, are punctuation marks placed either side of a word or
+  phrase in order to identify it as a quotation, direct speech or a
+  literal title or name. They are also used to indicate that the meaning
+  of the word or phrase they surround should be taken to be different
+  from (or, at least, a modification of) that typically associated with
+  it; In this way, they are often used to express irony.
+
+  http://en.wikipedia.org/wiki/Quotation_mark
+  http://en.wikipedia.org/wiki/International_variation_in_quotation_marks
+
+′ Prime symbol
+″ Double prime 
+‴ Tripple prime
+    The prime symbol ( ′ ), double prime symbol ( ″ ), and triple prime
+    symbol ( ‴ ), etc., are used to designate several different units and
+    for various other purposes in mathematics, the sciences, linguistics
+    and music. In mathematics, the prime is generally used to generate
+    more variable names for things which are similar, without resorting
+    to subscripts – x′ generally means something related to or derived
+    from x.
+  
+″ Ditto mark. A typographic symbol indicating that the word(s) or
+  figure(s) above it are to be repeated.
+ 
+ ‐ Hyphen. Is a punctuation mark used to join words and to separate
+   syllables of a single word.
+   U+2010, 'HYPHEN', HTML: no name, &#x2010; 
+   U+2011, 'NON-BREAKING HYPHEN', ??Htmlname??  
+ ⁃ Hyphen bullet.
+ - hyphen-minus.
+   The hyphen-minus (-) is a character used in digital documents and
+   computing to represent a hyphen (‐) or a minus sign (−) or even
+   sometimes en dash (–).
+   U+002D, 'HYPHEN-MINUS', (no HTML name)
+－ ???
+   U+FF0D, 'FULLWIDTH HYPHEN-MINUS' 
+ − minus
+   The mathematic symbol to represent the notion of negative as well as
+   the substraction operation.
+   U+2212, 'MINUS SIGN', &minus;
+
+ – En dash: HTML: &ndash;&#x2013;
+   The en dash is commonly used to indicate a closed range of values—a
+   range with clearly defined and finite upper and lower
+   boundaries—roughly signifying what might otherwise be communicated by
+   the word "through"
+ — Em dash: HTML: &mdash;&#x2014;
+ ‒ Figure dash. U+2012
+   The figure dash is used when a dash must be used within numbers
+   (e.g. phone number 555‒0199). It does not indicate a range, for which
+   the en dash is used; nor does it function as the minus sign, which
+   also uses a separate glyph.
+ ― Horizontal bar. U+2015
+ 〜 wave dash
+ ⁓ swung dash
+
+ ~ Tilde
+ ˜ small tilde
+ ∼ tilde operator
+ ～ fullwidth tilde
+
+ ??? ellipsis http://en.wikipedia.org/wiki/Ellipsis
+
+Further info:
+
+* http://www.danshort.com/HTMLentities/
+* http://www.fileformat.info/info/unicode/char/xxxx/index.htm
+* http://www.cs.sfu.ca/~ggbaker/reference/characters
+* http://people.w3.org/~dom/archives/2005/04/named-versus-numeric-entities/
+ 
