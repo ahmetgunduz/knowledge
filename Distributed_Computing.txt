@@ -1,0 +1,240 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+= Distributed Computing: Principles, Algorithms, and Systems
+Personal summary of the same named book.
+
+== Introduction
+
+=== Definition
+A 'distributed system' can be characterized as a collection of mostly
+autonomous processors communicating over a communication network and having
+the following features:
+- No common physical clock
+- No shared memory.  Thus message-passing is required.
+- Geographical separation
+- Autonomy and heterogeneity.  The processors can be of different type an each
+  can be running a different OS.
+
+=== Relation to computer system components
+The distributed software is also termed as 'middleware'.  A 'distributed
+execution' is the execution of processes across the distributed system to
+collaboratively achieve a common goal.  An execution is also sometimes termed
+a 'computation' or a 'run'.
+
+=== Motivation
+Possible motivations for using a distributed system:
+
+- Inherently distributed computations.  E.g. money transfer in banking.
+- Resource sharing.  E.g. large databases.
+- Access to geographically remote data and resources.
+- Enhanced reliability.  E.g Availability, integrity, fault-tolerance.
+- Increased performance/cost ratio.
+
+Advantages of a distributed system:
+
+- Scalability.  Adding more processors typically does not pose a bottleneck.
+- Modularity.  Heterogeneous processors may be easily added.
+
+=== Relation to parallel multiprocessor/multicomputer systems
+A parallel system may be broadly classified as belonging to one of three
+types:
+
+- _Multiprocessor system_: Multiple processors have direct access to shared
+  memory which forms a common address space.  Typically no common clock.
+  Usually UMA architecture, same OS, same type of processors, tightly coupled
+  SW, tightly coupled HW.
+- _Multicomputer Parallel System_: Multiple processors do not have direct
+  access to shared memory.  The memory may or may not form a common address
+  space.  Usually tightly coupled processors.
+- _Array processors_: ??
+
+==== Flynn's taxonomy
+Processing models:
+
+- _SISD_: Single instruction stream, single data stream
+- _SIMD_: Single instruction stream, multiple data stream
+- _MISD_: Multiple instruction stream, single data stream
+- _MIMD_: Multiple instruction stream, multiple data stream
+
+==== Further terms
+Coupling::
+  _High_ (_low_) _coupling_ -> _tightly_ (_loosely_) _coupled_.
+Parallelism/speedup of a program::
+  Ratio "time on single processor" / "time on n processors".
+Parallelism within a parallel/distributed system::
+  "time for productive CPU instructions" / "time for all CPU instructions".
+  Productive time excludes time for communication.
+Concurrency of a program::
+  Similar to the above.  
+Granularity of a program::
+  "Amount of productive computation" / "Amount of communication".
+  _Coarse-grained_ (_fine-grained_) -> more (fewer) productive CPU
+  instructions.
+
+Message passing.  Shared memory can be emulated on a message passing system
+and vice-versa.
+
+=== Message-passing systems vs shared memory systems
+The two paradigm are equivalent, since MP can be simulated via SM and
+vice-versa.
+
+=== Primitives for distributed communication
+==== Blocking/non-blocking, synchronous/asynchronous communication primitives
+Synchronous send:: Finishes only after the receive has been completed.
+Synchronous receive:: Finishes when buffer contains sent data.
+Asynchronous send:: Finishes when buffer is free to be re-used.  [Fire and
+forget?]
+Asynchronous receive:: Senseless
+Blocking:: Call returns after operation (sync/async send/receive) finished.
+Non-blocking:: Call returns nearly immediately returning a handle.  The caller
+can either use the wait primitive on that handle or poll the status of the
+handle.
+
+==== Processor synchrony
+_Processor synchrony_ indicates that all the processors execute in lock-step
+with their clocks synchronized.  What is more generally indicated is that only
+for chunks of the code, called a step, the processors are synchronized.
+
+==== Libraries and standards
+Examples of libraries/standards implementing the above primitives: _MPI_
+(message-passing interface) library, _PVM_ (parallel virtual machine) library,
+_CORBA_ (common object request broker architecture), _DCOM_ (distributed
+component object model)
+
+=== Synchronous versus asynchronous executions
+
+_asynchronous execution_:
+
+- no processor synchrony and no bound on the drift rate of processor clocks
+- message delays are finite but unbounded
+- no upper bound on the time taken by a process to execute a step
+
+_synchronous execution_:
+
+- processors are synchronized and the clock drift rate between any two is
+  bounded
+- message delivery tines are such that they occur in one step/round  
+- known upper bound on the time taken by a process to execute a step
+
+The two are equivalent, since A can be emulated using S and vice-versa.
+
+=== Design issues and challenges
+==== Distributed systems challenges from a system perspective
+- _Communication_.  SM vs MP, message-oriented vs stream-oriented, ...
+- _Processes_.  Management of processes/threads, code migration, ...
+- _Naming_.  Such that the system is scalable.  Mobile systems are not tied to a
+  static geographical location.
+- _Synchronization_.  mutual exclusion, leader election, global state recording
+  algorithms, synchronizing physical clocks, ...
+- _Data storage and access_.   fast and scalable across network
+- _Consistency and replication_.  For efficiency replicas are desirable.
+  Issue of managing these.
+- _Fault tolerance_.  Failures of links, nodes, processes.  Failure detection,
+  self-stabilization.
+- _Security_.
+- _API and transparency_.
+- _Scalability and modularity_. 
+
+==== Algorithmic challenges in distributed computing
+Designing useful execution models and frameworks::
+  _Interleaving_ model, _partial order_ model, _input/output automata_ model,
+  _TLA (temporal logic of actions)_.
+Dynamic distributed graph algorithms and distributed routing algorithms::
+  The distributed system is modeled a distributed graph with dynamic
+  characteristics.
+Time and global state in a distributed system::
+  Provide _physical time_ and _logical time_.  Observe the _global state_
+  which also involves time.
+Synchronization/coordination mechanisms::
+  - _Physical clock synchronization_
+  - _Leader election_
+  - _Mutual exclusion_
+  - _Deadlock detection and resolution_
+  - _Termination detection_
+  - _Garbage collection_
+
+todo ...  
+
+== A model of distributed computations
+For a message *+m+*, *+send(m)+* and *+rec(m)+* denote its send and receive
+event, respectively.  *+h~i~+* is the (unordered) set of events produced by
+process +p~i~+.  *+H'~i~=(h~i~,->~i~)+* (!!!) is the ordered (by occurrence)
+set of events on process +p~i~+, whereas the relation +->~i~+ expresses causal
+dependencies among the events of +p~i~+. *+H=U~i~h~i~+* (!!!!) is the
+(unordered) set of events executed in a distributed computation.  The _causal
+precedence relation_ induces an irreflexive partial order on the events of a
+distributed computation that is denoted as *+H'=(H,->)+* (!!!). The relation
+*+->+* is _Lamport's "happens before relation"_: In +e~i~->e~j~+, +e~j~+ is
+directly or transitively dependent on event +e~i~+. *+e~i~^x^+* is the __x__th
+event at process +p~i~+. The relation +->+ denotes flow of information in a
+distributed computation, all information available at the lhs is potentially
+accessible at rhs.
+
++e~i~+ and +e~j~+ are said to be _concurrent_, denoted as +e~i~∥e~j~+, if
++e~i~↛e~j~+ and +e~j~↛e~i~+.
+
+_CO (causal ordering)_: For any two +m~ij~ m~kj~+ if +send(m~jk~)->send(m~kj~)+
+then +rec(m~jk~)->rec(m~kj~)+. CO simplifies things since it provides a built-in
+synchronization, e.g. consider data replica update messages. +CO ⊂ FIFO ⊂ Non-FIFO+
+
+=== Global state and cuts
+
+*+LS~i~^x^+* denotes state of process +p~i~+ after the occurrence of event
++e~i~^x^+ and before the event +e~i~^x+1^+. *+send(m)≤LS~i~^x^+* denotes the
+fact that +∃y:1≤y≤x : e~i~^y^=send(m)+. Likewise *+rec(m)≰LS~i~^x^+* denotes
+the fact that +∀y:1≤y≤x : e~i~^y^≠rec(m)+. +SC~ij~^x,y^={m~ij~|send(m~ij~≤LS~i~^x^ ⋀
+rec(m~ij~)≰LS~j~^y^+ denotes the state of a channel.  Informally: The list of
+messages that +p~i~+ sent up to event +e~i~^x^+ and which process +p~j~+ had
+not received until event +e~j~^y^+. +GS = {...}+ denotes the global state.
+Informally: Collection of the local states of the processes and the channels.
+
+The global state GS is a _consistent global state_ iff every message recorded
+as received or currently being transmitted is also recorded as sent.  Basic
+idea is that an effect should not be present without its cause.  A global
+state GS is _transitless_ iff all channels are recorded as empty.  A global
+state is _strongly consistent_ iff it is consistent and transitless.
+
+Every cut corresponds to a global state and vice-versa.  In a _consistent cut_
++C+ every message that was received in +PAST\(C)+ was also sent in
++PAST\(C)+. All messages that cross the cut from the +PAST+ to the +FUTURE+
+are in transit.  In an _inconsistent cut_ there exists a message which crosses
+the cut from the +FUTURE+ to the +PAST+.
+
+*+Past(e~j~)+* is the set of all events in the past of +e~j~+; for each +e~i~+
+in that set +e~i~->e~j~+. +Past(e~j~)+ represents all events on the past light
+cone that affect +e~j~+. *+Past~i~(e~j~)+* is the totally ordered subset of
+events of +Past(e~j~)+ which are on process +p~i~+. *+max(Past~i~(e~j~))+* is
+the latest event at process +p~i~+ that affects +e~j~+ and is obviously always
+a message send event.  The _surface of the past cone_ of +e~j~+, a consistent
+cut, *+Max_Past(e~j~)+*, is the union of +max(Past~i~(e~j~))+ across all
+processes +p~j~+. Likewise for +Future(e~j~)+ etc. All events not in
++Past(e~j~)+ or +Future(e~j~)+ are concurrent with +e~j~+.
+
+
+== Logical time
+
+
+== Questions
+
+* The cut analogy concentrates on local states of processes, it ignores the
+state of channels.  If it was not ignoring them, you need to draw also a
+vertical line for each channel.  Note that the a cut could be such that the
+local state of a channel still contains a given message, but in the local
+state of the receiver process it is already received.
+
+* Definition of consistent state: What if a given message is both recorded in
+a local channel state and a local (receiver) process state?
+
+
+== Other Terms
+UMA:: Uniform memory access.
+NUMA:: Non-uniform memory access.  A processor can access its own local memory
+faster.
+RPC:: Remote procedure call
+RMI:: Remote method invocation
+ROI:: Remote object invocation
+
+// Local Variables:
+// compile-command : "asciidoc -a asciimath -b xhtml11 Distributed_Computing.txt"
+// End:
