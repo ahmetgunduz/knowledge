@@ -88,3 +88,9 @@ The term 'error' as outcome of a test is described in book xUnit Patterns.
 
 == See Also ==
 * [[Testing]] Parent level page with all the testing links, continue from there
+
+<!--
+Local Variables:
+mode: mediawiki
+End:
+-->

@@ -680,3 +680,9 @@ Write a tool that checks whether code matches our Flori guidelines. E.g. with re
 * [http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml#Line_Length Google C++ Style Guide]. ''Very'' talented SW engineers work at Google, so I think that ''is'' a reference.
 * Book: "The Art of Readable Code"
 * Book: "Clean code"
+
+<!--
+Local Variables:
+mode: mediawiki
+End:
+-->

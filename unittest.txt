@@ -74,3 +74,9 @@ Citations from testing resources which also state to prefer black box testing ov
 
 == See Also ==
 * [[Testing]] Parent level page with all the testing links, continue from there
+
+<!--
+Local Variables:
+mode: mediawiki
+End:
+-->

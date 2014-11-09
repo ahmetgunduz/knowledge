@@ -28,3 +28,9 @@ For reference, you might want to look at Flori PC projects that already make use
 
 
 [[Category:Tools]]
+
+<!--
+Local Variables:
+mode: mediawiki
+End:
+-->

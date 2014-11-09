@@ -23,3 +23,9 @@ Say you use VSS. Say you did the insane thing of configuring VSS such that when 
 # Currently you have checked out version 100, and everything is fine and as it should be. All object files have a newer date than the source files they depend upon. If you would build now, nothing would be actually built since everything is up-to date.
 # You checkout an older version, say 80. A set of source files get their content changed. A superset of source files get their filedate changed to an ''older'' date.
 # You build. Wrongly nothing will be build, since still all the object files are newer than the source files they depend upon. Bang! You're in deep shit.
+
+<!--
+Local Variables:
+mode: mediawiki
+End:
+-->
