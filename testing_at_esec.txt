@@ -1,0 +1,301 @@
+= Unit Test =
+
+== Definition ==
+
+There multiple opinions what a unit test exactly is. They are all pretty close to each other. FLKA likes the following, stemming from Kent Beck, creator of TDD: A unit test is '''fast''' and has '''high defect localization'''. Note that in this view, opposing to other views, a strict isolation of the unit under test is ''not'' a requirement for a unit test.
+
+;Fast 
+:Fast means ''really'' fast. Fast enough is when you really let it run after every little change, say 3 lines. As the agile demands, you can then build/refactor the SW in tiny steps (those 3 lines), and for each step you ''know'' you haven't broken anything. 
+
+;High defect localization
+:High defect localization means that when a test fails, you're able to find the defect very quickly. A unit test, in contrast to other tests, tests the SW at its smallest scope. Since each test only tests a very small part of the SW, when the test fails, the problem can only be within that small part. Opinions diverge wheter or not that means that you're only allowed to test a class in complete isolation. FLKA likes the opinion of Martin Fowler: Its true that when one not always uses a test double, and a bug creaps in a class used by others, multiple tests will fail. But that does not reduce defect localization much, since when multiple testst fail, we look at the failed tests of the leaf classes first.
+
+;Code coverage
+:Unit testst, when compared to other tests such as system or component tests, shall have the highest code coverage. When using TDD, you automatically get a rather high code coverage since the only productive code you write is because a test forced you to do so.
+
+
+Naturally '''properties of automated tests in general''' also apply to unit tests: 
+;Think specification, not test
+:When thinking 'test', think of it as a formal specification. Each 'test' is a specification specifying what the SW must do. The SW does nothing that is not specified.
+;Write specifications (tests) before code
+:Since the code is only allowed to do what is specified, the specification has to be written first. The idea is to constantly switch between writing specification and the productive code satisfying it. See also TDD (Test driven design). Followingly the design of the productive code becomes inherently such that the code is testable. Also the design automatically becomes flexible, since parts of it already now need to be replaceable, test doubles in this case. 
+;Mutually independent
+:The order in which tests are executed must be irrelevant. 
+;Only red or green
+:Tests either pass (green) or fail (red). There is no warning (yellow or orange). If there was a 'warning' outcome, that would mean the test is not automated anymore since human interpretation is needed after each run to determine if finally a defect sneaked in the code or not.
+
+== Unit Tests in Dragon SW ==
+'Unit testing' for the Dragon platform has currently two kinds of tests: 
+
+;UnitTest2 
+:Proper unit tests using [[Googletest]] and additionally optionally [[Googlemock]]. This is what you should use for any new unit test.
+
+;UnitTest 
+:Dragons outdated way of 'unit testing'. They are not really unit tests but often really slow component tests with bad defect localization. They use the cppunit framework and very seldom also googlemock.
+:* [http://sharepoint/sites/esec/Projects/Documents/DA/DA_2100_SW_Documents/Environment/02_HowTo/HowTo_PC%20Unit%20Test.doc HowTo_PCUnitTest.doc]
+:* [http://sharepoint/sites/esec/Projects/Documents/DA/DA_2100_SW_Documents/Environment/02_HowTo/HowTo_RTOSUnitTest.ppt HowTo_RTOSUnitTest.ppt]
+:* [http://sharepoint/sites/esec/Projects/Documents/DA/DA_2100_SW_Documents/Environment/02_HowTo/HowTo_RTOS%20cppUnitTest%20StepByStep.ppt HowTo_RTOScppUnitTestStepByStep.ppt]
+
+
+== Test doubles  ==
+
+Sometimes we are forced to replace real objects a unit under test depends upon by test doubles (this term is defined soon) for the following reasons.
+
+* The real object is too slow, a faster test double is required
+* Using the real object leads to bad code coverage, for example because it is not feasible to setup the fixture ( = bring the unit test and its sourounding in a state from which we can start the actual test). 
+* The test wants to test wheter the unit under test calls the DOC (= its surrounding objects ) in a specific way
+* Furthermore there are two schools of toughts: Some advocate to only replace the real objects by test doubles when forced to, e.g. for the above reasons. Others advocate to always use test doubles, in particular mocks, by principle and never the real object. See [http://martinfowler.com/articles/mocksArentStubs.html Mocks arent stubs] for a discussion.
+
+
+The followig classification and definitions are based on ''"xUnit Test Patterns, Refactoring Test Code"'' by Meszaros[http://www.amazon.de/xUnit-Test-Patterns-Refactoring-Signature/dp/0131495054]. See also the [http://xunitpatterns.com website of the book] especialy the [http://xunitpatterns.com/Test%20Double.html Test Double] and the [http://xunitpatterns.com/Mocks,%20Fakes,%20Stubs%20and%20Dummies.html Test Doubles Terminology] part.
+
+;Test Doubles
+: ''[http://xunitpatterns.com/Test%20Double.html Test Doubles]'' is the generic term. It stands for any object that emulates another object. All of the following are more specific variants of a test double.
+
+;Dummy Object
+: A ''[http://xunitpatterns.com/Dummy%20Object.html Dummy Object]'' is a placeholder object that is passed to the ''[http://xunitpatterns.com/SUT.html System under Test]'' (SUT) as an argument (or an attribute of an argument) but is never actually used.
+
+;Test Stub
+: A ''[http://xunitpatterns.com/Test%20Stub.html Test Stub]'' is an object that replaces a real component on which the SUT depends so that the test can control the indirect inputs of the SUT. It allows the test to force the SUT down path it might not otherwise.
+
+;Test Spy
+: A ''[http://xunitpatterns.com/Test%20Spy.html Test Spy]'' is a more capable version of a ''Test Stub''. It adds the ability to record all calls made to its methods by the SUT. During the result verification phase, the test compares the actual calls received by the Test Spy with the expected calles using a series of assertions.
+
+;Mock Objects
+: A ''[http://xunitpatterns.com/Mock%20Object.html Mock Object]'' is also an object that can act as an observation point for the indirect outputs of the SUT. Like a ''Test Stub'', it may need to return information in response to method calls. Also like a ''Test Spy'', a ''Mock Object'' pays attention to how it was called by the SUT. However it differs from a ''Test Spy'', in that the ''Mock Object'' compares actual calls received with the previously defined expectations using assertions and fails the test on behalf of the test method.
+
+: ''Mock Objects'' come in two basic flavors:
+:: * A ''strict Mock Object'' fails the test if the correct calls are received in a different order than was specified.
+:: * A ''lenient'' (or ''nice'') ''Mock Object'' tolerates out-of-order calls. Some tolerate or even ignore unexpected calls or missed calls. That is, the ''Mock Object'' may verify only those actual calls that correcpond to expected ones. 
+
+: ''See [http://code.google.com/p/googlemock/wiki/CookBook#Nice_Mocks_and_Strict_Mocks Nice Mocks and Strict Mocks] for informations how google mock supports this two flavors.''
+
+;Fake Objects
+: A ''[http://xunitpatterns.com/Fake%20Object.html Fake Object]'' (or ''Fake'' for short) is an object that replaces the functionality of the real ''depended-on component'' (DOC) with an alternative implementation of the same functionality. A ''Fake'' is quite different from a ''Test Stub'' or a ''Mock Object'' in that it is neither directly controlled nor observed by the test. It is used to replaces the functionality of the real DOC in a test for reasons other than verification of indirect inputs and outputs. Typically, a ''Fake Object'' is a much simpler and lighter weight implementation of the functionality provided by the DOC without the side effects we choose to do without.
+
+
+= Googletest =
+Google test is framework for writing C++ tests on a variety of platforms. At Dragon we use it to write proper unit tests (i.e. fast ones) which we call UnitTest2, see also [[Unit Test]]. Differentiate google test from [[Googlemock]], the later being a framework for creating C++ mocks.
+
+= Googlemock =
+
+== Overview ==
+
+Googlemock is a library for writing and using C++ mock classes. Differentiate that from [[Googletest]] which is a C++ testing framework. Mocks are a variant of a test double, see [[Unit Test]]. That page also describes that mocks can be a very helpfull thing, but are not always the best thing to use; sometimes using the real object or another test double is better.
+
+==Howto use googlemock for Dragon projects ==
+=== Libraries used ===
+You need the following libraries (allready provided with an install):
+* gtest.lib or gtestd.lib (debug)
+* gmock.lib or gmockd.lib (debug)
+* ESECGMockSupportU.lib or ESECGMockSupportUD.lib
+
+The googlemock support library ESECGMockSupport is under Version Control under W:\DieBonder\PC\UnitTests\PC-UnitTest\ESECMockSupport
+
+=== Includes uses ===
+The following folders include headerfiles used for googlemock/googletest
+
+=== Test framework initialization ===
+ESECGMock/GoogleMockSetup.h provides the method InitGoogleMock which does the necessary steps to initialize the googlemock/googletest framework and enables the CppUnit support. Call this method at the beginning of the test main:
+
+<pre>
+#include "stdafx.h"
+#include "CppUnitTestWinApp.h"
+#include "TestHelper.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "ESECGMock/GoogleMockSetup.h"
+
+
+HRESULT userstest_main( CTestHelper& i_TestHelper )
+{
+
+    CGoogleMockSetup::InitGoogleMock();
+
+  CTestLogger::Init("PPForceModTest", "PPForceModule", 0x0C1B);
+  // More code here
+
+}
+</pre>
+
+=== Mock generator ===
+The mock generator provided by google was modified to generate files more close to the ESEC coding standard. You can find this modified generator in Visual SourceSafe under $/UnitTests/PC-UnitTest/ESECMockGenerator. You can use the generate to produce a mock of a class:
+<pre>
+D:\ESEC_mock-generator>gmock_gen.py W:\DieBonder\PC\PickPlace\PPForceMod\PPForceModRTOSBase.h > MockPPForceModRTOSBase.h
+</pre>
+'''''Note: '''Only the virtual method of the class itself are generated as mock methods. The virtual methods inherited are not discovered and not generated automatically.''
+
+=== Common Mocks ===
+For some common classes, e.g. CCommandController exist already mock classes in the ESECMockSupport library. You can find them in the ESECGMock include directory (W:\DieBonder\PC\INC\ESECGMock). Please have a look in this include directory before you create an own mock class for some frequently used common class.
+
+If you create general mocks of fakes for your project, place them also in the ESECMockSupport under W:\DieBonder\PC\UnitTests\PC-UnitTest\ESECMockSupport and copy them to the directory above.
+
+=== How to use Mocks ===
+Please refer to [http://code.google.com/p/googlemock/wiki/ForDummies Google C++ Mocking Framework for Dummies] and [http://code.google.com/p/googlemock/wiki/V1_6_CookBook Google C++ Mocking Framework Cookbook] how to use mocks in tests.
+
+Dragon PC Projects that already have some unit tests using google mock are:
+* PPForceMod (Pick & Place)
+* PPPPickerMord (Pick & Place)
+* PPCalibMod (Pick & Place)
+* PPSeqBaseLib (Pick & Place)
+* MCIDReaderService (Services)
+
+=== UnitTest2 support for Persistent Items ===
+For PC only persistent items like tPstReal, tPST_ExtReal another testable item type exists. See: [http://sharepoint/sites/esec/RnD/Documents/Software/04_Training/2012%20SW%20Training/testable_itemtypes.ppt Testable ItemTypes]
+
+=== Mocking of COM interfaces ===
+Mocking of COM interfaces is quite easy, as we already have a clearly defined interface. What makes it more complicated is that we always use <tt>_COM_SMARTPTR_TYPEDEF</tt> to automatically implement the smart interface. Please have a look at the common mocks, especially the ITeachSrvPtr mock which is an example of mocking COM smart pointers. The trick is to override the <tt>QueryInterface</tt> method and return the this pointer.
+
+=== Handling VS compiler warning C4373 ===
+If a method which is mocked declares const arguments the constness will be removed by the googlemock macros. This results in a compiler warning [http://msdn.microsoft.com/en-us/library/bb384874%28v=vs.90%29.aspx C4373]. Since this is not a critical issue, I sugesst to temporarly disable this warning for the affected header file.
+
+'''Example:'''
+<pre>
+#pragma once
+
+//..begin "UTF:Includes"
+#include "ESECGMock/ESECGmock.h"
+#include "../IPPPPickerModRTOSBase.h"
+//..end "UTF:Includes"
+
+// Write some comment here why the warning is disabled
+#pragma warning( disable: 4373 )
+
+
+/** */
+class CMockPPPPickerModRTOSBase :
+  public IPPPPickerModRTOSBase
+{
+public:
+  // some more code
+  
+  MOCK_METHOD4(PPPPickerCalcZHub,
+    EHRESULT  (
+      const real64 i_fReferenceZHub,
+      const real64 i_fReferencePhiPosition,
+      const real64 i_fRequestedPhiPosition,
+      real64& o_fResultingEndZPos));
+
+  // some more code
+};
+
+// enable the warning again
+#pragma warning( default: 4373 )
+</pre>
+
+==Cheat Sheet ==
+''This is a list of commonly used scenarios in Dragon Software Tests. For a more detailed list refer to the [http://code.google.com/p/googlemock/wiki/CheatSheet Google C++ Mocking Framework Cheat Sheet]''
+
+===Setting Default Actions ===
+To customize the default action for functions with return type T globally
+<pre>
+using ::testing::DefaultValue;
+
+DefaultValue<T>::Set(value);  // Sets the default value to be returned.
+// ... use the mocks ...
+DefaultValue<T>::Clear();     // Resets the default value.
+</pre>
+'''Example''' as done in CGoogleMockSetup::InitGoogleMock ()
+<pre>
+::testing::DefaultValue<EHRESULT>::Set(E_FAIL);
+</pre>
+To customize the default action for a particular method, use ON_CALL(), e.g. 
+<pre>
+ON_CALL(GlobalDataMock(), NeOffCentering())
+  .WillByDefault(Return(ePPSeqDisabled));
+</pre>
+Depoending where this call is applied the defualt values have a different scope. Put it in the constructor body of the mock class to use the default values wherever the mock is used. Put it in setup if the default values have to be valid for a whole unit test. Put it in the test case body if it only applies for one specific test case.
+The default values can be overriden with:
+<pre>
+EXPECT_CALL(GlobalDataMock(), NeOffCentering())
+  .WillOnce(Return(ePPSeqDisabled));
+</pre>
+or
+<pre>
+EXPECT_CALL(GlobalDataMock(), NeOffCentering())
+  .WillRepeatedly(Return(ePPSeqDisabled));
+</pre>
+
+===Matchers ===
+A matcher matches a single argument. You can use it inside ON_CALL() or EXPECT_CALL(), or use it to validate a value directly.
+ 
+'''Example:'''<br>
+All three arguments of PPForceAdjustForces must match as specified when called. If a argument is not as expected the test will fail:
+<pre>
+using ::testing::DoubleEq;
+using ::testing::Eq;
+using ::testing::Return;
+ 
+... 
+
+const real64 fBondForce = 1.0;
+const real64 fPickForce = 0.5;
+
+EXPECT_CALL(PPSeqPPForceModCOMWrapperMock(), PPForceAdjustForces(DoubleEq(fPickForce), Eq(CPPForceModRTOSPCDefinition::ePickForce), DoubleEq(fBondForce)))
+  .WillOnce(Return(S_OK));
+</pre>
+If we are not interessted in the argument we can use the '_' '''Wildcard''' in the ::testing namespace:
+<pre>
+using ::testing::_;
+ 
+... 
+
+ON_CALL(PPSeqVIPickVisionSeqCOMWrapperMock(), IsGraphicalObjectShown(_))
+  .WillByDefault(::testing::Return(false));
+</pre>
+
+To compare the Dragon specific '''<tt>CRTOSCmdString</tt>''' type you can use '''<tt>RTOSCmdStringEq</tt>''' available in the ESECGMockSupport library:
+<pre>
+CRTOSCmdString sExpectedRTOSCmd(c_sPPForceInit);
+sExpectedRTOSCmd.Append(static_cast<int32>(true));
+
+EXPECT_CALL(*m_pMockRTOSConnector, CallAsyncRTOSCmd(RTOSCmdStringEq(sExpectedRTOSCmd), _, _, _))
+  .WillOnce(Return(S_OK));
+</pre>
+
+===Actions ===
+Actions specify what a mock function should do when invoked. 
+
+====References====
+In the Dragon code often a output parameter (argument) must be set additionaly to the value returned by the function. This can be done using <tt>SetArgReferee<N></tt> and <tt>SetArgPointee<N></tt><br>
+If for example we expect a call to the mocked method 
+<pre>
+virtual EHRESULT IsDieSensorSimOn (
+  CPPDieSensorDefs::EDSLocation i_eDSLocation,
+  bool& o_bDieSensorSimOn) const;
+</pre>
+we can use 
+<pre>
+EXPECT_CALL(PPSeqRTOSBaseMock(), IsDieSensorSimOn(Eq(CPPDieSensorDefs::eDSBondArm), _))
+  .WillOnce( DoAll(
+    SetArgReferee<1>(true),
+    Return(S_OK)));
+</pre>
+To return <tt>S_OK</tt> and returning <tt>true</tt> for <tt>o_bDieSensorSimOn</tt> (argument 1 starting from 0)
+
+If a function returns a reference, we have to use <tt>ReturnRef</tt> instead of <tt>Return</tt>, otherwise you will see compiler errors about inaccessible default or copy constructors.
+Example for method which returns a referece:
+<pre>
+virtual CTeachMenuHandler& GetTeachMenuHandler () const;
+</pre>
+then use:
+<pre>
+using ::testing::ReturnRef;
+
+EXPECT_CALL(*m_pTeachCoordinator, GetTeachMenuHandler())
+  .WillOnce(ReturnRef(*m_pTeachMenuHandlerMock)));
+</pre>
+
+=== Mocking/Faking ItemType or IndelItemType===
+To mock or fake ItemTypes or IndelItemTypes you have to use the macros <tt>SET_FAKE_ITEM_FACTORY(), SET_MOCK_ITEM_FACTORY(), SET_FAKE_INDEL_ITEM_FACTORY() or SET_MOCK_INDEL_ITEM_FACTORY()</tt>. These macros in combination with adding a "2" to your items (eg. <tt>tPST_ExtReal</tt> becomes <tt>tPST_ExtReal2</tt>, <tt>tPST_INDELReal</tt> becomes <tt>tPST_INDELReal2</tt>) advises the factory to create the according types.<br/>
+This only works for extended items. If the UST item is used directly, please replace it by an extended item.
+
+[[Category:Testing]]
+[[Category:Tools]]
+
+
+<!--
+Local Variables:
+mode: mediawiki
+End:
+-->
