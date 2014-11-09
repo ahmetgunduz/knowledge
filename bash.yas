@@ -1,47 +1,165 @@
-Script        = List;       
-List          = SubList+; 
-SubList       = ( Pipe OpCombinePipe{~} )+ [OpEndSubList];
-OpCombinePipe = `&& #And   | `|| #Or;
-OpEndSubList  = `&  #Async | (`; | \n) #Sync;
-Pipe          = ['time [`-p ]] [\!]#NegateExitCode (Command \|{~} )+;  
-Command       = ( SimpleCommand | CompoundCommand ) [Redirections];
+Program       = List;
+## 1) Guesswork: If last command is not a simple command a trailing
+##    AndOrListTerm is optional. Even for a simple command it is optional at
+##    the end of the program.
+List          = (AndOrList AndOrListTerm#1)+; 
+AndOrList     = (Pipe (`&& #And |`|| #Or){~})+; ## equal precedence,
+                                                ## lr associativity
+AndOrListTerm = \&#Async | (\;|\n)#Sync;  
+Pipe          = ['time [`-p ]] [\!]#NegatesExitCode (Command \|{~} )+;  
+## 1) Apparently FunDef can not really appear anywhere a Command can.
+## 2) Within a SimpleCommand, redirections can occur any where
+Command       = ( SimpleCommand | CompoundCommand | FunDef#1 ) [Redirections#2];
 SimpleCommand =
   VariableAssignmentList |. (Word#Commandname Word*#Arguments);
 CompoundCommand = 	
-  `( List `) |            ## Executed in subshell.  
-  `{ List `} |            ## Executed in current shell. 
+  `( List `)            | ## Executed in subshell.
+  `{ List `}            | ## Executed in current shell. A trailing simple
+                          ## command must be terminated with AndOrListTerm
   `(( ArithmeticExp `)) | ## Arithmetic evaluation 
-  `[[ CondExp `]] |	      ## Conditional Expression. 
-  FlowControlCommand;     ## See chapter flow control
+  `[[ CCCondExp `]] |     ## Conditional Expression. Exit status 0 when CondExp is true, 1 otherwise
+  FlowControlCommand;     
+
+## Question:
+## - exist status of async condition? 
+## - if ( true ) then ... is allowed but not if { true } then ... . Why is that? Incorporate into syntax.
+## Exit status of the last command executed in body, or zero if none was executed 
+FlowControlCommand =
+  'until List#Condition 'do List#body 'done |
+  'while List#Condition 'do List#body 'done |  
+  ## 'in Word*' defaults to 'in "$@"'.
+  'for Name [['in Word*] (\;|\n)] 'do List#body 'done |
+  ## condition defaults to false, init/inc to nop
+  'for `(( [ArithmeticExp#init]\; [ArithmeticExp#condition]\; [ArithmeticExp#inc] `))
+    (\;|\n) 'do List#body 'done |
+  'if List#Condition 'then List#body
+    ('elif List#condition 'then List#body)*
+    ['else List#body]
+    'fi |
+  ## Idiom: for the default case use pattern '*' 
+  'case Word 'in
+    ( \(? (Pattern\|{~})* \)
+      List#Body
+      (`;;  #*stop*# |
+       `;&  #*continue executing following's clause body# |
+       `;;& #*continue attempting to match patterns*# )
+    )* 'esac |
+  ## 'Word*' defaults to "$@" 
+  'select Name ['in Word*] (`; | \n) 'do List#body 'done;
+  
+VariableAssignmentList = ???;
+## Value defaults to the empty string. For expansions of Value see bash.txt.
+VariableAssignment = Identifier#*noblanks*#(`= |`+= ) [Value];
+
+FunDef =
+  'function Identifier [\( \)] CompoundCommand |
+            Identifier  \( \)  CompoundCommand;
+
+Parameter = Variable | SpecialParameter | PositionalParameter;
+Variable = Identifier; 
+SpecialParameter =
+  \* | ## positional parameters. Not in " -> separate words, wich are subject
+       ## to further word splitting and pathname expansion. In " -> one word,
+       ## each parameter separated by first char of IFS.
+  \@ | ## positional parameters. In " -> separate words. If $# is 0, expands
+       ## to nothing, i.e. is removed.
+  \# | ## number of positional parameters
+  \? | ## exit status of the most recently executed foreground pipeline
+  \- | ## option flags
+  \$ | ## process id of shell. In subshell the ID of invoking shell
+  \! | ## process id job most recently placed into the background
+  `0 ; ## Name of shell / shellscript
+PositionalParameter = '[0-9]+; ## except '0'
+
 
 Token = Operator | Word;## A sequence of characters considered a single unit by the shell        
 Operator = ControlOperator | RedirectionOperator;
 ControlOperator = \n | `|| | `&& | `& | `; | `;; | `|  | `( | `) ;
-Word = ; ## A token that is not an operator is a word         
-MetaCharacter = Blank | \& | \; | \( | \) | \< | \>;  	## When unquoted, separates words.
+Word = ; ## A token that is not an operator is a word. Separated by MetaCharacter+ 
+MetaCharacter = Blank | \& | \; | \( | \) | \< | \>; ## When unquoted, separates words.
 Blank = " " | \t;
 Name = '[a-zA-Z_]'[0-9a-zA-Z_]*;
-Identifier = Name;                
-KeyWord = ReservedWord; ## A word that has a special meaning to the shell        
+Identifier = Name; ## Synonyms
+KeyWord = ReservedWord; ## A word that has a special meaning to the shell. 
 ReservedWord =
   `! | `[[ | `]] | `{ | `} | 
   'case | 'do | 'done | 'elif | 'else | 'esac |
   'fi | 'for | 'function | 'if | 'in | 'select |
   'then | 'time | 'until | 'while;
 
-Comment %= ; ## starts with # and extends up to the end of the line
+FdNo = '[0-9]+; ## File descriptor number
+Fd =
+  [FdNo] | ## Defaults to 0 for input and input/output, or 1 for output
+  \{ Identifier \}; ## Shell allocates an FdNo > 10 and assigns it to Identifier, except for the closing redirections
+FileName = Word;    ## Subject to various expansions, see bash.txt
+FileNameOrFdNo = Word; ## As above. Additionaly, if word expands to [0-9]+, it's an FdNo, and a FileName otherwise
+FileNameOrFdNoOrMinus = Word; ## As above. Additionaly, if word expands to -, the Fd is closed.
+Redirections = Redirection+;  ## Executed from left to right
+Redirection =
+  ## Open for input    Pseude Code
+  Fd `< FileName |  ## open( Fd, read, FileName)
+  ## Here Document. See bash.txt
+  "<<"[\-] Word ... DELIMITER |
+  ## Here String. See bash.txt for expansions on Word.
+  `<<< Word |
+  ## Open for output
+  Fd `>  Filename |## open( Fd, write | create, FileName ) // fails if file exist and noclobber set
+  Fd `>| Filename |## open( Fd, write | create, FileName ) // always creates new file
+  Fd `>> Filename |## open( Fd, write | append, FileName )
+    ## special case: both stdout and stderr append to given file 
+    `&>> FileName |
+  ## Open for input and output
+  Fd `<> Filename |## open( FD, read | write | create, FileName ) 
+  ## Duplicate or close, depending on wheter FileNameOrFdNoOrMinus expands to -
+  Fd `<& FileNameOrFdNoOrMinus |## if ('-') Fd=FileNameOrFdNo else close(Fd)
+  Fd `&> FileNameOrFdNoOrMinus |## if ('-') Fd=FileNameOrFdNo else close(Fd)
+    ## special case of duplicate stderr to stdout.
+    `&> FileName |
+    `>& FileName |
+  ## Move 
+  Fd `<& FileNameOrFdNo \- |
+  Fd `&> FileNameOrFdNo \-;
 
-Command = ( SimpleCommand | CompoundCommand ) [Redirections];
-SimpleCommand =
-  VariableAssignmentList |. (Word#Commandname Word*#Arguments);
-CompoundCommand = 	
-  `( List `) |            ## Executed in subshell.  
-  `{ List `} |            ## Executed in current shell. 
-  `(( ArithmeticExp `)) | ## Arithmetic evaluation 
-  `[[ CondExp `]] |	      ## Conditional Expression. 
-  FlowControlCommand;     ## See chapter flow control
-Pipe = ['time [`-p ]] [\!]#NegateExitCode (Command \|{~} )+;  
-List           = SubList+; 
-SubList        = ( Pipe OpCombinePipe{~} )+ [OpEndSubList];
-OpCombinePipe  = `&& #And   | `|| #Or;
-OpEndSubList   = `&  #Async | (`; | \n) #Sync;
+TestCondExp =
+  CondExpPrimary |
+  \( TestCondExp \) |
+  \! TestCondExp |
+  TestCondExp ("-a" #and|"-o" #or) TestCondExp;
+
+## Compound command conditional expression. Listed in decreasing order of
+## precedence
+CCCondExp =
+  CondExpPrimary |
+???? More 'primaries', e.g. regex pattern matchin ????
+  \( CCCondExp \) | ## grouping / override precedence
+  \! CCCondExp    |  ## boolean not
+  CCCondExp `&& CCCondExp| ## boolean and, shortcuts
+  CCCondExp `|| CCCondExp; ## boolean or, shortcuts
+
+## True if ... 
+CondExpPrimary = ;
+  "-ae" Word#Filename | ## file exists
+  ## File exists and ...: b: is a block special file, c: is a character
+  ## special file, d: is a directory, f: is a regular file, g: its
+  ## set-group-id bit is set, h: is a symbolic link, k: its "sticky" bit is
+  ## set, p: is a named pipe (FIFO), r: is readable, s: has a size >0, u: its
+  ## set-user-id bit is set, w: is writable, x: is executable, G: is owned by
+  ## the effective group id, L: is a symbolic link, N: has been modified since
+  ## it was last read, O: is owned by the effective user id, S: is a socket.
+  \-'[bcdfghkprsuwxGLNOS] Word#Filename |
+  `-t Word#Filedescriptor | ## FD is open and refers to a terminal
+  ## ef: both refer to the same device and inode number.
+  ## nt: 1 is newer (modification date) or 1 exists and 2 doesn't.  
+  ## ot: 1 is older, or 2 exists and 1 doesn't
+  Word#Filename1 (`-ef | `nt | `ot) Word#Filename2 |
+  `-o Word#Optionname | ## option is enabled
+  \-'[vR] Word#Varname | ## v: var is set. R: var is set and a name ref
+  \-'[zn] Word#String |  ## z: length string is 0. n: length string is non-zero
+  Word#String | ## length string is non-zero
+  ## < >: within [[ order is lexicographically, within test aka [ its ASCII
+  Word#String (`== | `= | `!= | \< | \> ) Word#String |
+  ## eq: equal, ne: not equal, lt: less than, le: less than or equal, gt:
+  ## greater than, ge: greater than or equal. 
+  Word#Int ( "-eq"|"-ne"|"-lt"|"-le"|"-gt"|"-ge") Word#Int;
+  
+Comment %= ; ## starts with # and extends up to the end of the line
