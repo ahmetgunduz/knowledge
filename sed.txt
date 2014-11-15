@@ -1,9 +1,9 @@
-= Sed - stream editor
+= sed - stream editor
 
 == Notes
    
 - Within commands chapter, there is often no explicit call to ps.clear where it
-  can be ommited, because it is done in readin_ps of the next cycle anyway.
+  can be omitted, because it is done in readin_ps of the next cycle anyway.
 - gnu sed's implementation has the nc: part within readin_ps.   
   
 == Structure  
@@ -95,9 +95,9 @@ n :: a decimal number
 text :: a newline is appended
    
 === Command description  
-a text:: ob += text + "\n"
-b [label]:: goto (label given ? label : eoc )
-c text:: print text if ( last line where addr true ); goto nc
+a text:: append: ++ob += _text_ + newline++
+b [label]:: branch: ++goto _label_++, label defaults to +eoc+
+c text:: ++print text if ( last line where addr true ); goto nc++
 d :: goto nc
 D :: ps.clear_upto_1st_nl; goto ( ps.empty ? nc : exec_cmds)
 e :: ps = exec( ps )     
@@ -162,3 +162,5 @@ o    : other actions
 |x |x |x |x |x |  |  |  |
 |=========================     
 
+
+//  LocalWords:  ps nc hs bQuit cmds eoc iq cmd sep
