@@ -84,8 +84,8 @@ Latex, AsciiDoc etc. See also character encoding.
 － ???
    U+FF0D, 'FULLWIDTH HYPHEN-MINUS' 
  − minus
-   The mathematic symbol to represent the notion of negative as well as
-   the substraction operation.
+   The mathematical symbol to represent the notion of negative as well as
+   the subtraction operation.
    U+2212, 'MINUS SIGN', &minus;
 
  – En dash: HTML: &ndash;&#x2013;
