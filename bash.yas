@@ -6,6 +6,8 @@ List          = (AndOrList AndOrListTerm#1)+;
 AndOrList     = (Pipe (`&& #And |`|| #Or){~})+; ## equal precedence,
                                                 ## lr associativity
 AndOrListTerm = \&#Async | (\;|\n)#Sync;  
+## Each command is executed in its own subshell. Pipe's exit status = last
+## commands' exit status, unless pipefail option is set.
 Pipe          = ['time [`-p ]] [\!]#NegatesExitCode (Command \|{~} )+;  
 ## 1) Apparently FunDef can not really appear anywhere a Command can.
 ## 2) Within a SimpleCommand, redirections can occur any where
@@ -14,7 +16,7 @@ SimpleCommand =
   VariableAssignmentList |. (Word#Commandname Word*#Arguments);
 CompoundCommand = 	
   `( List `)            | ## Executed in subshell.
-  `{ List `}            | ## Executed in current shell. A trailing simple
+  `{ List#1 `}          | ## Executed in current shell. 1) A trailing simple
                           ## command must be terminated with AndOrListTerm
   `(( ArithmeticExp `)) | ## Arithmetic evaluation 
   `[[ CCCondExp `]] |     ## Conditional Expression. Exit status 0 when CondExp is true, 1 otherwise
