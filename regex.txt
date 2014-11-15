@@ -1,0 +1,75 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+= Regular expressions
+
+== Implementations
+
+See also: grep(1), grep(1p), sed(1), awk(1), regex(7), prce(3).
+
+- BRE (basic regular expression). Used by +grep+
+- ERE (extended regular expression). Used by +grep -E+ / +egrep+.
+- PCRE
+- Emacs
+
+== Character class
+BRE, ERE:: +[ ... ]+
+
+
+Mind:
+
+- Set of allowed escape sequences
+- Does +[^...]+ produce a set containing newline.  If so, which of the possible
+  newlines.
+- How to do both: include a literal +^+ and a literal +]+?
+
+=== Negation
+BRE, ERE:: +^+
+
+=== Range
+BRE, ERE:: +-+
+
+== Named character class
+Inside character class:
+
+BRE, ERE::  +[:alnum:]+, +[:alpha:]+, +[:cntrl:]+, +[:digit:]+, +[:graph:]+,
+  +[:lower:]+, +[:print:]+, +[:punct:]+, +[:space:]+, +[:upper:]+, and
+  +[:xdigit:]+.
+
+In `normal' context:
+
+BRE, ERE:: any: +.+ / alnum: +\w+ / not alnum: +\W+
+
+== Anchor
+
+=== Beginning/end of line
+BRE, ERE:: +^+ / +$+
+
+=== (Not) start/end/boundary of word
+BRE, ERE:: +\<+ / +\>+ / +\b+. Not: -- / -- / +\B+ 
+
+== Alternation / Qualifier
+
+Alternation / Optional / zero or more / one or more / custom range: exactly n, n or more, at
+most m, at least n and at most m
+
+BRE:: As ERE, but a leading backslash is required, and followngly ERE's
+  meta-characters ++? + { | ( )++ loose their special meaning in BRE.
+ERE:: +|+ / +?+ / +&ast;+ / ++&plus;++ / ++{_n_}++, ++{_n_,}++, ++{,_m_}++,
+  ++{_n_,_m_}++. Note: Traditional +egrep+ did not support the +{+
+  meta-character, and some +egrep+ implementations support +\{+ instead, so
+  portable scripts should avoid +{+ in +grep -E+ patterns and should use +[{]+
+  to match a literal +{+. GNU +grep -E+ attempts to support traditional usage
+  by assuming that +{+ is not special if it would be the start of an invalid
+  interval specification.
+
+== Grouping / Back referencing
+
+Group / non-capturing group / back ref
+
+// &#92; is a backslash '\'
+ 
+BRE:: +\(...\)+ / -- / ++&#92;__n__++ (n is single digit)
+ERE:: +(...)+ / -- / ++&#92;__n__++ (n is single digit)
+
+//  LocalWords:  alnum cntrl punct xdigit ast egrep
