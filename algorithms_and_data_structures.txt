@@ -1,0 +1,337 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+= Algorithms & data structures
+Summary of the book `Introduction to algorithms'.
+
+
+== Algorithm properties
+
+=== Computational/Time complexity 
+
+In the following +f(n)+ is typically the number of _steps_ needed by an algorithm, where +n+ is the _input size_.  +T(n)+ is the _running time_.  +T(n)=Ο(g(n))+ means that there is an n0 and a c such that ++T(n)<cg(n)++ whenever ++n>n0++, i.e. ++T(n)++ is not worse (larger values are worse) than upper bound ++cg(n)++.
+
+Note: Because ++Ο(g(n))++ is really a set, we should write ++f(n) ∊ Ο(g(n))++, however we often write ++f(n)=Ο(g(n))++, the equal sign meaning `is', not `is equal to'.
+
+Worst/average/best case refers to the worst/average/best input.  Also for the best case, i.e. the best possible input, we most of the times still use Ο, since we're still interested in the upper bound of the running time for this best case.  For many algorithms we only care about the worst case, not the average case, because a) the worst case occurs fairly often in practice b) the average case is often as bad as the worst case c) it's difficult to know what an ``average'' input is (often it is assumed that all possible inputs are equally likely).
+
+
+Types of asymptotic notations
+(http://en.wikipedia.org/wiki/Big_O_notation#Family_of_Bachmann.E2.80.93Landau_notations):
+
+Ο:: Pronounced ``big-oh of ...''. Asymptotic upper bound. 
+Θ:: ++f(n)=Θ(g(n))++ means +g(n)+ is an _asymptotically tight bound_ for +f(n)+. 
+Ω:: Pronounced ``big-omega of ...''. Asymptotic lower bound.
+ο:: Pronounced ``little-oh of ...''. Upper bound that is _not_ asymptotically tight.
+ω:: Pronounced ``little-omega of ...''. Lower bound that is _not_ asymptotically tight.
+
+Implications:
+
+* ++Θ(g(n))⊆Ο(g(n))++ thus from ++f(n)=Θ(g(n))++ follows ++f(n)=Ο(g(n))++.
+
+
+_Rate of growth_ (aka _order of growth_) +Θ(...)+ (pronounced ``theta of ...''): only the leading term with any constant factor removed; the lower-order terms are relatively insignificant for large values of n.  _Asymptotic_ efficiency: Only look at rate of growth.  Usually, an algorithm that is asymptotically more efficient will be the best choice for all but very small inputs.
+
+
+
+_amortized time_: `amortized +Ο(f)+' for operation o: In a sequence of length L
+of such o operations, the overall time is +Ο(L*f)+.  I.e. one of those o operations might use a particular large amount of time compared to the average case, but that time is amortized in the large.  A typical example is appending to an array; if the capacity is full, a new array of larger capacity needs to be allocated, and the data has to be copied.
+
+
+To-do: http://bigocheatsheet.com/
+
+Questions:
+
+- Difference average-case / expected?
+
+
+=== Memory related properties
+Locality::
+In place:: An algorithm using +Ο(1)+ auxiliary memory space.  Often even +Ο(log n)+ is considered as in place.
+
+
+=== Other properties
+Parallel processing::
+Online:: An online algorithm is one that can process its input piece-by-piece in a serial fashion.
+
+=== Misc terms
+Rank:: The rank of an element is its position in the linear order of a set.
+__i__th order statistic:: the __i__th-smallest value in the set.  
+Sentinel:: A sentinel is an object to represent the end of a data structure.
+
+
+[[divide_and_conquer]]
+== Divide and Conquer
+
+_Divide_ the problem into subproblems that are smaller instances of the same problem.  _Conquer_ the subproblems by solving them recursively.  If the size of a subproblem is small enough, stop recursion (we say the recursion _bottoms out_) and solve it (we call that small subproblem a _base case_) in a straightforward manner.  _Combine_ the solutions the subproblems into the solution of the original problem.
+
+Examples:
+
+- Quick sort
+
+See also <<dynamic_programming>>.  If the problem permits it, in contrast to divide an conquer, the same subproblems with the same input occur multiple times and we can take advantage of that by solving such a specific subproblem only once
+
+== Sorting
+Properties of sorting algorithms.  See also properties of algorithms in general.
+
+Stable:: Stable sorting algorithms maintain the relative order of records with equal keys
+Adaptability:: Whether or not the presortedness of the input affects the running time.
+external sorting::
+
+=== Concrete sorting algorithms
+http://en.wikipedia.org/wiki/Sorting_algorithm
+
+Insertion sort:: Time: +Ο(n^2^)+ worst case & average case, +Ο(n)+ best case.  Auxiliary space: +Ο(1)+.  Adaptive.  Stable.  In-place.  Online.  Insertion sort iterates, consuming one input element each repetition, and growing a sorted output list.  Each iteration, insertion sort removes one element from the input data, finds the location it belongs within the sorted list, and inserts it there.  Often used for small arrays (since time complexity has a small constant factor).
+
+Selection sort:: Time: +Ο(n^2^)+ worst case & average case & best case.  Auxiliary space: +Ο(1)+.  Divide the input logically into a sorted sub list (initially empty) followed by an unsorted sub list (initially the whole input). Search the smallest element in the unsorted sub list, exchange it with the left most element of the unsorted sub list, then increment the pointer dividing the sorted / unsorted sub lists. 
+
+Quick sort:: Time: +Ο(n^2^)+ worst case, +Ο(n lg(n))+ average case, +Ο(n lg(n))+ best case.  Auxillary space: +Ο(n)+ worst case.  Hidden factor in time complexity in practice quite small.  The +Ο(n^2^)+ worst case running time might be a problem when input size is large and used in an real-time system or system concerned with security (because malicious user potentially can trigger worst case behaviour).  Variants:  ?? +Ο(n)+ best case time complexity.  ?? : Auxillary space: +Ο(n)+ worst case.
+
+(natural) Merge sort:: Time: +Ο(n lg(n))+ worst case & average case & best case.  Space: +Ο(n)+ auxiliary memory.  Stable.  Good locality of reference.  Parallelizes well.  External sorting possible.  1) Divide the sequence into two equal length subsequences 2) sort the two sequences using recursion, recursion stops at a sequence of one element 3) merge the two sequences (see below).  Stable sort.  Discussion: Good for sequentially accessible data.  Highly parallelizable (+Ο(log n)+).  Variant: _natural merge sort_:  Time: +Ο(n )+ best case, the rest remains equal.  Exploits any naturally occurring runs in the input. 
+
+Bubble sort::
+
+Heap sort:: Time: +O(n lg(n))+ worst case & average case & best case.  Auxillary Space: +O(1)+.  In-place.  Not stable.  1) build max heap from input array A.  2) Swap A[0] with A[A.size]. --A.size.  max_heapify(A,1).  If A.size==1 exit else goto 2.  Analysis: build max heap is +O(n)+,  max_heapify is +O(lg(n))+.  In practice often somewhat slower that quick sort, however it has a better worst case run time. 
+
+Bucket sort:: +O(n)+ average-case.  Not comparison-based; it assumes that the elements' values are normal distributed, for simplicity, without loss of generality, assume in [0,1). Make an array of size n, each element being a `bucket', and technically a (smaller) sequence.  The index of the array corresponds to an value range.  Say n is 10, then an index 0 corresponds to [0,0.1), index 1 to [0.1,0.2) etc.  For each element in the input sequence, put it into the bucket associated with its value, e.g. an element with value 0.05 is put in the first bucket, 0.95 in the last bucket.  Then sort the buckets.  The sorted output sequence is the concatenation of the buckets.
+
+Counting sort:: +Θ(k+n)+ time complexity, +Θ(k+n)+ or +Θ(k)+ space complexity, depending on whether the _required_ output array (sorting in-place only with the input array is not possible) is taken into account or not.  Not comparison-based; it assumes that each element is an integer in the range +0--k+, where +k=Ο(n)+.  Stable sort.  Algorithm: With an array a of size k, for each input element x, count the elements less than x, which so gives the index / position of x in the sorted output sequence.  Mental image: internally counting sort computes an histogram of the number of times each key occurs.
+
+Radix sort:: Not comparison-based.  Stable sort.  Given n d-digit numbers, each digit can take up to k possible values.  Time: +Θ(d(n+k))+ (provided the internally used stable sort has +Θ(n+k)+), however the hidden constant factor is in practice quite large relative to other sort algorithms.  First sort after least significant digit, then after second least, ....
+
+Merge sorted sequences:: Time: +Θ(n)+.  Space: +O(n)+. Imagine n cards within m sorted piles of cards face up.  Take the smallest card yous see and put it on the sorted pile.
+
+
+*to-do*:
+- Why is in practice quick sort better than merge sort or heap sort, which both have better worst case running time, but all three have Θ(n lg n) average/expected running-time.
+
+
+== Augmenting data structures
+
+1. Choose an underlying data structure DS.
+2. Determine additional information AI to maintain in DS.
+3. Verify that we can maintain AI for the basic operations on DS.
+4. Develop new operations.
+
+Let +f+ be an attribute that augments a red-black tree +T+, and suppose that the value +x.f+ for each node +x+ only depends on only the information in the nodes +x+, +x.left+ and +x.right+. Then we can maintain +f+ in all nodes of +T+ during insertion and deletion without affecting the +Ο(lg n)+ performance of these operations.
+
+== Advanced Design and Analysis Techniques
+
+[[dynamic_programming]]
+=== Dynamic programming
+See also <<divide_and_conquer>>.
+
+Example problem referred to below: Consider a steel company cutting steel rods and selling the pieces.  For simplicity lengths are integers.  Given a table of prices which states the price for a rod of length i.  How to cut a rod of length n into multiple smaller rods to maximize revenue.
+
+Dynamic programming needs two hallmarks:
+
+1. _Optimal substructure_. If an optimal solution to the problem contains within it optimal solutions to subproblems.  Example: in the rod cutting problem, is optimally cutting a rod of length +n+ in two pieces.  That gives us two new subproblems: optimally cutting these two pieces.
+
+2. _Overlapping subproblems_. A given sub-problem has to be solved/computed many times.  Example: in the rod cutting problem, the problem of cutting a rod of length 2 has to be solved again and again within the problem of cutting a rod of length greater than 2.
+
+Recipe for dynamic programming:
+
+1. Characterize the structure of an optimal solution.  E.g. **to-do: How does that really differ from step 2?**
+2. Recursively define the value of an optimal solution.  E.g. state the
+formula to compute +cut_rod(n)+ in a recursive way and/or then program it.
+3. Compute the value of an optimal solution.  E.g. execute +cut_rod(n)+.
+4. Construct an optimal solution from computed information.  E.g. so far +cut_rod(n)+ only prints the maximal revenue, but not yet the lengths of the pieces. Augment +cut_rod(n)+ such that this missing information is provided.
+
+Memoization:: The solution to a sub-problem is memoized in a table.  Instead of solving/computing the sub-problem again just the value in the table is looked-up.   
+
+**to-do:** List examples of problems which can be solved using dynamic programming, e.g. from the problems sections.
+
+== Graph Algorithms
+
+A graph +G=(V,E)+ is given by a set of _vertices_ +V+ (aka _nodes_) and a set of _edges_ +E+, each edge being an pair of elements from +V+. The two vertices of an edge are said to be _adjacent_.  An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++. An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs and are also called _arcs_, _directed edges_ or _arrows_.  _Loop_ is an edge which starts and ends on the same vertex.  _Link_ is an edge with two different ends.  A _simple_ graph is an undirected graph that has no loops and no more than one edge between any two different vertices.  A _path_ in an undirected graph is an ordered sequence of vertices {v~1~,...,v~n~} such that v~i~ is adjacent to v~i+1~.  The _shortest path_ is the a path where the sum of the weights of its constituent edges is minimized.  The _distance_ between two vertices in a graph is the number of edges in a shortest path. 
+
+There three common ways to represent graphs with a data structure: 1) objects and pointers 2) collection of adjacency lists, typically for sparse graphs.  3) adjacency matrix, typically for dense graphs, or when a quick way is needed to tell if two vertices are adjacent.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.
+
+_breadth-first search_: Time complexity +Ο(V + E)+. Each vertex gets a `color' attribute attached witch is one of {unvisited (aka undiscovered, white), tentative (aka gray), visited (aka black)} (the term discovered may be used for the union {tentative (aka white), visited (aka gray)}). The basic pattern is:
+
+1. For each vertex set color=unvisited, distance=, parent=NIL.  Create an empty Queue Q and enqueue the source vertex s.
+2. u=Q.dequeue(). Quit if u is NIL, i.e. Q was empty.
+3. For each vertex v adjacent to u:
+  a. If v.color is not unvisited, continue with next iteration
+  b. v.color = tentative, v.distance = u.distance+1, v.parent=u
+  c. Q.enqueue(v)
+4. u.color = visited, goto 2.
+
+When getting _breadth-first tree_ is not wanted, leave away setting the parent attribute.  When only finding the distance to a given target vertex t is of interest, then abort after 3.b if v==t, and don't care about the parent attribute.
+
+
+== Concurrency related algorithms
+
+=== Consumer producer
+
+Solution using semaphores.  Allows for multiple producers and consumers.
+
+----------------------------------------------------------------------
+Semaphore emptyCount
+Semaphore fullCount
+Semaphore useQueue
+
+produce:
+  wait(emptyCount)
+  wait(useQueue)
+  putItemIntoQueue(item)
+  signal(useQueue)
+  signal(fullCount)
+
+consume:
+  wait(fullCount)
+  wait(useQueue)
+  item ← getItemFromQueue()
+  signal(useQueue)
+  signal(emptyCount)
+----------------------------------------------------------------------
+
+*to-do*:
+- Solution with monitores
+- Question: why isn't it in the above solution good enough to only guard the one critical section with a single binary semaphore?
+
+
+=== Dining philosophers
+*to-do*
+
+
+== Abstract data types (ADT)
+An abstract data type is defined only by the operations that may be performed on it and by mathematical pre-conditions and constraints on the effects (and possibly cost) of those operations.
+
+
+=== Associative array (aka map, symbol table, dictionary)
+Collection of (key, value) pairs, such that each possible key appears at most once in the collection.  See also multimap.
+
+Operations: insert (aka add) pair, delete (aka remove) pair, lookup value associated to a given key, modify (aka reassign) the value of an already existing pair.  Optionally also iterate over all pairs.
+
+Implementations: association list, hash table, binary search tree, radix trees, tries, Judy arrays, ....
+
+
+=== Multimap (aka multihash) 
+Is a generalization of a map (aka associative array) in which more than one value may be associated with a given key.
+
+=== Stack
+to-do
+
+=== Queue
+to-do
+
+=== Container
+Collection of other objects.
+
+Common operations: Create empty container, report number of objects it stores (size), delete all its objects (clear), insert new objects, remove objects, provide access to stored objects.
+
+
+== Misc data structures
+
+=== Direct-address tables
+Be U the universe / set of possible keys.  Time: +O(1)+ worst average best case.  Space: +O(|U|)+.
+
+A _direct address table_ is an array of size |U|.  A key's value is the index into the array where the data corresponding to the key is stored.
+
+
+=== Hash tables
+Be n the number of elements stored in the hash table, and k the key length.  Hash tables are often said to have time complexity +O(1)+. To be more precise however it really is +O(k)+, since +O(k)+ is needed to compute the hash.  Often that time can be neglected.
+
+==== Hash tables
+When two keys hash to the same slot that is called a _collision_.  
+
+=== Association list  
+to-do
+
+=== Binary Search Trees
++n+ is the number of elements.  +h≥lg n+ the height of the tree.  The expected height is +h=lg n+ for a randomly built binary tree.
+
+_(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
+
+_binary search tree property:_ If node +y+ is in the left subtree of node +x+, then +y.key<=x.key+, if +y+ is in +x+'s right subtree, then +y.key>=x.key+.
+
+_Search_ key +k+: +Ο(h)+. Recursively or iteratively, for current node +x+, if +k<x.key+ continue with left subtree, else right subtree.
+
+_Min_/_Max_: +Ο(h)+. Follow left/right subtree until the leaf is reached.
+
+_Successor_/_Predecessor_: +Ο(h)+. **To-do**
+
+
+=== Red-Black / AVL Trees
+For each node, we maintain an extra attribute, it's color, which is either black or red.  NIL is treated as leaf and as external node.  The tree is approximately balanced, no path is more than twice as long as any other.  A red-black tree with n internal nodes has height +h≤lg(n+1)+.
+
+_Properties_: 1) Every node is either red or black 2) the root is black 3) NIL is black 4) if a node is red, then both children are black 5) For each node, all simple paths from the node to descendant leaves contain the same number of black nodes.
+
+
+_Left/right rotation_: +Ο(1)+. preserves the binary-search-tree property. 
+
+_Insertion/deletion_: +Ο(lg n)+. Implementation not trivial.
+
+An _AVL_ tree is height balanced.  For each node, the height of the left and right subtree differ at most 1.  For each node, we maintain an extra attribute, it's height +h+.
+
+
+=== Skip list
+**to-do**
+
+
+
+=== Heap & binary heap
+All the following average case and worst case.  Space: +O(n)+.  Search: +O(n)+, insert/delete: +O(lg(n))+
+
+A _heap_ is a specialized tree-based data structure that satisfies the _heap property_: If A is a parent node of B, then the key of node A is ordered with respect to the key of node B with the same ordering applying across the heap.  In a _max heap_ the parent node key is greater than or equal to those of the children, in a _min heap_ it's smaller than or equal.  Thus the element with the largest (max heap) / lowest (min heap) key is always stored at the root.  Note that there is no implied ordering between siblings or cousins.
+
+In a _binary heap_ the tree is a complete binary tree.  That is, all levels of the tree, except possibly the last one, are fully filled, and, if the last level of the tree is not complete, the nodes of that level are filled from left to right.
+
+A (almost) full binary heap is typically implemented with an array.  A[0] is the root, A[1-2] is the 1st level, A[3-6] is the 2nd level and so on.  *to-do:* Study typical implementation.
+
+Applications of heaps:
+- The heap data structure is one maximally efficient implementation of a priority queue.  
+- Merge sort
+- Dijkstra's shortest-path algorithm
+- Order statistics
+
+A heap data structure should not be confused with `the heap' which is a common name for the pool of memory from which dynamically allocated memory is allocated.
+
+
+=== Treap
+
+*to-do:*
+
+=== Trie (aka digital tree, radix tree, prefix tree)
+
+Let k be the length of the search key.  Let n be the number of elements in the trie.  Time complexity is +Ο(k)+.
+
+A trie can be seen as a DFA (Deterministic finite automaton) without loops.  A trie can be compressed into an DAFSA (deterministic acyclic finite state automaton).  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.
+
+Compared to a hash table:
+
+- Trie has predictable lookup time +Ο(k)+.  A hash table also has +Ο(k+n)+ time complexity worst case:  O(k) is used to generate the key, looking up the key is O(1) average but O(n) worst case.
+- A trie does not need a hash function
+- A trie can provide an alphabetic ordering of the entries by key.  I.e. a trie supports ordered traversal.
+- Locality is worse for a key, since it randomly accesses the nodes.
+- A trie typically uses more space than a hash table, since the graph uses quite a lot pointers, and typically one pointer equals 4 characters.
+
+
+=== DAFSA
+Represents a finite (since it has no cycles) set of strings.  Single source vertex.  Each edge is labeled by a letter / symbol.  Each vertex has at most one vertex which is labeled with a given letter.  The accepted strings are formed by the letters on paths from the source to any sink / NIL vertex.
+
+Can be seen as an compact form of a trie.  Uses less space than a trie.  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.
+
+=== Radix tree (aka radix trie, compact prefix tree)
+A radix tree is a space-optimized trie, where each node with only one child is merged with its parents.  That each child is no longer labeled with a single character potentially with a string.
+
+Be k key length, n the number of members in the data structure.  Lookup, insertion, deletion have time complexity +Θ(k)+.
+
+Compared to a binary tree:
+
+- Binary tree has +Ο(k * (lg n))+ time complexity for lookup, insertion, deletion.  Mind that comparing a key requires +Ο(k)+; in many times the worst-case occurs, due to long prefixes towards the leaves. 
+
+=== To-do
+ordering statistic
+
+// Local Variables:
+// eval: (visual-line-mode 1)
+// eval: (auto-fill-mode -1)
+// eval: (filladapt-mode -1)
+// End:
+
+//  LocalWords:  pre  th ADT Multimap multihash multimap emptyCount fullCount
+
+
+//  LocalWords:  useQueue putItemIntoQueue getItemFromQueue
