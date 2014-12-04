@@ -96,7 +96,7 @@ _Process switching cost_ is far more expensive.  Most cache lines become useless
 
 [[mutual_exclusion]]
 === Mutual exclusion / Synchronization meaning `not at the same time'
-_race condition_: The outcome is dependent on the timing of processes/threads, i.e. when they are interrupted and when they continue. Race conditions typically occur when an shared resource is not protected by a mutual exclusion primitive. The part of a program that deals with a shared resource is called _critical region_ (aka _critical section_). _Mutual exclusion_ is some way of making sure only one thread/process is executing a critical region (aka protect the critical region), which is not the same as <<synchronization>>. A good solution needs four conditions:
+_race condition_: The outcome is dependent on the timing of processes/threads, e.g. the exact point in time when they are interrupted or when they continue. Race conditions typically occur when an shared resource is not protected by a mutual exclusion primitive. The part of a program that deals with a shared resource is called _critical region_ (aka _critical section_). _Mutual exclusion_ is some way of making sure only one thread/process is executing a critical region (aka protect the critical region), which is not the same as <<synchronization>>. A good solution needs four conditions:
 
 - No two processes may be simultaneously inside their critical regions.
 - No assumptions may be made about speeds or the number of CPUs.
@@ -106,7 +106,9 @@ _race condition_: The outcome is dependent on the timing of processes/threads, i
 _busy waiting_: continuously testing a variable until some value appears.
 
 === Locks
-A _lock_ enforces mutual exclusion.  Lock is the name of a concept.  Semaphore, mutex, monitor are specific implementations.  The simplest type of lock is a binary semaphore.
+A _lock_ enforces mutual exclusion.  Lock is the name of a concept.  Semaphore or mutex are well known examples of specific implementations.  _spinlock_ is a lock that internally uses busy waiting.  *to-do*: elaborate more.  say that probably internaly an atomic `test and set' (what is the generic term?) is used.
+
+
 
 Lock concepts:
 
@@ -133,6 +135,10 @@ Lock disadvantages:
 
 
 === Lock implementations
+_spinlock_: *to-do* is already explained above, but make it easily be found also here.  
+
+_atomic `test and set'_ operations: *to-do*: elaborate
+
 _semaphore_:  Is about mutual exclusion.  Quite a general construct.  A semaphore is a kernel object which allows entering n active threads from many others, (*to-do:* among different processes?), to enter the critical region.  The other non selected threads are put to sleep.  No concept of ownership.  (*to-do*: I'm not sure: Anyone can signal, also a thread not currently having acquired access to the critical region).  Metaphorically speaking, a semaphore is a record how many units of an particular resource are available, coupled with operations to safely (without race conditions) modify that record.  _counting semaphores_ (aka _general semaphore_) allow an arbitrary resource count, while _binary semaphores_ are restricted to the values 0 and 1 (or _locked_/_unlocked_, _unavailable_/_available_).  The operations / primitives of counting semaphores are _wait_ (or _P_ (Proberen -- try)) which decrements the semaphore and _signal_ (or _V_ (Verhogen -- raise)) which increments the semaphore and.  Optimally the two have an parameter defining the number of units the semaphore is to be decremented/incremented.  Many OS provide efficient semaphore primitives that unblock a waiting process when the semaphore is signaled / incremented.  To avoid starvation, a semaphore has an associated queue of processes.  There are multiple policies how to choose the process that is dequeued next: 1) FIFO 2) Priority queue 3) others. 
 
 _Mutex_ (*wrongly* also dubbed _mutex semaphore_):  Is about mutual exclusion.  Is less general than a semaphore, additionally has concept of ownership; the net effect is that mutexes don't have some of the semaphore's problems, see also below.  A mutex is a kernel object used for allowing only one active thread from many others, among different processes, to enter the critical region.  Provides concept of ownership.  The other non selected threads are put to sleep.  Supports thread ownership (the thread that locked it), thread termination notification, recursion (multiple `acquire' calls from same thread) and `priority inversion avoidance' (see also below).  May also provide deletion safety, where the thread (*to-do* process?) holding the mutex cannot be accidentally deleted.  Only the owner can signal.  
@@ -140,8 +146,6 @@ _Mutex_ (*wrongly* also dubbed _mutex semaphore_):  Is about mutual exclusion.  
 _Monitor_: See below and here (the two sources contradict each other I think) http://en.wikipedia.org/wiki/Monitor_(synchronization)#Synchronization_primitives
 
 _Critical Section Object_: A critical section can be used only by the threads of a single process.  The other non selected threads are put to sleep.  There is no way to tell whether a critical section has been abandoned.
-
-_spin lock_: A lock that uses busy waiting.  *to-do*: question: is a primitive used to implement semaphores, mutexes?
 
 *to-do*: questions: Which are blocking (which do specify that)? Which allow for multiple readers?  The ones that talk about processes -- are different user-level/kernel-level threads in one process treated as the same entity?  I.e. I still can have troubles if different threads in one process access the critical region.
 
