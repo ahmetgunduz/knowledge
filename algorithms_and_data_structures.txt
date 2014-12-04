@@ -2,6 +2,7 @@
 // The markup language of this document is AsciiDoc
 
 = Algorithms & data structures
+
 Summary of the book `Introduction to algorithms'.
 
 
@@ -143,11 +144,10 @@ Memoization:: The solution to a sub-problem is memoized in a table.  Instead of 
 
 == Graph Algorithms
 
-A graph +G=(V,E)+ is given by a set of _vertices_ +V+ (aka _nodes_) and a set of _edges_ +E+, each edge being an pair of elements from +V+. The two vertices of an edge are said to be _adjacent_.  An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++. An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs and are also called _arcs_, _directed edges_ or _arrows_.  _Loop_ is an edge which starts and ends on the same vertex.  _Link_ is an edge with two different ends.  A _simple_ graph is an undirected graph that has no loops and no more than one edge between any two different vertices.  A _path_ in an undirected graph is an ordered sequence of vertices {v~1~,...,v~n~} such that v~i~ is adjacent to v~i+1~.  The _shortest path_ is the a path where the sum of the weights of its constituent edges is minimized.  The _distance_ between two vertices in a graph is the number of edges in a shortest path. 
+See also <<graph>>
 
-There three common ways to represent graphs with a data structure: 1) objects and pointers 2) collection of adjacency lists, typically for sparse graphs.  3) adjacency matrix, typically for dense graphs, or when a quick way is needed to tell if two vertices are adjacent.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.
-
-_breadth-first search_: Time complexity +Ο(V + E)+. Each vertex gets a `color' attribute attached witch is one of {unvisited (aka undiscovered, white), tentative (aka gray), visited (aka black)} (the term discovered may be used for the union {tentative (aka white), visited (aka gray)}). The basic pattern is:
+=== Breadth-first search
+Time complexity +Ο(V + E)+. Each vertex gets a `color' attribute attached witch is one of {unvisited (aka undiscovered, white), tentative (aka gray), visited (aka black)} (the term discovered may be used for the union {tentative (aka white), visited (aka gray)}). The basic pattern is:
 
 1. For each vertex set color=unvisited, distance=, parent=NIL.  Create an empty Queue Q and enqueue the source vertex s.
 2. u=Q.dequeue(). Quit if u is NIL, i.e. Q was empty.
@@ -158,6 +158,20 @@ _breadth-first search_: Time complexity +Ο(V + E)+. Each vertex gets a `color' 
 4. u.color = visited, goto 2.
 
 When getting _breadth-first tree_ is not wanted, leave away setting the parent attribute.  When only finding the distance to a given target vertex t is of interest, then abort after 3.b if v==t, and don't care about the parent attribute.
+
+
+=== Depth-first search
+*to-do*:
+
+=== Dijkstra's algorithm
+Solves the single-source shortest path problem for a graph with non-negative edge costs, able to produce a shortest path tree.
+
+
+=== A*
+*to-do*:
+
+=== Floyd–Warshall algorithm
+*to-do*:
 
 
 == Concurrency related algorithms
@@ -195,10 +209,17 @@ consume:
 *to-do*
 
 
+[[ADT]]
 == Abstract data types (ADT)
 An abstract data type is defined only by the operations that may be performed on it and by mathematical pre-conditions and constraints on the effects (and possibly cost) of those operations.
 
 
+=== List (aka sequence)
+
+Implementations: linked list, array
+
+
+[[associative_array]]
 === Associative array (aka map, symbol table, dictionary)
 Collection of (key, value) pairs, such that each possible key appears at most once in the collection.  See also multimap.
 
@@ -211,10 +232,62 @@ Implementations: association list, hash table, binary search tree, radix trees, 
 Is a generalization of a map (aka associative array) in which more than one value may be associated with a given key.
 
 === Stack
-to-do
+*to-do*
 
 === Queue
-to-do
+A First-in-first-out (FIFO) data structure.  The principal operations are _enqueue_ and _dequeue_.  Sometimes also _peek_ (aka _front_) is provided.  Common implementations offer +O(1)+ time and +O(1)+ auxiliary space for these operation and +O(n)+ space for the collection aspect. 
+
+Common implementations: circular buffer, doubly linked list, singly linked list with an additional pointer to the last node
+
+Implements the ADT <<collection>>
+
+==== Priority Queue
+*to-do*
+
+==== Double-ended queue (aka Deque)
+*to-do*
+
+==== Circular queue (aka Deque)
+*to-do*
+
+
+[[tree_ADT]]
+=== Tree
+Note that there is a distinction between a tree as 1) an abstract data type,  2) a data structure and 3) a topic in graph theory.
+
+Terms (see also those of <<graph>>):
+
+- _siblings_: nodes with the same parent.
+- _cousins_: nodes with the same grand parent.
+- _internal node_: A node with at least one child.
+- _external node_ (aka _leaf_): A node with no children.
+- _degree_: Number of sub trees of a node
+- _level_: *to-do*: i don't understand that
+- _height of tree / node_: Largest distance (see <<graph>>) between root / that node and any leaf.
+- _depth_ of node: Distance from root to that node.
+- _forest_: A set of zero or more disjoint trees.
+
+
+Implementations: See those of <<graph>>,  and the methods for storing a <<binary_tree>> 
+                 
+
+[[graph]]
+=== Graph
+In the following, no distinction is made between the term graph referring to an specific abstract data type and the term graph referring to a topic in mathematics.
+
+A graph +G=(V,E)+ is given by a set of _vertices_ +V+ (aka _nodes_) and a set of _edges_ +E+, each edge being an pair of elements from +V+. The two vertices of an edge are said to be _adjacent_.  An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++. An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs and are also called _arcs_, _directed edges_ or _arrows_.  _Loop_ is an edge which starts and ends on the same vertex.  _Link_ is an edge with two different ends.  A _simple_ graph is an undirected graph that has no loops and no more than one edge between any two different vertices.  A _path_ in an undirected graph is an ordered sequence of vertices {v~1~,...,v~n~} such that v~i~ is adjacent to v~i+1~.  The _shortest path_ is the a path where the sum of the weights of its constituent edges is minimized.  The _distance_ between two vertices in a graph is the number of edges in a shortest path.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
+
+
+Implementations:
+
+- objects and pointers
+- adjacency list, typically for sparse graphs.  Collection of unordered lists, one for each vertex.  There sub-forms how to implement an adjacency list.
+ * An associative array associates each vertex to an unordered list of its adjacent vertices.  For the associative array, often a hash table is used.  
+- adjacency matrix, typically for dense graphs, or when a quick way is needed to tell if two vertices are adjacent.
+
+
+=== Set
+*to-do*:
 
 === Container
 Collection of other objects.
@@ -223,6 +296,27 @@ Common operations: Create empty container, report number of objects it stores (s
 
 
 == Misc data structures
+
+=== Linked list
+
+Implementation of the ADT <<list>>.
+
+Orthogonal properties:
+
+- Singly, Doubly or Multiply linked
+- Circular linked yes/no
+- Sentinel nodes yes/no
+
+
+=== Circular buffer (aka cyclic buffer, ring buffer)
+Internally uses 1) an array which's size equals circular's buffer capacity, 2) an pointer (or index) to the first element and 3) one to the last element.  Pointers in a circular buffer wrap around at the underlying array border (array.first and array.last (according array.size=circular_buffer.capacity)).
+
+Implements the ADT <<queue>>
+
+Difficulties:
+
+- Depending on the exact implementation, distinguish the case that the buffer is empty and that it is full is not possible, because in both cases start and end point to the same element.
+
 
 === Direct-address tables
 Be U the universe / set of possible keys.  Time: +O(1)+ worst average best case.  Space: +O(|U|)+.
@@ -233,16 +327,40 @@ A _direct address table_ is an array of size |U|.  A key's value is the index in
 === Hash tables
 Be n the number of elements stored in the hash table, and k the key length.  Hash tables are often said to have time complexity +O(1)+. To be more precise however it really is +O(k)+, since +O(k)+ is needed to compute the hash.  Often that time can be neglected.
 
-==== Hash tables
 When two keys hash to the same slot that is called a _collision_.  
 
+Is an implementation of the ADT <<associative_array>>. 
+
+*to-do*: more details
+
+
 === Association list  
-to-do
+Is an implementation of the ADT <<associative_array>>.
 
-=== Binary Search Trees
-+n+ is the number of elements.  +h≥lg n+ the height of the tree.  The expected height is +h=lg n+ for a randomly built binary tree.
+*to-do*: more details
 
-_(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
+
+[[binary_tree]]
+=== Binary tree
+A <<tree>> data structure in which each node has at most two children.  Note that a <<binary_search_tree>> is something else with more restrictions.
+
+Properties:
+
+- _full_(aka _proper_): Every node other than the leaves has two children.
+- _perfect_: (aka ambiguously (see next) complete): A full binary tree in which all leaves have the same depth
+- _complete_: Every level, except possibly the last, is completely filled, and all nodes are as far left as possible.
+- _balanced_: *to-do*:
+- _degenerate_ (aka _pathological_): Each node has at most one child.  The tree is thus effectively a linked list.
+
+Methods of storing:
+
+- See <<graph>>
+- As an implicit data structure in an array.  Be i the current node's index, 0 the first index, then its parent is at index floor((i-1)/2), its right child at 2i+1 and its left child at 2i+2.  In the case of a complete binary tree, no space is wasted.  See also <<binary_heap>> which commonly uses this scheme. 
+
+
+[[binary_search_tree]]
+=== Binary Search Tree (aka BST, ordered/sorted binary tree)
+Is a specialized <<binary_tree>> where 1) each node has a comparable key 2) for each node: the key of the left child, if child present, is smaller than the node's key, and the key of the right child, if present, is larger than the node's key.  Be +n+ the number of elements.  +h≥lg n+ the height of the tree.  The expected height is +h=lg n+ for a randomly built binary tree.
 
 _binary search tree property:_ If node +y+ is in the left subtree of node +x+, then +y.key<=x.key+, if +y+ is in +x+'s right subtree, then +y.key>=x.key+.
 
@@ -252,8 +370,10 @@ _Min_/_Max_: +Ο(h)+. Follow left/right subtree until the leaf is reached.
 
 _Successor_/_Predecessor_: +Ο(h)+. **To-do**
 
+Is an implementation of the ADT <<associative_array>>.
 
-=== Red-Black / AVL Trees
+
+=== Red-Black / AVL Tree
 For each node, we maintain an extra attribute, it's color, which is either black or red.  NIL is treated as leaf and as external node.  The tree is approximately balanced, no path is more than twice as long as any other.  A red-black tree with n internal nodes has height +h≤lg(n+1)+.
 
 _Properties_: 1) Every node is either red or black 2) the root is black 3) NIL is black 4) if a node is red, then both children are black 5) For each node, all simple paths from the node to descendant leaves contain the same number of black nodes.
@@ -270,15 +390,14 @@ An _AVL_ tree is height balanced.  For each node, the height of the left and rig
 **to-do**
 
 
-
+[[binary_heap]]
+[[heap]]
 === Heap & binary heap
 All the following average case and worst case.  Space: +O(n)+.  Search: +O(n)+, insert/delete: +O(lg(n))+
 
 A _heap_ is a specialized tree-based data structure that satisfies the _heap property_: If A is a parent node of B, then the key of node A is ordered with respect to the key of node B with the same ordering applying across the heap.  In a _max heap_ the parent node key is greater than or equal to those of the children, in a _min heap_ it's smaller than or equal.  Thus the element with the largest (max heap) / lowest (min heap) key is always stored at the root.  Note that there is no implied ordering between siblings or cousins.
 
-In a _binary heap_ the tree is a complete binary tree.  That is, all levels of the tree, except possibly the last one, are fully filled, and, if the last level of the tree is not complete, the nodes of that level are filled from left to right.
-
-A (almost) full binary heap is typically implemented with an array.  A[0] is the root, A[1-2] is the 1st level, A[3-6] is the 2nd level and so on.  *to-do:* Study typical implementation.
+In a _binary heap_ the tree is a complete <<binary_tree>>. *to-do*: study implementation of the basic operations.
 
 Applications of heaps:
 - The heap data structure is one maximally efficient implementation of a priority queue.  
@@ -294,10 +413,11 @@ A heap data structure should not be confused with `the heap' which is a common n
 *to-do:*
 
 === Trie (aka digital tree, radix tree, prefix tree)
-
 Let k be the length of the search key.  Let n be the number of elements in the trie.  Time complexity is +Ο(k)+.
 
 A trie can be seen as a DFA (Deterministic finite automaton) without loops.  A trie can be compressed into an DAFSA (deterministic acyclic finite state automaton).  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.
+
+Is an implementation of the ADT <<associative_array>>.
 
 Compared to a hash table:
 
@@ -308,30 +428,53 @@ Compared to a hash table:
 - A trie typically uses more space than a hash table, since the graph uses quite a lot pointers, and typically one pointer equals 4 characters.
 
 
-=== DAFSA
+=== DAFSA as data structure
 Represents a finite (since it has no cycles) set of strings.  Single source vertex.  Each edge is labeled by a letter / symbol.  Each vertex has at most one vertex which is labeled with a given letter.  The accepted strings are formed by the letters on paths from the source to any sink / NIL vertex.
 
 Can be seen as an compact form of a trie.  Uses less space than a trie.  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.
+
+Is an implementation of the ADT <<associative_array>>.
+
 
 === Radix tree (aka radix trie, compact prefix tree)
 A radix tree is a space-optimized trie, where each node with only one child is merged with its parents.  That each child is no longer labeled with a single character potentially with a string.
 
 Be k key length, n the number of members in the data structure.  Lookup, insertion, deletion have time complexity +Θ(k)+.
 
+Is an implementation of the ADT <<associative_array>>.
+
 Compared to a binary tree:
 
 - Binary tree has +Ο(k * (lg n))+ time complexity for lookup, insertion, deletion.  Mind that comparing a key requires +Ο(k)+; in many times the worst-case occurs, due to long prefixes towards the leaves. 
 
-=== To-do
-ordering statistic
+
+== Misc. related computer science
+
+
+=== NFA
+*to-do*:
+
+
+=== DFA
+*to-do*:
+
+
+=== DAFSA
+*to-do*:
+
+
+== To-do
+- ordering statistic
+
+
 
 // Local Variables:
 // eval: (visual-line-mode 1)
 // eval: (auto-fill-mode -1)
 // eval: (filladapt-mode -1)
+// compile-command: "asciidoc -a toc algorithms_and_data_structures.txt"
 // End:
 
-//  LocalWords:  pre  th ADT Multimap multihash multimap emptyCount fullCount
-
-
-//  LocalWords:  useQueue putItemIntoQueue getItemFromQueue
+//  LocalWords:  pre th ADT Multimap multihash multimap emptyCount fullCount
+//  LocalWords:  useQueue putItemIntoQueue getItemFromQueue Treap DAFSA Deque
+//  LocalWords:  BST
