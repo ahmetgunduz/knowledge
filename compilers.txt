@@ -133,6 +133,39 @@ conversions' (aka 'cast') is one where the programmer must write something to
 cause the conversion.  'Widening conversions' preserve information.
 'Narrowing conversions' can lose information.
 
+_Activation_ is a synonym to procedure call.  The _activation tree_ is the
+tree of activations that builds up over time, the +main+ method being the
+root.  An activation is said to be _open_ (aka _live_) when it was called but
+has not yet returned.  Procedure calls and returns are usually managed by a
+run-time stack called the _control stack_.  Each live activation has an
+_activation record_ (aka _frame_) on the control stack.
+
+A program has _temporal locality_ if the memory locations it accesses are
+likely to be accessed again within a short period of time.  A program has
+_spatial locality_ if memory locations close to the accessed location are
+likely to be accessed within a short period of time.
+
+_Mutator_ is the user program modifying the collection of objects in the heap.
+A language in which the type of any data component can be determined is said
+to be _type safe_, either statically at compile time or dynamically at run
+time, the later being called _dynamically typed_. A language which is not type
+safe is said to be _unsafe_.  In unsafe languages, memory addresses can be
+manipulated arbitrarily: arbitrary arithmetic operations can be applied to
+pointers.  Thus such a program theoretically could refer to any location in
+memory at any time.
+
+A _short-pause garbage collector_ is one that .... _Incremental collection_:
+Interleaves garbage collection with the mutation.  _Partial collection_: In
+each `round', only collect a subset of the garbage.  _Conservative_:  A GC
+must not collect objects that are not garbage, but it does not have to collect
+all the garbage in each round.  _floating garbage_ is garbage left behind
+after collection.
+
+*Garbage collector related questions*: Doesn't the book confuse garbage
+collector tasks with memory manager tasks?  The garbage collector shall only
+be concerned with when to free an object.  How to implement allocation and
+deallocation of an object is the memory managers tasks.
+
 
 == Bison
 
