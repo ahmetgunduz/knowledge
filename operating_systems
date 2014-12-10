@@ -1,12 +1,23 @@
+== Introduction
+=== System calls
+System calls are typically wrapped by an library
+
+. Regular foo library method is called in a regular manner.  Push arguments on stack, then execute procedure call instruction.
+. The library implementation of foo typically puts the system-call number in a place where the OS expects it, such as an register.  Then it executes a TRAP instruction.  That switches from user mode to kernel mode and start execution at a fixed address within the kernel.
+. The kernel code that is executed examines the system call number and then dispatches to the correct system-call handler, usually via an table [system-call number => system-call handler address]. The system call handler runs.  Once it has completed its work, control may be returned to the user-space library procedure with the instruction after the TRAP, or it defers that lets the scheduler schedule another task.  
+. Once the OS returns control to the instruction after the TRAP, everything continues as normal. 
+
+The library procedure, possibly written in assembly language, typically puts the system-call number in a place where the OS expects it, such as a register. 
+
 == Processes and threads
 
 Overview:
 
 A computer _program_ is a passive collection of (machine) instructions.  Several processes may be associated with the same program, e.g. when the same program is `opened'/started multiple times.
 
-A _process_ is an instance of an executing program.  The PCB is "the manifestation of a process in an OS"
+A _process_ is an instance of an executing program and a way to group related resources such as an address space, file descriptors etc.
 
-A _thread_ of execution is the smallest sequence of programmed instructions that can be managed independently by a scheduler.
+A thread of execution (shortened to just _thread_) is the smallest sequence of programmed instructions that can be managed independently by a scheduler.
 
 A _task_ is a unit of execution; in some OS a task is synonymous with a process, in others with a thread.
 
@@ -14,7 +25,7 @@ _Batch processing_ is the execution of a series of programs (_jobs_) on a comput
 
 
 === Processes
-A _process_ is an instance of an executing program.  [In my words: a process is nothing more than its PCB, it does not really itself execute instructions, threads do.]  It owns resources such as memory, file descriptors (Unix terminology) or handles (Windows terminology), see PCB below. 
+A _process_ is an instance of an executing program and a way to group related resources such as an address space, file descriptors etc.  It owns resources such as memory, file descriptors (Unix terminology) or handles (Windows terminology), see PCB below. 
 
 _foreground process_ interacts with user, _background process_ does not.
 
@@ -30,7 +41,7 @@ Depicted differently: _Per-process items_: address space, open files, child proc
 
 
 === Threads
-A _thread_ (aka _lightweight process_) of execution is the smallest sequence of programmed instructions that can be managed independently by a scheduler.  The _thread control block_ (_TCB_) is a data structure owned by the OS which stores the thread specific information needed to manage it: program counter, stack pointer, state of thread, registers, pointer to PCB.  The threads within a process share some of the process' resources such as a common address space, file descriptors, signals.  
+A thread (aka _lightweight process_) of execution (shortened to _thread_) is the smallest sequence of programmed instructions that can be managed independently by a scheduler.  The _thread control block_ (_TCB_) is a data structure owned by the OS which stores the thread specific information needed to manage it: program counter, stack pointer, state of thread, registers, pointer to PCB.  The threads within a process share some of the process' resources such as a common address space, file descriptors, signals.  
 
 Threads are more lightweight and faster to create (10-100 times on many systems) and destroy compared to a process.  Thread switching is also much more efficient than process switching, see also <<scheduling>>.  Motivation of threads: Thread B can still accomplish work while thread A is blocked, so their parent process overall still gets work done.
 
@@ -92,11 +103,22 @@ _Process switching cost_ is far more expensive.  Most cache lines become useless
 
 
 
+== Interrupts
+Devices notify the interrupt controller.  The interrupt controller puts a number on the address lines and asserts a signal to interrupt the CPU.  The CPU interrupts its current work, saves (see later below) certain information such as the program counter to be able to continue the interrupted work, and then uses the number on the address lines used as an index into a table called the _interrupt vector_ which translates such numbers to an address of an interrupt-service procedure.  Often that interrupt is shared between interrupts and traps.  The interrupt-service routine acknowledges the interrupt by writing a certain value to one of the interrupt controller's I/O ports.  There is not neccessairly a context switch, either before calling the interrupt-service or within the interrupt-service routine.
+
+_HW interrupts_ are used by devices to communicate that they require attention from the OS.  The act of initiating a HW interrupt is referred to as an _interrupt request_ (_IRQ_). _SW interrupt_.  A _SW interrupt_ is caused either by an exceptional condition in the CPU itself (e.g. division by zero), or a special instruction.
+
+*to-do*:
+- In which context is an interrupt service routine executed?  What are
+ the impacts regarding topics such as re-entrancy and thread-safety.
+- signal handlers
+
+
 == Interprocess communication
 
 [[mutual_exclusion]]
 === Mutual exclusion / Synchronization meaning `not at the same time'
-_race condition_: The outcome is dependent on the timing of processes/threads, e.g. the exact point in time when they are interrupted or when they continue. Race conditions typically occur when an shared resource is not protected by a mutual exclusion primitive. The part of a program that deals with a shared resource is called _critical region_ (aka _critical section_). _Mutual exclusion_ is some way of making sure only one thread/process is executing a critical region (aka protect the critical region), which is not the same as <<synchronization>>. A good solution needs four conditions:
+_race condition_: The outcome is dependent on the timing of processes/threads, e.g. the exact point in time when they are interrupted or when they continue. Race conditions typically occur when an shared resource is not protected by a mutual exclusion primitive. _critical region_ (aka _critical section_) is the fragment of code that deals with a shared resource.  In literature it is not uniformly defined wheter that is one single code fragment or all the code fragments that deal with a given shared resource. _Mutual exclusion_ is some way of making sure only one thread/process is executing a critical region (aka protect the critical region), which is not the same as <<synchronization>>. A good solution needs four conditions:
 
 - No two processes may be simultaneously inside their critical regions.
 - No assumptions may be made about speeds or the number of CPUs.
@@ -106,9 +128,7 @@ _race condition_: The outcome is dependent on the timing of processes/threads, e
 _busy waiting_: continuously testing a variable until some value appears.
 
 === Locks
-A _lock_ enforces mutual exclusion.  Lock is the name of a concept.  Semaphore or mutex are well known examples of specific implementations.  _spinlock_ is a lock that internally uses busy waiting.  *to-do*: elaborate more.  say that probably internaly an atomic `test and set' (what is the generic term?) is used.
-
-
+A _lock_ enforces mutual exclusion.  Lock is the name of a concept.  Semaphore or mutex are well known examples of specific implementations.
 
 Lock concepts:
 
@@ -135,7 +155,7 @@ Lock disadvantages:
 
 
 === Lock implementations
-_spinlock_: *to-do* is already explained above, but make it easily be found also here.  
+_spinlock_: *to-do* elaborate more.  say that probably internaly an atomic `test and set' (what is the generic term?) is used.
 
 _atomic `test and set'_ operations: *to-do*: elaborate
 
@@ -256,7 +276,7 @@ _Deadlock prevention_ works by preventing one of the four Coffman conditions fro
 
 - _remove the mutual exclusion_ condition, i.e. remove having a shared resource which must be guarded by mutual exclusion.  For example:
   * Spooling (probably seldom applicable *to-do*: explore more)
-  * A non-blocking synchronization algorithm.  *to-do*: explore them. 
+  * A non-blocking synchronization algorithm.  E.g. _read-copy_update_ (_RCU_).  *to-do*: explore them. 
 
 - _remove the hold and wait_ condition: *to-do*: elaborate -- but anyway, the solutions seems to be in-practical
 
@@ -311,4 +331,8 @@ A real-world example of livelock occurs when two people meet in a narrow corrido
 // End:
 
 //  LocalWords:  CAS CMPXCHG TSL Verhogen TCB Coffman streit dijkstra XCHG
-//  LocalWords:  Vermittler Proberen FCFS
+//  LocalWords:  Vermittler Proberen FCFS IRQ
+== Memory
+
+- http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory/
+- http://duartes.org/gustavo/blog/post/how-the-kernel-manages-your-memory/
