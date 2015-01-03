@@ -185,7 +185,7 @@ NW:: Can change the number of words.  That has effect on the following steps.
 === Brace expansion
 
 ..................................................
-BraceExpansion = [Preamble]\{(Seq|(EltStr\,{~}){2,})\}[Postscript];
+BraceExpansion = [Preamble]\{(Seq|(EltStr\,{l0}){2,})\}[Postscript];
   Seq = Num".."Num | Char".."Char;
   Num = ['[+-]]'[0-9]+;
   Char = \a;

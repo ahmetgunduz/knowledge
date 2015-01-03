@@ -3,12 +3,12 @@ Program       = List;
 ##    AndOrListTerm is optional. Even for a simple command it is optional at
 ##    the end of the program.
 List          = (AndOrList AndOrListTerm#1)+; 
-AndOrList     = (Pipe (`&& #And |`|| #Or){~})+; ## equal precedence,
+AndOrList     = (Pipe (`&& #And |`|| #Or){l0})+; ## equal precedence,
                                                 ## lr associativity
 AndOrListTerm = \&#Async | (\;|\n)#Sync;  
 ## Each command is executed in its own subshell. Pipe's exit status = last
 ## commands' exit status, unless pipefail option is set.
-Pipe          = ['time [`-p ]] [\!]#NegatesExitCode (Command \|{~} )+;  
+Pipe          = ['time [`-p ]] [\!]#NegatesExitCode (Command \|{l0} )+;  
 ## 1) Apparently FunDef can not really appear anywhere a Command can.
 ## 2) Within a SimpleCommand, redirections can occur any where
 Command       = ( SimpleCommand | CompoundCommand | FunDef#1 ) [Redirections#2];
@@ -40,7 +40,7 @@ FlowControlCommand =
     'fi |
   ## Idiom: for the default case use pattern '*' 
   'case Word 'in
-    ( \(? (Pattern\|{~})* \)
+    ( \(? (Pattern\|{l0})* \)
       List#Body
       (`;;  #*stop*# |
        `;&  #*continue executing following's clause body# |
@@ -91,9 +91,10 @@ ReservedWord =
 
 FdNo = '[0-9]+; ## File descriptor number
 Fd =
-  [FdNo] | ## Defaults to 0 for input and input/output, or 1 for output
+  [FdNo] | ## Defaults to 0 (stdin) for input and to 1 (stdout) for output
   \{ Identifier \}; ## Shell allocates an FdNo > 10 and assigns it to Identifier, except for the closing redirections
-FileName = Word;    ## Subject to various expansions, see bash.txt
+FileName = Word; ## Subject to various expansions, see bash.txt
+RestrictedFileName = Word;    ## As FileName, but may not expand to - or a number
 FileNameOrFdNo = Word; ## As above. Additionaly, if word expands to [0-9]+, it's an FdNo, and a FileName otherwise
 FileNameOrFdNoOrMinus = Word; ## As above. Additionaly, if word expands to -, the Fd is closed.
 Redirections = Redirection+;  ## Executed from left to right
@@ -112,12 +113,12 @@ Redirection =
     `&>> FileName |
   ## Open for input and output
   Fd `<> Filename |## open( FD, read | write | create, FileName ) 
-  ## Duplicate or close, depending on wheter FileNameOrFdNoOrMinus expands to -
-  Fd `<& FileNameOrFdNoOrMinus |## if ('-') Fd=FileNameOrFdNo else close(Fd)
-  Fd `&> FileNameOrFdNoOrMinus |## if ('-') Fd=FileNameOrFdNo else close(Fd)
-    ## special case of duplicate stderr to stdout.
-    `&> FileName |
-    `>& FileName |
+  ## Duplicate (lhs is copy of rhs) or close lhs, depending on wheter rhs expands to -
+  Fd `<& FileNameOrFdNoOrMinus |## if (rhs expands to '-') Fd=FileNameOrFdNo else close(Fd)
+  Fd `&> FileNameOrFdNoOrMinus |## if (rhs expands to '-') Fd=FileNameOrFdNo else close(Fd)
+  ## Open for output on stdout, stderr is made a copy of stdout.  The first variant is preferred. 
+ `&> AnyFileName | ## semantically equivalent to >WORD 2>&1
+ `>& RestrictedFileName |
   ## Move 
   Fd `<& FileNameOrFdNo \- |
   Fd `&> FileNameOrFdNo \-;
