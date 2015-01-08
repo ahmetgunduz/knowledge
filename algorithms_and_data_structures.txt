@@ -8,49 +8,42 @@ Summary of the book `Introduction to algorithms'.
 
 == Algorithm properties
 
-=== Computational/Time complexity 
+=== Computational/Time complexity
 
-In the following +f(n)+ is typically the number of _steps_ needed by an algorithm, where +n+ is the _input size_.  +T(n)+ is the _running time_.  +T(n)=Ο(g(n))+ means that there is an n0 and a c such that ++T(n)<cg(n)++ whenever ++n>n0++, i.e. ++T(n)++ is not worse (larger values are worse) than upper bound ++cg(n)++.
+In the following +f(n)+ is typically the number of _steps_ needed by an algorithm, where +n+ is the _input size_.  +T(n)+ is the _running time_.
 
-Note: Because ++Ο(g(n))++ is really a set, we should write ++f(n) ∊ Ο(g(n))++, however we often write ++f(n)=Ο(g(n))++, the equal sign meaning `is', not `is equal to'.
+Types of asymptotic notations O:
 
-Worst/average/best case refers to the worst/average/best input.  Also for the best case, i.e. the best possible input, we most of the times still use Ο, since we're still interested in the upper bound of the running time for this best case.  For many algorithms we only care about the worst case, not the average case, because a) the worst case occurs fairly often in practice b) the average case is often as bad as the worst case c) it's difficult to know what an ``average'' input is (often it is assumed that all possible inputs are equally likely).
+O:: Pronounced ``__big-oh__ of ...''. Asymptotic upper bound (no claim about how tight, i.e. e.g. +n=O(n^2^)+ footnote:[CLRS 3rd ed. sub-chapter O-notation in the middle]).  ++f(n)∊O(g(n)): there exist c>0 and n~0~>0 such that 0 ≤ f(n) ≤ c⋅g(n) for all n≥n~0~++
+Θ:: Pronounced ``__big-theta__ of ...''. ++f(n)=Θ(g(n))++ means +g(n)+ is an asymptotically tight bound for +f(n)+. ++f(n)∊Θ(g(n)): there exist c~1~>0, c~2~>0 and n~0~>0 such that 0 ≤ c~1~⋅g(n) ≤ f(n) ≤ c~2~⋅g(n) for all n≥n~0~++
+Ω:: Pronounced ``__big-omega__ of ...''. Asymptotic lower bound (no claim about how tight).  ++f(n)∊Ω(g(n)): there exist c>0 and n~0~>0 such that 0 ≤ c⋅g(n) ≤ f(n) for all n≥n~0~++
+ο:: Pronounced ``__little-oh__ of ...''. Upper bound that is _not_ asymptotically tight.
+ω:: Pronounced ``__little-omega__ of ...''. Lower bound that is _not_ asymptotically tight.
 
-An upper bound is said to be a _tight upper bound_ if no smaller value is an upper bound.
+Note: Because ++O(g(n))++ is really a set, we should write ++f(n) ∊ O(g(n))++, however we often write ++f(n)=O(g(n))++, the equal sign meaning ∊.
 
+_worst case_ / _average case_ / _best case_ refers to the worst / average / best input -- a ``good'' input results in a short running time of the algorithm, a ``bad'' input results in a long running time.  For many algorithms we only care about the worst case, not the average case, because a) the worst case occurs fairly often in practice b) the average case is often as bad as the worst case c) it's difficult to know what an ``average'' input is (often it is assumed that all possible inputs are equally likely).
 
-Types of asymptotic notations
-(http://en.wikipedia.org/wiki/Big_O_notation#Family_of_Bachmann.E2.80.93Landau_notations):
+_Tight bounds_: An upper bound is said to be a tight upper bound (aka _supremum_) if no smaller value is an upper bound.  Likewise for tight lower bounds (aka _infimum_).
 
-Ο:: Pronounced ``big-oh of ...''. Asymptotic upper bound. 
-Θ:: ++f(n)=Θ(g(n))++ means +g(n)+ is an _asymptotically tight bound_ for +f(n)+. 
-Ω:: Pronounced ``big-omega of ...''. Asymptotic lower bound.
-ο:: Pronounced ``little-oh of ...''. Upper bound that is _not_ asymptotically tight.
-ω:: Pronounced ``little-omega of ...''. Lower bound that is _not_ asymptotically tight.
-
-Informally, especially in computer science, the Big O notation often is permitted to be somewhat abused to describe an asymptotic tight bound where using Big Theta Θ notation might be more factually appropriate in a given context.  *to-do*: 1) understand `asymphtotically tight'  2) understand where it is explained/defined why we say e.g. 3n+3= O(n) and not e.g. something `worse' like 3n+3=O(n^n), altough the later apparently is correct.
+Informally, especially in computer science, the big-oh notation often is permitted to be somewhat abused to describe an asymptotic tight bound (it really only describes an asymptotic upper bound) where using big-theta notation might be more factually appropriate in a given context.
 
 Implications:
 
-* ++Θ(g(n))⊆Ο(g(n))++ thus from ++f(n)=Θ(g(n))++ follows ++f(n)=Ο(g(n))++.
+* ++Θ(g(n))⊆O(g(n))++ thus from ++f(n)=Θ(g(n))++ follows ++f(n)=O(g(n))++.
 
 
-_Rate of growth_ (aka _order of growth_) +Θ(...)+ (pronounced ``theta of ...''): only the leading term with any constant factor removed; the lower-order terms are relatively insignificant for large values of n.  _Asymptotic_ efficiency: Only look at rate of growth.  Usually, an algorithm that is asymptotically more efficient will be the best choice for all but very small inputs.  An algorithm is said to be _asymptotically optimal_ if, roughly speaking, its big O is equal to the big O of the best possible algorithm.
+_Rate of growth_ (aka _order of growth_) +Θ(...)+ (pronounced ``theta of ...''): only the leading term with any constant factor removed; the lower-order terms are relatively insignificant for large values of n.  _Asymptotic efficiency_: Only look at rate of growth.  Usually, an algorithm that is asymptotically more efficient will be the best choice for all but very small inputs.  An algorithm is said to be _asymptotically optimal_ if, roughly speaking, its big-oh is equal to the big-oh of the best possible algorithm.
 
-_amortized time_: `amortized +Ο(f)+' for operation o: In a sequence of length L
-of such o operations, the overall time is +Ο(L*f)+.  I.e. one of those o operations might use a particular large amount of time compared to the average case, but that time is amortized in the large.  A typical example is appending to an array; if the capacity is full, a new array of larger capacity needs to be allocated, and the data has to be copied.
+_amortized time_: `amortized +O(f)+' for operation o: In a sequence of length L of such o operations, the overall time is +O(L*f)+.  I.e. one of those o operations might use a particular large amount of time compared to the average case, but that time is amortized in the large.  A typical example is appending to an array; if the capacity is full, a new array of larger capacity needs to be allocated, and the data has to be copied.
 
 
-To-do: http://bigocheatsheet.com/
-
-Questions:
-
-- Difference average-case / expected?
+See also: http://bigocheatsheet.com/
 
 
 === Memory related properties
 Locality::
-In place:: An algorithm using +Ο(1)+ auxiliary memory space.  Often even +Ο(log n)+ is considered as in place.
+In place:: An algorithm using +O(1)+ auxiliary memory space.  Often even +O(log n)+ is considered as in place.
 
 
 === Other properties
@@ -59,7 +52,7 @@ Online:: An online algorithm is one that can process its input piece-by-piece in
 
 === Misc terms
 Rank:: The rank of an element is its position in the linear order of a set.
-__i__th order statistic:: the __i__th-smallest value in the set.  
+__i__th order statistic:: the __i__th-smallest value in the set.
 Sentinel:: A sentinel is an object to represent the end of a data structure.
 
 
@@ -67,33 +60,45 @@ Sentinel:: A sentinel is an object to represent the end of a data structure.
 
 - What is computable by recursive functions is computable by an iterative model and vice versa.
 
-- KISS: Use whichever is more easy to reason about for the given problem.  Since recursion maps easily to proof by induction, for many problems recursion is a straight forward choice. 
+- KISS: Use whichever is more easy to reason about for the given problem.  Since recursion maps easily to proof by induction, for many problems recursion is a straight forward choice.
 
-- Disadvantages of recursion:
-  * The space used on the stack (which is finite!). Due to the amount of stack space used, locality might also be worse than in the equivalent iterative solution.
-  * Expense of function calls.  However in case of tail calls and an compiler featuring tail call optimization that is not true.
+* Recursion has to pay expense of function calls and function returns, which is typically larger than the (conditional) jump used in the iterative solution.  However in case of tail calls and an compiler featuring tail call optimization becomes pretty much equivalent to iteration since the machine code is iterative.
+
+* Recursion needs memory on the stack for all the locals, the stack frame (the return address, the old stack pointer, ...).  However there are iterative solutions which need an stack or queue, which internally probably uses the heap with all its overhead in space and time.  It depends on the queue/stack implementation which is more efficient in terms of memory usage, locality, ....
 
 - Modern compilers are good at converting some recursions to loops without even asking.
 
+
 Terms: _base case_ is input for which the solution is directly known.  When the recursion arrives at the base case it is said to _bottom out_.
 
-Recipe for translating recursion into iteration for a function ++foo++ for the case where recursive calls are convertible to tail calls:
+Recipe 1 of 2 for translating recursion into iteration for a function ++foo++ for the case where recursive calls are convertible to tail calls:
 
-. Convert all recursive calls into tail calls.  If you're programming language supports tail call optimization, you're already done. 
+. Convert all recursive calls into tail calls.  If you're programming language supports tail call optimization, you're already done.
 
 . Enclose the body of the function with a ++while(true) { ... }++ loop.
 
-. Replace each call to ++foo++ according to this scheme: ``++foo(f1(x1), f2(x2), ...)++'' => ``++x1=f1(x1); x2=f2(x2); ...; continue;++'' *to-do*: So this works only if each argument is a function of itself?
+. Replace each call to ++foo++ according to this scheme: ``++foo(f1(...), f2(...), ...)++'' => ``++x1=f1(...); x2=f2(...); ...; continue;++''
 
 . For languages where identifiers need to be defined: For each +x+ object introduced in the previous step, define the object before the while loop introduced earlier.
 
-. Tidy up. 
+. Tidy up.
+
+
+`Recipe' 2 of 2 for translating recursion into iteration in case there are n multiple recursive calls which are not tail calls and not convertible to tail calls.  It's more tips than a proper recipe.
+
+- Remember that all local variables (which includes parameters) and the return address are on the stack.  So if one needs to know the return address, i.e. one of multiple possible places, it gets nasty difficult.
+
+- Enclose the whole body in a ++stack<...> s; s.push(args); while (!s.empty()) { current_args = s.pop(); ... }++
+
+- Instead of n times recursively calling foo like ++foo(args1); foo(args2);...++ push the args on the stack in reverse order ++s.push(args2); s.push(args1)++.
+
+
 
 
 Recipe for turning a non-tail call recursive function ++foo++ into one having a tail call:
 
-. Identify what work is being done between the recursive call and the return statement.  That delivers a function +g+, so the respective expression could be written as ++return g(foo(...), bar)++.
-. Extend the function to do that g work for us.  Extend it with an new accumulator argument, ++foo(..., acc=default_doing_nothing)++, and replace all return statements ++return x;++ with ++return g(x, acc);++.
+. Identify what work is being done between the recursive call and the return statement.  That delivers a function +g(x,y)+, so the respective expression could be written as ++return g(foo(...), bar)++.
+. Extend the function to do that +g+ work for us.  Extend it with an new accumulator argument, ++foo(..., acc=default_doing_nothing)++, and replace all return statements ++return lorem;++ with ++return g(lorem, acc);++.
 . Now you can replace very occurrence of ++return g(foo(...), bar)++ with ++return foo(..., bar)++, since we don't have to do +g+ ourselves any more, we can let +foo+ do +g+ for us.
 
 --------------------------------------------------
@@ -104,12 +109,12 @@ def factorial(n):
 
 // example step 2
 def factorial(n, acc=1):
-     if n < 2: return 1 * acc 
+     if n < 2: return 1 * acc
      return (n * factorial(n - 1)) * acc //==factorial(n-1)*(acc*n)
 
 // example step 3
 def factorial(n, acc=1):
-     if n < 2: return acc * 1 
+     if n < 2: return acc * 1
      return factorial(n - 1, acc*n)
 --------------------------------------------------
 
@@ -126,60 +131,87 @@ Examples:
 
 - Quick sort
 
-See also <<dynamic_programming>>.  If the problem permits it, in contrast to divide an conquer, the same subproblems with the same input occur multiple times and we can take advantage of that by solving such a specific subproblem only once
+See also <<dynamic_programming>>.  If the problem permits it, in contrast to divide an conquer, the same subproblems with the same input occur multiple times and we can take advantage of that by solving such a specific subproblem only once.
+
 
 [[decrease_and_conquer]]
 === Decrease and conquer
-Similar to divide and conquer, only that the problem is `divided', i.e. decreased, to one single smaller sub problem. 
+Similar to divide and conquer, only that the problem is `divided', i.e. decreased, to one single smaller sub problem.  The algorithm stops when the base case is reached.  No combining of subproblems is required.
 
 
 == Sorting
-Properties of sorting algorithms.  See also properties of algorithms in general.  Comparison-based sorting algorithm are asymptotically optimal when they run in +Ο(n lg(n))+ time.
+Properties of sorting algorithms.  See also properties of algorithms in general.  Comparison-based sorting algorithm are asymptotically optimal when they run in +O(n lg(n))+ time.
 
 Stable:: Stable sorting algorithms maintain the relative order of records with equal keys
 Adaptability:: Whether or not the presortedness of the input affects the running time.
-external sorting::
+external sorting:: When the input data does not fit into main memory, and parts of it must reside on secondary storage.
+
+
+=== Overview
+To sort arrays:
+
+* Bubble sort, Insertion Sort and Selection Sort are bad;
+* Shell sort is better but nowhere near the theoretical +O(N log N)+ limit;
+* Quick sort is great when it works, but unreliable (+O(n^2^)+ worst case), not stable;
+* Merge sort is reliably good, stable, but requires +O(N)+ auxiliary space;
+* Heap sort is reliably good, but unstable, and also about a factor of 4 slower than quick sort's best case.
+
+To sort linked lists:
+
+* Copy it to an temporary array, sort that, copy the array back to the linked list.  Main reason: array has much better locality than a linked list where the nodes are scattered within memory.
+* Variant of merge sort
+
 
 === Concrete sorting algorithms
 http://en.wikipedia.org/wiki/Sorting_algorithm
 
-Insertion sort:: Time: +Ο(n^2^)+ worst case & average case, +Ο(n)+ best case.  Auxiliary space: +Ο(1)+.  Adaptive.  Stable.  In-place.  Online.  Insertion sort iterates, consuming one input element each repetition, and growing a sorted output list.  Each iteration, insertion sort removes one element from the input data, finds the location it belongs within the sorted list, and inserts it there.  Often used for small arrays (since time complexity has a small constant factor).
+Insertion sort:: Time: +O(n^2^)+ worst case & average case, +O(n)+ best case.  Auxiliary space: +O(1)+.  Adaptive.  Stable.  In-place.  Online.  The input is logically divided into a sorted part at the left, initially empty, and an unsorted part at the right, initially the complete input.  In each outer iteration, insertion sort removes (see following swap) the leftmost element from the unsorted part.  In an inner iteration it drags the element to the location the elements belongs to within the sorted part by searching to the left and swapping elements on the way.  Often used for small arrays (since time complexity has a small constant factor).
 
-Selection sort:: Time: +Ο(n^2^)+ worst case & average case & best case.  Auxiliary space: +Ο(1)+.  Divide the input logically into a sorted sub list (initially empty) followed by an unsorted sub list (initially the whole input). Search the smallest element in the unsorted sub list, exchange it with the left most element of the unsorted sub list, then increment the pointer dividing the sorted / unsorted sub lists. 
+Selection sort:: Time: +O(n^2^)+ worst case & average case & best case.  Auxiliary space: +O(1)+.  Divide the input logically into a sorted sub list (initially empty) followed by an unsorted sub list (initially the whole input). Search the smallest element in the unsorted sub list, exchange it with the left most element of the unsorted sub list, then increment the pointer dividing the sorted / unsorted sub lists.
 
-Quick sort:: Time: +Ο(n^2^)+ worst case, +Ο(n lg(n))+ average case, +Ο(n lg(n))+ best case.  Auxillary space: +Ο(n)+ worst case.  Hidden factor in time complexity in practice quite small.  The +Ο(n^2^)+ worst case running time might be a problem when input size is large and used in an real-time system or system concerned with security (because malicious user potentially can trigger worst case behaviour).  Variants:  ?? +Ο(n)+ best case time complexity.  ?? : Auxillary space: +Ο(n)+ worst case.
+Quick sort:: Time: +O(n^2^)+ worst case, +O(n lg(n))+ average case, best case: (simple partition: +O(n lg(n))+, 3way partition and equal keys: +O(n)+).  Auxillary space: worst case: (naive: +O(n)+, Sedgewick +O(log n)+).  Not stable in naive implementation.  Hidden factor in time complexity in practice quite small.  The +O(n^2^)+ worst case running time might be a problem when input size is large and used in an real-time system or system concerned with security (because malicious user potentially can trigger worst case behaviour).
 
-(natural) Merge sort:: Time: +Ο(n lg(n))+ worst case & average case & best case.  Space: +Ο(n)+ auxiliary memory.  Stable.  Good locality of reference.  Parallelizes well.  External sorting possible.  1) Divide the sequence into two equal length subsequences 2) sort the two sequences using recursion, recursion stops at a sequence of one element 3) merge the two sequences (see below).  Stable sort.  Discussion: Good for sequentially accessible data.  Highly parallelizable (+Ο(log n)+).  Variant: _natural merge sort_:  Time: +Ο(n )+ best case, the rest remains equal.  Exploits any naturally occurring runs in the input. 
+(natural/external) Merge sort:: Time: +O(n lg(n))+ worst case & average case & best case.  Space: +O(n)+ auxiliary memory.  Stable.  Good locality of reference.  Parallelizes well.  External sorting possible.  1) Divide the sequence into two equal length subsequences 2) sort the two sequences using recursion, recursion stops at a sequence of one element 3) merge the two sequences (see below).  Discussion: Good for sequentially accessible data.  Highly parallelizable (+O(log n)+).  Variant: _natural merge sort_:  Time: +O(n)+ best case, the rest remains equal.  Exploits any naturally occurring runs in the input.  Variant: _external merge sort_: Motivation: input data does not fit into memory.  Divide the input data into N blocks, each block fitting into memory.  Sort each block with any sorting algorithm and write the result to disk.  Then with ``externally merge sorted sequences'' merge the blocks.  Variant _merge sort for linked lists_: *to-do*
 
 Bubble sort::
 
-Heap sort:: Time: +O(n lg(n))+ worst case & average case & best case.  Auxillary Space: +O(1)+.  In-place.  Not stable.  1) build max heap from input array A.  2) Swap A[0] with A[A.size]. --A.size.  max_heapify(A,1).  If A.size==1 exit else goto 2.  Analysis: build max heap is +O(n)+,  max_heapify is +O(lg(n))+.  In practice often somewhat slower that quick sort, however it has a better worst case run time. 
+Heap sort:: Time: +O(n lg(n))+ worst case & average case & best case.  Auxillary Space: +O(1)+.  In-place.  Not stable.  1) build max heap from input array A.  2) Swap A[0] with A[A.size]. --A.size.  max_heapify(A,1).  If A.size==1 exit else goto 2.  Analysis: build max heap is +O(n)+,  max_heapify is +O(lg(n))+.  In practice often somewhat slower that quick sort, however it has a better worst case run time.
 
-Bucket sort:: +O(n)+ average-case.  Stable.  Not comparison-based; it assumes that the elements' values are normal distributed, for simplicity, without loss of generality, assume in [0,1). Make an array of size n, each element being a `bucket', and technically a (smaller) sequence.  The index of the array corresponds to an value range.  Say n is 10, then an index 0 corresponds to [0,0.1), index 1 to [0.1,0.2) etc.  For each element in the input sequence, put it into the bucket associated with its value, e.g. an element with value 0.05 is put in the first bucket, 0.95 in the last bucket.  Then sort the buckets.  The sorted output sequence is the concatenation of the buckets.
+Bucket sort:: Time: +O(n^2^)+ worst case, +O(n+k)+ average-case and best case.  Stable.  Not comparison-based; it assumes that the elements' values are normal distributed, for simplicity, without loss of generality, assume in [0,1). Make an array of size n, each element being a `bucket', and technically a (smaller) sequence.  The index of the array corresponds to an value range.  Say n is 10, then an index 0 corresponds to [0,0.1), index 1 to [0.1,0.2) etc.  For each element in the input sequence, put it into the bucket associated with its value, e.g. an element with value 0.05 is put in the first bucket, 0.95 in the last bucket.  Then sort the buckets.  The sorted output sequence is the concatenation of the buckets.
 
-Counting sort:: +Θ(k+n)+ time complexity, +Θ(k+n)+ or +Θ(k)+ space complexity, depending on whether the _required_ output array (sorting in-place only with the input array is not possible) is taken into account or not.  Not comparison-based; it assumes that each element is an integer in the range +0--k+, where +k=Ο(n)+.  Stable sort.  Algorithm: With an array a of size k, for each input element x, count the elements less than x, which so gives the index / position of x in the sorted output sequence.  Mental image: internally counting sort computes an histogram of the number of times each key occurs.
+Counting sort (aka histogram sort):: +Θ(k+n)+ time complexity, +Θ(k+n)+ or +Θ(k)+ space complexity, depending on whether the _required_ output array (sorting in-place only with the input array is not possible) is taken into account or not.  Not comparison-based; it assumes that each element is an integer in the range +0--k+, where +k=O(n)+.  Stable sort.  Algorithm: With an array a of size k, for each input element x, count the elements less than x, which so gives the index / position of x in the sorted output sequence.  Mental image: internally counting sort computes an histogram of the number of times each key occurs.
 
 Radix sort:: Not comparison-based.  Stable sort.  Given n d-digit numbers, each digit can take up to k possible values.  Time: +Θ(d(n+k))+ (provided the internally used stable sort has +Θ(n+k)+), however the hidden constant factor is in practice quite large relative to other sort algorithms.  First sort after least significant digit, then after second least, ....
 
 Merge sorted sequences:: Time: +Θ(n)+.  Space: +O(n)+. Imagine n cards within m sorted piles of cards face up.  Take the smallest card yous see and put it on the sorted pile.
 
+Externally merge sorted sequences:: Given N sorted sequences on disk which do not fit all together into memory.  Have N+1 buffers in main memory: N input buffers, each being associated with one of sorted sequences on disk, 1 output buffer being associated with the final sorted sequence on disk.  Do normal ``merge sorted sequences'' with those buffers.  If one of the N input buffers is empty, fill it again from the associated sequence on disk.  If the output buffer is full, append its content to the associated file on disk, and thus the output buffer is empty again.
+
+
+More:
+
+- Non comparison sorts with integers: http://en.wikipedia.org/wiki/Integer_sorting
 
 *to-do*:
 - Why is in practice quick sort better than merge sort or heap sort, which both have better worst case running time, but all three have Θ(n lg n) average/expected running-time.
 
 == Medians and order statistics
 
-The ith _order statistic_ of a set of n elements is the ith smallest element.  For example, the _minimum_ of a set of elements is the first order statistic (i D 1), and the _maximum_ is the nth order statistic (i D n).  A _median_, informally, is the “halfway point” of the set.  When n is odd, the median is unique, occurring at i D .n C 1/=2.  When n is even, there are two medians, occurring at i D n=2 and i D n=2C1.  Thus, regardless of the parity of n, medians occur at i D b.n C 1/=2c (the _lower median_) and i D d.n C 1/=2e (the _upper median_).  For simplicity in this text, however, we consistently use the phrase “the median” to refer to the lower median.
+The _ith order statistic_ of a set of n elements is the ith smallest element.  For example, the _minimum_ of a set of elements is the first order statistic (i D 1), and the _maximum_ is the nth order statistic (i D n).  A _median_, informally, is the “halfway point” of the set.  When n is odd, the median is unique, occurring at i D .n C 1/=2.  When n is even, there are two medians, occurring at i D n=2 and i D n=2C1.  Thus, regardless of the parity of n, medians occur at i D b.n C 1/=2c (the _lower median_) and i D d.n C 1/=2e (the _upper median_).  For simplicity in this text, however, we consistently use the phrase “the median” to refer to the lower median.
 
 _Selection problem_: Given a set _A_ of _n_ (distinct) numbers and an integer _i_ with __i ≤ i ≤ n__, find the element _x_ ∊ A that is larger than exactly i-1 other elements of A.
 
+=== Trivial algorithm
 Finding the minimum and maximum element can be trivially solved in +O(n)+ time and +O(1)+ auxillary space by iteratively searching through the array for the smallest or largest element respectively.
 
-=== Quickselect
+If the input is sorted first, then we can just access the i-th element in the sorted collection in +O(1)+ for arrays or +O(n)+ for lists respectively.  Certain input can be sorted in +O(n)+ time worst case; for that input also the selection problem can be solved in +O(n)+.
+
+
+=== Quick select
 Time:: +O(n)+ average/best case.  worst case depends on pivot selection method: random: +O(n^2^)+ (very unlikely for unsorted input),  median of medians: +O(n)+ (high constant factor)
 Auxillary space:: +O(1)+.
 
-A <<decrease_and_conquer>> algorithm: In each recursion step, partition the input (of the recursion step). That delivers the position / index of the pivot.  Then recurse into the left/right sub set depending on whether i is smaller/larger than the pivot's index.  The base case is either if i is equal the pivot after partitioning, or when the input size is 1.  *to-do* why not continue with trivial way of finding the minimum/maximum when i=0 or input.size-1?, which is +O(n)+ also in the worst case instead quickselect's +O(n^2^)+.
+A <<decrease_and_conquer>> algorithm: In each recursion step, partition the input (of the recursion step). That delivers the position / index of the pivot.  Then recurse into the left/right sub set depending on whether i is smaller/larger than the pivot's index.  The base case is either if i is equal the pivot after partitioning, or when the input size is 1.  *to-do* why not continue with trivial way of finding the minimum/maximum when i=0 or input.size-1?, which is +O(n)+ also in the worst case instead quick select's +O(n^2^)+.
 
 As in quicksort, partitioning means choosing a pivot, then reordering the elements such that all elements smaller/larger than the pivot are before/after the pivot.  Probably by iteratively using swap with the pivot as one argument.
 
@@ -191,15 +223,15 @@ The book ``Introduction to algorithms'' calls quickselect ``randomized-select'' 
 
 
 == String searching
-Problem: earch a given pattern in a given text.  Let _Σ_ be an alphabet (finite set), _T_ a text of length _n_, _p_ a pattern of length _m_.  Both the pattern and searched text are vectors of elements of Σ.
+Problem: search a given pattern in a given text.  Let _Σ_ be an alphabet (finite set), _T_ a text of length _n_, _p_ a pattern of length _m_.  Both the pattern and searched text are vectors of elements of Σ.
 
-_naive string search_: iteratively check at each location in the searched-text.  Time: +O((n-m+1)m)+ worst case, +O(n)+ average case (note that m<=n). 
+_naive string search_: iteratively check at each location in the searched-text.  Time: +O((n-m+1)m)+ worst case, +O(n)+ average case (note that m<=n).
 
 _FSA_ / _DFA_: *to-do*
 
 
-=== Rabin-Karp 
-Time: +Θ(m)+ preprocessing, +Θ((n-m+1)m)+ worst case running time,  +O(n+m)+ expected running time.  *to-do*: I don't see why the naive approach should have a worse expected running time, or a worse constant factor if equal
+=== Rabin-Karp
+Time: +Θ(m)+ pre-processing, +Θ((n-m+1)m)+ worst case running time,  +O(n+m)+ expected running time.  *to-do*: I don't see why the naive approach should have a worse expected running time, or a worse constant factor if equal
 
 Compute a hash of the pattern.  Iteratively move a window over the search text until the left edge of the window hits the end of the search text.  The window has the same length as the pattern.  In each iteration compute a rolling hash of the window.  If the window-hash matches the pattern-hash, do a regular string comparison between the window and the pattern, and if they still match, the pattern is found.
 
@@ -244,7 +276,8 @@ int rollinghash(int hash, char ch_out, char ch_in) {
 3. Verify that we can maintain AI for the basic operations on DS.
 4. Develop new operations.
 
-Let +f+ be an attribute that augments a red-black tree +T+, and suppose that the value +x.f+ for each node +x+ only depends on only the information in the nodes +x+, +x.left+ and +x.right+. Then we can maintain +f+ in all nodes of +T+ during insertion and deletion without affecting the +Ο(lg n)+ performance of these operations.
+Let +f+ be an attribute that augments a red-black tree +T+, and suppose that the value +x.f+ for each node +x+ only depends on only the information in the nodes +x+, +x.left+ and +x.right+. Then we can maintain +f+ in all nodes of +T+ during insertion and deletion without affecting the +O(lg n)+ performance of these operations.
+
 
 == Advanced Design and Analysis Techniques
 
@@ -264,7 +297,7 @@ Two equivalent ways to implement a dynamic programming approach:
 
 - _to-down approach_: This is the direct fall-out of the recursive formulation of any problem.  foo(...) calls itself recursively.
 
-- _bottom-up approach_: Iteratively solve the subproblems in increasing order of `size' (e.g. when there is only one scalar argument, order after that) (e.g. table[3]=foo(3),table[5]=foo(5),foo(8) etc.), each time memoizating the solution, so no problem has to be solved twice, in an associative array (O(1) access time), until arriving at the requested size.  
+- _bottom-up approach_: Iteratively solve the subproblems in increasing order of `size' (e.g. when there is only one scalar argument, order after that) (e.g. table[3]=foo(3),table[5]=foo(5),foo(8) etc.), each time memoizating the solution, so no problem has to be solved twice, in an associative array (O(1) access time), until arriving at the requested size.
 
 Recipe for dynamic programming:
 
@@ -274,30 +307,128 @@ formula to compute +cut_rod(n)+ in a recursive way and/or then program it.
 3. Compute the value of an optimal solution.  E.g. execute +cut_rod(n)+.
 4. Construct an optimal solution from computed information.  E.g. so far +cut_rod(n)+ only prints the maximal revenue, but not yet the lengths of the pieces. Augment +cut_rod(n)+ such that this missing information is provided.
 
-Memoization:: The solution to a sub-problem is memoized in a table.  Instead of solving/computing the sub-problem again just the value in the table is looked-up.   
+Memoization:: The solution to a sub-problem is memoized in a table.  Instead of solving/computing the sub-problem again just the value in the table is looked-up.
 
 **to-do:** List examples of problems which can be solved using dynamic programming, e.g. from the problems sections.
 
-== Graph Algorithms
+== Graph (incl. tree) Algorithms
 
 See also <<graph>>
 
-=== Breadth-first search
-Time complexity +Ο(V + E)+. Each vertex gets a `color' attribute attached witch is one of {unvisited (aka undiscovered, white), tentative (aka gray), visited (aka black)} (the term discovered may be used for the union {tentative (aka white), visited (aka gray)}). The basic pattern is:
+=== Breadth-first traversal / search
+Time complexity +O(V + E)+. Each vertex gets a `color' attribute attached witch is one of {undiscovered, discovered}.  It is helpful to understand the workings of the algorithm when the discovered color is divided into two further colors, resulting in these three colors {unvisited (aka undiscovered, white), tentative (aka gray), visited (black)}.
 
-1. For each vertex set color=unvisited, distance=, parent=NIL.  Create an empty Queue Q and enqueue the source vertex s.
-2. u=Q.dequeue(). Quit if u is NIL, i.e. Q was empty.
-3. For each vertex v adjacent to u:
-  a. If v.color is not unvisited, continue with next iteration
-  b. v.color = tentative, v.distance = u.distance+1, v.parent=u
-  c. Q.enqueue(v)
-4. u.color = visited, goto 2.
+BFS(graph: source:vertex):
 
-When getting _breadth-first tree_ is not wanted, leave away setting the parent attribute.  When only finding the distance to a given target vertex t is of interest, then abort after 3.b if v==t, and don't care about the parent attribute.
+----------------------------------------------------------------------
+1. [If only existence of path src->dest is of interest: if (source==dest) return true]
+2. For each vertex v: v.color=undiscovered (unvisited) [, v.distance=infinite, v.parent=NIL.]
+3. source.color=discovered (tentative) [, source.distance=0]
+   Create an empty Queue Q
+   Q.enqueue(source)
+4. u=Q.dequeue(). Quit if u is NIL, i.e. Q was empty.
+5. For each vertex v adjacent to u:
+  *  If v.color is undiscovered (unvisited):
+    a. color = discovered (tentative) [, v.distance = u.distance+1, v.parent=u]
+    b. Q.enqueue(v)
+6. (u.color = visited)[not needed in the (un)discovered variant], goto 3.
+----------------------------------------------------------------------
+
+When getting _breadth-first tree_ is not wanted, leave away setting the parent attribute.  When only finding the distance to a given target vertex t is of interest, then abort after 4.b if v==t, and don't care about the parent attribute.
+
+==== Tree level order traversal: Iterative approach
+=== Depth-first traversal / search
+
+Time complexity +Θ(V+E)+, auxillary space complexity +O(V)+.
+
+==== Recursive
+
+In contrast to BSF, which is mostly implemented for a single source vertex, DFS is mostly implemented for all source -- however both BSF and DFS can also be implemented for the other case.
+
+DFS_all_source(Graph):
+
+1. For each vertex, set color=undiscovered (unvisited), parent=NIL
+2. For each vertex v: DFS_inner(graph, v)
+
+DFS_single_source(Graph,source:vertex):
+
+1. For each vertex, set color=undiscovered (unvisited), parent=NIL
+2. DFS_inner(graph, source)
+
+DFS_inner(graph, u:vertex):
+
+1. u.color=discovered (tentative)
+2. for each vertex v adjacent to u:
+  * if v.color is undiscovered (unvisited):
+    a. [v.parent = u]
+    b. DFS_inner(graph, v)
+3. (u.color = visited)[not needed in the (un)discovered variant]
+4. [for toposort: push to front of linked list]
 
 
-=== Depth-first search
-*to-do*:
+==== Iterative
+
+1. create empty stack S
+2. S.push(source)
+3. while ((u = S.pop()) != NIL) (i.e. stack not empty)
+  * if u.color is undiscovered
+    a. u.color = discovered
+    b. for each vertex v adjacent to u:
+      ** v.parent = u
+      ** S.push(v)
+
+
+==== Tree (pre-/in-/post-) order traversal: Recursive approach
+
+Trivial
+
+==== Tree (pre-/in-/post-) order traversal: Iterative approach
+
+Is a DFS, but since a tree has no cycles, the color attribute is not needed.
+
+--------------------------------------------------
+void traverse(Node* n) {
+  MyStack<Node*> parents; // pop returns top element and removes it
+  Node* prev = NULL; // prev is always non-NULL except at the beginning
+  parents.push(prev);
+  for ( Node* next = NULL; n ; prev = n, n = next) {
+    // came from top
+    if ( prev==parents.top() ) {
+      preorder_visit(n);
+      if (n->left) { // go down left
+        parents.push(n);
+        next = n->left;
+      else if (n->right) { // skip left, go down right
+        inorder_visit(n);
+        parents.push(n);
+        next = n->left;
+      } else { // skip left, skip right, go up
+        inorder_visit(n);
+        postorder_visit(n);
+        next = parents.pop();
+      }
+    }
+
+    // came from left
+    else if (prev == n->left) {
+      inorder_visit(n);
+      if (n->right) { // go right
+        next = n->right;
+      } else { // skip right, go up
+        postorder_visit(n);
+        next = parents.pop();
+      }
+    }
+
+    // came from right
+    else {
+      postorder_visit(n);
+      next = parents.pop(); // go up
+    }
+  }
+}
+--------------------------------------------------
+
 
 === (Greedy) best-first search
 *to-do*:
@@ -310,63 +441,63 @@ Properties:
 - complete (will always find a path if one exists)
 - optimal (*to-do*: i think this explains optimal wrongly: finds the shortest path), but only if the provided heuristic function is admissible.  However see <<bounded_relaxation>> later in the A* sub chapter.
 - *to-do:* I don't trust the time complexity, space complexity noted in Wikipedia,  I guess they forget to account for the costs of the min priority queue and of h.  If h is const, then there two options: call it once for every vertex at the beginning and store the result, or call it every time when needed.  Depending on the problem one or the other will be more optimal.
-- *to-do:* Does it work for the case when the single-source shortest path problem is tried to be solved? 
+- *to-do:* Does it work for the case when the single-source shortest path problem is tried to be solved?
 - Is an best-first search, but not greedy
 
 About the heuristic function +estimated_spw_to_dest(v:vertex)+ (aka h):
 
-- Responsibility: Returns an estimated shortest path weight from the given vertex v to the implicit destination vertex. 
+- Responsibility: Returns an estimated shortest path weight from the given vertex v to the implicit destination vertex.
 - Should be an admissible (it must not overestimate) heuristic.  If it fails to be admissible, A* is no longer optimal.  However see <<bounded_relaxation>> later in the A* sub chapter.
 - Should be monotone (aka consistent.  For every edge (x,y): h(x) ≤ edge_weight(x,y)+h(y)), A* can be implemented more efficiently by not making a node the current more then once.  Running such an A* algorithm on graph G is the same as running Dijkstra's algorithm on an alternate graph G' where edge_weight'(x,y) = edge_weight(x,y) + (h(y)-h(x)).
 - *to-do*: must be constant (during the run-time of the algorithm)?
 - Examples how to implement h: euclidean distance.
 
-Each vertex gets attached these additional attributes: 
+Each vertex gets attached these additional attributes:
 
-- +spt_parent+ (aka π): shortest path tree parent.  
-- +spwfs+ (aka d or distance (however that is misleading since distance and path length are not the same thing)): shortest path weight from source (to this node)
+- +spt_parent+ (aka π): shortest path tree parent.
+- +spwfs+ (aka d or distance (however that is misleading since distance and path length are not the same thing)): shortest path weight from source to this node.
 
-+spt_parent+ and +spwfs+ contain the return value of the algorithm.  They could also be stored externally, e.g. in an associative array with the vertex as key (if vertexes have IDs in the range of |V| also an array can be used).  From the beginning of the algorithm up to the point where the vertex is +extract_min+-ed from +unvisited+ they contain intermediate values.  In case of +spwfs+ it's often called (upper bound) estimate; it will only decrease, never increase during the algorithm (it is never smaller than the true value).
++spt_parent+ and +spwfs+ contain the return value of the algorithm.  They could also be stored externally, e.g. in an associative array with the vertex as key (if vertexes have IDs in the range of |V| also an array can be used).  From the beginning of the algorithm up to the point where the vertex is +extract_min+-ed from +unvisited+ they contain intermediate values.  In case of +spwfs+ it's often called (upper bound) estimate; it will only decrease, never increase during the algorithm, it is thus never smaller than the true value.
 
-++function vertex::k() = spwfs + spw_to_dest_estimate(this);++:  Returns the estimated shortest path weight from the implicit source vertex to the implicit destination vertex via vertex v.  k() is used as the key for the min priority queue.
+++function vertex::k() = spwfs + estimated_spw_to_dest(this);++:  Returns the estimated shortest path weight from the implicit source vertex to the implicit destination vertex via vertex v.  k() is used as the key for the min priority queue.
 
 The following is the implementation for the case where h is monotonic:
 --------------------------------------------------------------------------------
 function AStarMonotonicH(graph, source : vertex, dest:vertex,
-        spw_to_dest_estimate : function(:vertex)->double )
+        estimated_spw_to_dest : function(:vertex)->double )
     if dest==nil: warning "AStar works but is not intended for the "
-                          "single-source shortest path problem" 
-    Base(source, dest, spw_to_dest_estimate)
+                          "single-source shortest path problem"
+    Base(source, dest, estimated_spw_to_dest)
 
 // dest!=NIL solves the single-pair shortest path problem.  dest.spwfs
 // contains the length and via .spt_parent the path can be
 // reconstructed. spt_parent==NIL means there is no path.
 // dest=NIL solves the single-source shortest path problem.  The solution is
 // in the .spwfs & .spt_parent of each vertex.
-function Base(graph, source : vertex, dest:vertex,
-        spw_to_dest_estimate : function(:vertex)->double )
-    create min_priority_queue unvisited // keyed by vertex::k() <1>
+function Base(graph, source:&vertex, dest:&vertex,
+        estimated_spw_to_dest : function(:vertex)->double )
+    create min_priority_queue unvisited_Q // keyed by vertex::k() <1>
     for each v in graph.vertexes
         v.spt_parent = NIL
         v.spwfs = (if v == source then 0 else infinity)
-        unvisited.insert(v)
+        unvisited_Q.insert(v)
 
-    while (u := unvisited.extract_min()) not NIL <2>
+    while (u := unvisited_Q.extract_min()) not NIL <2>
         if (u == dest) return
         for each v,weight_u_to_v in u.neighbors //vertex,weight pairs
-            relax(u, v, weight_u_to_v, unvisited) <3>
+            relax(u, v, weight_u_to_v, unvisited_Q) <3>
 
-function relax(u:vertex, v:vertex, weight_u_to_v, unvisited)
-    alternate_spwfs_for_v = u.spwfs + weight_u_to_v     
+function relax(u:&vertex, v:&vertex, weight_u_to_v:double, unvisited_Q:&min_priority_queue)
+    alternate_spwfs_for_v = u.spwfs + weight_u_to_v
     if alternate_spwfs_for_v < v.spwfs
-        unvisited.decreaseKey(v, alternate_spwfs_for_v)
+        unvisited_Q.decreaseKey(v, alternate_spwfs_for_v)
         v.spt_parent = u
 --------------------------------------------------------------------------------
 <1> Optionally adapt the +min_priority_queue+ implementation slightly: If +extract_min+ returns NIL if all remaining keys are infinite, we can sooner terminate.  Also the implementation might take advantage of the knowledge that many keys are infinite, especially at the beginning.
-<2> Extracting vertex +u+ from +unvisited+ implicitely ads it to the shortest path tree (spt).  +u.spwfs+ and +u.spt_parent+ have now their final value.
-<3> Note that +v+ could already be part of shortest path tree and thus could be skipped.  However it's not worth explicitly checking that (in the presented implementation there would also not be a trivial way to do so), since the if statement within +relax+ implicitely ensures that not much is made with +v+. 
+<2> Extracting vertex +u+ from +unvisited_Q+ means that  +u.spwfs+ and +u.spt_parent+ are no longer temporary approximations but now have their final value.  Intellectually that means that now the node is added to the spt, although technically the values have been already modified at some earlier time.
+<3> Note that +v+ could already be part of shortest path tree and thus could be skipped.  However it's not worth explicitly checking that (in the presented implementation there would also not be a trivial way to do so), since the if statement within +relax+ implicitely ensures that not much is made with +v+.
 
-Relation to other naming schemes -- note that in the left column `unvisited' means ``it was never the node u (aka the current node)'', whereas in the right column `unvisited' means ``it has never been `inspected' in any way (was never either u or v)'': 
+Relation to other naming schemes -- note that in the left column `unvisited' means ``it was never the node u (aka the current node)'', whereas in the right column `unvisited' means ``it has never been `inspected' in any way (was never either u or v)'':
 
 - unvisited (aka Q) && spwfs==infinity ⇔ white ⇔ unvisited set/list
 - unvisited (aka Q) && spwfs<infinity ⇔ gray ⇔ open/tentative/fringe set/list
@@ -374,13 +505,13 @@ Relation to other naming schemes -- note that in the left column `unvisited' mea
 
 
 [[bounded_relaxation]]
-_Bounded relaxation_: While the admissibility criterion guarantees an optimal solution path, it also means that A* must examine all equally meritorious paths to find the optimal path.  It is possible to speed up the search at the expense of optimality by relaxing the admissibility criterion.
+_Bounded relaxation_: While the admissibility criterion guarantees an optimal solution path, it also means that A* must examine all equally meritorious paths to find the optimal path.  It is possible to speed up the search at the expense of optimally by relaxing the admissibility criterion.
 
 
 === Dijkstra's algorithm
 Solves the single-source shortest path problem for a weighted, directed graph with non-negative edge weights, able to produce a shortest path tree.  Is a special case of the A* in that that A*'s h function is constant 0, but is a generalization of A* in that that it not only can solve the single-pair shortest path problem but also the single-source shortest path problem.
 
-Time +Ο(E+V*lg(V))+ if a Fibonacci heap is used to implement the min priority queue.  Using a binary heap it's +Ο((E+V)*lg(V))+, with an array it's  +Ο(E+V^2^)+.  Auxillary space: +Ο(V)+ -- however, the same space amount is also used for an answer which includes all shortest path weights and the shortest path tree.  If the answer must only include the weight of one target node the time and auxiliary space complexity remains the same.
+Time +O(E+V*lg(V))+ if a Fibonacci heap is used to implement the min priority queue.  Using a binary heap it's +O((E+V)*lg(V))+, with an array it's  +O(E+V^2^)+.  Auxillary space: +O(V)+ -- however, the same space amount is also used for an answer which includes all shortest path weights and the shortest path tree.  If the answer must only include the weight of one target node the time and auxiliary space complexity remains the same.
 
 ----------------------------------------------------------------------
 function Dijkstra(graph, source:vertex)
@@ -390,7 +521,7 @@ function Dijkstra(graph, source:vertex, dest:vertex)
     return Base(graph, source, dest, lambda(v:vertex){0})
 ----------------------------------------------------------------------
 
-*to-do*: bidirectinal Dijekstra, bellmand-ford
+*to-do*: bidirectional Dijkstra, Bellman-Ford
 
 
 === Floyd–Warshall algorithm
@@ -398,18 +529,21 @@ function Dijkstra(graph, source:vertex, dest:vertex)
 
 
 === Topological sort
-*to-do*:
+A _topological sort_ (aka _topsort_, _toposort_, _topological ordering_) of a directed acyclic graph (DAG) is a linear ordering of its vertices such that for every directed edge (u,v) from vertex u to vertex v, u comes before v in the ordering.  Toposort is possible only for DAGs.
+
+Algorithm: Augment depth-first-search-all-source: when an vertex v is finished, insert it onto the front of the linked list.  Time complexity +Θ(V+E)+.
+
 
 === Eulerian trail / Eulerian cycle
-An Euler tour in an undirected graph is a walk that traverses each edge  exactly once.  If such as walk exists, the graph is called _traversable_ or _semi-eulerian_.  An Eulerian cycle (aka Eulerian tour) in an undirected graph is a cycle that uses each edge exactly once.  If such a cycle exists, the graph is called Eulerian or unicursal.
+An Euler tour in an undirected graph is a walk that traverses each edge exactly once.  If such as walk exists, the graph is called _traversable_ or _semi-eulerian_.  An Eulerian cycle (aka Eulerian tour) in an undirected graph is a cycle that uses each edge exactly once.  If such a cycle exists, the graph is called Eulerian or unicursal.
 
-Hierholzer's algorithm solves the Eulerian cycle problem in linear time: +Ο(E)+.
+Hierholzer's algorithm solves the Eulerian cycle problem in linear time: +O(E)+.
 
-Trivia: Was first discussed by Leonhard Euler while solving the famous _Seven Bridges of Königsberg_ problem in 1736. 
+Trivia: Was first discussed by Leonhard Euler while solving the famous _Seven Bridges of Königsberg_ problem in 1736.
 
 
 === Hamiltonian path / cycle
-A Hamiltonian path is a path in an undirected or directed graph that visits each vertex exactly once.  A Hamiltonian cycle (or Hamiltonian circuit) is a Hamiltonian path that is a cycle. 
+A Hamiltonian path is a path in an undirected or directed graph that visits each vertex exactly once.  A Hamiltonian cycle (or Hamiltonian circuit) is a Hamiltonian path that is a cycle.  A Hamiltonian cycle is a special case of the traveling salesman problem: adjacent cities have distance one, the others distance two, and verifying that the total distance traveled is equal to n.
 
 Determining whether such a path or cycle exists is NP-complete.
 
@@ -422,7 +556,7 @@ Task: Evaluate a polynomial P(x)=a~0~ + a~1~x + ... + a~n~x^n^ at x=x~0~.  Solut
 
 --------------------------------------------------
 double polynomial(double x, const vector<double>& coefficients) {
-    double acc = 0;   
+    double acc = 0;
     for (int i=coefficients.size()-1; i>=0; --i) {
         acc = coefficients[i] + x * acc;
     }
@@ -458,7 +592,7 @@ consume:
 ----------------------------------------------------------------------
 
 *to-do*:
-- Solution with monitores
+- Solution with monitors
 - Question: why isn't it in the above solution good enough to only guard the one critical section with a single binary semaphore?
 
 
@@ -468,7 +602,7 @@ consume:
 
 [[ADT]]
 == Abstract data types (ADT)
-An abstract data type is defined only by the operations that may be performed on it and by mathematical pre-conditions and constraints on the effects (and possibly cost) of those operations.
+An abstract data type is defined only by the operations that may be performed on it and by mathematical pre-conditions and constraints on the effects (and possibly cost) of those operations.  In OO lingo, it is an interface.  See also <<data structures>>,  which in OO are (non-abstract) classes.
 
 
 === List (aka sequence)
@@ -480,19 +614,19 @@ Implementations: linked list, array
 === Associative array (aka map, symbol table, dictionary)
 Collection of (key, value) pairs, such that each possible key appears at most once in the collection.  See also multimap.
 
-Operations: insert (aka add) pair, delete (aka remove) pair, lookup value associated to a given key, modify (aka reassign) the value of an already existing pair.  Optionally also iterate over all pairs.
+Operations: insert (aka add) pair, delete (aka remove) pair, look-up value associated to a given key, modify (aka reassign) the value of an already existing pair.  Optionally also iterate over all pairs.
 
 Implementations: association list, hash table, binary search tree, radix trees, tries, Judy arrays, ....
 
 
-=== Multimap (aka multihash) 
+=== Multimap (aka multihash)
 Is a generalization of a map (aka associative array) in which more than one value may be associated with a given key.
 
 === Stack
 *to-do*
 
 === Queue
-A First-in-first-out (FIFO) data structure.  The principal operations are _enqueue_ and _dequeue_.  Sometimes also _peek_ (aka _front_) is provided.  Common implementations offer +O(1)+ time and +O(1)+ auxiliary space for these operation and +O(n)+ space for the collection aspect. 
+A First-in-first-out (FIFO) data structure.  The principal operations are _enqueue_ and _dequeue_.  Sometimes also _peek_ (aka _front_) is provided.  Common implementations offer +O(1)+ time and +O(1)+ auxiliary space for these operation and +O(n)+ space for the collection aspect.
 
 Common implementations: circular buffer, doubly linked list, singly linked list with an additional pointer to the last node
 
@@ -501,12 +635,13 @@ Implements the ADT <<collection>>
 
 [[priority_queue]]
 ==== Priority Queue
-Principal operations for max-(min-)priority queue: _insert_, or _extract-max_, _peek_ (or _max_(_min_)), _increase-key_(_decrease-key_).
+A queue which pops the max (min) element (aka key) instead the one according to FIFO.  Principal operations for max-(min-)priority queue: _insert_, or _extract-max_, _peek_ (or _max_(_min_)), _increase-key_(_decrease-key_).
 
-increase: +O(lg(n))+
-extract-max: +O(lg(n))+
+Sorting and priority queues: Id it is possible to perform integer sorting in time T(n) per key, then the same time bound applies to the time per insertion or deletion operation in a priority queue data structure (Thorup 2007.  It's however a complicated reduction).  *to-do*: elaborate more on relation sorting to priority queues
 
-*to-do*: relation sorting <-> priority queue
+Priority queue vs heap: A priority queue is an <<ADT>>, while a heap is a <<data_structure>>.
+
+Common implementations: heap, self-balancing binary tree
 
 
 ==== Double-ended queue (aka Deque)
@@ -532,10 +667,12 @@ Terms (see also those of <<graph>>):
 - _height of tree / node_: Largest distance (see <<graph>>) between root / that node and any leaf.
 - _depth_ of node: Distance from root to that node.
 - _forest_: A set of zero or more disjoint trees.
+- _ancestor_: Whether or not a node is it's own ancestor is not defined across literature. CLRS say yes.
+- _descendant_: Whether or not a node is it's own descendant is not defined across literature. CLRS say yes.
 
 
-Implementations: See those of <<graph>>,  and the methods for storing a <<binary_tree>> 
-                 
+Implementations: See those of <<graph>>,  and the methods for storing a <<binary_tree>>
+
 
 [[graph]]
 === Graph
@@ -545,11 +682,11 @@ See also http://en.wikipedia.org/wiki/Glossary_of_graph_theory
 
 A graph +G=(V,E)+ is given by a set of _vertices_ +V+ (aka _nodes_) and a set of _edges_ +E+, each edge being an pair of elements from +V+. The two vertices of an edge are said to be _adjacent_.  An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++. An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs and are also called _arcs_, _directed edges_ or _arrows_.  _Loop_ is an edge which starts and ends on the same vertex.  _Link_ is an edge with two different ends.  A _simple_ graph is an undirected graph that has no loops and no more than one edge between any two different vertices.  A _path_ (aka walk, however Wikipedia says that path commonly refers to an open walk) in an undirected graph is an ordered sequence of vertices {v~1~,...,v~n~} such that v~i~ is adjacent to v~i+1~.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a path in which all edges are distinct.  A _simple path_ does not have any repeated vertices.  The _path weight_ is the sum of the weights of its constituent edges.  The _shortest path_ from vertex u to v is any path with minimal path weight.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices in a graph is the number of edges in a shortest path.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.  A _vertex cover_ is a set of vertices such that each edge of the graph is incident to at least one vertex of the set.  An _independent set_ (aka _stable set_) is a set of vertices, no two of which are adjacent.
 
-In an undirected graph, two vertices are called _connected_ if there is a path between the two, otherwise they are called _disconnected_. A graph is said to be connected if every pair of vertices is connected.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _cut_ (aka _vertex cut_, or _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  A _complete graph_ with n vertices, denoted Kn, has no vertex cuts at all, but by convention κ(Kn) = n − 1.  The _connectivity_ (or _vertex connectivity_) κ(G) (where G is not a complete graph) is the size of a minimal vertex cut.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater.
+In an undirected graph, two vertices are called _connected_ if there is a path between the two, otherwise they are called _disconnected_. A graph is said to be connected if every pair of vertices is connected.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.  If each strongly connected component is contracted to a single vertex, the resulting graph is a directed acyclic graph, the _condensation_ of G.  A _cut_ (aka _vertex cut_, or _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  A _complete graph_ with n vertices, denoted Kn, has no vertex cuts at all, but by convention κ(Kn) = n − 1.  The _connectivity_ (or _vertex connectivity_) κ(G) (where G is not a complete graph) is the size of a minimal vertex cut.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater.
 
 A _flow network_ (aka _transportation network_) is a directed graph where each edge has a _capacity_ and a _flow_ which can no exceed the capacity.  The amount of flow into a node must equal the amount of flow out of it, unless the node is a _source_ or a _sink_. _maximum flow problems_ involve finding a feasible flow through a single-source, single-sink flow network that is maximum.  It can be seen as a special case of the more complex problems, e.g. the circulation problem.   The _max-flow min-cut theorem_ states that the maximum flow is equal to the minimum capacity over all possible s-t edge cuts.  An s-t edge cut is an edge cut such that one of the resulting component contains the source and the other component contains the sink.  The capacity of an edge-cut is the sum of the capacities on the cut edges.  Solutions of max-flow: _Ford–Fulkerson algorithm_ +O(E*f)+ for the case where capacities are integers, whereas f is the maximum flow.
 
-Common problems: _single-pair shortest path_ problem: from single source to a single destination, _single-source shortest path_ problem: from a single source to all others, _single-destination shortest path_ problem: form all others to a destination, _all-pairs shortest path_ problem: from all to all.  The chapter <<np_complete>> also lists some graph problems.
+Common problems: _single-pair shortest path_ problem: from single source to a single destination, _single-source shortest path_ problem: from a single source to all others, _single-destination shortest path_ problem: form all others to a destination, _all-pairs shortest path_ problem: from all to all.  The chapter <<NP_complete>> also lists some graph problems.
 
 Common implementations:
 
@@ -568,10 +705,13 @@ Collection of other objects.
 Common operations: Create empty container, report number of objects it stores (size), delete all its objects (clear), insert new objects, remove objects, provide access to stored objects.
 
 
-== Misc data structures
+[[data_structure]]
+== Data structures
+A concrete particular way of organizing data in memory.  In OO lingo, its is a (non-abstract) class.  See also <<ADT>>, which is in OO lingo an interface.
+
 
 === Array (aka table)
-Fixed size, +Θ(1)+ time for indexing, with a very low constant factor.  ++Ο(0)++ wasted space.  Due to the fixed size, elements cannot be added / removed. 
+Fixed size, +Θ(1)+ time for indexing, with a very low constant factor.  ++O(0)++ wasted space.  Due to the fixed size, elements cannot be added / removed.
 
 
 === Dynamic array (aka array list, dynamic table)
@@ -608,16 +748,17 @@ A _direct address table_ is an array of size |U|.  A key's value is the index in
 
 
 === Hash tables
-Be n the number of elements stored in the hash table, and k the key length.  Hash tables are often said to have time complexity +O(1)+. To be more precise however it really is +O(k)+, since +O(k)+ is needed to compute the hash.  Often that time can be neglected.
+Be n the number of elements stored in the hash table, and k the key length.  Access time is +O(k)+ best/average case, ++O(k+n)++ worst case.  Part of that time is the time needed to generate the hash, which is +O(k)+.
 
-When two keys hash to the same slot that is called a _collision_.  
+When two keys hash to the same slot that is called a _collision_.  If no collision occurs, that is the best case, and the overall access time is +O(k)+ as noted above.  Depending on the collision resolution algorithm, in the worst case all slots are tried, and overall access time is ++O(k+n)++ as noted above.
 
-Is an implementation of the ADT <<associative_array>>. 
+
+Is an implementation of the ADT <<associative_array>>.
 
 *to-do*: more details
 
 
-=== Association list  
+=== Association list
 Is an implementation of the ADT <<associative_array>>.
 
 *to-do*: more details
@@ -638,7 +779,7 @@ Properties:
 Methods of storing:
 
 - See <<graph>>
-- As an implicit data structure in an array.  Be i the current node's index, 0 the first index, then its parent is at index floor((i-1)/2), its right child at 2i+1 and its left child at 2i+2.  In the case of a complete binary tree, no space is wasted.  See also <<binary_heap>> which commonly uses this scheme. 
+- As an implicit data structure in an array.  Be i the current node's index, 0 the first index, then its parent is at index floor((i-1)/2), its right child at 2i+1 and its left child at 2i+2.  In the case of a complete binary tree, no space is wasted.  See also <<binary_heap>> which commonly uses this scheme.
 
 
 [[binary_search_tree]]
@@ -647,11 +788,11 @@ Is a specialized <<binary_tree>> where 1) each node has a comparable key 2) for 
 
 _binary search tree property:_ If node +y+ is in the left subtree of node +x+, then +y.key<=x.key+, if +y+ is in +x+'s right subtree, then +y.key>=x.key+.
 
-_Search_ key +k+: +Ο(h)+. Recursively or iteratively, for current node +x+, if +k<x.key+ continue with left subtree, else right subtree.
+_Search_ key +k+: +O(h)+. Recursively or iteratively, for current node +x+, if +k<x.key+ continue with left subtree, else right subtree.
 
-_Min_/_Max_: +Ο(h)+. Follow left/right subtree until the leaf is reached.
+_Min_/_Max_: +O(h)+. Follow left/right subtree until the leaf is reached.
 
-_Successor_/_Predecessor_: +Ο(h)+. **To-do**
+_Successor_/_Predecessor_: +O(h)+. **To-do**
 
 Is an implementation of the ADT <<associative_array>>.
 
@@ -662,9 +803,9 @@ For each node, we maintain an extra attribute, it's color, which is either black
 _Properties_: 1) Every node is either red or black 2) the root is black 3) NIL is black 4) if a node is red, then both children are black 5) For each node, all simple paths from the node to descendant leaves contain the same number of black nodes.
 
 
-_Left/right rotation_: +Ο(1)+. preserves the binary-search-tree property. 
+_Left/right rotation_: +O(1)+. preserves the binary-search-tree property.
 
-_Insertion/deletion_: +Ο(lg n)+. Implementation not trivial.
+_Insertion/deletion_: +O(lg n)+. Implementation not trivial.
 
 An _AVL_ tree is height balanced.  For each node, the height of the left and right subtree differ at most 1.  For each node, we maintain an extra attribute, it's height +h+.
 
@@ -680,9 +821,9 @@ An _AVL_ tree is height balanced.  For each node, the height of the left and rig
 [[binary_heap]]
 [[heap]]
 === Heap
-A _heap_ is a specialized tree-based data structure (it is _not_ an ADT) that satisfies the _heap property_: If A is a parent node of B, then the key of node A is ordered with respect to the key of node B with the same ordering applying across the heap.  In a _max heap_ the parent node key is greater than or equal to those of the children, in a _min heap_ it's smaller than or equal.  Thus the element with the largest (max heap) / lowest (min heap) key is always stored at the root.  Note that there is no implied ordering between siblings or cousins.
+A _heap_ is a specialized tree-based data structure (it is _not_ an ADT) that satisfies the _heap property_: If node A is a parent node of B, then the key of node A is ordered with respect to the key of node B with the same ordering applying across the heap.  In a _max heap_ the parent node key is greater than or equal to those of the children, in a _min heap_ it's smaller than or equal.  Thus the element with the largest (max heap) / lowest (min heap) key is always stored at the root.  Note that there is no implied ordering between siblings or cousins.
 
-Time complexities for binary, binomial, fibonacci, pairing, brodal, rank pairing, strict fibonacci:
+Time complexities for binary, binomial, Fibonacci, pairing, Brodal, rank pairing, strict Fibonacci:
 
 - find-min(-max): +Θ(1)+
 - delete-min(-max): +O(lg(n))+
@@ -699,7 +840,7 @@ A _mergeable heap_ is any data structure that supports the following five operat
 
 Applications of heaps:
 
-- The heap data structure is one maximally efficient implementation of the <<priority_queue>> ADT.  
+- The heap data structure is one maximally efficient implementation of the <<priority_queue>> ADT.
 - Merge sort
 - Dijkstra's shortest-path algorithm
 - Order statistics
@@ -723,7 +864,7 @@ In a _binary heap_ the tree is a complete <<binary_tree>>. *to-do*: study implem
 *to-do:*
 
 === Trie (aka digital tree, radix tree, prefix tree)
-Let k be the length of the search key.  Let n be the number of elements in the trie.  Time complexity is +Ο(k)+.
+Let k be the length of the search key.  Let n be the number of elements in the trie.  Time complexity is +O(k)+.
 
 A trie can be seen as a DFA (Deterministic finite automaton) without loops.  A trie can be compressed into an DAFSA (deterministic acyclic finite state automaton).  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.
 
@@ -731,7 +872,7 @@ Is an implementation of the ADT <<associative_array>>.
 
 Compared to a hash table:
 
-- Trie has predictable lookup time +Ο(k)+.  A hash table also has +Ο(k+n)+ time complexity worst case:  O(k) is used to generate the key, looking up the key is O(1) average but O(n) worst case.
+- Trie has predictable look-up time +O(k)+.  A hash table has +O(k+n)+ time complexity worst case:  O(k) is used to generate the key, looking up the key is O(1) average but O(n) worst case.
 - A trie does not need a hash function
 - A trie can provide an alphabetic ordering of the entries by key.  I.e. a trie supports ordered traversal.
 - Locality is worse for a key, since it randomly accesses the nodes.
@@ -739,9 +880,9 @@ Compared to a hash table:
 
 
 === DAFSA as data structure
-Represents a finite (since it has no cycles) set of strings.  Single source vertex.  Each edge is labeled by a letter / symbol.  Each vertex has at most one vertex which is labeled with a given letter.  The accepted strings are formed by the letters on paths from the source to any sink / NIL vertex.
+Represents a finite (since it has no cycles) set of strings aka keys.  Single source vertex.  Each edge is labeled by a letter / symbol.  Each vertex has at most one vertex which is labeled with a given letter.  The accepted strings are formed by the letters on paths from the source to any sink / NIL vertex.
 
-Can be seen as an compact form of a trie.  Uses less space than a trie.  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.
+Can be seen as an compact form of a trie.  Uses less space than a trie.  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.  A trie can store attributes for each string aka key, whereas a DAFSA cannot.
 
 Is an implementation of the ADT <<associative_array>>.
 
@@ -755,35 +896,35 @@ Is an implementation of the ADT <<associative_array>>.
 
 Compared to a binary tree:
 
-- Binary tree has +Ο(k * (lg n))+ time complexity for lookup, insertion, deletion.  Mind that comparing a key requires +Ο(k)+; in many times the worst-case occurs, due to long prefixes towards the leaves. 
+- Binary tree has +O(k * (lg n))+ time complexity for look-up, insertion, deletion.  Mind that comparing a key requires +O(k)+; in many times the worst-case occurs, due to long prefixes towards the leaves.
 
 
 == NP-completeness
 
-The class _P_ consists of those problems that are solvable in polynomial time.  Alternatively, P  is the class of problems that are _tractable_ (``efficiently solvable'').  The class _NP_ (non-deterministic polynomial time) consists of those problems that are `verifiable' in polynomial time, i.e. given a solution it is verifiable in polynomial time that the solution is correct.  _NP-hard_ is a class of problems that are, informally, ``at least as hard as the hardest problem in NP''.  A problem is in the class _NPC_ (aka _NP-complete_) if it is in NP and in NP-hard.  
+The class _P_ consists of those problems that are solvable in polynomial time.  Alternatively, P  is the class of problems that are _tractable_ (``efficiently solvable'').  The class _NP_ (non-deterministic polynomial time) consists of those problems that are `verifiable' in polynomial time, i.e. given a solution it is verifiable in polynomial time that the solution is correct.  _NP-hard_ is a class of problems that are, informally, ``at least as hard as the hardest problem in NP''.  A problem is in the class _NPC_ (aka _NP-complete_) if it is in NP and in NP-hard.
 
-- If any NP-complete problem can be solved in polynomial time, then every problem in NP has a polynomial time algorithm. 
+- If any NP-complete problem can be solved in polynomial time, then every problem in NP has a polynomial time algorithm.
 - No polynomial-time algorithm has yet been discovered for an NP-complete problem.
 - If you can establish a problem as NP-complete, you provide good evidence for its intractability.  You'd better spend your time developing an approximation algorithm or solve a tractable special case.
 - Not yet proven that no polynomial-time algorithm can exist for any NP-complete problem.
 
-Examples of NP-complete problems: 
+Examples of NP-complete problems:
 
-- Determining whether a graph contains a simple path with at least a given number of edges 
+- Determining whether a graph contains a simple path with at least a given number of edges
 
-- _Travelling sales problem (TSP)_: Given a list of cities and the distances between each pair of cities, what is the shortest possible route that visits each city exactly once and returns to the origin city.  TSP is a special case of the travelling purchaser problem.
+- _Travelling salesman problem (TSP)_: Given a list of cities and the distances between each pair of cities, what is the shortest possible route that visits each city exactly once and returns to the origin city.  TSP is a special case of the traveling purchaser problem.
 - _Knapsack_: Given a set of items, each with a mass and a value, determine the number of each item to include in a collection so that the total weight is less than or equal to a given limit and the total value is as large as possible.
   * Resource allocation
 - _Hamiltonian path/cycle_: a path/cycle in an undirected or directed graph that visits each vertex exactly once
-- _Boolean satisfiability_ (_SAT_) problem: *to-do*: 
-- _Subset sum problem_: Given a set (or multiset) of integers, is there a non-empty subset whose sum is zero? 
+- _Boolean satisfiability_ (_SAT_) problem: *to-do*:
+- _Subset sum problem_: Given a set (or multiset) of integers, is there a non-empty subset whose sum is zero?
 - _clique problems_
  * Finding the maximum clique (a clique with the largest number of vertices)
  * Finding the maximum weight clique in a weighted graph
  * Listing all maximal cliques (cliques that cannot be enlarged)
-- _minimum vertex cover_ 
+- _minimum vertex cover_
 - _maximum independent set problem_
-- _Graph coloring_: Coloring the vertices/edges of a graph such that no two adjacent vertices/edges share the same color.
+- _Graph coloring_ regarding vertices (edges): Coloring the vertices (edges) of a graph such that no two adjacent vertices (edges) share the same color.
 
 
 == Misc. related computer science
@@ -817,4 +958,8 @@ Examples of NP-complete problems:
 //  LocalWords:  useQueue putItemIntoQueue getItemFromQueue Treap DAFSA Deque
 //  LocalWords:  BST spw spwfs decreaseKey spt dest unicursal eulerian NPC
 //  LocalWords:  Königsberg Hierholzer's subgraph supergraph Horner Horner's
-//  LocalWords:  adaptors acc umulator Quickselect
+//  LocalWords:  adaptors acc umulator Quickselect supremum infimum CLRS DFS
+//  LocalWords:  AStarMonotonicH AStar toposort topsort BSF ith preorder args
+//  LocalWords:  inorder Sedgewick Karp textlen patternlen patternhash str
+//  LocalWords:  texthash issubstring rollinghash len BFS MyStack prev Thorup
+//  LocalWords:  Brodal mergeable
