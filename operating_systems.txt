@@ -1,13 +1,16 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
 == Introduction
 === System calls
 System calls are typically wrapped by an library
 
 . Regular foo library method is called in a regular manner.  Push arguments on stack, then execute procedure call instruction.
 . The library implementation of foo typically puts the system-call number in a place where the OS expects it, such as an register.  Then it executes a TRAP instruction.  That switches from user mode to kernel mode and start execution at a fixed address within the kernel.
-. The kernel code that is executed examines the system call number and then dispatches to the correct system-call handler, usually via an table [system-call number => system-call handler address]. The system call handler runs.  Once it has completed its work, control may be returned to the user-space library procedure with the instruction after the TRAP, or it defers that lets the scheduler schedule another task.  
-. Once the OS returns control to the instruction after the TRAP, everything continues as normal. 
+. The kernel code that is executed examines the system call number and then dispatches to the correct system-call handler, usually via an table [system-call number => system-call handler address]. The system call handler runs.  Once it has completed its work, control may be returned to the user-space library procedure with the instruction after the TRAP, or it defers that lets the scheduler schedule another task.
+. Once the OS returns control to the instruction after the TRAP, everything continues as normal.
 
-The library procedure, possibly written in assembly language, typically puts the system-call number in a place where the OS expects it, such as a register. 
+The library procedure, possibly written in assembly language, typically puts the system-call number in a place where the OS expects it, such as a register.
 
 == Processes and threads
 
@@ -21,11 +24,11 @@ A thread of execution (shortened to just _thread_) is the smallest sequence of p
 
 A _task_ is a unit of execution; in some OS a task is synonymous with a process, in others with a thread.
 
-_Batch processing_ is the execution of a series of programs (_jobs_) on a computer without manual intervention.  
+_Batch processing_ is the execution of a series of programs (_jobs_) on a computer without manual intervention.
 
 
 === Processes
-A _process_ is an instance of an executing program and a way to group related resources such as an address space, file descriptors etc.  It owns resources such as memory, file descriptors (Unix terminology) or handles (Windows terminology), see PCB below. 
+A _process_ is an instance of an executing program and a way to group related resources such as an address space, file descriptors etc.  It owns resources such as memory, file descriptors (Unix terminology) or handles (Windows terminology), see PCB below.
 
 _foreground process_ interacts with user, _background process_ does not.
 
@@ -41,15 +44,15 @@ Depicted differently: _Per-process items_: address space, open files, child proc
 
 
 === Threads
-A thread (aka _lightweight process_) of execution (shortened to _thread_) is the smallest sequence of programmed instructions that can be managed independently by a scheduler.  The _thread control block_ (_TCB_) is a data structure owned by the OS which stores the thread specific information needed to manage it: program counter, stack pointer, state of thread, registers, pointer to PCB.  The threads within a process share some of the process' resources such as a common address space, file descriptors, signals.  
+A _thread of execution_, shortened to _thread_, aka _lightweight process_, is the smallest sequence of programmed instructions that can be managed independently by a scheduler.  The _thread control block_ (_TCB_) is a data structure owned by the OS which stores the thread specific information needed to manage it: program counter, stack pointer, state of thread, registers, pointer to PCB.  The threads within a process share some of the process' resources such as a common address space, file descriptors, signals.
 
 Threads are more lightweight and faster to create (10-100 times on many systems) and destroy compared to a process.  Thread switching is also much more efficient than process switching, see also <<scheduling>>.  Motivation of threads: Thread B can still accomplish work while thread A is blocked, so their parent process overall still gets work done.
 
 Thread primitives: __`thread create'__: obvious.  __`thread exit'__: terminates thread.  __`thread_yield'__: thread voluntarily gives up CPU.  __`thread join'__: calling thread blocks until a given other thread exits.
 
-_user-level threads_: Threads implemented in user space.  The kernel is unaware of them.  Threads are implemented by a library aka the run time.  Thread primitives (create etc.) can be handled there instead by a system call, which is much faster.  Scheduling is hard tough, since the run time only gets a chance to do so when explicitly called in some way by the currently running thread.  Also when one thread blocks, no other thread can continue, which defeats the motivation of having threads.  Historically many system calls are blocking, and one of the motivations of implementing threads in the user space is not having to change system calls, so it makes no sense to change them to non-blocking.  Also, if a thread triggers a page fault, no other thread can continue. 
+_user-level threads_: Threads implemented in user space.  The kernel is unaware of them.  Threads are implemented by a library aka the run time.  Thread primitives (create etc.) can be handled there instead by a system call, which is much faster.  Scheduling is hard tough, since the run time only gets a chance to do so when explicitly called in some way by the currently running thread.  Also when one thread blocks, no other thread can continue, which defeats the motivation of having threads.  Historically many system calls are blocking, and one of the motivations of implementing threads in the user space is not having to change system calls, so it makes no sense to change them to non-blocking.  Also, if a thread triggers a page fault, no other thread can continue.
 
-_kernel-level threads_: Threads implemented in the kernel.  Deducible from the above about user-level threads: Thread primitives are now much more expensive since they are system calls now.  We gain that when a thread that blocks (due to any system call or page fault),  other threads (possibly of another process) can continue.
+_kernel-level threads_ (aka _native threads_): Threads implemented in the kernel.  Deducible from the above about user-level threads: Thread primitives are now much more expensive since they are system calls now.  We gain that when a thread that blocks (due to any system call or page fault),  other threads (possibly of another process) can continue.
 
 
 [[scheduling]]
@@ -59,7 +62,7 @@ Scheduler's concerns:
 - _Throughput_: Total number of processes that complete their execution per time unit.
 - _Latency_ :
  * _Turnaround time_: Total time between submission and *to-do* ??????
- * _Response time_: Time between a thread's request until the first response. 
+ * _Response time_: Time between a thread's request until the first response.
 - _Fairness_: Equal CPU to each thread, that is according to each process' priority and workload
 - _Waiting time_: The time the process remains in the waiting queue.
 - _deadlines_: In an RTOS, ensure that threads can meet deadlines.
@@ -89,11 +92,11 @@ In computing, a _context switch_ is the process of storing and restoring the sta
 There are three potential triggers for a context switch:
 
 - _multitasking_:
- * This context switch can be triggered by the threads making itself unrunnable, such as by waiting for an I/O or synchronization operation to complete. 
+ * This context switch can be triggered by the threads making itself unrunnable, such as by waiting for an I/O or synchronization operation to complete.
  * On a _cooperative_ multitasking system the threads must be explicitly programmed to yield when they do not need the CPU anymore.
  * On a _preemptive_ multitasking system, the scheduler may also switch out processes which are still runnable.  The period of time for which a process is allowed to run in a preemptive multitasking system is generally called the _time slice_, or _quantum_.  The OS gets in control to arrange for a context switch via an interrupt.
 
-- _interrupt handling_:  A programmable interval timer is required which invokes an hardware interrupt (*to-do* <- correct wording?)  
+- _interrupt handling_:  A programmable interval timer is required which invokes an hardware interrupt (*to-do* <- correct wording?)
 
 - _user and kernel mode switching_: When a transition between user mode and kernel mode is required in an operating system, a context switch is not necessary; a mode transition is not by itself a context switch.  However, depending on the operating system, a context switch may also take place at this time.
 
@@ -104,7 +107,7 @@ _Process switching cost_ is far more expensive.  Most cache lines become useless
 
 
 == Interrupts
-Devices notify the interrupt controller.  The interrupt controller puts a number on the address lines and asserts a signal to interrupt the CPU.  The CPU interrupts its current work, saves (see later below) certain information such as the program counter to be able to continue the interrupted work, and then uses the number on the address lines used as an index into a table called the _interrupt vector_ which translates such numbers to an address of an interrupt-service procedure.  Often that interrupt is shared between interrupts and traps.  The interrupt-service routine acknowledges the interrupt by writing a certain value to one of the interrupt controller's I/O ports.  There is not neccessairly a context switch, either before calling the interrupt-service or within the interrupt-service routine.
+Devices notify the interrupt controller.  The interrupt controller puts a number on the address lines and asserts a signal to interrupt the CPU.  The CPU interrupts its current work, saves (see later below) certain information such as the program counter to be able to continue the interrupted work, and then uses the number on the address lines used as an index into a table called the _interrupt vector_ which translates such numbers to an address of an interrupt-service procedure.  Often that interrupt is shared between interrupts and traps.  The interrupt-service routine acknowledges the interrupt by writing a certain value to one of the interrupt controller's I/O ports.  There is not necessarily a context switch, either before calling the interrupt-service or within the interrupt-service routine.
 
 _HW interrupts_ are used by devices to communicate that they require attention from the OS.  The act of initiating a HW interrupt is referred to as an _interrupt request_ (_IRQ_). _SW interrupt_.  A _SW interrupt_ is caused either by an exceptional condition in the CPU itself (e.g. division by zero), or a special instruction.
 
@@ -118,7 +121,7 @@ _HW interrupts_ are used by devices to communicate that they require attention f
 
 [[mutual_exclusion]]
 === Mutual exclusion / Synchronization meaning `not at the same time'
-_race condition_: The outcome is dependent on the timing of processes/threads, e.g. the exact point in time when they are interrupted or when they continue. Race conditions typically occur when an shared resource is not protected by a mutual exclusion primitive. _critical region_ (aka _critical section_) is the fragment of code that deals with a shared resource.  In literature it is not uniformly defined wheter that is one single code fragment or all the code fragments that deal with a given shared resource. _Mutual exclusion_ is some way of making sure only one thread/process is executing a critical region (aka protect the critical region), which is not the same as <<synchronization>>. A good solution needs four conditions:
+_race condition_: The outcome is dependent on the timing of processes/threads, e.g. the exact point in time when they are interrupted or when they continue. Race conditions typically occur when an shared resource is not protected by a mutual exclusion primitive. _critical region_ (aka _critical section_) is the fragment of code that deals with a shared resource.  In literature it is not uniformly defined whether that is one single code fragment or all the code fragments that deal with a given shared resource. _Mutual exclusion_ is some way of making sure only one thread/process is executing a critical region (aka protect the critical region), which is not the same as <<synchronization>>. A good solution needs four conditions:
 
 - No two processes may be simultaneously inside their critical regions.
 - No assumptions may be made about speeds or the number of CPUs.
@@ -149,19 +152,19 @@ Lock disadvantages:
 - They cause blocking.  *to-do*: list counter measures
 - Lock overhead: I.e. overhead to access a resource, even if the chances for collision are very rare
 - Lock contention limits scalability
-- Finding the optimal balance between lock overhead and lock contention is difficult 
+- Finding the optimal balance between lock overhead and lock contention is difficult
 - Difficult to reason about, resulting in programs expensive to maintain and prone to bugs
 - _lock convoy_:  When multiple threads wait for the same lock, and the wait is not free of run-time costs.  That includes the case where the lock is released, and the threads not getting the lock have to pay runt-time costs.  Thus CPU time is burned for no real benefit.  Or from the thread point of view, he uses up the remainder of its scheduling quantum for no real benefit.
 
 
 === Lock implementations
-_spinlock_: *to-do* elaborate more.  say that probably internaly an atomic `test and set' (what is the generic term?) is used.
+_spinlock_: *to-do* elaborate more.  say that probably internally an atomic `test and set' (what is the generic term?) is used.
 
 _atomic `test and set'_ operations: *to-do*: elaborate
 
-_semaphore_:  Is about mutual exclusion.  Quite a general construct.  A semaphore is a kernel object which allows entering n active threads from many others, (*to-do:* among different processes?), to enter the critical region.  The other non selected threads are put to sleep.  No concept of ownership.  (*to-do*: I'm not sure: Anyone can signal, also a thread not currently having acquired access to the critical region).  Metaphorically speaking, a semaphore is a record how many units of an particular resource are available, coupled with operations to safely (without race conditions) modify that record.  _counting semaphores_ (aka _general semaphore_) allow an arbitrary resource count, while _binary semaphores_ are restricted to the values 0 and 1 (or _locked_/_unlocked_, _unavailable_/_available_).  The operations / primitives of counting semaphores are _wait_ (or _P_ (Proberen -- try)) which decrements the semaphore and _signal_ (or _V_ (Verhogen -- raise)) which increments the semaphore and.  Optimally the two have an parameter defining the number of units the semaphore is to be decremented/incremented.  Many OS provide efficient semaphore primitives that unblock a waiting process when the semaphore is signaled / incremented.  To avoid starvation, a semaphore has an associated queue of processes.  There are multiple policies how to choose the process that is dequeued next: 1) FIFO 2) Priority queue 3) others. 
+_semaphore_:  Is about mutual exclusion.  Quite a general construct.  A semaphore is a kernel object which allows entering n active threads from many others, (*to-do:* among different processes?), to enter the critical region.  The other non selected threads are put to sleep.  No concept of ownership.  (*to-do*: I'm not sure: Anyone can signal, also a thread not currently having acquired access to the critical region).  Metaphorically speaking, a semaphore is a record how many units of an particular resource are available, coupled with operations to safely (without race conditions) modify that record.  _counting semaphores_ (aka _general semaphore_) allow an arbitrary resource count, while _binary semaphores_ are restricted to the values 0 and 1 (or _locked_/_unlocked_, _unavailable_/_available_).  The operations / primitives of counting semaphores are _wait_ (or _P_ (Proberen -- try)) which decrements the semaphore and _signal_ (or _V_ (Verhogen -- raise)) which increments the semaphore and.  Optimally the two have an parameter defining the number of units the semaphore is to be decremented/incremented.  Many OS provide efficient semaphore primitives that unblock a waiting process when the semaphore is signaled / incremented.  To avoid starvation, a semaphore has an associated queue of processes.  There are multiple policies how to choose the process that is dequeued next: 1) FIFO 2) Priority queue 3) others.
 
-_Mutex_ (*wrongly* also dubbed _mutex semaphore_):  Is about mutual exclusion.  Is less general than a semaphore, additionally has concept of ownership; the net effect is that mutexes don't have some of the semaphore's problems, see also below.  A mutex is a kernel object used for allowing only one active thread from many others, among different processes, to enter the critical region.  Provides concept of ownership.  The other non selected threads are put to sleep.  Supports thread ownership (the thread that locked it), thread termination notification, recursion (multiple `acquire' calls from same thread) and `priority inversion avoidance' (see also below).  May also provide deletion safety, where the thread (*to-do* process?) holding the mutex cannot be accidentally deleted.  Only the owner can signal.  
+_Mutex_ (*wrongly* also dubbed _mutex semaphore_):  Is about mutual exclusion.  Is less general than a semaphore, additionally has concept of ownership; the net effect is that mutexes don't have some of the semaphore's problems, see also below.  A mutex is a kernel object used for allowing only one active thread from many others, among different processes, to enter the critical region.  Provides concept of ownership.  The other non selected threads are put to sleep.  Supports thread ownership (the thread that locked it), thread termination notification, recursion (multiple `acquire' calls from same thread) and `priority inversion avoidance' (see also below).  May also provide deletion safety, where the thread (*to-do* process?) holding the mutex cannot be accidentally deleted.  Only the owner can signal.
 
 _Monitor_: See below and here (the two sources contradict each other I think) http://en.wikipedia.org/wiki/Monitor_(synchronization)#Synchronization_primitives
 
@@ -178,7 +181,7 @@ Problems of semaphores solved by mutexes:
 
  * _Recursive deadlock_:  A thread tries to lock a semaphore it has already locked.  With a mutex, thanks to the OS knowing the owner,  the owner is allowed to lock multiple times as long as he unlocks the same number of times.  However not all OS provide this feature.
 
- * _Thread-death deadlock_:  A thread holding a semaphore dies or is terminated;  the other threads will starve.  Mutex: _death detection_: If a thread terminates for any reason, and currently owns a mutex, the OS can initiate cleaning up actions.  Various models exist, two dominate: 1) All tasks are readied with an error condition.  They know an error happened, and must assume the critical region is in undefined state.  No thread is the owner.  The mutex is in an undefined state and must be reinitialized.  2) Only one thread is readied, he gets the ownership, he must assume the critical region to be in undefined state and is responsible for ensuring its integrity.  He can afterwards unlock the mutex as normal.  Not all OS provide this feature.  
+ * _Thread-death deadlock_:  A thread holding a semaphore dies or is terminated;  the other threads will starve.  Mutex: _death detection_: If a thread terminates for any reason, and currently owns a mutex, the OS can initiate cleaning up actions.  Various models exist, two dominate: 1) All tasks are readied with an error condition.  They know an error happened, and must assume the critical region is in undefined state.  No thread is the owner.  The mutex is in an undefined state and must be reinitialized.  2) Only one thread is readied, he gets the ownership, he must assume the critical region to be in undefined state and is responsible for ensuring its integrity.  He can afterwards unlock the mutex as normal.  Not all OS provide this feature.
 
 - _Priority inversion_:  See <<priority_inversion>> for the problem statement.  Mutex: since the owner is known, counter measures explained in <<priority_inversion>> can be applied.
 
@@ -208,7 +211,7 @@ Some use `task synchronization' to refer to `coordination of tasks', which would
 signals
 
 === Events / Synchronization meaning `not before an event' / Asynchronous communication
-Make sure a task does X only after event Y occurred. 
+Make sure a task does X only after event Y occurred.
 
 OS Primitives which could be used
 
@@ -238,9 +241,9 @@ Solutions:
 
 Ensure mutual exclusion not by locks but by disabling interrupts / preemption or by non-blocking synchronization algorithm.
 
-The _(Basic) Priority Inheritance Protocol_ enables a low-priority task to inherit a higher-priorities task’s priority if this higher-priority task becomes blocked waiting on a mutex currently owned by the low-priority task.  The low priority task can now run and unlock the mutex – at this point it is returned back to its original priority.
+The _(Basic) Priority Inheritance Protocol_ enables a low-priority task to inherit a higher-priorities task’s priority if this higher-priority task becomes blocked waiting on a mutex currently owned by the low-priority task.  The low priority task can now run and will eventually unlock the mutex, and at that point it is returned back to its original priority.
 
-_Priority Ceiling Protocol_:  Each resource is assigned a priority ceiling, which is equal to the highest priority of any task that might lock the resource.  Temporarily the priority of tasks is raised in certain situations.  
+_Priority Ceiling Protocol_:  Each resource is assigned a priority ceiling, which is equal to the highest priority of any task that might lock the resource.  Temporarily the priority of tasks is raised in certain situations.
 
 
 [[deadlock]]
@@ -255,7 +258,7 @@ _Coffman conditions_: A deadlock can occur if all the four following simultaneou
 
 3. _No preemption_: A resource can be released only voluntarily by the process holding it.
 
-4. _Circular Wait_ (aka _deadly embrace_): Thread T1 owns mutex M1 and is waiting for mutex M2, which is owned by thread T2 which is waiting for mutex M1.  This can e.g. happen when each of two task needs two acquire two mutex (e.g. one for accessing input data and one for accessing output data) to enter the critical region. 
+4. _Circular Wait_ (aka _deadly embrace_): Thread T1 owns mutex M1 and is waiting for mutex M2, which is owned by thread T2 which is waiting for mutex M1.  This can e.g. happen when each of two task needs two acquire two mutex (e.g. one for accessing input data and one for accessing output data) to enter the critical region.
 
 
 ==== Deadlock handling: Ignoring deadlock
@@ -276,7 +279,7 @@ _Deadlock prevention_ works by preventing one of the four Coffman conditions fro
 
 - _remove the mutual exclusion_ condition, i.e. remove having a shared resource which must be guarded by mutual exclusion.  For example:
   * Spooling (probably seldom applicable *to-do*: explore more)
-  * A non-blocking synchronization algorithm.  E.g. _read-copy_update_ (_RCU_).  *to-do*: explore them. 
+  * A non-blocking synchronization algorithm.  E.g. _read-copy_update_ (_RCU_).  *to-do*: explore them.
 
 - _remove the hold and wait_ condition: *to-do*: elaborate -- but anyway, the solutions seems to be in-practical
 
@@ -291,7 +294,7 @@ _Deadlock prevention_ works by preventing one of the four Coffman conditions fro
 [[dijkstra_solution]]
 ===== Dijkstra's solution
 * Assign a partial order to the resources
-* Establish the convention that all resources will be requested in their order.  Order of release does not matter.  That includes that when already owning a resource and wanting to acquire a next, lower order one, that the higher order resource is released first to `start from the beginning' 
+* Establish the convention that all resources will be requested in their order.  Order of release does not matter.  That includes that when already owning a resource and wanting to acquire a next, lower order one, that the higher order resource is released first to `start from the beginning'
 * No two resources unrelated by order will ever be used by a single unit of work at the same time *to-do* I don't properly understand that yet
 
 Disavdantages: Often the list of required resources in not completely known in advance.  E.g. processes that access large number of database records would not run efficiently if they were required to release all higher-numbered records before accessing a new record, making the method impractical for that purpose.
@@ -299,7 +302,7 @@ Disavdantages: Often the list of required resources in not completely known in a
 
 [[arbitrator_solution]]
 ===== Arbitrator solution
-The set of resources RS={R1,R2,...,Rn} is itself regarded as a resource T which is protected by yet another lock (e.g. mutex) LA (the arbitrator).  Multiple acquire operations on the members of a sub-set of RS as a whole is an operation that has race conditions and thus needs mutual exclusion. Disadvantages:  Looking at the dining philosophers problem:  if the philosopher next to an eating philosopher wants to eat, he waits for the `arbitrator' Lock, upon acquiring it he won't be able to acquire both forks, so we will not release the arbitrator until is neighbor stops eating.  Thus other philosophers which quire both their forks can't because they can't acquire the arbitrator.
+The set of resources RS={R1,R2,...,Rn} is itself regarded as a resource T which is protected by yet another lock (e.g. mutex) LA (the arbitrator).  Multiple acquire operations on the members of a sub-set of RS as a whole is an operation that has race conditions and thus needs mutual exclusion. Disadvantages:  Looking at the dining philosophers problem:  if the philosopher next to an eating philosopher wants to eat, he waits for the `arbitrator' lock and after acquiring the arbitrator he needs to wait for both forks to become free, which does not happen until is neighbor stops eating. During this waiting the time the arbitrator is locked, thus also those other philosophers can't eat which two forks would be free.
 
 
 ==== Deadlock handling: Deadlock avoidance
@@ -313,13 +316,13 @@ If the OS is given enough information about the future, the OS will only grant r
 
 
 === Resource starvation
-A process is in starvation if it waits for a resource which keeps getting given to other processes.  That differs from a deadlock were all participating processes wait for one or more resources.
+A thread is in starvation if it waits for a resource which keeps getting given to other threads.  That differs from a deadlock were all participating threads wait for one or more resources.
 
-A possible solution is to use a scheduling algorithm with a priority queue which also uses the aging technique.
+A possible solution is to use a scheduling algorithm with a priority queue which also uses the aging technique.  Older threads get a higher priority.
 
 
 === Livelock
-A _livelock_ is similar to a deadlock, except that the states of the processes involved in the livelock constantly change with regard to one another, none progressing.  Is a special case of resource starvation, where not only one but all processes involved are not progressing.
+A _livelock_ is similar to a deadlock, except that the states of the threads involved in the livelock constantly change with regard to one another, none progressing.  Is a special case of resource starvation, where not only one but all threads involved are not progressing.
 
 A real-world example of livelock occurs when two people meet in a narrow corridor, and each tries to be polite by moving aside to let the other pass, but they end up swaying from side to side without making any progress because they both repeatedly move the same way at the same time.
 
