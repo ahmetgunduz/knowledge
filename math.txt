@@ -1,0 +1,18 @@
+== Combinatorics
+
+__Binomial coefficient (n k)__ is the coefficient of the x^n-k^y^k^ term in the
+polynomial expansion of the binomial power (x+y)^n^.  This can be visualized
+by a _Pascal's triangle_,  where in row n (the root being n=0), the k-th
+element (the first being k=0) equals (n k).
+
+A _combination_ is a way of selecting members from a grouping, such that
+(unlike permutations) the order of selection does not matter.  There are
+C(n,k) = (n k) = n! / ((n-k)!k!) (say ``n choose k'') ways to choose k elements from a set of n
+elements.
+
+The notion of _permutation_ relates to the act of permuting, or rearranging,
+all the members of a set into some ordered sequence.  P(n,k)= C(n,k)*k! =
+n!/(n-k)!.
+
+
+

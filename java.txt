@@ -1,0 +1,702 @@
+
+== Intro
+
+=== Source file's character encoding
+
+Java stores and manipulates characters and strings internally as Unicode
+values (*to-do*: in which character encoding?).  An escape sequences in the
+form ++\u__xxxx__++ (four hex digits) is replaced by the character having the
+given Unicode code point.  Use javac's ++-encoding++ option to define the
+source file's character encoding.  If ++-encoding++ is not specified, the
+platform default converter is used.
+
+
+=== Comments
+
+As in C&plus;&plus;. ++//++ up to the end of the line, ++/*...*/++ for
+multiline comments, not nestable.
+
+==== Javadoc
+
+Comments beginning with ++/**++ are _doc comments_.  The tool ++javadoc++ can
+extract these and create HTML pages.
+
+Tags: ++@see++, ++@author++, ++@version++, ++@param __name__++, ++@return++,
+++@exception __name__++, ++@deprecated++.
+
+
+== Names
+A _name_ is used to refer to an entity declared in a program.  A _simple name_
+is a single identifier.  A _qualified name_ consists of a name, a "." token,
+and an identifier.
+
+Identifiers are case sensitive, of unlimited length.  ++identifier =
+(UnicodeLetter|\$|_) (UnicodeAlphaNumeric|\$|_)*;++
+
+
+== Packages
+Programs are organized as sets of packages.
+
+_CompilationUnit_ is the goal (aka start) symbol for the syntactic grammar of
+Java programs.
+
+----------------------------------------------------------------------
+CompilationUnit = [PackageDecl] ImportDecl* TypeDecl*;
+----------------------------------------------------------------------
+
+
+== Types / Variables / Objects
+
+An _object_ is a _class instance_ or an array.  The _reference values_ (aka
+_references_) are pointers to these objects, and a special null reference,
+which refers to no object.  An object stores its state in _fields_ and exposes
+its behaviour through _methods_.  A type's fields, methods, and nested types
+are collectively called its _members_.
+
+An _instance_ is an object of a particular class.  Created with the +new+
+operator.
+
+A _variable_ is a storage location and has an associated type.  Is one of:
+_instance variable_ (aka _non-static field_), _class variable_ (aka _static
+field_), _local variable_, _parameter_.
+
+There are two kinds (actually three, see null type) of _types_: primitive
+types and reference types:
+
+_Primitive types_: +boolean+ (+true+ or +false+) and numeric types.  _numeric
+types_ are integral types and floating point types.  _Integral types_ are
++char+ (16-bit Unicode character), +byte+ (8-bit), +short+ (16-bit), +int+
+(32-bit), +long+ (64-bit).  _Floating point types_ are +float+ (32-bit IEEE
+754), +double+ (64-bit IEEE 754).  byte, short, int, long are all signed two's
+complement integer.  Instances of primitive types are not objects; however
+there is a wrapper class for each primitive type.
+
+_Reference types_: class types, interface types, type variables, array types.
+
+_null type_: The null type has no name.  It is the type of the expression
++null+.
+
+----------------------------------------------------------------------
+Type = PrimitiveType | ReferenceType;
+ReferenceType = ClassOrInterfaceType | TypeVariable | ArrayType;
+ClassOrInterfaceType = ClassType | InterfaceType;
+ClassType, InterfaceType =
+  (TypeName | ClassOrInterfaceType \. Id) [TypeArgs];
+TypeName = (Id\.{0})+;
+TypeVariable = Id;
+ArrayType = Type \[ \];
+----------------------------------------------------------------------
+
+Strings (+java.lang.String+) in Java are (immutable) objects and are therefore
+of reference type.  Strings are composed of ++char++s.  However they have some
+special help from the compiler: Literal string values are turned into String
+objects by the compiler.  The operators ++&plus;++ and ++&plus;=++ are
+overloaded for String class meaning concatenation.
+
+*to-do*: Exact naming: objects, classes, references, variables.  What is the
+type of the reference itself?  What is the type of an object referenced by a
+reference?  What is the name of the `object' constituting the reference?  What
+is the name of the `object' being referred to by a reference?  What is the
+name of an `object' being an instance of a primitive type?
+
+
+=== Arrays
+An _array_ is a container object that holds a fixed number, establish at
+creation, of values of a single type.  Each item in an array is called an
+_element_, and each element is accessed by its numerical _index_, starting
+at 0.  The size of an array is not part of its type.
+
+Declaring a variable to refer to an array: ++int[] a;++ or ++int a[];++, where
+the former variant is preferred, since brackets are part of the type and
+should thus appear within the type designation.
+
+Creating an array: 1) an expression: ++new _type_[_size_]++, e.g. ++new
+int[10]++. 2) a statement ++_type_[] _id_ = {...,...};++, e.g. ++int[] a =
+{2,3,5,8};++.  I.e. that form can only be used to initialize a new reference
+variable.
+
+An out-of-bounds array index always causes a run-time error.
+
+Determine the current length of an array (at run-time) using it's ++length++ member.
+
+Multidimensional arrays are possible.  They need not to be rectangular,
+e.g. in a two-dimensional array each row can be of different length.
+
+See also the ++System.arraycopy+ method (equivalent to +clone()+ from API
+point of view) or the +java.util.Arrays+ class.
+
+
+=== Variable declaration
+Variables are declared either inside methods or classes.
+
+
+=== Variable initialization
+If there is no explicit initializer, fields are automatically initialized
+to the appropriate flavor of zero.  Local variables are not automatically
+initialized;  the compiler ensures that they are not used before getting
+assigned a value.
+
+
+=== Literals
+_Integer literals_: Prefix can change base from decimal to something else.
++0b+ for binary base (Java SE 7), +0+ (a zero) for octal base, +0x+ for hex
+base.  Suffix can change the type from +int+ to something else: +L+/+l+ for
++long+ (see also those for floating point) -- apparently there are none for
++byte+ or +short+.  In Java SE7 and later, any number of underscore characters
+(_) can appear anywhere between digits in a numerical literal.
+
+_Floating-point literals_: Suffix can change the type from double to something
+else: +F+/+f+ for float, +D+/+d+ for double.
+
+_Character literals_: Enclosed in single quotes.
+
+_String literals_: Enclosing characters within double quotes (++"..."++)
+creates a +String+ object.
+
+Within character and string literals, these _escape sequences_ can be used:
+++\b++ (backspace), ++\t++ (tab), ++\n++ (line feed), ++\f++ (form feed),
+++\r++ (carriage return), ++\"++ (double quote), ++\'++ (single quote)
+and ++\\++ (backslash).
+
+_class literal_: Appending ``++.class++'' to a type name.  That refers to the
+object which represents that type.
+
+_null literal_: The null type has one value, the null reference, represented
+by the null literal +null+.  It is a value, so it is sometimes also duped
+_null expression_.
+
+
+=== Type parameters / Type variables
+
+A _type variable_ is an unqualified identifier used as a type in class,
+interface, method and constructor bodies.  A type variable is declared as a
+_type parameter_ of a generic declaration.
+
+----------------------------------------------------------------------
+TypeParams = \< (TypeParam\,{0})* \>;
+TypeParam = TypeVariable [TypeBound];
+TypeBound = 'extends (
+  TypeVariable |
+  ClassOrInterfaceType (\& IntefaceType)*);
+----------------------------------------------------------------------
+
+Type parameter naming conventions: _E_ -- Element (e.g. in Collections), _K_
+-- Key, _N_ -- Number, _T_ -- Type, _V_ -- Value, S,U,V etc -- 2nd, 3rd, 4th
+types.
+
+
+
+=== Type arguments / Referencing parameterized types
+
+----------------------------------------------------------------------
+TypeArgs = \< ((ReferenceType|Wildcard) \,{0})+ \>;
+NonWildTypeArgs = \< (ReferenceType \,{0})* \>;
+Wildcard = \? ('extends|'super) ReferenceType;
+----------------------------------------------------------------------
+
+
+=== Type Erasure
+*to-do*:
+
+
+== Conversions and Promotions
+
+The +null+ reference can be cast to any reference type.
+
+
+== Statements and Expressions
+
+=== Expressions / Operators
+
+An _expression_ returns a value.
+
+Operators are more or less those of C.  Note: ++>>++ is right shift with sign
+extension (aka arithmetic shift) (i.e. sign is preserved), ++>>>++ is right
+shift with no extension (aka logical shift).  Note that Java has no comma
+operator.
+
+The expression +null+ can be assigned to any reference type.  It has the
+meaning of ``no reference''.
+
+The argument to the unary prefix operator +new+ is a ``constructor call'',
+e.g. ++new MyClass(...)++.  ++new A.B().C()++ is equivalent to ++(new
+A.B()).C()++, i.e. it crates a new object B in the A package, and then, on the
+newly crated object, calls B's member method named C.
+
+The +instanceof+ operator returns +true+ if the type of the object its lhs
+(must be of reference type) references is an instance of its rhs (a class or
+array).  +null+ is not considered an instance of any type.  So in ++String s =
+null; if ( s instanceof Sting) { ... }++ the if's condition evaluates to
+false.
+
+
+=== Statements
+
+A _statement_ forms a complete unit of execution.  A non-exhaustive list of
+types of statements: expression statements, declaration statements, control
+flow statements and blocks.  An _expression statement_ is build by terminating
+any of the following expressions with a semicolon (;): assignment,
+prefix/postfix increment/decrement, method invocation, object creation.  A
+_block_ is a group of zero or more statements between balanced braces.
+
+--------------------------------------------------
+BlockStmt = \{ ... \};
+--------------------------------------------------
+
+
+=== Misc statements
+The empty statement ++;++ does nothing and always completes normally.
+
+---------------------------------------------------------------------------
+StmtExpr = Assignment | PreIncrementExpr | PreDecrementExpr |
+  PostIncrementExpr | PostDecrementExpr | MethodInvocation |
+  ClassInstanceCreationExpression;
+---------------------------------------------------------------------------
+
+
+=== Local variable declaration statements
+
+---------------------------------------------------------------------------
+LocalVariableStmt = LocalVariableDecl\;;
+LocalVariableDecl =
+  VariableModifier* Type (Identifier "[]"* [\= VariableInitializer] \,{0})+;
+VariableModifier = Annotation | 'final;
+VariableInitializer = Expr | ArrayInitialzier;
+---------------------------------------------------------------------------
+
+==== Control Flow Statements
+
+---------------------------------------------------------------------------
+IfStmt = 'if \( Expr \) Stmt ['else Stmt];
+AssertStmt = 'assert Expr [\: Expr];
+Switch =
+  'switch \( Expr \) \{
+  ((('case (ConstExpr|EnumConstName)|'default)\:)+ BlockStmts{?})*
+  \};
+WhileStmt = 'while \( Expr \) Stmt;
+DoStmt = 'do Stmt 'while \( Expr \);
+BasicForStmt =
+ 'for \(
+   (StmtExpr\,{0})* | LocalVariableDecl \;
+   [Expr] \; ## defaults to true
+   (StmtExpr\,{0})*
+  \) Stmt;
+EnhancedForStmt =
+  'for \(
+    VariableModifier* Type Identifier "[]"* \:
+    Expr #*of type Iterable or array*#
+  \) Stmt;
+---------------------------------------------------------------------------
+
+The expressions used as conditions must be of type boolean.
+
++switch+ statement: Works with the byte, short, char, int primitive data types
+and with enumerated types, the String class (as of Java SE 7, using
++String.equals+), and a few special classes that wrap certain primitive types
+(Character, Byte, Short, Integer).  Clauses fall through, so typically the
+last statement is a +break+ statement.
+
++for+ statement: ++for ( _initialization_; _termination_; _increment_ )++.
+The initialization section can declare a new variable, which's scope is that
+of the for statement.  The initialization section and the increment section
+can contain multiple comma separated expressions.  All three sections are
+optional, an omitted termination section defaults to +true+.
+
+Enhanced +for+ statement: ++for ( _var_ : _iterable_or_array_ )++.
+
+The +break [_label_];+ and +continue [_label_];+ statements jump
+unconditionally out of the enclosing loop- or conditional statement labeled
+with `label'.  If the label is omitted it's the enclosing statement.  Loop or
+conditional statements can be labeled by preceding them with ++_label_:++
+
+
+== Exceptions
+
+Exceptions are represented by instances of the class java.lang.Exception and
+its subclasses.  +Exception+ has a method +printStackTrace()+ which is handy
+at times.  By convention, all exception classes have a constructor expecting
+one String argument.  Exception has a method +getMessage()+.
+
+With the throw statement an exception object is thrown; execution stops and is
+transferred to the nearest enclosing catch statement: ++throw
+__exception_object__;++
+
+Catch clauses are evaluated in order, and the first possible match is taken.
+
+The +finally+ clause is always executed, no matter why control leaves the try
+body.  *to-do* what if a catch clause of the same try statement throws?
+
+If a catch clause or the finally clause throw an exception, the search for an
+enclosing try/catch begins outside the offending try statement.
+
+Exceptions are divided into three categories: _checked exceptions_, _errors_
+and _run-time exceptions_ (the last two are _unchecked exceptions_).  A method
+must declare all checked exceptions that can leave it in its throws clause.
+Exceptions that are subclasses of java.lang.RuntimeException or
+java.lang.Error are unchecked.  Errors are exceptional conditions that are
+external to the application, and that the application usually cannot
+anticipate or recover from.
+
+About runt-time costs: the try statement is for free.  Throwing an exception
+and searching a catch clause costs considerably.
+
+Use exceptions for truly exceptional circumstances.  Use return error codes
+for expected conditions, especially when performance is an issue.
+
+
+== Names
+=== Access Control
+If access is permitted, then the accessed entity is said to be _accessible_.
+
+* A package is always accessible.
+
+* A public class or interface may be accessed by any code.  A non-public top
+  level class or interface may be accessed only from within the package in
+  which it is declared.
+
+* A member of a reference type or a constructor of a class type:
+ - If declared +public+ it is accessible.  All members of interfaces are
+   implicitly public.
+ - If declared +protected+, then it is accessible if ... *to-do*
+ - If declared +private+, then access is permitted iff it occurs within the
+   body of the top level class that encloses the declaration.
+ - Otherwise, we say there is _default access_, which is permitted only when
+   the access occurs from within the package in which the type is declared.
+
+== Packages
+
+
+Declaring to which package the types in source file belong to: Leaving away
+the name or the whole package declaration means the compilation unit is part
+of an unnamed package.
+
+----------------------------------------------------------------------
+CompilationUnit = [PackageDeclaration] ImportDeclaration* TypeDeclaration*;
+PackageDeclaration = 'package [FullyQualifiedName] \; ;
+----------------------------------------------------------------------
+
+
+Importing types: So you don't have to name them by their fully qualified name.
+
+----------------------------------------------------------------------
+ImportDeclaration = 'import (
+  FullyQualifiedName | ## single type
+  PackageOrTypeName \. \* | ## all types of package
+  'static TypeName \. Identifier |
+  'static TypeName \. \*
+  ) \; ;
+----------------------------------------------------------------------
+
+
+== Classes
+
+...
+
+----------------------------------------------------------------------
+NormalClassDecl =
+  ClassModifier* 'class Id [TypeParams]
+  ['extends Id#superclass]
+  ('implements Id#interface \,{0})*
+  \{ ClassBodyDecl* \};
+ClassModifier = Annotation | 'public | 'protected | 'private | 'abstract |
+  'static | 'final | 'strictfp;
+ClassBodyDecl = ClassMemberDecl | InstanceInitializer | StaticInitializer |
+  ConstructorDeclaration;
+ClassMemberDecl = FieldDecl | MethodDecl | ClassDecl | InterfaceDecl | \; ;
+InstanceInitializer = Block;
+StaticInitializer = 'static Block;
+----------------------------------------------------------------------
+
+A _top level class_ is a class that is not a nested class.  A _nested class_
+is any class whose declaration occurs within the body of another class or
+interface.
+
+The modifier +static+ ... (*to-do*)
+
+Questions:
+- Can constructors call each other similarly to C&plus;&plus;11?
+
+
+=== Fields
+
+----------------------------------------------------------------------
+FieldDecl =
+  FieldModifier* Type Id"[]"* \= VariableInitializer;
+FieldModifier = Annotation | 'public | 'protected | 'private | 'static |
+  'final | 'transient | 'volatile;
+VariableInitializer = Expr | ArrayInitializer;
+----------------------------------------------------------------------
+
+A +static+ field (aka _class variable_) is incarnated when the class is
+initialized.  A field that is not declared static (aka non-static field) is
+called an _instance variable_.
+
+A +final+ ....  A blank class variable is not definitely assigned by a static
+initializer.  ...
+
+A +transient+ field indicates that it is not part of the persistent state of
+an object.  That means that the field should not be serialized.
+
+A +volatile+ field ensures that all threads see a consistent value.  A +final+
+field cannot not be also +static+.
+
+If a field declarator contains a _variable initializer_, then it has the
+semantics of an assignment.  If it is for a static field, then the initializer
+is evaluated exactly once when the class is initialized.  If it is for an
+non-static field, then the variable initializer is evaluated each time an
+instance of the class is created.  See also <<instance_initializers>>,
+<<static_initializers>> and <<constructors>>.
+
+
+=== Methods
+The _method signature_ is given by the method's name and the parameter types.
+
+----------------------------------------------------------------------
+MethodDecl =
+  MethodModifier* [TypeParams]
+  (Type|'void) Id \( FormalParamList \)
+  ['throws ((TypeName|TypeVariable) \,{0})*];
+  ( Block | \; )#body ;
+
+MethodModifier =
+ Annotation | 'public | 'protected | 'private | 'abstract | 'static | 'final |
+ 'synchronized | 'native | 'strictfp;
+
+FormalParamList =
+  ((Annotation 'final)* Type "..."{lo} Id "[]"* \,{0})*;
+----------------------------------------------------------------------
+
+An _abstract method_ does not provide an implementation.  Must appear directly
+within an abstract class.  An abstract class can override an abstract method.
+E.g. to provide doc comment, refine the return type, limiting the set of
+checked exceptions that can be thrown.  A non-abstract method can be
+overridden by an abstract method.
+
+A _static method_ (aka _class method_).  A method that is not declared
++static+ is called an _instance method_ (aka non-+static+ method).
+
+A _final method_ cannot be overridden by subclasses.  Private methods and all
+methods in a static class are final.  A non-final method is a _virtual_
+method.
+
+A _native method_ is implemented in platform-dependent code.
+
+A _synchronized method_ acquires a monitor before it executes.  For static
+methods, the monitor associated with the Class object for the method's class
+is used.  For an instance method, the monitor associated with +this+ is used.
+
+Naming guidelines: The first word of a method name should be a verb.  The
+identifier is in camelCase.
+
+A _throws clause_ is used to declare any checked exception classes that can
+leave the body.  The types must be a subtype of +Throwable+.  It is permitted
+but not required to mention unchecked exception classes.
+
+A _method body_ is either a block of code that implements the method or simply
+a semicolon, indicating the lack of an implementation.  Abstract or native
+methods must not supply an implementation, all other methods must supply an
+implementation.
+
+Note that that Java does not allow default values for method parameters.
+
+
+[[method_signature]]
+==== Method signature
+Two methods have _same signature_ if the have the same name and argument
+types.  Two methods or constructor declarations M and N have the _same
+argument types_ if all of the following conditions hold:
+
+* Same number of formal parameters and same types of corresponding formal parameters.
+* Same number of type parameters and same bounds of corresponding type variables.
+
+The signature of method m~1~ is a _subsignature_ of the signature of m~2~ if
+either:
+
+* They have the same signature
+* The signature of m~1~ is the same as the erasure of the signature of m~2~.
+
+Two method signatures m~1~ and m~2~ are _override-equivalent_ iff either m~1~
+is a subsignature of m~2~ or vice versa.
+
+See also the chapters ``Inheritance and Overriding'' and ``Requirements in
+Overriding and Hiding''.
+
+
+==== Inheritance and Overriding
+An instance method m~C~, declared in class C, _overrides_ another instance
+method m~A~, declared in class A iff all of the following are true:
+
+* C is a subclass of A
+* The signature of m~D~ is a subsignature of the signature of m~A~.
+* Either
+ - m~A~ is +public+, +protected+, or declared with default access in the same
+   package as C.
+ - m~C~ overrides a method m~X~ (m~X~ distinct from m~C~, m~X~ distinct from
+   m~A~), such that m~X~ overrides m~A~.
+* See additional rules in ``Requirements in Overriding and Hiding''.
+
+Moreover, if m~C~ is not abstract, then m~C~ is said to _implement_ any and
+all declarations of abstract methods that it overrides.  An overridden method
+can be accessed via the keyword +super+.
+
+
+==== Hiding
+A static method m _hides_ any non-instance method m' in the superclass and
+superinterfaces that has a subsignature of m.  A static method may not hide an
+instance method.
+
+
+==== Requirements in Overriding and Hiding
+If a method declaration d~1~ with return type R~1~ overrides or hides the
+declaration of another method d~2~ with return type R~2~, then d~1~ must be
+return-type-substitutable for d~2~.  This rule allows for _covariant return
+types_ -- refining the return type of a method when overriding it.  A method
+that overrides or hides another method, may not be declared to throw more
+checked exceptions than the overridden or hidden method.  The access modifier
+of an overriding or hiding method must provide at least as much access as the
+overridden or hidden method.
+
+
+==== Overloading
+If two methods of a class (both can be independently declared and inherited)
+have the same name but signatures that are not override-equivalent, then the
+method name is said to be _overloaded_.  When a method is invoked, the number
+of actual arguments and the compile-time types of the arguments are used, at
+compile time, to determine the signature of the method that will be invoked.
+
+
+=== Member Type Declarations
+A _member class / interface_ is a class / interface whose declaration is
+directly enclosed in another class or interface declaration.
+
+Static member type declaration: *to-do*...
+
+
+[[instance_initializers]]
+=== Instance Initializers
+Executed when an instance of the class is created.  It is a compile-time error
+if an instance initializer cannot complete normally, or if it contains a
++return+ statement.
+
+
+[[static_initializers]]
+=== Static Initializers
+Executed when the class is initialized.  It is a compile-time error
+if an instance initializer cannot complete normally, or if it contains a
++return+ statement.
+
+
+[[constructors]]
+=== Constructors
+Have the same name as the class and no return type.  If no constructor is
+given, the compiler generates a no-argument, default constructor, which will
+call the no-argument constructor of the superclass.
+
+The first statement of a constructor body may be an explicit invocation of
+another constructor of the same class or of the direct superclass.  If there
+is no explicit constructor invocation, then the constructor body implicitly
+begins with +super();+.
+
+----------------------------------------------------------------------
+ExplicitCtorInvocation =
+  [NonWildTypeArgs] ('this|'super) \( ArgumentList \) \; |
+  Primary \. [NonWildTypeArgs] 'super \( ArgumentList \) \; ;
+----------------------------------------------------------------------
+
+If a class contains no constructor declarations, then a _default constructor_
+with no formal parameters and no throws clause is implicitly declared.  In a
+class type, if the class is declared public (protected, private, default
+access), then the default constructor is implicitly given the access specifier
+public (protected, private, default access).  In an enum type, the default
+constructor is implicitly private.
+
+
+[[enums]]
+=== Enums
+
+----------------------------------------------------------------------
+EnumDecl =
+  ClassModifier* 'enum Id
+  ('implements Id#interface \,{0})*
+  \{ (EnumConstant \,{?})*
+     \; ClassBodyDecl*
+  \} ;
+EnumConstant = Annotation* Id [\(ArgumentList\)] [ClassBody];
+----------------------------------------------------------------------
+
+An enum constant may be followed by arguments, which are passed to the
+constructor of the enum type when the constant is created during class
+initialization.  The optional class body of an enum constant implicitly
+defines an anonymous class declaration.
+
+It is an compile-time error if a constructor declaration of an enum type is
+public or protected.  If an enum type has no constructor declarations, then a
+private constructor that takes no arguments is automatically provided.  It is
+a compile-time error for an enum declaration to declare a finalizer.  *to-do*:
+there is more to it
+
+
+== Misc
+
+- A _function object_ provides methods performing operations on other objects.
+- A _functional interface_ is any interface that only contains one abstract
+  method (but may contain more default methods or static methods).
+
+
+- Both references bind to the same object: ++Foo a = new Foo(); Foo
+  b=a;++. Here b binds to a clone, i.e. a 2nd new object, of a: ++Foo b =
+  a.clone()++.  For that to work, a (i.e. Foo) must implement the Cloneable
+  interface.
+- ++Final Foo a;++ The reference will eternally refer the first object assigned
+  to it.
+- Only widening conversions between native types are implicit; other
+  conversions require explicit cast syntax.
+- Java does not support any form of operator overloading
+- In Java, native types have value semantics only, and compound types have
+  reference semantics only.
+- In general ++main++ must 1) be +public static void+ 2) have exactly one
+  argument of type ++String []++.
+- Source files (typically? or as requirement?) have extension ++.java++.  Can
+  contain at most one public class.  The name of the public class and the file
+  must match.
+- A public class can be used in any package, A non-public class can only be
+  used in its own package.
+
+=== Terms
+
+Mutator (method) (aka setter);;
+Accessor (method) (aka getter);;
+
+== Java Resources
+- Java Cookbook
+- Java Specification
+- Java Tutorial
+- (More) effective Java
+
+
+// Local Variables:
+// compile-command: "asciidoc -a toc java.txt"
+// End:
+
+//  LocalWords:  boolean instanceof subclasses printStackTrace UnicodeLetter
+//  LocalWords:  UnicodeAlphaNumeric Stmt camelCase superclass strictfp xxxx
+//  LocalWords:  FormalParamList MethodDecl MethodModifier TypeParams subtype
+//  LocalWords:  TypeParam Throwable subsignature superinterfaces FieldDecl
+//  LocalWords:  NormalClassDecl ClassModifier ClassBodyDecl ClassMemberDecl
+//  LocalWords:  InstanceInitializer StaticInitializer FieldModifier javac's
+//  LocalWords:  VariableInitializer ArrayInitializer javadoc arraycopy Enums
+//  LocalWords:  MyClass StmtExpr PreIncrementExpr PreDecrementExpr IfStmt
+//  LocalWords:  PostIncrementExpr PostDecrementExpr MethodInvocation DoStmt
+//  LocalWords:  ClassInstanceCreationExpression LocalVariableStmt AssertStmt
+//  LocalWords:  LocalVariableDecl VariableModifier ArrayInitialzier Iterable
+//  LocalWords:  ConstExpr EnumConstName BlockStmts WhileStmt BasicForStmt
+//  LocalWords:  EnhancedForStmt iterable getMessage ConstructorDeclaration
+//  LocalWords:  ClassDecl InterfaceDecl TypeName TypeVariable Cloneable
+//  LocalWords:  LocalWords declarator enums NonWildTypeArgs ReferenceType
+//  LocalWords:  ExplicitCtorInvocation ArgumentList EnumDecl EnumConstant
+//  LocalWords:  ClassBody finalizer Parameterized CompilationUnit ImportDecl
+//  LocalWords:  PackageDecl TypeDecl TypeParameters TypeParameter TypeBound
+//  LocalWords:  ClassOrInterfaceType IntefaceType TypeArguments ArrayType
+//  LocalWords:  PrimitiveType InterfaceType ClassType Wildcard TypeArgs
+//  LocalWords:  getter TypeDeclaration ImportDeclaration PackageDeclaration
+//  LocalWords:  PackageOrTypeName

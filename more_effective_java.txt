@@ -1,0 +1,182 @@
+== Item 3: Enforce the singleton property with a private constructor or enum type
+Implementations of the singleton pattern:
+
+- public static final field to give access to the singleton and let all
+  constructors be private.
+- As above, but instead a field a (factory) method.  Gives more flexibility
+  since you can change your mind and implement the method differently.  At
+  least for simple methods being equivalent to a simple field, modern JVM
+  implementations are almost certain to inline the call.
+- Make an enum type with one element (named e.g. +INSTANCE+).
+
+Downsides of the singleton pattern in general:
+
+- Depending on the concrete implementation of the singleton pattern, unit
+  testing can become difficult since the real object can't be replace by a
+  test double.
+
+
+== Item 4: Enforce noninstantiability with a private constructor
+Not declaring an constructor does not mean there is no constructor: the
+compiler generates for a public (private, ...) class a public (private, ...)
+default constructor.  Declaring private destructor ensures that no class
+(apart from the `current' class) can instantiate an instance.  If the
+constructor body throws, e.g. an +AssertionError+, then we're also guarded
+against the case that the `current' class accidentaly creates an instance.
+
+
+== Item 5: Avoid creating unnecessary objects
+++String s = "foo";++ instead ++String s = String("foo");++.  The later form
+creates two objects instead only one.  Note that it is guaranteed that only
+one String object is created for multiple equal string literals.
+
+Consider using static factory methods (Item 1) over invoking constructor,
+since their implementation can return reused objects.  That works well for
+immutable objects or mutable objects where one knows they are not modified,
+e.g. objects referenced only by static private references.
+
+Note that boxed primitive types are objects, thus autoboxing potentially
+creates new objects.  Prefer primitive types to boxed types, and watch out for
+unintentional autoboxing.
+
+
+== Item 6: Eliminate obsolete object references
+When a reference continues to life much longer after the referenced object is
+no longer needed, consider 1) nullifying the reference when the referent is no
+longer used 2) using soft or weak or phantom references (or collections using
+them internally).  To debug memory leak problems, consider using a heap
+profiler.
+
+That is often the case when 1) a class manages its own memory (e.g. consider a
+stack based on an array: the pop method should nullify its reference to the
+returned object) 2) a class acts as a cache 3) a class stores a collection of
+listeners or other callbacks (where it is not unlikely that the clients
+forget to deregister the listener or callback).
+
+
+== Item 7: Avoid finalizers
+When finalizers are called is primarily a function of the garbage collector,
+i.e. a property of the JVM implementation you are using, i.e. something which
+varies in a non portable way.  If the garbage collector decides there is
+nothing to clean up (say because there s lots of memory left), your finalizers
+will never be called and you will run out of the resources (e.g. file
+descriptors) that you actually wanted to free in the finalizer.  Or, in case
+your finalizers free memory, if memory is faster acquired than being freed
+through the finalizer, you will run out of memory -- there is no requirement
+when the finalizers have to be called other than before the storage is being
+reused; also, its valid that a finalizer is not called at all.  ++System.gc++
+and ++System.runFinalization++ only increase the odds of finalizers getting
+executed, but they don't guarantee it.  Also creating and destroying an object
+is _much_ more expensive if a finalizer is being used.
+
+Provide an explicit termination method and require clients to call it.  The
+try-finally block is the standard place to do that.  Store in a (private)
+field whether an object has been finalized; all member methods have to check
+(and potentially throw +IllegalStateException+) that field so they don't use
+the object if it is already finalized.  Examples: close methods on
+InputStream, OutputStream, java.sql.Connection, cancel method on
+java.util.Timer, dispose method on java.awt.Graphics and Window, flush method
+on Image.
+
+Legitimiate use of finalizer: 1) Act as ``safety net''.  User is required to
+call the termination method as explained before, but in case he forgets it,
+which must be treated as a bug, the finalizer does the job and logs a warning
+about the bug.  2) [Something with native peers.  But as I see it, that native
+peer is just another type of resource, and as described above, the only
+half-way reliable way to free non-memory resources is the explicit call to a
+termination method.]
+
+If you use an finalizer, remember to call the finalizer of the super class,
+e.g. via this pattern ++try { /* your finalizer code */ } finally {
+super.finalize(); }++.
+
+
+== Item 13: Minimize the accessibility of classes and members
+You should always reduce accessibility as much as possible.  Public classes
+should have no public fields, except for public static final fields
+referencing immutable objects.
+
+
+== Item 14: Minimize mutability
+To make a class immutable, follow these rules:
+
+1. No method may produce an externally visible change.  E.g. by not providing
+   mutators and by making all fields final.
+2. Ensure that the class can't be extended, e.g. by making it final, or make
+   the constructors private and provide public static factory methods.
+3. Ensure exclusive access to any mutable components.  If your class has any
+   fields that refer to mutable objects, ensure that clients cannot obtain
+   references to these objects.
+
+Motivation for immutable objects:
+
+- They're simple.
+- They're inherently thread-safe.
+- They can be shared freely.
+- Their internals can be shared.
+
+Downsides:
+
+- They require a separate object for each distinct value, which might impose a
+  performance issue.
+- Unit Test -ability drops since the possibly of having an mock object which
+  is a super class of the real object is no longer possible.
+
+Misc:
+
+- To lessen the downsides
+ * Try to anticipate where clients invoke multiple methods in a row, each
+   creating a now object, and provide one method doing all the steps
+   internally and only creating a new object once.
+ * Provide a public mutable companion class, e.g. like StringBuffer is for
+   String.
+- If not completely immutable, only provide as few mutability as
+  possible.  E.g. by default make all fields final and only make them non
+  final if there is a compelling reason to make them non-final.
+- Small value objects should always be immutable.
+- Seriously consider making larger value objects immutable too.
+
+
+== Item 21: Use function objects to represent strategies
+Given an (strategy) interface, e.g:
+
+----------------------------------------------------------------------
+public interface Comparator<T> {
+  public int compare(T t1, T t2);
+}
+----------------------------------------------------------------------
+
+and an method expecting such a (strategy) interface, e.g. within
+java.util.Arrays:
+
+----------------------------------------------------------------------
+public static <T> void sort(T[] a, Comparator<? super T> c)
+----------------------------------------------------------------------
+
+It's convenient to use an anonymous class as a concrete strategy class
+instanciating the function object:
+
+----------------------------------------------------------------------
+Arrays.sort(
+  myArray,
+  new Comparator<String>() {
+    public int compare(String s1, String s2) { ... }
+  });
+----------------------------------------------------------------------
+
+However each time sort is invoked, a new instance will be created.  Consider
+the tips in Item 1 how to avoid unnecessary object creation.
+
+
+// Local Variables:
+// eval: (visual-line-mode 1)
+// eval: (auto-fill-mode -1)
+// eval: (filladapt-mode -1)
+// sentence-end-double-space: nil
+// End:
+
+
+//  LocalWords:  JVM LocalWords noninstantiability autoboxing autounboxing
+//  LocalWords:  deregister finalizers finalizer IllegalStateException sql
+//  LocalWords:  runFinalization InputStream OutputStream awt util mutators
+//  LocalWords:  Legitimiate Comparator myArray AssertionError

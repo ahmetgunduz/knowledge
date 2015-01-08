@@ -1,0 +1,112 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+= Computer networks
+
+== Routing
+
+_subnet_: Has two conflicting meanings: 1) Originally its only meaning was the
+collection of routers and communication lines that moved packets from the
+source host to the destination host 2) Nowadays it often means dividing the
+network part of an IP into multiple subnets. 
+
+The IP is an hierarchical address, having a _network prefix_ portion and a
+_host_ portion.  The host portion is often subdivided into a _subnet prefix_
+portion and (again) a host portion.  The network portion and subnet portion
+together are the _routing prefix_.  In _CIDR notation_, the number of bits of
+in the routing prefix are appended to the address after a slash separator
+character.  The _subnet mask_ is an alternate way of defining the routing
+prefix, by starting at the MSB with a one and continuing towards the LSB with
+ones for as many bits as the routing prefix has, the host portion being zeros.
+
+_classful addressing_ (before 1993): Hierarchical design with fixed sized
+address blocks.  Class A network has 16M addresses, class B has 65k, class C
+has 256.  *to-do*: now what, did CIDR completely replaced classful addressing?
+
+It is estimated that more than one million networks are connected to the
+internet.  Thus routers in the _default-free zone_ need that big routing
+tables.  This is a small amount for a general purpose computer, but is large
+for an router which has to forward millions of packets a second.  With _CIDR_
+(_classless inter-domain routing_), IP addresses are automatically aggregated,
+each aggregation sharing a common prefix.  The prefix is then the index into
+the lookup table.  Prefixes may overlap; the _longest matching prefix_ is
+chosen.
+
+_NAT_ (_network address translation_). ``quick fix'' to solve the problem of
+running out of IP addresses until the internet finished migrating to IPv6
+(128-bit addresses).  Each ``company'' (including [haushalte]) has true IP
+adress connected to the ISP. *to-do: proper sentence* ``Inside'' the router is
+a NAT box, and behind the NAT box is the companies network.  Within the
+companies network each host has an unique IP address from one of the three
+address ranges that has been marked as private; they are not allowed to appear
+on the Internet itself. *to-do* what if NAT has to handle non TCP/UDP packets?
+The NAT has internally an associative array with TCP port (the bogus one) as
+key and an IP-address - TCP-port pair (the original ones) as value and a quick
+way of retrieving a free entry.  When a IP packet arrives at the NAT from
+within the company network, the NAT retreives a free entry.  The entrie's
+value is set to the source IP-address and source TCP port written in the
+packet.  Then the packet's source IP is overwritten with the NAT's true IP,
+and the source TCP port with the key of the entry; That overwritting includes
+recalculating and overwritting of IP and TCP checksum in the packet.  The NAT
+now routs the packet as normal, i.e. sends it to the ISP.  When an packet
+comes from the ISP,  the TCP destination port (which is equal to ``our''
+source port) is used as key to look up the internal IP-address and TCP port.
+Again the packet's destination IP-address and destination TCP port are
+overwritten by those values, the checksums are recalculated and written, and
+the packet is good to go.
+
+_ARP_ (_address resolution protocol_): Each host, between the network layer
+and the data link layer, has an associative array which maps network addresses
+(e.g. IP address) to data link addresses (e.g. Ethernet's MAC address), which
+enables the host to send datagrams to other hosts on the local network.
+(*to-do*: is ``local network'' the correct term?). Algorithm: If for a given
+network address an entry does not yet exists, a broad cast is made on the data
+link layer asking for the owner of that network address.  *to-do* how does
+each host know wheter to directly send to destination host or to router? I
+assume via the subnet mask, right?
+
+_DHCP_ (_dynamic host configuration protocol_): Motivation: Each host must
+know what its IP, the subnet mask, (*to-do*: what else? IP of gateway? IP of
+DNS server?). Algorithm: Each network must have a DHCP server, either directly
+or indirectly, in which case the router acts as relay.  (*to-do*: there might
+be multiple, right?).  The host broadcasts a request (*to-do*: on network
+layer or on data link layer?).  The DHCP server retrieves an IP from its pool
+of available IP addresses.  It can answer directly to the host since the frame
+of the request contains the MAC address of the requester host.  (*to-do*: the
+answer is on the data link layer, not the network layer?  Anyhow it contains
+the IP (or MAC?) of the DHCP server so the next time, the host can talk to the
+DHCP directly instead of having to broadcast).  Optionally the IP address is
+just _leased_ to the host and has an expire time attached.  The host has to
+ask the DHCP server for a renewal before the time expires.  This leasing
+concepts prevents the case that the DHCP server runs out of free IP addresses,
+since its possible that a host is just unplugged from the network without
+being able to give back its IP to the DHCP server.
+
+Terms: TCP/UDP segment, IP datagram (not packet), (ethernet??) frame, symbol?
+on physical layer
+
+_repeater_: On physical layer.  An analog device that receives signal on its
+input, cleans them up, amplifies them, and puts it on the output.  It only
+understands the symbols on the electrical lines; it has no notion of frames or
+packets.  _hub_: On the physical layer.  Multiple lines join in a hub.  An
+incoming frame (*to-do*: woudn't symbol be more correct?  Frame means that
+this device being on physical layer has a notion of the layer above) is sent
+to all other.  If two frames at the same time, they collide.  _bridge_: On the
+data link layer.  Connects two or more LANs.  Each port is isolated to be its
+own collision domain.  Each port theoretically can have its own kind of LAN,
+however in practice that is seldom possible.  Often they are roughly the same
+type of LAN, but can differ slightly, e.g. in speed. (*to-do:* how does it
+make forwading decisions?)  _switch_: On the data link layer.  Technically the
+same as a bridge, it's `just' a new fancy name.  However the term switch might
+also refer to a completely different kind of device that makes forwarding
+decisions, such as a telephone switch.  _router_: on the network layer.  Has
+two or more input/output lines and makes forwarding decisions on the network
+layer.  _transport gateway_:  _gateway_: *to-do*: 
+
+
+*to-do*:
+- hub vs switch vs router vs gateway vs ...
+- proxy
+
+
+//  LocalWords:  CIDR
