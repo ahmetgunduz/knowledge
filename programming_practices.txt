@@ -1,0 +1,583 @@
+= Programming practices
+
+[[cost_effective]]
+== At the heart: cost effective
+
+At the heart: (Cost) effective work (user visible productive features per time
+unit).  Both in short term (mind time to market) and long term (be able to
+continuously improve product with lower costs than earnings).
+
+The whole system must be easy to understand at any time, so at any time there
+is a high probability that a modification can be made quickly and correctly.
+If an mistake is made nevertheless, high probability to discover quickly that
+a mistake was made and high probability to be able to quickly fix the mistake
+correctly.
+
+
+== General, language agnostic
+
+[[KISS]]
+- KISS principle -- Keep it simple, stupid: Nearly all tips / heuristics to
+  achieve cost effectiveness are based on that in one way or the other.
++
+Make an entity (i.e. almost always an interface) easy to be used correctly and
+  hard to be used incorrectly.  Mind Murphy's law: Anything that can go wrong,
+  will go wrong (sooner or later).  Similarly: to err is human (i.e. for a
+  human it is especially likely that if he can do an error he will, probably
+  rather sooner than later).  Consequently if something can be used
+  incorrectly, it will be used incorrectly, and that will happen the sooner
+  and the more likely the more clients / usages there are.  It's e.g. hard if
+  the client must not forget to do certain actions, even worse when that must
+  be in a certain order, and / or when arguments must fulfill a predicate.
++
+But also: Make it as simple as possible, but not simpler.
++
+Regarding the temptation of doing optimization or `cool' features: Law of
+  diminishing returns (i.e. the benefits of a more complicated solution might
+  not outweigh the costs *to-do*: better resume).  Premature optimization is
+  the root of all evil.  It's much easier to make a slow correct program fast
+  than to make an fast incorrect program correct.  Most programs are I/O bound
+  anyway, not CPU bound.  *to-do*: tips with the topic that a good heuristic
+  is to not implement a feature unless you really need it now.
++
+But also: Don't pessimize prematurely, which is when you write code that is
+  slower than it needs to be, usually by asking for unnecessary extra work,
+  when equivalently complex code would be faster, and should just naturally
+  flow out of your fingers.
+
+- Work methodology: Decompose a big complicated task / step (see
+  <<divide_and_conquer>>) into small easy tasks / steps.  Each step is focused
+  on a single topic / gain (see also <<SRP>>) and has quick <<feedback>>.
++
+Topics of leaf steps: 1) add / modify a specification aka test which
+  necessarily makes a test fail 2) make the test green by modifying
+  productive code to fulfill the new / modified specification 3) optimize test
+  or productive code.
++
+Top level optimizations: optimize structure aka do a refactoring, optimize
+  resource usage at build time aka optimize build time, optimize run time aka
+  optimize resource usage at run time.
+
+[[feedback]]
+- Work methodology: (Quick) feedback for each step, the closer in time the
+  better, the less manual work (slow, error prone) -- i.e. the more automated
+  work (fast, repeatable) -- for getting feedback the better.  Each step
+  should be accompanied by a feedback whether the step was made correctly.
+  <<pair_programming>>, peer <<reviews>>, Build tools (compiler, linker,
+  analysis tools (static, dynamic)), automated tests (locally (typically
+  unenforced) and enforced as part of continuous integration), manual tests.
+  High level steps have high level tests associated, and leaf steps have low
+  level tests (i.e. unit tests) associated.
+
+[[pair_programming]]
+[[review]]
+- Work methodology: Pair programming and or code reviews.  Rational
+  additionally to benefits of <<feedback>>: Two eyes see more than one.
+  Distribution of knowledge (code base, working methodologies, tools, ...).
+  Less chance of allowing oneself to be sloppy.
+
+[[redundancy]]
+- Redundancy is the primary enemy of a well-designed system.  Opposite of
+  <<reuse>>.  Applies to everything: code, data, comments, ....  Rational: It's
+  _very_ difficult to _each time_ _correctly_ update _all_ redundant parts if
+  one part changes.  Such a difficulty is clearly the opposite of <<KISS>>.
+
+- Choose constructs / names which _directly_ express the intend of what is
+  accomplished.  The readers mind should not be troubled with unneeded
+  transformations / indirections he has to do in his head which drains his
+  mental power, i.e. takes away power for the important stuff; everything
+  should already be written directly in the code in plain.  Based on <<KISS>>
+  / ``...easy to be used correctly ...''.  When each reader has to do
+  transformations in his head, sooner or later one will make a mistake.
++
+Good naming.  Names do / store what the average reader expects, do not omit
+  important to know responsibilities, do certainly not mislead, the actual
+  behavior is not surprising.  This is goes together with the <<SRP>>, since
+  an entity with multiple responsibilities is unlikely to have a good name,
+  i.e. one that fulfills the previous description.  Code should read as
+  English prose when read from left to right -- and naturally actually do what
+  the reader understands from that English prose.  Programs should be written
+  for people to read, and only incidentally for machines to execute.
+
+[[encapsulation]]
+[[SRP]]
+[[divide_and_conquer]]
+- Principle of encapsulation, necessarily combined with that each capsule /
+  entity follows the single responsibility principle (SRP, S of
+  SOLID).  Everything belonging to a given capsule (buzzwords: API,
+  declaration, implementation, state / data, behavior / methods) is localized,
+  i.e. in close proximity. See also code <<reuse>>.
++
+Similarly: Divide and conquer, i.e. divide a big complicated task /
+  responsibility into small easy tasks / responsibilities.
++
+Rational: Then the mind can concentrate on one topic at a time when looking at
+  the implementation of an entity, or put the other way round, when thinking
+  about how to implement a given task the thought energy can be spend in the
+  implementation of a single localized entity.  The more complex a task is, the
+  more important that principle is.
+
+[[reuse]]
+- Reuse code -- especially (standard) library code -- instead of handcrafting
+  your own.  Don't reinvent the wheel.  Reuse is <<SRP>> stated in the inverse
+  direction: one responsibility (idea, task, ...) should be implemented by
+  only one capsule / entity.  Reuse is the opposite <<redundancy>>.
+
+- Information hiding is part of doing encapsulation properly: Each capsule has
+  an API through which other capsules (called clients) can talk to it, and an
+  implementation which is hidden from the clients.  If done right that ensure
+  that the complexity of a capsule's responsibility is contained within the
+  capsule, and that all clients of the capsule are independent from it.  1) The
+  potentially many clients are not forced to also have to know any of the
+  complexity, that's solely the one single capsule's problem.  2) As long as
+  the capsule does not modify the API to it's clients, it can freely modify
+  its implementation while all clients can remain unmodified.
+
+- Explicit is better than implict, because intentional is better than
+  accidental.  Specialization of <<KISS,make it easy to be used correctly and
+  hard to be used incorrectly>>.
+
+- On ``unintentional point of customization'' (probably specialization of the
+  above):  E.g. operator overloads, in particular a) defined in wrong
+  namespace b) used in a way that allows unintentional point of customization.
+
+- About APIs and relationships: The client should have to know as few things as possible
+  (i.e. do divide and conquer properly).  I.e. make the API as simple and thin
+  as possible.
+  * Heuristic: Choose the weakest relationship that is practical (e.g. see
+    `prefer composition over inheritance').
+  * Formal API: A change forces clients to recompile.  Thus the smaller the
+    smaller the likelihood of change, i.e. the faster overall compile
+    times.  Note the whole formal API is a tree of formal APIs, types
+    referenced also have a formal API which needs to be known /
+    parsed.  Forward declarations are maximally small.
+   - Accessible (and thus also visible) part of formal API:
+   - Visible but not accessible part of formal API: A change requires clients
+     to recompile although not really needed.
+  * Semantic API: The less complexity a client has to know, the easier it is
+    to correctly use the API.
+
+- The smaller the visible API to an entity is and the more general / abstract
+  the types are it uses, the less things a client dependents upon, i.e. the
+  more things can be changed without being forced to modify clients or without
+  recompiling clients.
+
+- Clients should depend on interfaces (others say `abstractions'), so the
+  concrete class (others say implementation) implementing that interface can
+  be exchanged without modifying the client.  It is implied that this
+  relationship is via an indirection (using a e.g. a pointer), so 1) the
+  concrete class can be exchanged at run time 2) the client must not be
+  modified at all.  Without indirection, the concrete class can only be
+  exchanged at compile time and involves a modification of the client,
+  although a simple, relatively safe one.  This is more important if there are
+  many clients and/or not all clients can be modified if a need would arise
+  and is less important if there are only few clients, in near locality, and
+  it is ensured that all clients could be changed.  I.e. make the interface as
+  simple and thin as possible.
+  * E.g. getter/setter method instead direct access to a datum, since the way
+    the datum is determined / calculated can now be exchanged.
+  * E.g. use pure abstract types opposed to concrete types on the API, since
+    concrete sub types of those types can more easily exchanged.
+
+- The less clients have access to an entity, the less clients are affected by
+  a change to the entity which is visible to the clients.  It's an special
+  advantage if the set of those clients is known.  E.g. only members have
+  access to private members; the set of members is both limited and known and
+  also hopefully small.  On the other hand, all derived classes have access to
+  protected members, and everybody has access to public members, which is in
+  both cases an unknown / potentially unlimited amount of clients, i.e. it can
+  be impossible to find all of them.  Then again in practice, it's most of the
+  times quite easy to find all clients accessing the public / protected
+  interface.
+
+- Use polymorphism (sub typing aka inclusion polymorphism or parametric
+  polymorphism or dynamic polymorphism) aka program to an interface (meaning
+  (base)type), not an implementation (meaning direct member where the type of
+  the instance can't be changed at all, and also meaning indirection to an
+  other type which should be as close to an pure abstract (aka interface) as
+  possible): The implementation of X depends only on the API of a `base type'.
+  X can then work with any concrete type fulfilling that API.  I.e. X's
+  behaviour can be affected without modifying X itself.  One way of
+  implementing the O of SOLID.
+
+- Prefer {immutable data, unaliased mutable local data, unaliased mutable
+  thread local data} (in this order of preference) to {mutable process global
+  data, mutable data on heap}, because the former set is inherently thread
+  safe.  The more general variant of this advice is: prefer data that needs no
+  mutex protection over data that does need mutex protection.  Naturally again
+  based on <<KISS>>, getting concurrency related issues right is very
+  difficult.
+
+- Less intelligent classes / layers should depend on more intelligent classes
+  / layers (better even have an abstraction in between, see DIP).  It's better
+  if the dumber classes need to be changed after a change in a smarter class
+  than vice versa since it is a simpler task.  Example of DIP: X shall depend
+  on an interface IXLogger which has to be implemented by a concrete logger,
+  opposed to that X uses the interface or concrete logger provided by a
+  concrete logger.
+
+- The boy scout rule: ``Always leave the campground cleaner than you found
+  it.''.  Improve the code base step by step.
+
+
+== Small scale patterns
+
+[[prefer_immut_to_mut]]
+- Heuristic: Prefer immutable objects to mutable objects.  Rational: Largely
+  based on <<KISS>>.  Const objects are easier to reason about (*to-do*: why
+  exactly? 1) They can't be modified accidentaly), inherently thread safe
+  (*to-do*: ref to concurrency), larger opportunity to make optimizations for
+  the compiler.  Members should not be public in general, but if they are at
+  least const then class invariants can still be enforced.  Classes meant for
+  immutable objects exclusively are easier to implement than their
+  counterparts which allow mutable objects.
+  *to-do*: Digest http://www.gotw.ca/gotw/006.htm,
+  http://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/,
+  http://www.gotw.ca/gotw/081.htm, Effective C&plus;&plus; Item 3.  However those are not language agnostic
+  but C&plus;&plus; related.
+ * In a method declaration a parameter should not be marked const, since it
+   has no effect whatsoever.
+ * In a method definition, the normal guidelines apply whether or not a
+   parameter (which is just a local variable) should be const or not.
+ * Prefer const member methods to non-const member methods
+ * *To-do*: in case of return by value, should return type be const or not?
+   For C&plus;&plus;11, to support rvalue references, all seem to agree that
+   non-const is the better heuristic.  Before C&plus;&plus;11: Gotw says const
+   for non builtin types, Effective C&plus;&plus; Item 3 says const (however
+   the errata http://www.aristeia.com/BookErrata/ec++3e-errata.html
+   relativates).  I personally think trains like
+   x.strip(...).reverse(...)... are `good', and they need mutable objects (no
+   they don't, probably they modify the this object and return a reference to
+   the this object).  Also I feel that the returned object belongs to the
+   caller, so it's the caller who can decide about constness.  I think when
+   declaring return type const the callee patronizes _all_ it's callers
+   telling them (one could oppose that the caller can use const cast, but that
+   makes the trains very verbose and inconvenient )
+ * Prefer const member methods over non-const.  Rational: 1) Allows working
+   with const objects.  2) The interface is easier to understand when one
+   knows which methods do modify an object and which don't.
+
+
+[[prefer_ref_to_ptr]]
+- Heuristic: Order of preference: 1) T& 2) T*const 3) T*. Rational: 1)
+  <<prefer_immut_to_mut>> makes 1 and 2 come before 3.  2) <<KISS>> makes 1
+  come before 2 and 3, because 1 can ignore the special case of a null
+  pointer.  Similarly, if `no object' is not a use case, use a reference.  Try
+  to avoid the need for the use case `no object', e.g. via a null object.
+
+- C&plus;&plus;: How to declare parameters aka how to pass an argument of type
+  ++T++.  When in the following multiple types are given as answer, use
+  <<prefer_ref_to_ptr>> and <<prefer_immut_to_mut>> to choose the final
+  concrete type.
++
+--
+  * Method reads-only from argument: See Rational 1.
+
+   ** pass by value: +const T+ or +T+ if +T+ is one of: fundamental type,
+      (raw) pointer, iterator.
+
+   ** pass by (const) reference: ++T const&++ or ++T const* const++ or ++T
+      const*++ if +T+ is another type (inclusive +shared_ptr+).
+
+  * Method writes to argument: ++T&++ or ++T*const++ or ++T*++.
+
+  * Method wants a copy of the argument in a local object: ++T++ (aka pass by
+    value). See Rational 2.
+
+  * Method wants a copy of the argument in a non-local object: two versions,
+    i.e. overload, one +const T&+ and one +T&&+. (*to-do*: really? it it was
+    my own idea after looking at e.g. stl's push_back)
+
+  * Method has sink semantics (take / share ownership of an object and keep
+    ownership longer than the call duration) regarding the argument:
+    ++unique_ptr<T>++ (take ownership) or ++shared_ptr<T>++ (share
+    ownership). See rational 3.
+
+  * Note regarding smart pointers: In short: The above rules still hold.  See
+    rational 4.  *to-do*: none of this talks about the use case of the caller
+    having an aliased smart pointer.
++
+When T is a non-smart-pointer type, and the method is interested in T, then
+  use the above rules, i.e. don't pass the smart pointer object in any way
+  (assuming that smart pointer object is not aliased).  That is more abstract
+  (*to-do*: link to point which says `use as abstract abstractions as
+  possible') than a given smart pointer.  When T is a smart pointer,
+  i.e. the method needs to read and / or write to the smart pointer object,
+  the above rules still hold.
+
+Rational 1: Choose pass by value when the cost of one copy construction and one
+  destruction of a T is smaller than the cost of copying the reference /
+  pointer and the indirections.  Choose pass by reference / pointer otherwise,
+  or when T does not support both a copy constructor accessible to the caller
+  and a destructor accessible to the method.
+
+Rational 2: So the compiler has more ways to optimize the copy (move, use the
+  original object, ...).
+
+Rational 3: *to-do*: why is that a special case?  Shouldn't it be part of the
+  others, or are there more special cases like this one?
+
+Rational 4: Rational for why function is not required to get smart_ptr<T> in
+  any way when it is only interested in T.  Due to structured lifetimes, the
+  smart pointer object (assumed it is directly or indirectly stored on stack
+  and is not directly or indirectly aliased *to-do* these are a lot of
+  assumptions!  is that really still a good guideline then?) will not change
+  during the function call, thus it is certain that the pointee owned by the
+  smart pointer will not be deleted by anyone.  Note that passing a ++const
+  smart_ptr<...> &++ or ++const smart_ptr<...> *++ is strange, pass +T+
+  directly in an appropriate variant, unless the method really reads from the
+  smart pointer object itself.
+
+See also <<gotw_smart_ptr_params>>.
+--
+
+- C&plus;&plus;: Classes should behave as the builtin types.  *to-do* 1)
+  examples 2) why exactly is that good?
+
+
+== Redirections
+
+All problems in computer science can be solved by another level of indirection
+(... except for the problem of too many levels of indirection).
+
+1. Literal constant.  If used multiple times, there is redundancy.  If
+   value(s) are changed or if type(s) are changed, client needs to be
+   recompiled.  In the case of type change, the clients potentially also need
+   to be modified.
+
+2. Preprocessor macro; adds a redirection at preprocessor time.  Adds reuse /
+   elimination of redundancy.
+
+3. Immutable data object whose address is a compile time constant and whose
+   value is visible to a client.  Opposed to 2, the indirection is now at
+   compile time.
++
+*to-do* Depending on the use case more type safety than 2, however that is not
+   directly the topic, here it's about benefits of redirection.
+
+4. Data object whose address is a compile time constant.  Relative to 1) adds
+   an indirection   Globals (non-TLS)
+ * immutable.  value can now
+   additionally be modified at compile time without recompiling client.  Note
+   that neglecting link seams, there is still only one value for all
+   executables, in particular a test cannot change it.
+ * mutable.  Value can now additionally be modified at run time.
+
+5. pointer to a data object.  Object can now additionally be substituted at
+  run-time.  Also the substitution can be polymorphically.
+
+6. pointer to a data object recursively
+
+7. method whose address is a compile time constant
+
+// * data object whose address is a (compile time) constant offset from a pointer
+//   which is not under programmer's control
+//  * locals (relative to frame pointer)
+//  * struct/class member (relative to +this+)
+//  * array member
+
+
+== Class design
+
+// Excluding inheritance vs composition? Or move it here?
+
+- When overriding, explicitely use +override+. *to-do*: Can't I make compiler
+  warn me when I don't?
+
+
+=== Inheritance vs Composition
+
+Inheritance is a very strong coupling and has a couple of drawbacks:
+
+- The sub type _must_ fulfill Liskov
+
+- L of SOLID: Liskov aka "is-a" aka "works-as-a".  I.e. do sub typing correctly,
+  i.e. do D of SOLID correctly.  Note that the rules apply to the whole API,
+  i.e. inclusive the semantic part.  Note that when using private inheritance,
+  you're not creating a sub type, i.e. there is no obligation to fulfill
+  Liskov.
+
+- The semantic API of a base class for its sub classes is often not trivial,
+  at least its often more complex than the semantic API of the public
+  interface.  A meaningful subclass implementation most probably needs to know
+  how and when the base class calls overridable methods.  I.e. the base class'
+  implementation details become part of its the semantic API.  That's why it
+  is said that inheritance breaks encapsulation.  Note that in a composition
+  relation, there are no such `callbacks', which greatly simplifies the
+  contract there.  An method in a subclass overriding a method of the base
+  class might be required to call certain methods, such as
+  e.g. it's counterpart version in the base class.  Also a sub type (at least
+  in most programming languages) inherits automatically methods of its base
+  class.  Thus when modifying a base class by adding a new method, that might
+  break a subclass, e.g. because invariants the subclass establishes are not
+  established by the new automatically inherited method.
+
+- The above point also means that the single responsibility principle is often
+  weakened: a base class can not just focus on it's own responsibilities, but
+  must also spent mental energy into the collaboration with it's sub classes.
+  Likewise a sub class must spend mental energy to properly implement the
+  contract with it's base class.
+
+- When the sub type adds a new method, and later the base type also adds a
+  method with the same name (*to-do*: how do access rights affect the outcome
+  ?!!), things get ugly.
+
+- The declaration of a sub type needs the full declaration of the base type,
+  only forward declaration of the base type is not sufficient.
+
+- Is a static relationship which is established at compile time - opposed to
+  composition, which can be modified at run time.
++
+Mind that the set of sub classes is unlimited, i.e. we may not even have access
+  to all sub classes.  I.e. it's not possible to make a change in a base class
+  that would force a change in a derived class.  Also its not easy to
+  implement an non-pure abstract class which is suitable as a base class
+  (*to-do*: explain why!).
+
+- When thinking about to inherit D2 from a concrete class D1, think about
+  introducing a new abstract class A from which both D1 and D2 inherit.  That
+  forces you to think about the design, to extract the common abstraction
+  between D1 and D2.
+
+- It's easiest if an (pure) abstract class does not call any overridable
+  methods.  The more own overridable methods a base class calls (which is
+  more likely the more methods it implements, i.e. the less close to pure
+  abstract it is), the more likely it is that the contract how to correctly
+  implement overriding methods gets complex.  Also that contract can only be
+  in comments / documents, not in the syntax of the language.
+
+- How to prohibit sub classing of a given class:
+ ** Make class final (Java)
+ ** Make constructor private and provide public static factories instead.
+ ** Document that it's not intended for sub classing
+
+- If a class is intended for sub classing, document that fact and document
+  when and how overridable methods are called.
+
+- C&plus;&plus;: Inheriting from a concrete class makes implementing
+  operator= difficult. (*to-do*: why? i.e. what class of other
+  operators/methods are also difficult to implement?)
+
+- C&plus;&plus;: Inheriting from a concrete class enhances chances that you
+  try to treat arrays polymorphically, because arrays of such concrete base
+  types can exist, whereas arrays of abstract base types cannot exits.
+
+- C&plus;&plus;: When a class wants to serve as a base type, it's destructor
+  should be virtual.  If it's not, no sub type can have a destructor and no
+  sub type can add members, and if the sub type fails those requirements, if
+  a sub type is deleted polymorphically through base type pointer, only the
+  base sub object is properly destructed, but not the rest of the sub type
+  object.
+
+- C&plus;&plus;: *to-do*: object slicing?
+
+- Java: A class that wants to be a base class:
+ * Constructor may not call overridable methods, directly or indirectly.  In
+   case +Cloneable+ or +Serializable+ is implemented, the same also applies
+   to +clone+ and +readObject+.
+ * If +Serializable+ is implemented, +readResolve+ and +writeReplace+ must
+   be protected rather than private.
+
+- Inheriting from non pure abstract classes imposes a raft of problems.  Either
+  avoid inheritance altogether by choosing composition instead.  Or when you do
+  inherit, prefer inheriting from pure abstract classes (aka interfaces) to
+  inheriting from concrete classes, where as abstract classes are in the gray
+  scales in-between, and/or consider choosing private inheritance opposed to
+  public inheritance.
+
+- Composition's cost relative to inheritance:
+ * run-time cost: 1) forward call 2) in case part obj is accessed via
+   indirection, the cost of indirection
+ * visual clutter of forwarding methods
+
+- Interface (aka pure abstract) vs impure abstract class:
+ * When adding a method to the base class: in case of interface, all sub types
+   break to compile.  They have to implement the new method.  In case of
+   abstract class, when the new method is non abstract, nothing breaks at
+   compile time.  In practice is it however difficult that the new method does
+   not break the contract in prose between base and sub classes, and/or the
+   contract was not properly fulfilled by either side before adding the new
+   method, and the act of adding it makes the bug now apparent.
+ * In the lack of multiple inheritance, interfaces can be used at more places
+   than (impure) abstract classes.  This disables many design patterns which
+   depend upon being allowed to implement interfaces in multiple
+   classes.  However also in the presence of multiple inheritance, due to its
+   complexity, it's easier to inherit from interfaces.
+ * Use `Skeletal implementation' (abstract class) or `simple implementation'
+   (concrete class).  Use `simulated multiple inheritance', well to simulate
+   multiple inheritance.  A class implements its interfaces by forwarding to
+   (private) concrete classes extending skeletal implementation classes.
+
+- Prefer non-overridable methods to overridable methods.  As explained above,
+  overridable methods in general complicate the API between base type and sub
+  type, in particular the semantic API.
++
+Regarding creating test doubles which inherit from the real object
+  non-overridable methods are an impediment.  The cure is ... *to-do*
+
+
+== Unsorted
+
+Object relationships:
+Composition:
+  Aggregation: has-a / owns-a
+  Association aka acquaintance aka using: knows-a
+Inheritance: is-a (in terms of Liskov)
+
+Ways of implementing:
+
+In any case:
+
+- Free implementation
+In case of composition:
+- Delegation aka forwarding: Optionally also passing the
+original receiver as parameter
+In case of inheritance:
+- Overriding: replace implementation of base class by an own free implementation
+- Inheriting: overtake implementation of base class without modifying it
+
+
+We can't look into the future, things/plans/...  change.  Base decisions on as
+much facts as possible, opposed to assumptions.  How about experience?.  Plans
+seldom work.
+
+!!! Differentiate between type definitions and class implementations.  This
+is a semantic differentiation, formally in most languages there is no
+distinction.  The heuristic is to use interfaces (aka pure abstract classes) as
+type definitions !!!
+
+Dependency between a `server' type and an `client' type.  Client is completely
+independent of point 2, the implementation of the `server' type.  Depending on
+the changes to 1, the client needs only to be recompiled, or in worse cases,
+modified.
+1. API between client and implementation
+ a. Formal contract in form of a (full) declaration of the type /
+    function.  Optionally sometimes a simple forward declaration of a name is
+    good enough.
+ b. Semantic contract in prose to specify additional things which can't be
+    specified in the syntax of the programming language.
+2. Define aka implement a type / function, naturally fulfilling contract
+   defined in 1.
+
+Name ranges +first+, +last+ (or even +last_incl+) to make clear that the last
+is inclusive.
+
+
+== References
+
+[bibliography]
+- [[[gotw_smart_ptr_params]]] http://herbsutter.com/2013/06/05/gotw-91-solution-smart-pointer-parameters/
+
+
+== Further reading
+
+- http://stackoverflow.com/questions/388242/the-definitive-c-book-guide-and-list
+
+
+// Local Variables:
+// compile-command: "asciidoc -a toc programming_practices.txt"
+// End:
+
+//  LocalWords:  pessimize APIs SRP overridable IXLogger Cloneable readObject
+//  LocalWords:  Serializable readResolve writeReplace gotw params inmut mut
+//  LocalWords:  TLS
