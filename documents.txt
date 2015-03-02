@@ -8,6 +8,7 @@ Misc info about writing documents, typesetting, glyphs (punctuation, ...), ...
 === Character encoding
 
 * http://www.joelonsoftware.com/articles/Unicode.html
+* http://www.cl.cam.ac.uk/~mgk25/unicode.html
 
 Todo: I saw something that named character entities don't always mean the same
 thing, it depends on something outer.
