@@ -1,0 +1,153 @@
+= C&plus;&plus;
+
+A literal is a prvalue.
+
+== Expressions / Object / Value categories
+
+An _object_ is a region of storage (simplified). Don't confuse with notion of
+class object.  Functions (although it often occupies storage), references,
+classes and other types, namespaces, enumerators, and templates are not
+objects.  Std [intro.object] ... An object is created by a definition (3.1),
+by a new-expression (5.3.4) or by the implementation (12.2) when needed.  ...
+
+An _expression_ is a sequence of operators and their operands.  The operands
+of any operator may be other expressions or primary expressions.  Each
+expression has some non-reference type, and each expression belongs to exactly
+one of the three primary value categories.  _Literals_ and _identifiers_ are
+primary expressions.
+
+Value categories:
+
+lvalue;; Identifies a non-temporary object or a non-member function.
+Properties: Those of glvalue, address may be taken, can be lhs operand of
+built-in assignment operator unless non-modifiable, may be used to initialize
+an lvalue reference.  Note that an lvalue is not necessarily modifiable.
+Trivia: Originally, stemming from C, ``an expression that can be on the
+left-hand side of an assignment''.
+
+xvalue;; Simplified: Things whose return type is an rvalue reference.
+Properties: those of rvalue, those of glvalue.  *to-do*: is my following
+impression correct?  Saying it's about an eXpiring object is misleading IMHO,
+since that also applies to temporaries which are prvalues)
+
+prvalue (pure rvalue);; _Temporary object_ or a value that is not an object.
+Properties: those of rvalue, cannot be polymorphic, a non-class prvalue cannot
+be cv-qualified, cannot have incomplete type
+
+glvalue (generalized lvalue);; Properties: May be polymorphic, ... (few more).
+
+rvalue;; (Flori: Movable = it can bind to rvalue reference.  Something that is
+certainly not used again, so, via an rvalue reference, we can do with it what
+we want (except bring it to an invalid state so assignment and destructor have
+no trouble)).  Properties: Address can't be taken, can't be used as lhs of the
+built-in assignment operator, may be used to initialize a const lvalue
+reference or a rvalue reference [that's the point which makes it movable].
+Flori's note: Note that although the address can't be taken, we still can
+initialize references, so internally the compiler can take the address.
+
+The other way round, expressions and their value type:
+|===
+| Literal string                                                 | lvalue
+| Function                                                       | lvalue (*to-do*: but it is not an object, how does that fit together?)
+| Cast to rvalue reference to function                           | lvalue
+| Variable                                                       | lvalue
+| Lambda                                                         | prvalue
+| Literal, not string                                            | prvalue
+| Function / overloaded operator call / cast when return / cast-to type is an lvalue reference  | lvalue
+| Function / overloaded operator call / cast when return / cast-to type is not a reference  | prvalue
+| Function / overloaded operator call / cast when return / cast-to type is an rvalue reference to object type  | xvalue
+| builtin operators: pre inc/dec, dereference, (compound) assignment, subscript (except on array xvalue), comma when if the rhs is lvalue, ternary if 2nd and 3rd are lvalues, ... (*to-do*) member stuff | lvalue
+| builtin operators: post inc/dec, arithmetic, logical, comparison, address-of, comma when rhs is rvalue, ternary when either 2nd or 3rd is not lvalue, ... (*to-do* member stuff) | prvalue
+| ... (*to-do*: member stuff) | xvalue
+|===
+
+
+----------------------------------------------------------------------
+                                 C++11
+                                   | As Venn diagram
+         i !m     i m      !i  m   |     __________ ___________
+primary: lvalue   xvalue   prvalue |    /           X           \
+             \     /   \    /      |   /           / \           \
+mixed:       glvalue   rvalue      |  |   lvalue  | x |  prvalue  |
+             i         m           |   \  (part)   \ /   (part)  /
+                                   |    \___________X___________/
+legend: i: has identity            |     glvalue          rvalue
+        m: movable                 |     (whole)          (whole)
+-----------------------------------+----------------------------------
+                                 C++98  _______      ________
+         lvalue        rvalue      |   /        \   /        \
+                                   |  |  lvalue  | |  rvalue  |
+                                   |   \________/   \________/
+----------------------------------------------------------------------
+
+C&plus;&plus;11 added xvalues (all related with rvalue reference type) to
+rvalues. 
+
+++return _expression_;++: Returning by value may involve construction and
+copy/move of a temporary object, unless copy elision is used.  Flori's
+abbreviation: if the expression is an lvalue it is tagged to be an rvalue
+(*to-do*: xvalue or prvalue ?) so the move constructor or copy constructor
+taking reference to const may be taken.
+http://en.cppreference.com/w/cpp/language/return
+
+
+*to-do*: Questions:
+
+- What does prvalue description fragment ``a value that is not an object''
+  mean?
+- What is the purpose of the new value category xvalue (and the resulting
+  glvalue and prvalue). They are not needed for move semantics, because
+  distinction rvalue to lvalue already defines whether it's movable or not.
+
+
+References:
+
+- http://stackoverflow.com/questions/3601602/what-are-rvalues-lvalues-xvalues-glvalues-and-prvalues
+- <<TCppPL>> Chapter 6.4
+- <<http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3055.pdf,n3055 >>
+- http://en.cppreference.com/w/cpp/language/value_category
+
+
+== References
+
+C&plus;&plus;11 adds rvalue references.  Now we can also modify rvalues
+through them.  *To-do*: Are my words correct: rvalue reference has the
+semantic of: I can modify they content in any way; however nobody will see the
+change since nobody will reference thee again (except destructor or
+assignment).  So the modification typically is stealing what ever thou owns.
+The only constraint is that I must leave you in a valid state so your
+destructor and assignment operator (*to-do*: why assignment?)  can run.  An
+lvalue reference can naturally do the same modifications, but it cannot bind
+to rvalues; The use case of stealing from rvalues is much more common (since
+they are never used again after the stealing) than stealing from lvalues
+(since they might be used again after that stealing).
+
+Which expressions can bind to which references:
+
+|===
+|                                       | mut lvalue | immut lvalue | mut rvalue | immut rvalue
+| ++T&++: lvalue reference              | y          | .            | .          | .
+| ++const T&++: const lvalue reference  | y          | y            | y          | y
+| ++T&&++: rvalue reference             | .          | .            | y   (*)    | .
+| ++const T&&++: const rvalue reference | .          | .            | y   (.)    | y (.)
+|===
+
+(*) The one important change in C&plus;&plus;11.  Having rvalue references we
+can also bind to mutable rvalue and modify it through the reference.  Using
+++const T&++ we could already bind to rvalues before, but we could not modify
+them through the reference.
+
+(.) Const rvalue references are also new, but in general not really useful,
+with const lvalue references we can already bind to rvalues.
+
+When there are multiple y in a column, overload resolution must choose between
+overloaded methods.  Regarding const/non-const see regular overload
+resolution.  Thus there is only to say: An rvalue argument prefers an rvalue
+reference parameter over an lvalue reference parameter.
+
+
+== Bibliography
+
+- [[[TCppPL]]] The C&plus;&plus; programming language, 4rd edition.
+
+//  LocalWords:  TCppPL eXpiring rvalues xvalues prvalues
