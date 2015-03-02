@@ -1,0 +1,55 @@
+= Programming Principles
+
+dynamic polymorphism (aka inclusion / parametric polymophism)
+
+generics aka static polymorphism
+
+(explicit) interface vs class vs object, implicit interface as used by
+C&plus;&plus; static polymorphism, syntactic vs semantic interface,
+implementation of, instance of, messageb passing, .... see also gotw, what's
+in a class -- the interface principle. An example of a free function (actually
+an operator) where the class is not the first but the second parameter is the
+canonical implementation of operator<<.
+
+inheritance vs subtyping, Liskov
+
+(class) invariants, preconditions, postconditions, (ref to semantic interface)
+
+closure, lambda, (member) method, (member) function, procedure, class static
+method, pure function, free (aka nonmember) function, tail call, functor,
+function object, delegate, function/method pointer, instance method, field
+
+call decl, cdecl, ...
+
+internal, external linkage, linkage in general
+
+abstraction
+
+(pure) abstract class, virtual method, pure virtual method, interface in the
+sense of Java
+
+encapsulation
+
+module, package, static / dynamic library
+
+information hiding
+
+static vs dynamic binding, binding in general
+
+API
+
+ABI, binary compatibility
+
+From operating_systems.txt: threads, processes, active object, concurrency,
+race condition, critical section, locks, semaphores, monitors, mutex,
+reentrant, reentrancy, thread safe, cache contention / coherence ...
+
+building, compiling, linking, JIT,
+
+Data segment, BSS segment, text segment, heap, stack segment (per thread!),
+(process) global/static data (segment), Thread-local storage (TLS) (static or
+global memory local to a thread) (one segment per thread!), local data, memory
+mapping segment,
+http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory/
+
+
