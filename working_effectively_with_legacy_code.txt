@@ -1,0 +1,248 @@
+= Working Effectively with Legacy Code
+
+My personal summary of the book with the same name.
+
+
+
+Global objects or functions (inclusive non-private static class) have an
+unbound amount of clients.  If those globals are an problem in a test harness,
+than any object depending directly or indirectly on them can't be (easily)
+tested.  It's not unlikely that thus many objects can't be (easily) be
+tested. 
+
+
+== Dependency-Braking Techniques
+
+=== Adapt parameter
+
+The advice is pretty close to DIP, and has actually a wider applicability than
+just parameters: High level code shall access low level code via interfaces
+which are under control of the high level code (INeed instead IProvide).  In
+case the low level code is a 3rd party library, the hope is also that the
+interface needed and thus created by the high level code is smaller, thus
+easier, than the one provided by the 3rd party code.
+
+
+=== Break out method object
+
+Motivation: Test a method, say +execute+, of a class, say +Provider+, that
+can't be instantiated in the test.
+
+Solution: Create a new class, say +Executor+ with the responsibility of
+hosting the method.  Move the +execute+ method from +Provider+ to
++Executor+. If the method references members of +Provider+, extract an new
+Interface +IProviderForExecutor+ from +Provider+, and let +Executor+'s
+constructor take a reference to it and save it in a member of +Executor+. Now
+a test can create an +Executor+ as unit under test, and can create a test
+double implementing +IProviderForExecutor+.
+
+
+=== Definition completion
+
+`Only' repetition of link seam idea, i.e. when linking the test executable,
+another definition (aka implementation) of a given (class) declaration is used
+then when linking the productive executable.
+
+
+=== Encapsulate Global References
+
+From what I get so far the transformation is only: group a set of globals (aka
+non-members, data or methods) into a new class and instantiate one globals
+object of that class.  I.e. the only difference is that the formerly
+`distributed' global objects are now grouped in an
+parent-global-object.  *to-do*: do I miss anything?
+
+
+=== Expose static method
+
+This is the simple version of ``Primitivize Parameter''.
+
+Motivation: Test a method of a class that can't be instantiated in the test.
+
+Solution: Make it a class static method, which of course presumes that the
+method does not access any instance members.  That way no instance of the
+class is required and the method can be tested.
+
+Downsides: Note however that now it's also more difficult to create a test
+double for this method.
+
+
+=== Extract and override call
+
+Motivation: To be able to test class A we want a test double for a method that
+A calls, or more generally, for a whole code fragment A implements.
+
+Solution: Create a new virtual method in A which just calls the method to be
+test doubled (or in the more general case, contains that code fragment).  In a
+testing subclass of A, A's new method is overriden with a test double.
+
+C&plus;&plus; Note: This does not work for code fragments in the constructor,
+since when constructor calls a virtual method, the virtual mechanism does not
+kick in.  See ``Extract and override getter''
+
+
+=== Extract and override factory method
+
+I don't see a difference to ``Extract and override call''.  It's only that in
+this chapter the topic is a code fragment in the constructor which as a whole
+creates a new object, which is then assigned to a member (smart) pointer.
+
+
+=== Extract and override getter
+
+Motivation: Using C&plus;&plus; ``Extract and override call'' is not
+applicable within a constructor as noted in that chapter.  ``Extract and
+override getter'' is applicable for the use case where the code fragment to be
+test doubled initializes a member in the constructor.
+
+Solution: Replace each reference to the member with a new virtual getter
+method.  The getter method lazy initializes the member on its first call.
+
+
+=== Extract implementer
+
+I don't see a difference to ``Extract Interface''??????
+
+
+=== Extract Interface
+
+The title says it all.
+
+
+=== Introduce Instance Delegator
+
+Motivation: To be able to test double a class static method.
+
+Solution: Add an instance method which just calls the class static method.
+The UUT has now to instantiate the DOC class with some technique (*to-do*:
+examples)
+
+
+=== Introduce static setter
+
+Motivation: You want to replace the object the static +S& instance()+ method
+of a singleton +S+ returns by a test double.
+
+Solution:
+
+- Make the singleton's constructor protected (normally it's private)
+- Add a protected static method +setInstance(S&)+
+- Add a test double class +STestDouble+ which publicly inherits from +S+
+- Add a public static method to +STestDouble+ which is called by the test and
+  internally sets the static instance of its base object via the new
+  +setInstance+ method
+- +STestDouble+ can override all methods it needs to and thus is a test double
+  of +S+.
+
+
+=== Link Substitution
+
+Again (as Definition Completion), again just repetition of the link seam idea.
+
+
+=== Parameterize Constructor
+
+Motivation: A class X can't serve as UUT or can't be test doubled because its
+constructor sets a member internally in a fixed way; we need a way to change
+the value of that member, typically letting it point to another object.
+
+Solution: Add a parameter to the constructor, and the member is set to the
+that parameter.  To preserve the constructor's signature, either overload it
+where as the original constructor calls the new more general constructor or
+add the new parameter with a default argument.
+
+Downside: The interface depends now on one more type.
+
+
+=== Parameterize Method
+
+Same as the previous one, only that in this scenario it is about an member
+instance method that sets an member internally.
+
+
+=== Primitivize Parameter
+
+Motivation: You want to test method +foo+ of class +X+, but you can't
+instantiate X in the test harness.
+
+Solution: Extract the body of +foo+ to a new static method +sfoo+. Naturally
+that means that all accessed instance members need now to be passed as
+parameters.  Choose the primitive enough types on sfoo's signature, i.e. types
+that can be instantiated in the test harness.  The +foo+ instance method now
+just delegates to the new +sfoo+, passing its instance members as arguments,
+possibly massaging them into the primitive types expected by sfoo's
+signature.  The test harness now tests +sfoo+.
+
+
+=== Pull Up Feature
+
+Motivation: You can't instantiate a class in a test.  The entity (method,
+member, ...), say +foo+, you are interested in is independent of the reason(s)
+why the class can't be instantiated in the test.
+
+Solution: Pull up +foo+ and everything referenced by it (by problem statement
+all things that don't prevent instantiation), into an new (abstract) base
+class.  The test harness can then instantiate that base class, or a sub class
+of it created for testing purposes.
+
+
+=== Push Down Dependency
+
+Motivation: Same as ``Pull Up Feature''
+
+Solution: Similar idea as ``Pull Up Feature''.  Again there is a base class
+which can be instantiated (at least when sub classed) and a derived class
+which corresponds to the original class.  Only that now the original class is
+the base class and makes the methods containing the `bad' dependencies pure
+virtual, and the derived class is the new class implements those pure virtual
+methods with the original bodies.
+
+Downsides: Much more needs to be protected so the derived production class can
+still access the same members.
+
+
+=== Replace Function with Function Pointer
+
+Motivation: You want to test double a free function, say +foo+. Intended for a
+non-OO language where OO approaches are not applicable.
+
+Solution: Add a global function pointer named +foo+, rename the free function
+to another name, initialize the pointer in some start up routine.  The test
+harness can let the function pointer point to a test double implementation.
+
+
+=== Replace Global Reference with Getter
+
+Motivation: You want to test +X::foo+, but it accesses a global entity +bar+
+which you want to replace with a test double.
+
+Solution: Add a virtual method +getbar+ to +X+ and let +foo+ access +bar+ via
++getbar+.  Inherit a +TestingX+ from +X+, which can override +getbar+ to
+return a test double replacing the original +bar+.
+
+
+=== Subclass and Override Method
+
+*To-do*: I don't see a difference to ``Extract and override call''.
+
+
+=== Supersede Instance Variable
+
+Motivation: We want to be able to change the instance variable which is set by
+the constructor in a language that doesn't allow virtual method calls from
+within a constructor.
+
+*To-do*: I don't get it.  I assume it's as simple as just giving access to a
+member data via a setter method which is used by the test harness.
+
+
+==== Flori
+
+Motivation: Test double a free function or class static method
+
+Solution: Internally the method delegates the work via a new indirection.
+E.g. a function pointer, or to a method of an object which is retrieved via an
+singleton.
+
+//  LocalWords:  INeed IProvide LocalWords IProviderForExecutor getter UUT
+//  LocalWords:  setInstance STestDouble gfoo sfoo
