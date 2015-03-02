@@ -1,3 +1,42 @@
+== Item 2: Consider a Builder when faced with many constructor parameters
+
+Problem: A constructor call with many parameters is difficult to understand since the reader doesn't know what each argument means. [However he could use an IDE that tells him, but for that he has to ask interactively for each argument separetly in case of a long parameter list.]
+
+Solution using the Builder pattern: Simulates named optional parameters as found in Python.
+
+--------------------------------------------------
+public class C {
+  private int data1;
+  private int data2;
+  private int data3;
+
+  public static class Builder {
+    private int data1 = /*default value*/;
+    private int data2 = /*default value*/;
+    private int data3 = /*default value*/;
+
+    public Builder() {}
+    public Builder data1(int val) { data1 = val; return this; }
+    public Builder data2(int val) { data2 = val; return this; }
+    public Builder data3(int val) { data3 = val; return this; }
+    public C build() { return new C(this); }
+  }
+
+  private C(Builder builder) {
+    data1 = builder.data1;
+    data2 = builder.data2;
+    data3 = builder.data3;
+  }
+}
+
+// Client Code:
+C c = new C.Builder().data2(...).data1(...).build();
+----------------------------------------------------------------------
+
+Costs: Cost of constructing the extra Builder class, cost of metho call for each parameter and it's quite a verbose pattern.
+
+
+
 == Item 3: Enforce the singleton property with a private constructor or enum type
 Implementations of the singleton pattern:
 
@@ -89,6 +128,23 @@ termination method.]
 If you use an finalizer, remember to call the finalizer of the super class,
 e.g. via this pattern ++try { /* your finalizer code */ } finally {
 super.finalize(); }++.
+
+
+== Item 8: Obey the general contract when overriding equals
+
+- Easiest thing to do: don't override +equals+
+ * The super class' equal implememtation is good enough. +Object+'s implementation: each instance of a class is equal only to itself.
+ * Implement equals with a body throwing +AssertionError+.
+
+Contract for +equals+ [from JavaSE6]. Many classes, including all collection classes, depend on it:
+
+- Reflexive: +x.equals(x)+ must be +true+ for any non-null reference value +x+
+- Symmetric: +x.equals(y) == y.equals(x)+ for any non-null reference values x and y.
+- Transitive: If +x.equals(y)+ and +y.equals(z)+ return true, then also +x.equals(z)+ must return true, for any non-null reference values x, y and z.
+- Consistent:
+- +x.equals(null)+ must return false for any non-null reference value x.
+
+
 
 
 == Item 13: Minimize the accessibility of classes and members
