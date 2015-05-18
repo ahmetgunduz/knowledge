@@ -1,27 +1,27 @@
-== Integration Buildsystem and Dailybuild-install ==
+== Integration build System and daily build install ==
 
 === Problem statement ===
-A buildsystem depends upon file modification dates to deduce which output files have to be build and which are already up to date and thus don't require being build. Git fits very well into this picture since Git sets any file it modifies throughy any action to the current time/date. However a dailybuild-install which is not properly done breaks a Buildystem. Such a dailybuild-install copies output files from the buildpages to the local computer and does something to the modifaction timestamp of these outfiles. When the buildsystem is run now, unpredictable things happens, since the timestamps of the output files possibly do not correctly reflect the dependency between input and output files.
+A build system depends upon file modification dates to deduce which output files have to be build and which are already up to date and thus don't require being build. Git fits very well into this picture since Git sets any file it modifies thoroughly any action to the current time/date. However a daily build install which is not properly done breaks a build system. Such a daily build install copies output files from the build pages to the local computer and does something to the modification timestamp of these output files. When the build system is run now, unpredictable things happens, since the timestamps of the output files possibly do not correctly reflect the dependency between input and output files.
 
 === Possible solution which is correct and good ===
-The dailybuild-install step 'Copying output files from buildpages to local PC' looks like this in detail:
+The daily build install step 'Copying output files from build pages to local PC' looks like this in detail:
 
-* Actually copy outfiles (header files in global include folders, object/library/executables/... in global folders etc) from buildpages to local PC. Outfiles are copied such that the timestamp is set to now. Thus at the end, all outfiles are newer than any input file. I.e. nothing would be build when a build would be started now.
-* Touch all files which differ between the HEAD and the commit corresponding to the dailybuild. Also touch the files which are dirty in the working tree. Thus only input files that differ to the ones that were used to build the dailybuild (i.e. the outfiles I now locally have on my disk) are newer than any output file. Thus also only those would be build.
+* Actually copy output files (header files in global include folders, object/library/executables/... in global folders etc) from build pages to local PC. Output Files are copied such that the timestamp is set to now. Thus at the end, all output files are newer than any input file. I.e. nothing would be build when a build would be started now.
+* Touch all files which differ between the HEAD and the commit corresponding to the daily build. Also touch the files which are dirty in the working tree. Thus only input files that differ to the ones that were used to build the daily build (i.e. the output files I now locally have on my disk) are newer than any output file. Thus also only those would be build.
 
 === Properties of a correct solution ===
-* At no time (in particular after installing a dailybuild, or after switching to any commit in Git) when a build is started, it is possible that output files are not build alltough they should. I.e. it shall be impossible that an input files for a given output file has wrongly an older date.
+* At no time (in particular after installing a daily build, or after switching to any commit in Git) when a build is started, it is possible that output files are not build although they should. I.e. it shall be impossible that an input file for a given output file has wrongly an older date, or the output file wrongly has a newer date respectively.
 
 === Properties of a good solution ===
-* To save time, no input file shall be build altough it is not required. That happens e.g. if its time wronly is newer than the one of the output file.
-* A stable solution does not depend upon that the time of any two PCs (including buildmachine, buildpages server) is synchronized. I.e. each PC can have a completly 'wrong' time
+* To save time, no input file shall be build although it is not required. That happens e.g. if its time wrongly is newer than the one of the output file.
+* A stable solution does not depend upon that the time of any two PCs (including build machine, build pages server) is synchronized. I.e. each PC can have a completely 'wrong' time
 * This includes that we cannot trust the time of a Git commit, since that time can come from a PC with a wrong time.
-* The user shall be free do to anything (checking out any commit, modifying files in the working tree, installing dailybuild) in any order. Note that the user also might have checked out an ancestor commit of the dailybuild he is going to install. Or he checks out an ancestor commit after installing the dailybuild.
+* The user shall be free do to anything (checking out any commit, modifying files in the working tree, installing a daily build) in any order. Note that the user also might have checked out an ancestor commit of the daily build she is going to install. Or she checks out an ancestor commit after installing the daily build.
 
-=== Why a sane SCM sets filedate to current date upon checkout ===
+=== Why a sane SCM sets the file date to current date upon checkout ===
 Say you use VSS. Say you did the insane thing of configuring VSS such that when you do a checkout, afterwards your files in your working tree have the date which is stored as property of the file version within VSS. 
 # Currently you have checked out version 100, and everything is fine and as it should be. All object files have a newer date than the source files they depend upon. If you would build now, nothing would be actually built since everything is up-to date.
-# You checkout an older version, say 80. A set of source files get their content changed. A superset of source files get their filedate changed to an ''older'' date.
+# You checkout an older version, say 80. A set of source files get their content changed. A superset of source files get their file date changed to an ''older'' date.
 # You build. Wrongly nothing will be build, since still all the object files are newer than the source files they depend upon. Bang! You're in deep shit.
 
 <!--
