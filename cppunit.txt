@@ -1,0 +1,11 @@
+= CppUnit
+
+Fixture:: A fixture is a known set of objects that serves as a base for a set of test cases
+
+class +TestCase+ has one virtual method +runTest+ which is intended to be overriden. You have to write the setup and tearDown part explicitely within that method.
+
+class +TestFixture+: Consists of zero or more test cases (implemented as void zero-arg methods), which share the same fixture.
+
+class +TestSuite+ consists of zero or more TestCases (not TestFixtures). Typically created by +CPPUNIT_TEST_SUITE+ / +CPPUNIT_TEST_SUITE_END+ within the declaration of a +TestFixuture+ class, and test cases are typically added with +CPPUNIT_TEST+.
+
+class +TestRunner+ consistst of zero or more test suites

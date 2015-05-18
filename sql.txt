@@ -1,0 +1,7 @@
+= SQL
+
+== Intro
+
+_SQL_ stands for structured query language. _RDBMS_ stands for Relational Database Management system.  A database most often contains one or more _tables_.  Each table is identified by a name.  Tables contain _records_ (rows) with data.  
+
+== Statements
