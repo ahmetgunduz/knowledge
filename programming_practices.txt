@@ -1,3 +1,6 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
 = Programming practices
 
 [[cost_effective]]
@@ -83,21 +86,28 @@ Top level optimizations: optimize structure aka do a refactoring, optimize
   one part changes.  Such a difficulty is clearly the opposite of <<KISS>>.
 
 - Choose constructs / names which _directly_ express the intend of what is
-  accomplished.  The readers mind should not be troubled with unneeded
+  accomplished. The readers mind should not be troubled with unneeded
   transformations / indirections he has to do in his head which drains his
-  mental power, i.e. takes away power for the important stuff; everything
-  should already be written directly in the code in plain.  Based on <<KISS>>
-  / ``...easy to be used correctly ...''.  When each reader has to do
-  transformations in his head, sooner or later one will make a mistake.
+  mental power, i.e. takes away power for the important stuff; everything should
+  already be written directly in the code in plain. Based on <<KISS>> /
+  ``...easy to be used correctly ...''. When each reader has to do
+  transformations in his head, sooner or later one will make a mistake. Programs
+  should be written for people to read, and only incidentally for machines to
+  execute.
 +
-Good naming.  Names do / store what the average reader expects, do not omit
-  important to know responsibilities, do certainly not mislead, the actual
-  behavior is not surprising.  This is goes together with the <<SRP>>, since
-  an entity with multiple responsibilities is unlikely to have a good name,
+Good naming. A name should be short and sweet and to the point (German: kurz
+  knapp und prägnant). Names do / store what the average reader expects, do not
+  omit important to know responsibilities, do certainly not mislead, the actual
+  behavior is not surprising. This is goes together with the <<SRP>>, since an
+  entity with multiple responsibilities is unlikely to have a good name,
   i.e. one that fulfills the previous description.  Code should read as
-  English prose when read from left to right -- and naturally actually do what
-  the reader understands from that English prose.  Programs should be written
-  for people to read, and only incidentally for machines to execute.
+  English prose when read from left to right -- and do what the average reader
+  understands from that English prose.
++
+Tips: 1) Given a function does too many things, and given you can't change that
+  at the moment, choose a rather short deliberate broad name as opposed to a
+  very long name trying to describe everything. 2) All the words in a name
+  should also occur in its brief description.
 
 [[encapsulation]]
 [[SRP]]
