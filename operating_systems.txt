@@ -164,7 +164,7 @@ _atomic `test and set'_ operations: *to-do*: elaborate
 
 _semaphore_:  Is about mutual exclusion.  Quite a general construct.  A semaphore is a kernel object which allows entering n active threads from many others, (*to-do:* among different processes?), to enter the critical region.  The other non selected threads are put to sleep.  No concept of ownership.  (*to-do*: I'm not sure: Anyone can signal, also a thread not currently having acquired access to the critical region).  Metaphorically speaking, a semaphore is a record how many units of an particular resource are available, coupled with operations to safely (without race conditions) modify that record.  _counting semaphores_ (aka _general semaphore_) allow an arbitrary resource count, while _binary semaphores_ are restricted to the values 0 and 1 (or _locked_/_unlocked_, _unavailable_/_available_).  The operations / primitives of counting semaphores are _wait_ (or _P_ (Proberen -- try)) which decrements the semaphore and _signal_ (or _V_ (Verhogen -- raise)) which increments the semaphore and.  Optimally the two have an parameter defining the number of units the semaphore is to be decremented/incremented.  Many OS provide efficient semaphore primitives that unblock a waiting process when the semaphore is signaled / incremented.  To avoid starvation, a semaphore has an associated queue of processes.  There are multiple policies how to choose the process that is dequeued next: 1) FIFO 2) Priority queue 3) others.
 
-_Mutex_ (*wrongly* also dubbed _mutex semaphore_):  Is about mutual exclusion.  Is less general than a semaphore, additionally has concept of ownership; the net effect is that mutexes don't have some of the semaphore's problems, see also below.  A mutex is a kernel object used for allowing only one active thread from many others, among different processes, to enter the critical region.  Provides concept of ownership.  The other non selected threads are put to sleep.  Supports thread ownership (the thread that locked it), thread termination notification, recursion (multiple `acquire' calls from same thread) and `priority inversion avoidance' (see also below).  May also provide deletion safety, where the thread (*to-do* process?) holding the mutex cannot be accidentally deleted.  Only the owner can signal.
+_Mutex_ (*wrongly* also dubbed _mutex semaphore_):  Is about mutual exclusion.  Can be seen as binary semaphore which additionally has the concept of ownership.  The net effect is that mutexes don't have some of the semaphore's problems, see also below.  A mutex is a kernel object used for allowing only one active thread from many others, among different processes, to enter the critical region.  The other non selected threads are put to sleep.  Supports thread ownership (the thread that locked it), thread termination notification, recursion (multiple `acquire' calls from same thread) and `priority inversion avoidance' (see also below).  May also provide deletion safety, where the thread (*to-do* process?) holding the mutex cannot be accidentally deleted.  Only the owner can signal.
 
 _Monitor_: See below and here (the two sources contradict each other I think) http://en.wikipedia.org/wiki/Monitor_(synchronization)#Synchronization_primitives
 
@@ -315,7 +315,7 @@ If the OS is given enough information about the future, the OS will only grant r
 - Wound/Wait
 
 
-=== Resource starvation
+=== Starvation
 A thread is in starvation if it waits for a resource which keeps getting given to other threads.  That differs from a deadlock were all participating threads wait for one or more resources.
 
 A possible solution is to use a scheduling algorithm with a priority queue which also uses the aging technique.  Older threads get a higher priority.
@@ -327,6 +327,7 @@ A _livelock_ is similar to a deadlock, except that the states of the threads inv
 A real-world example of livelock occurs when two people meet in a narrow corridor, and each tries to be polite by moving aside to let the other pass, but they end up swaying from side to side without making any progress because they both repeatedly move the same way at the same time.
 
 
+
 // Local Variables:
 // eval: (visual-line-mode 1)
 // eval: (auto-fill-mode -1)
@@ -334,8 +335,16 @@ A real-world example of livelock occurs when two people meet in a narrow corrido
 // End:
 
 //  LocalWords:  CAS CMPXCHG TSL Verhogen TCB Coffman streit dijkstra XCHG
-//  LocalWords:  Vermittler Proberen FCFS IRQ
+//  LocalWords:  Vermittler Proberen FCFS IRQ mutexes
 == Memory
+
+When wasting memory to save cost of calling free/malloc, e.g. by reusing a
+larger than needed region: Memory is wasted, but note that only half a cache
+line is wasted, assuming the still used part is of random size.  When having
+collections, and each element's size is a multiple of a cache line, then zero
+cache is wasted, only memory.
+
 
 - http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory/
 - http://duartes.org/gustavo/blog/post/how-the-kernel-manages-your-memory/
+- http://gperftools.googlecode.com/svn/trunk/doc/tcmalloc.html

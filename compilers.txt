@@ -169,8 +169,8 @@ deallocation of an object is the memory managers tasks.
 
 == Bison
 
-+YYSTYPE+:: User definable macro defining C data type of semantic values.
-Defaults to +int+.
++api.value.type+:: Define variable defining data type of semantic values.  See
+also the deprecated +YYSTYPE+.
 
 
 == Flex
@@ -194,6 +194,13 @@ in an return statement.
 == Other terminologies
 
 === Bison
+
+token type:: Terminal symbol defined in the Bison grammar.  An enumeration
+identifying different tokens.  +Parser::token_type+ alias
++Parser::token::yytokentype+.
+token:: Has a token type and a semantic value.
+semantic value:: See also token.  E.g. the value of an integral literal token,
+or the string constituting the name of an identifier token.
 
 token type name:: Bison's term for token name from lexer viewpoint, terminal
 symbol from grammar viewpoint.

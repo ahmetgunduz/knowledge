@@ -3,6 +3,10 @@
 
 = Programming practices
 
+This is about language agnostic programming practices.  See also
+++C\++_practices.txt++.
+
+
 [[cost_effective]]
 == At the heart: cost effective
 
@@ -17,36 +21,48 @@ a mistake was made and high probability to be able to quickly fix the mistake
 correctly.
 
 
-== General, language agnostic
+== General / Basic Axioms
+
+Defaults / guidelines help to not overthink, but don't stop thinking.
 
 [[KISS]]
-- KISS principle -- Keep it simple, stupid: Nearly all tips / heuristics to
-  achieve cost effectiveness are based on that in one way or the other.
+- _KISS_ principle -- Keep it simple, stupid.  Keep simple things simple.
+  Don't make complex things unnecessarily complex.
+  Nearly all tips / heuristics to achieve cost effectiveness are based on that
+  in one way or the other.
 +
-Make an entity (i.e. almost always an interface) easy to be used correctly and
-  hard to be used incorrectly.  Mind Murphy's law: Anything that can go wrong,
-  will go wrong (sooner or later).  Similarly: to err is human (i.e. for a
-  human it is especially likely that if he can do an error he will, probably
-  rather sooner than later).  Consequently if something can be used
-  incorrectly, it will be used incorrectly, and that will happen the sooner
-  and the more likely the more clients / usages there are.  It's e.g. hard if
-  the client must not forget to do certain actions, even worse when that must
-  be in a certain order, and / or when arguments must fulfill a predicate.
+Make an entity easy to be used correctly and hard to be used incorrectly.
+  Mind Murphy's law: Anything that can go wrong, will go wrong (sooner or
+  later).  Similarly: to err is human (i.e. for a human it is especially
+  likely that if he can do an error he will, probably rather sooner than
+  later).  Consequently if something can be used incorrectly, it will be used
+  incorrectly, and that will happen the sooner and the more likely the more
+  clients / usages there are.  It's e.g. hard if the client must not forget to
+  do certain actions, even worse when that must be in a certain order, and /
+  or when arguments must fulfill a predicate.  Clever programmers like writing
+  clever code, but we don't like maintaining clever code.  Debugging is twice
+  as hard as writing the program in the first place.  So, if you're as clever
+  as you can be when you write it, how can you debug it?
 +
-But also: Make it as simple as possible, but not simpler.
+Premature optimization is the root of all evil.  Prefer clear over optimal.
+  Law of diminishing returns: The benefits of a more optimal solution might
+  not outweigh the costs of increased complexity.  It's much easier to make a
+  slow correct program fast than to make an fast incorrect program correct.
+  Most programs are I/O bound anyway, not CPU bound.  Measure / profile with
+  real world data and HW (e.g. CPU cache properties are important).  Many
+  times even experts are wrong when guessing which of multiple variants is
+  more optimal and/or where the hot spots are.  *to-do*: tips with the topic
+  that a good heuristic is to not implement a feature unless you really need
+  it now.
 +
-Regarding the temptation of doing optimization or `cool' features: Law of
-  diminishing returns (i.e. the benefits of a more complicated solution might
-  not outweigh the costs *to-do*: better resume).  Premature optimization is
-  the root of all evil.  It's much easier to make a slow correct program fast
-  than to make an fast incorrect program correct.  Most programs are I/O bound
-  anyway, not CPU bound.  *to-do*: tips with the topic that a good heuristic
-  is to not implement a feature unless you really need it now.
-+
-But also: Don't pessimize prematurely, which is when you write code that is
-  slower than it needs to be, usually by asking for unnecessary extra work,
-  when equivalently complex code would be faster, and should just naturally
-  flow out of your fingers.
+But also don't overshoot by making it too simple or care too less about
+  optimizations: Make it as simple as possible, but not simpler.  Don't
+  pessimize prematurely: prefer more optimal when equally clear.  Always look
+  out for inefficiencies where you can get the task done with less work and
+  equally clear code.  A lot of small inefficiencies add up and are difficult
+  to profile, since its a lot of small things that make the program slow. 
+
+Simple = Make the code directly express intent.
 
 - Work methodology: Decompose a big complicated task / step (see
   <<divide_and_conquer>>) into small easy tasks / steps.  Each step is focused
@@ -71,7 +87,24 @@ Top level optimizations: optimize structure aka do a refactoring, optimize
   unenforced) and enforced as part of continuous integration), manual tests.
   High level steps have high level tests associated, and leaf steps have low
   level tests (i.e. unit tests) associated.
++
+Try that problems pop up as high up as possible in the following chain
+  * find problems on the fly while editing: configure IDE to run the following
+    steps on the fly in the background and make problems apparent to you,
+    e.g. by highlighting them in the editor.
+  * find problems at (local) build time: as high warning level as possible,
+    make warnings errors, prefer compiler error over linker error, ...
+  * find problems at (local) `extended' build time: automated tests, static
+    code analysis, ...
+  * ... *to-do*
+  * Problems which really seldom show up at run-time, e.g. in seldom executed
+    code (automated tests help to reduce the amount of code that is seldom
+    executed)
+   ** Problems in error handling code.  When the API changes the exception
+      safety (e.g. from strong to a lesser one), which is not detectable by
+      the compiler.
 
+  
 [[pair_programming]]
 [[review]]
 - Work methodology: Pair programming and or code reviews.  Rational
@@ -227,7 +260,10 @@ Rational: Then the mind can concentrate on one topic at a time when looking at
   concrete logger.
 
 - The boy scout rule: ``Always leave the campground cleaner than you found
-  it.''.  Improve the code base step by step.
+  it.''.  Improve the code base step by step.  Broken window theory: humans
+  are likely to keep clean code clean and are also likely to let decay rotten
+  code even more.
+
 
 
 == Small scale patterns
@@ -301,7 +337,8 @@ Rational: Then the mind can concentrate on one topic at a time when looking at
   * Method has sink semantics (take / share ownership of an object and keep
     ownership longer than the call duration) regarding the argument:
     ++unique_ptr<T>++ (take ownership) or ++shared_ptr<T>++ (share
-    ownership). See rational 3.
+    ownership). See rational 3.  *to-do* why not ++unique_ptr<T>&&++, so the
+    caller has to make it explicit that he knows ownership is transfered.
 
   * Note regarding smart pointers: In short: The above rules still hold.  See
     rational 4.  *to-do*: none of this talks about the use case of the caller
@@ -526,6 +563,17 @@ Regarding creating test doubles which inherit from the real object
   non-overridable methods are an impediment.  The cure is ... *to-do*
 
 
+== Data
+
+Programs transforms data.  The hardware takes machine code and data as input
+and has data as output.  The programmer's main responsibility is the
+(structure and layout of the) data and the transformation.  Writing code is
+`just' his tool.  One needs to know the strengths, weaknesses, limitations of
+the hardware at hand (classes like small embedded system, consumer home PC,
+server farm, or specific HW, depending on what range of HW the product should
+run).
+
+
 == Unsorted
 
 Object relationships:
@@ -577,12 +625,22 @@ is inclusive.
 
 [bibliography]
 - [[[gotw_smart_ptr_params]]] http://herbsutter.com/2013/06/05/gotw-91-solution-smart-pointer-parameters/
+- Book Programming Pearls and its sequel
+- A tour of C++, Bjarne Stroustrup
+- http://www.akkadia.org/drepper/cpumemory.pdf[What every Programmer should
+  know about Memory],
+  http://lwn.net/Articles/250967/, https://lwn.net/Articles/252125/
+- http://www.gameprogrammingpatterns.com/data-locality.html[Data Locality]
+- references at the end of Scott Meyers' presentation
+  http://www.aristeia.com/TalkNotes/codedive-CPUCachesHandouts.pdf[CPU caches
+  and why you care]
 
 
 == Further reading
 
-- http://stackoverflow.com/questions/388242/the-definitive-c-book-guide-and-list
 
+- http://stackoverflow.com/questions/388242/the-definitive-c-book-guide-and-list
+- https://sourcemaking.com/
 
 // Local Variables:
 // compile-command: "asciidoc -a toc programming_practices.txt"
@@ -590,4 +648,4 @@ is inclusive.
 
 //  LocalWords:  pessimize APIs SRP overridable IXLogger Cloneable readObject
 //  LocalWords:  Serializable readResolve writeReplace gotw params inmut mut
-//  LocalWords:  TLS
+//  LocalWords:  TLS overthink

@@ -25,3 +25,27 @@ Byte1: 10xx xxxx    0-3 -> 8-B
 Byte2: 110x xxxx    4-5 -> C-D
 
 There are even more, taking longer than 2byte UTF-8 sequences into account.
+
+== C&plus;&plus;
+
+N4140\[lex.charset]
+
+1 The 'basic source character set' consists of 96 characters: ...
+
+3 The 'basic execution character set' ... shall ... contain all the members of
+the basic source character set plus [some control characters], plus a 'null
+character' ....  The 'execution character set' ... [is] implementation-defined
+superset of the basic execution character set.  The values of the members of
+the execution character sets ... are locale-specific.  [The whole paragraph
+like-wise for the '(basic) execution wide-character set'].
+
+N4140\[lex.phases]
+
+- Phase 1: Map 'physical source file characters' ['(physical) source (file)
+  character set'?] to the basic source character set.  Any source file
+  character not in the basic source character set is replaced by the
+  universal-character-name that designates that character.
+- Phase 5: Each source character set member in a character literal or a string
+  literal, as well as each escape sequence and universal-character-name in a
+  character literal or a non-raw string literal, is converted to the
+  corresponding member of the execution character set.

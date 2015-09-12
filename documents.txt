@@ -13,7 +13,7 @@ Misc info about writing documents, typesetting, glyphs (punctuation, ...), ...
 Todo: I saw something that named character entities don't always mean the same
 thing, it depends on something outer.
 
-=== Glyphs
+=== Graphemes / Punctuation
 
 Todo: List possible representations (possibly plural!) in Unicode, HTML,
 Latex, AsciiDoc etc. See also character encoding.
@@ -74,20 +74,20 @@ Latex, AsciiDoc etc. See also character encoding.
  
  ‐ Hyphen. Is a punctuation mark used to join words and to separate
    syllables of a single word.
-   U+2010, 'HYPHEN', HTML: no name, &#x2010; 
-   U+2011, 'NON-BREAKING HYPHEN', ??Htmlname??  
+   U+2010, `HYPHEN', HTML: no name, &#x2010; 
+   U+2011, `NON-BREAKING HYPHEN', ??Htmlname??  
  ⁃ Hyphen bullet.
  - hyphen-minus.
    The hyphen-minus (-) is a character used in digital documents and
    computing to represent a hyphen (‐) or a minus sign (−) or even
    sometimes en dash (–).
-   U+002D, 'HYPHEN-MINUS', (no HTML name)
+   U+002D, `HYPHEN-MINUS', (no HTML name)
 － ???
-   U+FF0D, 'FULLWIDTH HYPHEN-MINUS' 
+   U+FF0D, `FULLWIDTH HYPHEN-MINUS' 
  − minus
    The mathematical symbol to represent the notion of negative as well as
    the subtraction operation.
-   U+2212, 'MINUS SIGN', &minus;
+   U+2212, `MINUS SIGN', &minus;
 
  – En dash: HTML: &ndash;&#x2013;
    The en dash is commonly used to indicate a closed range of values—a
