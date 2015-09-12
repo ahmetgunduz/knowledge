@@ -1,0 +1,231 @@
+= C&plus;&plus; practices
+
+See also +programming_practices.txt+.
+
+
+== Scott Meyer's effective series
+
+=== Effective C&plus;&plus; (3rd Edition)
+
+To read:
+
+- Item 14: Think carefully about copying behavior in resource-managing
+  classes.
+- Item 25: Consider support for a non-throwing swap
+- Item 29: Strive for exception-safe code
+- Item 35: Consider alternatives to virtual functions
+- Chapter 7
+- Chapter 8
+
+=== More Effective C&plus;&plus; (3rd Edition)
+- Item 4: Avoid gratuitous default constructors
+- Item 24:
+
+
+=== Effective Modern C&plus;&plus;
+
+- Item 42: Consider emplacement instead insertion
+I would go further than Scott.  Use emplacement by default.  It is never
+slower than its counterparts.  The only thing you have to take care of is
+knowing that you can thus call constructors that are marked as explicit,
+i.e. as `dangerous'.  Scott's warning regarding using +new+ as part of the
+arguments is something to be avoided anyway, it has nothing to-do with emplace
+directly.
+
+
+== Types to be used
+
+=== Parameters
+
+
+[cols="1,1,1,7"]
+|======
+| `T [const]` | |  | Pass by value 
+
+*Observer* aka in-param.  When you need a copy anyway (if to an even further
+place, move internally), or when indirection is more costly than ctor + dtor
+of parameter of the version of the next row.  Const is only an implementation
+detail, its _not_ part of the interface.
+
+4+| One level of indirection
+
+| `T const` | `*[const]\|&\|&&` |  | Pass by ptr-to-const / const-ref
+
+*Continuous observer* aka in-param.  Interface does not care about ownership.  **Pointee
+must outlive duration of function call**, which is, thanks to structured
+lifetimes, is guaranteed when it is an local.  Usual diff * vs &. T const &&
+not meaningfull, use T const & instead.
+
+| `T` | `*[const]\|&\|&&` |  | Pass by ptr-to-non-const / non-const-ref
+
+*[In(Observer)/]Out*.  Interface does not care about ownership (of T itself, not
+looking inside T).  **Pointee must outlive duration of function call**, which is
+guaranteed when it is an local.  Usual diff * vs &. In the && case, we can
+take advantage of the fact that the caller will not access the object again,
+i.e. typically the caller steals the guts of T.
+
+| `T[const]` | `{up\|sp} [const]` | | Pass smart pointer by value
+
+**Sink** (+unique_ptr+) / **share** (+shared_ptr+). Callee will retain
+(shared) ownership.  [outer] const is an implementation detail and not part of
+the interface.
+
+4+| Two level of indirection
+
+| `T[const]` | `up\|sp\|*` |  `*[const]\|&` | Pass non-const smart/raw ptr by ptr/lvalue-ref
+
+*Might reseat*: Callee will or might reseat.  `&` makes the most sense.
+`*[const]` in the seldom case that `no unique_ptr object' (+nullptr+) is a
+valid option.
+
+| `T[const]` | `sp const` | `*[const]\|&`  | Pass const shared ptr by ptr/lvalue-ref
+
+*Might share*.  Callee might retain shared ownership.  `&` makes the most
+sense.  `*[const]` in the seldom case that `no shared_ptr object' (+nullptr+)
+is a valid option.
+
+4+| Two level of indirection being mostly meaningless or invalid
+
+
+| `T[const]` | `{up\|*} const` | `*[const]\|&` | Pass const unique/raw ptr by ptr/
+lvalue-ref
+
+Mostly meaningless.  Having read-only access to an smart_ptr object usually
+doesn't make sense.  Also having read-only access via indirection to an raw
+pointer usually doesn't make sense -- use `T*` instead, i.e. pass the pointer
+by value.
+
+| `T[const]` | `{up\|sp\|*}[const]` | `&&` | Pass [const] smart/raw ptr by rvalue-ref
+
+??
+
+| `T[const]` | `{&\|&&}[const]` | `*[const]\|&\|&&` |
+Ptr/ref to ref is invalid.
+
+|======
+
+- http://herbsutter.com/2013/06/05/gotw-91-solution-smart-pointer-parameters/[GotW #91: Smart Pointer Parameters]
+
+
+Observer: Use structured lifetimes to ensure the object passed will not be
+destructed before the function returns: Only pass objects that are only
+reachable by the set of current and ancestor scopes.  If you have a shared
+pointer object which is reachable by others than the current or ancestor
+scope, pin the pointee by making an unaliased local copy of the shared
+ptr obj.  ++auto pin = global_ptr;++ then ++foo(*pin);++ or ++pin->foo++.
+
+
+=== Return value
+
+
+=== Locals
+
+==== Storing ret value of a function
+This includes operators of course.
+
+
+=== Members
+
+
+=== auto
+- Guarantees no implicit conversion will take place, i.e. it's also more
+  performant.
+- DRY  
+- less verbose, i.e. less distracting clutter
+- Program against interfaces and concepts, not implementations and concrete
+  types.  Note that in expression using temporaries (i.e. nearly all
+  expressions) and in templates we also don't state the concrete type
+  explicitly.
+
+
+== Misc
+
+=== Declare functions +noexcept+ whenever possible
+
+- Is part of interface, so you cannot easily remove it later
+- Allows the compiler to do more optimizations, see also next point.  *to-do*
+  why exactly?  More examples.
+- As with const correctness, there is a ripple effect.  By not making
+  functions which should be noexcept noexcept, it's more difficult to make
+  calling functions noexcept and / or making them promise the strong exception
+  guarantee.  Or the calling function have to revert (the decision being made
+  at compile time) to use an alternative less preferable functions which are
+  noexcept, e.g. copy ctor/assign instead the preferred move ctor/assign, see
+  e.g. +move_if_noexcept+ [*to-do* 1) is there also something to test if any
+  function has noexcept?  2) For moveonly types an rvalue is returned
+  neverthelless, so the wrong thing happens -- the throwing move ctor is
+  called ? ].
+  ** e.g. take a raw array based container, and imagine the implementation of
+     push_back which (always / usually?) provides the strong exception
+     guarantee.  When re-sizing, using multiple copy-ctor calls, if one fails,
+     the original array is still untouched, thus push_back can be implemented
+     giving the strong guarantee.  But when using move-ctors, each of those
+     modifies it's element of the original array.  If one throws, push_back
+     cannot not provide the strong guarantee.  But if the move-ctor promises
+     to never throw via noexcept, the problem vanishes and push_back can use
+     auch noexecpt move-ctors and provide the strong guarantee.
+- important special cases: particular functions which really should be
+  no-except if possible.  *to-do*: why especially?  maybe because they are
+  often used functions by the standard library?
+    code)
+  * make move-ctor
+  * swap, see Effective C&plus;&plus; Item 25
+
+
+https://www.youtube.com/watch?v=BezbcQIuCsY, probably in book Effective Modern
+C&plus;&plus;.
+
+=== The big three (four in C&plus;&plus;11) and a half
+
+http://stackoverflow.com/questions/4172722/what-is-the-rule-of-three
+
+If you need to explicitly declare either the destructor, copy constructor or
+copy assignment operator yourself, you probably need to explicitly declare all
+three of them.  Extend: you should also declare a friend function swap.
+
+--------------------------------------------------
+class A {
+    
+};
+--------------------------------------------------
+
+
+==== Assignment operator / copy-and-swap idiom
+
+--------------------------------------------------
+class A {
+    A() { ... };
+    A(const A& rhs) { ... }
+
+    // strong exception guarantee
+    A& operator=(A rhs) { // (1)
+        swap(*this, other); // (2)
+        return *this;
+    } 
+
+    // strong exception guarantee
+    friend void swap(A& a, A& b) { // nothrow
+        // enable ADL, not necessary in our case, but good practice
+        using std::swap;
+        // member-wise swap:
+        swap(a.mMember1, b.mMember1); 
+        swap(a.mMember2, b.mMember2);
+        ...
+    }
+};
+--------------------------------------------------
+
+http://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
+
+
+== References
+
+- http://herbsutter.com/gotw/
+
+//  LocalWords:  noexcept Callee Reseat reseat Scott's
+
+== Raw/smart pointers
+
+Use unique_ptr by default, use shared_ptr when you _know_ you need shared
+ownership.  unique_ptr can always be moved to a shared_ptr.  If you _know_ you
+need shared ownership, use make_shared.
