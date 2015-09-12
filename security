@@ -1,0 +1,16 @@
+== Public-key (aka symmetric) cryptography
+
+public key:: Encrypt plaintext or verify digital signature.
+private key:: Decrypt ciphertext or create digital signature.
+
+It is ``impossible'' (computationally infeasible) for a private key to be
+determined from its corresponding public key.
+
+
+== ssh recipe
+* ssh-keygen -t rsa
+* So local machine can connect to host without having to enter password each
+   time: ++scp id_rsa.pub _user_@_host_:.ssh/authorized_key++
+
+== FAQ
+What is the difference between RSA and DSA keys?:: http://security.stackexchange.com/questions/5096/rsa-vs-dsa-for-ssh-authentication-keys
