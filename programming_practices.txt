@@ -579,125 +579,80 @@ run).
 
 == Comments
 
-=== Clean code is more imporant than comments
+- The code is the truth.  It is the _only_ source of truly accurate
+  information, so it better be as easy understandable as possible.  Comments
+  must not be redundant to the code.  It is easy to (accidentaly) write a
+  redundant comment, and due to redundancy's inherent problems, over time, it
+  is likely that it becomes an lying comment.  And a lying comment obviously
+  leads to problems.
 
-- Better spend energy in clean code than good comment. If you feel like writing
-  a comment, think if you not better cleaned up the code.
+- Self explanatory code which truly doesn't need comments.  Better spend
+  energy in self explanatory code than good comment.  If you feel like writing
+  a comment, think if you not better cleaned up the code.  Use well-named
+  variables or methods instead comments.  Possibly introduce new variables or
+  sub methods.
 
-  // check to see if the employee is eligible fo full benefits
-  if (employee.flags && HOURLY_FLAG) && (emplyee.age > 65))
+- If too many comments are bad, then experience will tell developers to just
+  skip reading comments, thus the comments that should be read will not be
+  read.
 
-  if (emplyee.isEligbleForFullBenefits()) 
-  
-- Prefer no comment over a lying/misinformative comment
-
-- The code is the truth.
-- The code is the *only* source of truly accurate information
-  
-SelfExplainingCode
-SelfExplainingCode plus (neccesairly noninformative) comment
-HalfExplaingCode + good comment
-<= HalfExplaingCode no comment
-misleading comment
-
-=== Use variables/methods instead comments           
-           
-  // check to see if the employee is eligible fo full benefits
-  if (employee.flags && HOURLY_FLAG) && (emplyee.age > 65))
-
-  if (emplyee.isEligbleForFullBenefits()) 
+- Bad comments are just clutter distracting from the important stuff.
 
 
-  
-  if (a&&b || !c && ~x )
-  
-  isFloir = a&&b;
-  hasNeedle = !c
-  if ( isFlori || hasNeedle ... )
-  
-=== Misc reasons where to put comment
-   
-- for public api   
-   
-==== Document why you do it like you did it
-
--   
-  // No hash is used, since the expected no of elements is below 5
-           
-- If you can't bring yourself to clean up a messy part, at least write a comment
-  which states possible problems (for a bug-searcher) and ideas for a improvement           
-  
-- Warning of consequences. Prevent others from making dangerous changes because
-  an issue is hard too see. 
-           
-- Emphasis of things wich might be otherwise overlooked
-
-- Calling methods of non-changable code (libs..). 
-
-           
 === Bad comments
+- Prefer no comment over lying comment.  Note that due to the redundancy
+  nature of a comment, any comment becomes a lying comment when one only makes
+  changes to a code fragment but not to the comment associated to that code
+  fragment, and it is hard to not fall into that trap.
 
-- Truly redundant/obvious comments. Don't have rules that *every*
-  method/member/param/returnvalue *must* have a comment
-  
-  * Takes too much time to read
-  * Distracts from the important stuff
-  * Is no help to the reader
-  * Risk of disinformation
-  * We start to ignore such comments - they begin to lie as the code around changes
-  * Risk of copy paste erros much heigher because no thought is put into the
-    its just rewriting the identifiers name.
-  
-  /* add a new CD
-  @param i_sTitle The tilte of the cd
-  @param i_sAuthor The author of the cd */
-  void addNewCD( String i_sTitle, String i_sAuthor );
-  
-  /** Returns the day of the month
-      @return the day of the month */
-  public int GetDayOfMonth()
-  {
-    return m_nDayOfMonth;
-  }
-  
-  @returns S_OK when no error occured. .....
-  
-- closing brace comment
-  * Its the job of the IDE
-  * If, then only if its really a large block, i.e. only if its really a benefit
-    for the reader.
-    ** Even better: refactor the block to make it smaller
-  
-- Better refactor into smaller functions than to use banners
-- Use blocks { } with a normal comment at the top
-- Use banners sparingly. It attracks attention when seldom used. If overused,
-  they fall into background noise and be ignored.
+- Prefer no comment over a non-informative comment.  A non-informative comment
+  just repeats what is easily understandable by reading the code and thus
+  provides no benefits, only costs.  A non-informative comment is highly
+  redundant.  E.g. don't have a guideline that _every_ method / member /
+  parameter / return value _must_ have a comment.
 
-- Commented out code
-  * It's the job of the revision control system to remember old cold
-  * When we really need the code again, it won't be usable anyway. Most probably
-    starting from scratch will be faster anyway.
-  
-- Say what this function does. Not who calls it. That should not matter. And it
-  might change..., making the comment lie. 
-  
-=== Misc           
-- Don't be noninformative:
+- When methods just propagate a call, only document the API (or alternatively
+  the method which does the actual implementation). The other method's comment
+  just refers to there.
 
-  i++// increment i
-  /\** A class that */ Class A {}   // however java api does that sometimes
+- Don't `document' a method at all it's N calls sites, document it only at its
+  single definition site.
 
-- Don't "document" a method at all it's N calls. 
-  
-  // do x and y and also z
-  ehr += foo();
+- Comments behind end of a block stating what the beginning of the block is.
+  That is redundant.  It's the job of the IDE to help you quickly identify
+  what the beginning of the block is.
 
-   
-- Comments *above* blocks, not after the branching statement.   
+- `Banners' marking the beginning of a method definition / declaration.
+  That's redundant.  It's the job of the IDE / editor to highlight method
+  definitions / declarations.  At least don't repeat the method name in the
+  banner; that's too high redundancy.
+
+- `Banners' describing a large fragment of code in a function.  Better
+  refactor the method into multiple smaller methods.
+
+- Commented out code.  It's the job of the revision control system to remember
+  old code.  When we really need the code again, it probably won't be usable
+  anyway anymore.  Most probably starting from scratch will be faster anyway.
+
+- Don't tell in a comment of a method definition who calls it.  That is
+  redundant.  And it should not matter.
+
+
+=== Where / how to use comments
+
+- Emphasis of things which might be otherwise overlooked
+
+- Warning of consequences.  Prevent others from making dangerous changes
+  because an issue is hard too see.
+
+- Make clear to which part a comment applies.  E.g. just before an (if,
+  while, ...) block.
            
-- No redundancy: when methods just propagate a call, only document the
-  api (or the place where the actually code body is). The other method comments
-  just refer to there
+- Document why you do it like you did it
+
+- If you can't bring yourself to clean up a messy part, at least write a
+  comment which states possible problems (for a bug-searcher) and ideas for a
+  improvement
 
 
 == Meaningfull Names
@@ -937,4 +892,4 @@ What is clean code? Catch-phrases from answers of programming gurus:
 
 //  LocalWords:  pessimize APIs SRP overridable IXLogger Cloneable readObject
 //  LocalWords:  Serializable readResolve writeReplace gotw params inmut mut
-//  LocalWords:  TLS overthink
+//  LocalWords:  TLS overthink refactor
