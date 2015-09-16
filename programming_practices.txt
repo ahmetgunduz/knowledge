@@ -77,6 +77,9 @@ Top level optimizations: optimize structure aka do a refactoring, optimize
   resource usage at build time aka optimize build time, optimize run time aka
   optimize resource usage at run time.
 
+- Make common use cases brief and easy to use, while not making seldom use cases
+  impossible to use.
+
 [[feedback]]
 - Work methodology: (Quick) feedback for each step, the closer in time the
   better, the less manual work (slow, error prone) -- i.e. the more automated
