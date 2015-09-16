@@ -25,6 +25,7 @@ Don't introduce inconsistency into an otherwise consistent code. The order of pr
 
 See also:
 * The following gives the rational for the above statement: Chapter 'Background' (top of page) and 'Parting Words' (bottom of page) of [http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml Google C++ Style Guide]
+* http://howardhinnant.github.io/coding_guidelines.html
 
 === Prio 3) Definition of readable/maintainable code: when code reads like prose ===
 The goal is that the source code is almost already an English text in plain prose, with no additional distracting clutter. The more source code is readable like plain English prose, the better. This is because then the code is almost exactly how you think in your mind, and you don't have to make any transformations in your mind which take away thought energy.
