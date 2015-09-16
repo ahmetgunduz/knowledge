@@ -1,34 +1,40 @@
-= character encoding
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
 
-Character encoding pairs each character of an alphabet with something else, here
-a specific byte(sequence).
+= Character Encoding
 
-ASCII:: 1 Byte per character, not using the MSB.
-ISO 8859:: 1 Byte per character.
-UTF-8:: asffads
-UNICODE:: 
-Universal Character Set (UCS):: Maps characters to integer numbers called code
-points. The xxx maps byte sequences to those code points.
-ANSI:: A misnomer meaning the Windows-1252 character encoding. Superset of ISO
-8859-1; differs by using displayable characters in the 0x80 to 0x9F range.
-Despite the (wrong) name, it never has been an ANSI standart.
 
-The unix command +file+ dedects wheter it's ascii, UTF-8, iso-8859-x.
+_Character encoding_ pairs each (abstract) character (aka grapheme, see below) of an alphabet with something else, e.g. a bit / byte sequence or an (integral) number (often called code point).  In practice, the therm character encoding seems quite vaguely defined; mostly it means an something where the destination is a byte sequence.  Opinions differ whether UNICODE's / UCS's mapping of abstract characters to code points is called a (character) encoding.
 
-I think however the algorithm used mistakes certain iso-8859 as UTF-8, since
-UTF-8 is tested first. See e.g. http://en.wikipedia.org/wiki/ISO/IEC_8859-1. The
-following bytes are valid utf-8, thus an iso-8859 char from the lines 8-B
-followed by one from lines C-D are character sequences that would be
-misinterpreted as UTF-8. 
+Some well-known (in the western world) character encodings :
 
-Byte1: 10xx xxxx    0-3 -> 8-B
-Byte2: 110x xxxx    4-5 -> C-D
+ASCII:: 1 byte per character, not using the MSB, i.e. only using 7 bits, 95 printable characters (including space) and 33 non-printing controll characters. Subset of most customary encodings, e.g. of UTF-8, all ISO 8859 and Windows-1252.
 
-There are even more, taking longer than 2byte UTF-8 sequences into account.
+Unicode:: Defines two `stages' of encodings: 1) an character encoding mapping characters to code points 2) a set of encodings called 'unicode transformation formats' (aka _encoding forms_), each mapping code points to a sequence of code units, e.g. UCS-2, UTF-8, UTF-16, .... Note that even if a fixed-length transformation format is used, there is still the problem of composed characters, so there is not really a win, on the bottom line it's still a variable-length problem.
++
+ISO 10646 and Unicode have an identical repertoire and numbers. ISO 10646 is a simple character map, an extension of previous standards like ISO 8859. In contrast, Unicode adds rules for collation, normalization of forms, and the bidirectional algorithm for right-to-left scripts such as Arabic and Hebrew. To support these rules and algorithms, Unicode adds many properties to each character.
+
+
+Universal Character Set (UCS) = ISO/IEC 10646:: ... *to-do* write more.
+
+UTF-8:: ... *to-do*
+
+UTF-16:: ... *to-do*. Is a variable-length, encoded with one or two 16-bit code units. 
+
+ISO 8859:: Is a joint ISO and IEC series of standards for 8-bit character encodings. There are 15 parts. Part 1 is ``Latin-1 Western European'', Part 2 is ``Latin-2 Central European'' and so on.
+
+ISO 8859-1 (aka latin1):: Part 1 of ISO 8859. 1 byte per character, using 222 of the 255 possible code points. Subset of UTF-8 and Windows-1252.
+
+Windows-1252:: Superset of ISO 8859-1, 1 byte per character, using 250 of the 255 possible code points.
+
+ANSI:: A misnomer meaning the Windows-1252 character encoding. Despite the (wrong) name, it never has been an ANSI standart.
+
+Character reference:: In SGML, and thus in derivatives such as HTML or
+XML, as an additional character encoding after the native character encoding (UTF-8 etc.), a character can also be encoded with a sequence of characters called character reference.  There are two types of character references: 1) _numeric character reference_, e.g. `&amp;#60;' maps to the character `<' (less-than sign) 2) _character entity reference_, e.g. the character sequence `&amp;lt;' maps to the character `<' (less-than sign).
 
 == C&plus;&plus;
 
-N4140\[lex.charset]
+From N4140\[lex.charset]:
 
 1 The 'basic source character set' consists of 96 characters: ...
 
@@ -39,13 +45,45 @@ superset of the basic execution character set.  The values of the members of
 the execution character sets ... are locale-specific.  [The whole paragraph
 like-wise for the '(basic) execution wide-character set'].
 
-N4140\[lex.phases]
+From N4140\[lex.phases]:
 
 - Phase 1: Map 'physical source file characters' ['(physical) source (file)
   character set'?] to the basic source character set.  Any source file
   character not in the basic source character set is replaced by the
   universal-character-name that designates that character.
+
 - Phase 5: Each source character set member in a character literal or a string
   literal, as well as each escape sequence and universal-character-name in a
   character literal or a non-raw string literal, is converted to the
   corresponding member of the execution character set.
+
+- http://en.cppreference.com/w/cpp/language/translation_phases
+- http://stackoverflow.com/questions/3768363/character-sets-not-clear
+- http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1488.htm
+- http://stackoverflow.com/questions/27872517/what-are-the-different-character-sets-used-for
+- http://stackoverflow.com/questions/17103925/how-well-is-unicode-supported-in-c11
+- relevant gcc / clang command line options: -finput-charset -fexec-charset -fwide-exec-charset
+
+
+== Glossary
+
+Grapheme:: A grapheme is an abstract concept, e.g. the `latin capital letter A'.  Seems to pretty much the same thing as abstract character, at least for the purpose of this document.
+
+Glyph:: A glyph is a specific shape that represents that grapheme. E.g. in each font (Arial, Helvetica, ...) the grapheme `A' would have a diffrent glyph.
+
+Character in computing:: Historically, the term character has been widely used by industry professionals to refer to an encoded character.  Nowadays a character is increasingly being seen as a unit of information, independent of any particular visual manifestation.
+
+code point::
+code position:: is any of the numerical values that make up the _code space_.
+
+code page:: A vendor specific character encoding. The name of a code page is vendor specific and typically a number. The actual definition of the mapping might be something that is well known in a larger scope, e.g. UTF-8 has code page numbers 1208 at IBM, 65001 at Microsoft, 4110 at SAP.
+
+
+*to-do*: Difference between grapheme and abstract character. What does UNICODE use in it's terminology (-> http://unicode.org/glossary/, http://mathias.gaunard.com/unicode/doc/html/unicode/introduction_to_unicode.html)?
+
+
+== Misc
+
+The unix command +file+ dedects a file's character encoding using heuristics.
+
+// http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=IWS-Chapter02
