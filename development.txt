@@ -1,0 +1,122 @@
+== CPU cache hierarchy
+
+- Know which basic operations (acess (next, n-th, ...), insert, delete, find,
+...) you do how often relative to each other. Mind that to e.g. insert/delete
+an element, often you first have to find it first.
+- Know how many items are in your collection.
+- Know the characteristics of the underlying hardware. E.g. how expensive a CPU
+cache miss is, how big the CPU cache is etc. Mind the prefetcher which gives
+an additional cache level of infinite size _if_ memory is accessed
+sequencially
+- With the HW information and having an idea of the implementation details of an
+algorithm you can estimate the hidden constant factors of the big O analysis
+(in space and time, time affected by space due to CPU cache / memory
+properties). Knowing which basic operations you do how often allows you to do
+a big O analysis of the overall-task, inclusive an estimate of the hidden
+factor. You also know for range of container size you have to do this overall
+big O analysis.
+* With todays consumer electronics CPU's, a CPU cache miss is in the range of
+a few hundreds times slower than reading directly from cache.
+
+The example. Per element:
+1 insert-in-order (=find element just before the one to be inserted, insert), 1 find-nth, 1 remove.
+Vector list and map all have O(n) overall, but vector has much smaller constant factor (a few hundreds times) because it accesses memory sequencially. List and map have high factor because they randomly access memory locations.  One of the things to note is that the overall O(n) is not very obvious for list, even less so for map.
+
+Order statistic tree
+
+- What is ``cache-friendly'' code?
+
+
+== Performance measurements
+
+- Glen suggests the tool `code performance'
+- perf
+- strace / ltrace
+- valgrind
+- oprofile
+- gprof
+- systemtab
+- dtrace
+- Intel® VTune™ Amplifier 2016: https://software.intel.com/en-us/intel-vtune-amplifier-xe/try-buy
+- http://www.brendangregg.com/linuxperf.html
+
+=== Brainstorming
+
+* While using CPU or a ressource in general
+ - Efficiency: Do the minimum amount of work needed to accomplish the task
+
+* Reduce the amount of time the CPU is not used to accomplish my task/work
+  - Reduce unproductively waiting for IO
+  - Reduce unproductively waiting for `memory' access. I.e. data should come from registers / cpu cache hierarchy / RAM in that order.
+    ** Mind false sharing
+    ** Mind page faults / trashing
+  - Reduce waiting time to be scheduled for CPU. I.e. reduce contention with other processes / threads.
+  - Reduce waiting time on locks
+
+* Use all ressources which can accomplish work
+ - All cores / cpus. 
+ - All io devices
+ - All of faster storage before using slower storage (register, cpu cache, ram, disk, network)
+
+* Make use of ressources efficiently. Use ressources the way they can operate the fastest
+ - Sequencial access (disk, ram)
+ - CPU / branche prediction: Conditional branches shall take the same branch in a row, and only seldom switch to taking the other one.
+ 
+
+=== perf
+
+As root, edit +++/etc/sysctl.conf+++, add the line +++kernel.perf_event_paranoid = -1+++, make it `active' with +++sysctl -p+++. See also http://unix.stackexchange.com/questions/14227/do-i-need-root-admin-permissions-to-run-userspace-perf-tool-perf-events-ar, http://www.cyberciti.biz/faq/howto-set-sysctl-variables/
+
+++++++++++++++++++++++++++++++++++++++++++++++++++
+perf record -g -s mycommand_and_args
+perf report -T
+++++++++++++++++++++++++++++++++++++++++++++++++++
+
++perf top+
+
+==== Questions
+
+- what does perf's children column really mean? I think it should mean 'percentage of all samples where this function is on the call stack'. But grepping e.g. BOGetKurs on the folded perf output and counting number of found lines I cannot verify that.
+
+- where is my process/thread not doing anything but waiting
+
+- perf-chidren of getBOKurs
+
+
+=== Ressources
+- http://www.linuxprogrammingblog.com/io-profiling[Profiling Input/Output performance]
+- http://stackoverflow.com/questions/375913/what-can-i-use-to-profile-c-code-in-linux
+- https://www.youtube.com/watch?v=fHNmRkzxHWs[Chandler Carruth "Efficiency with Algorithms Performance with Data Structures"]
+
+== Inlining / (virtual) function call
+
+- Instructions for a function call
+ * Push registers on stack which are used by caller and might be modified by callee
+ * Pass paremeters: Some are passed in registers, others by pushing them on the stack. For some, what is passed is not the object itself, but it's address. 
+ * Pass return object's address as implicit parameter, see above.
+ * Frame stuff, push IP (i.e. return addr), ...
+ * Actuall call instruction
+ * For the parameters not passed by registers, callee must read them from stack.
+ * Frame stuff, ...
+ * Return instruction
+
+- What does virtual add to the above?
+
+- When inlining, (much) more optimizations can be done. 
+
+- When the produced code at call site for inlining is larger than the produced code for a function call (both times the optimized result). A larger footprint is the result. It's possible that more cpu cache misses result.
+
+- C&plus;&plus;: +inline+ is a hint for the compiler to inline (and most compilers flat out ignore it since they know better), and a command to the linker.
+
+- C&plus;&plus;: For inlining to work, the definition must be known to the compiler, i.e. the definition must be in the header [however there is also Time Optimization (LTO), and as part of that inlining]. That introduces compile time dependencies, and thus potentially slower builds.
+
+- Virtual function call is an indirection at run-time.
+ - Thus it makes live harder for (branch etc) prediction.
+ - Two additional memory accesses (virtual function pointer and function's address), both of which might result in CPU cache misses. However there is prediction on that too: http://stackoverflow.com/questions/2141726/can-you-cache-a-virtual-function-lookup-in-c
+ - Inlining is no longer possible
+
+
+
+- http://stackoverflow.com/questions/1759300/when-should-i-write-the-keyword-inline-for-a-function-method
+- http://stackoverflow.com/questions/145838/benefits-of-inline-functions-in-c
+
