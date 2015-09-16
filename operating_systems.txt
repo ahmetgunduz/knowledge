@@ -121,7 +121,7 @@ _HW interrupts_ are used by devices to communicate that they require attention f
 
 [[mutual_exclusion]]
 === Mutual exclusion / Synchronization meaning `not at the same time'
-_race condition_: The outcome is dependent on the timing of processes/threads, e.g. the exact point in time when they are interrupted or when they continue. Race conditions typically occur when an shared resource is not protected by a mutual exclusion primitive. _critical region_ (aka _critical section_) is the fragment of code that deals with a shared resource.  In literature it is not uniformly defined whether that is one single code fragment or all the code fragments that deal with a given shared resource. _Mutual exclusion_ is some way of making sure only one thread/process is executing a critical region (aka protect the critical region), which is not the same as <<synchronization>>. A good solution needs four conditions:
+_race condition_: The outcome is dependent on the timing of processes/threads, e.g. the exact point in time when they are interrupted or when they continue. Race conditions typically occur when an shared resource is not protected by a mutual exclusion primitive. _critical region_ (aka _critical section_) is the part (which might consist of discontiguous fragments) of a program that accesses a shared resource. _Mutual exclusion_ is some way of making sure only one thread/process is executing a critical region (aka protect the critical region), which is not the same as <<synchronization>>. A good solution needs four conditions:
 
 - No two processes may be simultaneously inside their critical regions.
 - No assumptions may be made about speeds or the number of CPUs.
@@ -136,8 +136,8 @@ A _lock_ enforces mutual exclusion.  Lock is the name of a concept.  Semaphore o
 Lock concepts:
 
 - _lock overhead_: The extra resources for using locks, like memory space,  CPU time to initialize, destroy, acquire, release locks.
-- _lock contention_[streit]: whenever a thread attempts to acquire a lock held by another process.
-- _deadlock_: see <<deadlock>>.
+- _lock contention_: Whenever a thread attempts to acquire a lock held by another process.
+- _deadlock_: See chapter <<deadlock>>.
 
 Lock properties:
 
@@ -148,6 +148,7 @@ Lock properties:
 Lock disadvantages:
 
 - <<deadlock>>
+- <<livelock>>
 - <<priority_inversion>>
 - They cause blocking.  *to-do*: list counter measures
 - Lock overhead: I.e. overhead to access a resource, even if the chances for collision are very rare
@@ -155,6 +156,7 @@ Lock disadvantages:
 - Finding the optimal balance between lock overhead and lock contention is difficult
 - Difficult to reason about, resulting in programs expensive to maintain and prone to bugs
 - _lock convoy_:  When multiple threads wait for the same lock, and the wait is not free of run-time costs.  That includes the case where the lock is released, and the threads not getting the lock have to pay runt-time costs.  Thus CPU time is burned for no real benefit.  Or from the thread point of view, he uses up the remainder of its scheduling quantum for no real benefit.
+- An interrupt handler cannot savely aquire a lock since the thread preempted by the interrupt may hold the lock.
 
 
 === Lock implementations
@@ -231,6 +233,10 @@ Higher level patterns:
 - Interrupts:  (*to-do*: verify its true:) A thread cannot wait for an interrupt to occur
 - UNIX signals:  The OS interrupts the running thread and calls a previously registered signal handler.  (*to-do*: verify its true:) Thus a thread cannot wait for an signal to occur.  Also UNIX signal handling is vulnerable to race conditions.
 - Mutex: Doesn't work at all, since only the owner can signal / unlock
+
+
+=== Non-blocking algorithm (superset of lock/wait-free)
+In computer science, an algorithm is called _non-blocking_ if failure or suspension of any thread cannot cause failure or suspension of another thread.  Non-blocking guarantees ordered from strongest to weakest: 1) A _wait-free_ algorithm provides the _wait-freedom_ guarantee, which guarantees system-wide throughput and starvation-freedom.  Wait-freedom is the strongest non-blocking guarantee of progress.  2) A _lock-fee_ algorithm provides the _lock-freedom_ guarantee, which allows individual threads to starve but guarantees system-wide throughput, i.e. at least one thread makes progress. All wait-free algorithms are lock-free.  3) An algorithm is _obstruction-free_ if at any point, a single thread executed in isolation (i.e., with all obstructing threads suspended) for a bounded number of steps will complete its operation. All lock-free algorithms are obstruction-free.  Obstruction-freedom demands only that any partially completed operation can be aborted and the changes made rolled back.
 
 
 [[priority_inversion]]
@@ -321,21 +327,22 @@ A thread is in starvation if it waits for a resource which keeps getting given t
 A possible solution is to use a scheduling algorithm with a priority queue which also uses the aging technique.  Older threads get a higher priority.
 
 
+[[livelock]]
 === Livelock
 A _livelock_ is similar to a deadlock, except that the states of the threads involved in the livelock constantly change with regard to one another, none progressing.  Is a special case of resource starvation, where not only one but all threads involved are not progressing.
 
 A real-world example of livelock occurs when two people meet in a narrow corridor, and each tries to be polite by moving aside to let the other pass, but they end up swaying from side to side without making any progress because they both repeatedly move the same way at the same time.
 
 
+=== Only seamingly a race condition
 
-// Local Variables:
-// eval: (visual-line-mode 1)
-// eval: (auto-fill-mode -1)
-// eval: (filladapt-mode -1)
-// End:
+Say the reader reads from the criticical section having a boolean value in it,
+e.g. `is free'. If not free, it continues to search another free. Say the read
+1returns `is _not_ free', then the reader continues to search onther free
+element. The case that just after the read, the boolean value might have changed
+to `is free' is ignorable, it's just that we missed an opportunity.
 
-//  LocalWords:  CAS CMPXCHG TSL Verhogen TCB Coffman streit dijkstra XCHG
-//  LocalWords:  Vermittler Proberen FCFS IRQ mutexes
+
 == Memory
 
 When wasting memory to save cost of calling free/malloc, e.g. by reusing a
@@ -348,3 +355,13 @@ cache is wasted, only memory.
 - http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory/
 - http://duartes.org/gustavo/blog/post/how-the-kernel-manages-your-memory/
 - http://gperftools.googlecode.com/svn/trunk/doc/tcmalloc.html
+- linux /proc/meminfo: https://www.centos.org/docs/5/html/5.2/Deployment_Guide/s2-proc-meminfo.html
+
+// Local Variables:
+// eval: (visual-line-mode 1)
+// eval: (auto-fill-mode -1)
+// eval: (filladapt-mode -1)
+// End:
+
+//  LocalWords:  CAS CMPXCHG TSL Verhogen TCB Coffman streit dijkstra XCHG
+//  LocalWords:  Vermittler Proberen FCFS IRQ
