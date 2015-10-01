@@ -1,6 +1,10 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
 = C&plus;&plus;
 
-A literal is a prvalue.
+This is about the rules and terms of the C&plus;&plus; programming language. It is my summary of the C&plus;&plus; standard.  Best practices / guidelines are in +programming_practices.txt+ and ++cpp_guidelines.txt++.
+
 
 == Expressions / Object / Value categories
 
@@ -16,7 +20,9 @@ expression has some non-reference type, and each expression belongs to exactly
 one of the tree primary value categories.  _Literals_ and _identifiers_ are
 primary expressions.
 
-Primary value categories, each expression is one of these:
+=== Value categories
+
+Introduction and description of all value types:
 
 lvalue;; Identifies a non-temporary object or a non-member function.
 Properties: Those of glvalue, address may be taken, can be lhs operand of
@@ -49,7 +55,8 @@ Flori's note: Note that although the address can't be taken, we still can
 initialize references, so internally the compiler can take the address.  Note
 that it can be the lhs of an overloaded assignment operator.
 
-Expressions and their value type:
+The same information presented other way round: Which expressions has which value type:
+
 |===
 | Literal string                                                 | lvalue
 | Function                                                       | lvalue (*to-do*: but it is not an object, how does that fit together?)
@@ -65,6 +72,7 @@ Expressions and their value type:
 | ... (*to-do*: member stuff) | xvalue
 |===
 
+Visualization of how the value categories relate to each other:
 
 ----------------------------------------------------------------------
                                  C++11
@@ -84,8 +92,13 @@ legend: i: has identity            |     glvalue          rvalue
                                    |   \________/   \________/
 ----------------------------------------------------------------------
 
-C&plus;&plus;11 added xvalues (all related with rvalue reference type) to
-rvalues. 
+=== Misc
+
+The only really new value category C&plus;&plus;11 introduced is xvalues. The
+`new' value categories glvalue and prvalue are only to name different `new'
+regions of the Venn diagram which emerged due to the introduction of xvalues.
+xvalues in turn were added as a consequence of the addition of rvalue
+references.
 
 ++return _expression_;++: Returning by value may involve construction and
 copy/move of a temporary object, unless copy elision is used.  Flori's
@@ -93,6 +106,16 @@ abbreviation: if the expression is an lvalue it is tagged to be an rvalue
 (*to-do*: xvalue or prvalue ?) so the move constructor or copy constructor
 taking reference to const may be taken.
 http://en.cppreference.com/w/cpp/language/return
+
+std::move doesn't move and std::forward doesn't forward. move is an
+unconditional cast to rvalue, and forward is an conditional cast to rvalue. When
+implementing +foo(T&&param)+, technically the same thing as in +foo(T&)+ can be
+implemented. The former case however, in contrast to the later, is allowed to
+take advantage of the fact that the caller does never access the object again.
+The only thing the caller will do is to call the dtor eventually. The former
+implementation thus usually steals the guts and ensures the param object is
+still in a valid state.
+
 
 
 *to-do*: Questions:
@@ -102,7 +125,6 @@ http://en.cppreference.com/w/cpp/language/return
 - What is the purpose of the new value category xvalue (and the resulting
   glvalue and prvalue). They are not needed for move semantics, because
   distinction rvalue to lvalue already defines whether it's movable or not.
-
 
 References:
 
@@ -115,25 +137,26 @@ References:
 == References
 
 C&plus;&plus;11 adds rvalue references.  Now we can also modify rvalues
-through them.  *To-do*: Are my words correct: rvalue reference has the
+through them.  *To-do*: Are my words correct?: rvalue reference has the
 semantic of: I can modify they content in any way; however nobody will see the
-change since nobody will reference thee again (except destructor or
-assignment).  So the modification typically is move semantics: stealing what
-ever thou owns.  The only constraint is that I must leave you in a valid state
-so your destructor and assignment operator (*to-do*: why assignment?)
-can run.  An lvalue reference can naturally do the same modifications, but it
-cannot bind to rvalues; The use case of stealing from rvalues is much more
-common (since they are never used again after the stealing) than stealing from
-lvalues (since they might be used again after that stealing).
+change since nobody will reference thee again (except for destructor and methods which only write but do not read before writing).  So the modification typically is stealing what ever thou owns.
+The only constraint is that I must leave you in a valid state so your
+destructor and assignment operator (*to-do*: why assignment?)  can run.  An
+lvalue reference can naturally do the same modifications, but it cannot bind
+to rvalues; The use case of stealing from rvalues is much more common (since
+they are never used again after the stealing) than stealing from lvalues
+(since they might be used again after that stealing).
 
-Which expressions can bind to which references:
+Which expressions can bind to which references. P__n__ is, in the field of
+overload resolution, about which is a better match; a smaller number is a better
+match than a higher number.
 
 |===
 |                                       | mut lvalue | immut lvalue | mut rvalue | immut rvalue
-| ++T&++: lvalue reference              | y          | .            | .          | .
-| ++const T&++: const lvalue reference  | y          | y            | y          | y
-| ++T&&++: rvalue reference             | .          | .            | y   (*)    | .
-| ++const T&&++: const rvalue reference | .          | .            | y   (.)    | y (.)
+| ++T&&++: rvalue reference             |            |              | y (*) P1   |  
+| ++const T&&++: const rvalue reference |            |              | y (#) P2   | y (#) P1
+| ++T&++: lvalue reference              | y P1       |              |            | 
+| ++const T&++: const lvalue reference  | y P2       | y            | y P3       | y P2
 |===
 
 (*) The one important change in C&plus;&plus;11.  Having rvalue references we
@@ -141,13 +164,140 @@ can also bind to mutable rvalue and modify it through the reference.  Using
 ++const T&++ we could already bind to rvalues before, but we could not modify
 them through the reference.
 
-(.) Const rvalue references are also new, but in general not really useful,
+(#) Const rvalue references are also new, but in general not really useful,
 with const lvalue references we can already bind to rvalues.
 
 When there are multiple y in a column, overload resolution must choose between
-overloaded methods.  Regarding const/non-const see regular overload
-resolution.  Thus there is only to say: An rvalue argument prefers an rvalue
-reference parameter over an lvalue reference parameter.
+the multiple viable overloaded methods. Concerning the cases of th above table, the rules for which viable match is better : 1) rvalue reference is better than an lvalue reference 2) less cv-qualified is better.
+
+
+== Initialization
+
+
+static	thread local	local	member, initialized in initializer list	member, initialized in class body	heap/new	temporary	return value	parameter	exception obj when throwing	exception obj when catching	
+initializers for locals:
+
+blank
+()
+(x), interpretable as types yes/no. Direct initialization, possibly narrowing conversions when initializing builtin types.
+(2plusargs), interpretable as types yes/no
+{}
+{x}. initializer_list ctor is prefered over ctor taking x's type (possibly with conversions). No narrowing conversion when initializing builtin types. Called direct initialization.
+{2plusargs}
+\= arg
+\= {}
+\= {x}
+\= {2plusargs}
+
+unsorted:
+
+- the standard is explicit that an empty ++{ }++ list means to call the default constructor if available
+
+
+
+Most vexing parse::
+The standard says ``If it can be a function declaration, it is.''. Thus both of
+the following are function declarations, not object definitions: ++T obj();++
+and ++T obj(foo(),bar())++, given foo and bar are types. Another reason not to
+use initializers based on parens.
+
+- http://herbsutter.com/2013/05/09/gotw-1-solution/
+
+
+
+== auto
+
+
+Strips top-level cv-qualifier (but there's a universal references exception with const) and all kind of references.
+
+``Avoid creating unnecessary objects'' -- quote from whom?. ++[const] auto++
+creates a new object, ++const auto&++ / ++auto&&++ only gives a name / an alias to an
+already existing object.
+
+++auto foo = initializer++ is bad because
+- case initializer is an lvalue (i.e. move ctor is not applycable): the type might not be copyable
+- in the case initializer is a call returning a refernce to some internal object, e.g. +at()+ of containers: foo is a copy, and modifying foo does not modifie the original object, which might not be what was intended
+- might be inefficient: Semantically a copy is made, altough in most cases no copy is needed
+  * concerning the argument that due to RVO, in practice often neither copy-ctor nor move-ctor is called: RVO is often but not always possible. It depdends on the implementation of initizialier and the compiler.
+  * case RVO is not possible and initializer is an rvalue and a move ctor is available: a copy via move ctor is made
+  * case RVO is not possible and (initializer is an lvalue or initializer is an rvalue but no move ctor is available): a copy via move ctor is made, which potentially includes allocation and later freeing of resources, and a potentially expensive copy
+
+
+const auto& / auto&&: give an already existing object (another) name: the returned object (a temporary or an lvalue) a name (avoids creating an unneccessairy copy)
+const auto / auto: creates a new object: create a copy / initialize a new object with a literal
+
+??? how to store result of addrof operator?
+
+Herbs suggestion for input parameters (i.e. const local) where we don't know
+properties of type's ctors is 'const T&'. In contrast to function parameters, a
+local ref does not need to be implemented as pointer, so there is no indirection
+overhead relative to auto. Herb's suggestion for in/out (i.e. writable)
+parameters where properties of type is not know is T&. However that has the
+disadvantage that rvalues can't be passed, which is ok, since the caller does
+not see the modified rvalue, since rvalues or nearly always temporaries. Isn't
+for templates which modify the parameter the recomendation to use 'template<class
+T> foo(auto&&)'?
+
+also use const auto & / auto&& for result of operators. After all we don't know
+the type, i.e. member functions could be called.
+
+range-based for loop: the collection object, and its elements, most probably
+don't get destroyed, i.e. the const auto& / auto&& variable most probably
+continues to refer to an valid object. Also when calling a method. Due to
+structured lifetimes, its very probable that the const T& param continues to
+refer to an valid obj. Not so with local references: when bound to an object
+that was returned via an reference to it, it is not that easy to detect that the
+local reference still exists, but the refered to object has been deleted.
+
+
+
++for+ can is almost identical to:
+++++++++++++++++++++++++++++++++++++++++++++++++++
+{
+  init_statement 
+  while ( condition ) { 
+    statement 
+    iteration_expression ; 
+  }
+}
+++++++++++++++++++++++++++++++++++++++++++++++++++
+
++for ( __range_declaration__ : __range_expression__ ) loop_statement+		
+ is similar to
+++++++++++++++++++++++++++++++++++++++++++++++++++
+{
+  auto&& __range = range_expression ; 
+  for (auto __begin = begin_expr, __end = end_expr; __begin != __end; ++__begin) { 
+    range_declaration = *__begin; 
+    loop_statement 
+  } 
+} 
+++++++++++++++++++++++++++++++++++++++++++++++++++
+
+and thus
+++++++++++++++++++++++++++++++++++++++++++++++++++
+{
+  auto&& __range = range_expression ; 
+  auto __begin = begin_expr, __end = end_expr
+  while (__begin != __end) { 
+    range_declaration = *__begin; 
+    loop_statement 
+     ++__begin;
+  } 
+} 
+++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+- http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3853.htm
+- http://en.cppreference.com/w/cpp/language/range-for:
+  * It is safe, and in fact, preferable in generic code, to use deduction to forwarding reference, for(auto&& var : sequence).
+  * Examples show
+    ** for (const int &i : v)
+    ** for (auto&& i : v)
+- http://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/
+- Scott Meyers, Effictive Modern C&plus;&plus;
+ * Item 41: Consider pass by value for copyable parameters that are cheap to move and always copied
+- Stephan T. Lavavej: https://github.com/CppCon/CppCon2014/tree/master/Presentations/STL%20Features%20And%20Implementation%20Techniques
 
 
 == Type deduction
