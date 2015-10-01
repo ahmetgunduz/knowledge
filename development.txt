@@ -30,15 +30,17 @@ Order statistic tree
 == Performance measurements
 
 - Glen suggests the tool `code performance'
-- perf
+- perf (mind off-cpu option)
 - strace / ltrace
-- valgrind
+- valgrind, cachegrind, callgrind, ...
+- kcachegrind
 - oprofile
 - gprof
 - systemtab
 - dtrace
 - Intel® VTune™ Amplifier 2016: https://software.intel.com/en-us/intel-vtune-amplifier-xe/try-buy
 - http://www.brendangregg.com/linuxperf.html
+ * off-cpu: http://www.brendangregg.com/offcpuanalysis.html
 
 === Brainstorming
 
