@@ -1,11 +1,51 @@
+
+== Locale
+
+
+LC_IDENTIFICATION Metadata about the locale information.
+
+Priority list, highest first:
+- LANGUAGE controls language for message and menu display for GNU compatible
+  applications. For such applications it overrides whatever locale names are set
+  in LANG and LC_MESSAGES. The value is a colon separated priority list of
+  language codes, for instance "es:de:en". See also gettext.
+- LC_ALL Overrides individual LC_* settings: if LC_ALL is set, none of the below have any effect.
+- LC_*, where * is the locale category
+- LANG Provides default value for LC_* variables that have not been explicitly set.
+
+
+Possible values for LC_* and LANG (but not for LANGUAGE). This value is also duped `the locale':
+
+- C or POSIX
+- 'language'_'country'.'charmap', e.g. en_US.UTF-8.
+
+++locale++ for list of current locale environment variables
+++locale -a++ for a list of available locales
++sudo locale-gen en_US.ISO-8859-1+, gefolgt von +sudo dpkg-reconfigure locales+
+
+debian/ubuntu: /etc/default/locale
+profidata/xentis: /home/common/common_dot_profile sets LANG and a couple of LC_*
+
+- http://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap08.html
+- https://help.ubuntu.com/community/EnvironmentVariables#The_LANGUAGE_priority_list
+- locale(1), locale(7)
+ * http://pubs.opengroup.org/onlinepubs/009696699/basedefs/xbd_chap07.html
+ * http://pubs.opengroup.org/onlinepubs/009696699/utilities/locale.html
+- https://help.ubuntu.com/community/Locale#List_current_settings
+
+
+=== Files
+
+- System: /etc/default/locale
+- User: $HOME/.pam_environment
+- Actual definition of locales: /usr/share/i18n/locales/, e.g of en_US. After editing, run +sudo locale-gen+.
+
+
 == USB Stick mounten
 fdisk -l  # DEV rauslesen
 mkdir <DIR>
 mount -t vfat <DEV> <DIR>
 
-== Locale / Languages
-e.g. en_US.utf8. 
-locale -a for a list of available locales
 
-== keyboard 
+== Keyboard 
 loadkeys us
