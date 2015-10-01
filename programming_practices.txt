@@ -566,7 +566,7 @@ Regarding creating test doubles which inherit from the real object
   non-overridable methods are an impediment.  The cure is ... *to-do*
 
 
-== Data
+== Data vs Program
 
 Programs transforms data.  The hardware takes machine code and data as input
 and has data as output.  The programmer's main responsibility is the
@@ -575,6 +575,266 @@ and has data as output.  The programmer's main responsibility is the
 the hardware at hand (classes like small embedded system, consumer home PC,
 server farm, or specific HW, depending on what range of HW the product should
 run).
+
+
+== Comments
+
+=== Clean code is more imporant than comments
+
+- Better spend energy in clean code than good comment. If you feel like writing
+  a comment, think if you not better cleaned up the code.
+
+  // check to see if the employee is eligible fo full benefits
+  if (employee.flags && HOURLY_FLAG) && (emplyee.age > 65))
+
+  if (emplyee.isEligbleForFullBenefits()) 
+  
+- Prefer no comment over a lying/misinformative comment
+
+- The code is the truth.
+- The code is the *only* source of truly accurate information
+  
+SelfExplainingCode
+SelfExplainingCode plus (neccesairly noninformative) comment
+HalfExplaingCode + good comment
+<= HalfExplaingCode no comment
+misleading comment
+
+=== Use variables/methods instead comments           
+           
+  // check to see if the employee is eligible fo full benefits
+  if (employee.flags && HOURLY_FLAG) && (emplyee.age > 65))
+
+  if (emplyee.isEligbleForFullBenefits()) 
+
+
+  
+  if (a&&b || !c && ~x )
+  
+  isFloir = a&&b;
+  hasNeedle = !c
+  if ( isFlori || hasNeedle ... )
+  
+=== Misc reasons where to put comment
+   
+- for public api   
+   
+==== Document why you do it like you did it
+
+-   
+  // No hash is used, since the expected no of elements is below 5
+           
+- If you can't bring yourself to clean up a messy part, at least write a comment
+  which states possible problems (for a bug-searcher) and ideas for a improvement           
+  
+- Warning of consequences. Prevent others from making dangerous changes because
+  an issue is hard too see. 
+           
+- Emphasis of things wich might be otherwise overlooked
+
+- Calling methods of non-changable code (libs..). 
+
+           
+=== Bad comments
+
+- Truly redundant/obvious comments. Don't have rules that *every*
+  method/member/param/returnvalue *must* have a comment
+  
+  * Takes too much time to read
+  * Distracts from the important stuff
+  * Is no help to the reader
+  * Risk of disinformation
+  * We start to ignore such comments - they begin to lie as the code around changes
+  * Risk of copy paste erros much heigher because no thought is put into the
+    its just rewriting the identifiers name.
+  
+  /* add a new CD
+  @param i_sTitle The tilte of the cd
+  @param i_sAuthor The author of the cd */
+  void addNewCD( String i_sTitle, String i_sAuthor );
+  
+  /** Returns the day of the month
+      @return the day of the month */
+  public int GetDayOfMonth()
+  {
+    return m_nDayOfMonth;
+  }
+  
+  @returns S_OK when no error occured. .....
+  
+- closing brace comment
+  * Its the job of the IDE
+  * If, then only if its really a large block, i.e. only if its really a benefit
+    for the reader.
+    ** Even better: refactor the block to make it smaller
+  
+- Better refactor into smaller functions than to use banners
+- Use blocks { } with a normal comment at the top
+- Use banners sparingly. It attracks attention when seldom used. If overused,
+  they fall into background noise and be ignored.
+
+- Commented out code
+  * It's the job of the revision control system to remember old cold
+  * When we really need the code again, it won't be usable anyway. Most probably
+    starting from scratch will be faster anyway.
+  
+- Say what this function does. Not who calls it. That should not matter. And it
+  might change..., making the comment lie. 
+  
+=== Misc           
+- Don't be noninformative:
+
+  i++// increment i
+  /\** A class that */ Class A {}   // however java api does that sometimes
+
+- Don't "document" a method at all it's N calls. 
+  
+  // do x and y and also z
+  ehr += foo();
+
+   
+- Comments *above* blocks, not after the branching statement.   
+           
+- No redundancy: when methods just propagate a call, only document the
+  api (or the place where the actually code body is). The other method comments
+  just refer to there
+
+
+== Meaningfull Names
+Florian Kaufmann <sensorflo@bigfoot.com>
+
+A summary of chapter 2 of "Clean Code", Robert C. Martin
+
+=== Motivation
+
+- One part of clean code   
+- Names are everywhere (Files,Classe,Methods,...)
+- We name all the time, so we better be good at it
+  
+=== Be consistent
+  
+- Same thing has the same (base) name, and exactly same writting  
+  - So the reader doesn't need a table which names are synonyms (see also mental mapping)
+    - give anti example of such a mental table
+    - i really had to make such tables, even write them down, because I coudn't keep them in mind
+  - So a writer doesn't has too look up the exact spelling
+  - Quicker searching / writing (no need to look up actual name)
+  
+- Stick with *one* of:
+  * get, fetch, retreive
+  * controller, manager, driver
+  
+- If you had a controller and a manager: what should the reader think it's the
+  difference?
+  
+  
+=== Avoid mental mapping / Use intention revealing names
+
+- Most very short names (a,b,x,y,tmp) are used as placeholder, and the reader always
+  has to map them to the actual concept. 
+- i,j,k for loop counters are ok because they are traditional, and thus the
+  reader doesn't need to mentaly map them
+- If a variable *requires* a comment, it's a smell. (Classes, members, methods
+  should be documented nevertheless just to make it clear - clarity is king).
+  
+  void copy(char a1[], char a2[])
+  {
+    
+  }
+  
+  void copy(char destination[], char source[])
+  {
+    
+  }
+  
+=== Use pronouncable names
+
+- The human brain is good at words, which are by definition pronouncable.
+- 
+  
+GenerationDate instead genymd (year, month, day)
+  
+[Personal opinion: abbrevs are ok, they are spoken in mind (I speak source, not
+es ar cee)]
+
+
+=== Don't be cute / Don't show off your smartness
+
+Bad examples:
+- whack for an premature abort
+- r for an url with host and scheme removed
+
+- Every should be able to read the code  
+- Choose clarity over entertainment value
+
+  
+=== Avoid disinformation
+
+examples of disinformation   
+- inconsistent naming
+- use of names that already have a meaning for us programmers for another thing
+  
+exmaples of noninformation  
+- Avoid noninformative words like manager, processor, data, info
+  
+examples of information
+- same thing has same name
+- different things have different names
+  
+  
+=== Make Meaningful Distinctions
+
+If you have multiple similar things, then the name should reveal the difference.    
+  
+Don't use noise words to make a 'distinction' (its then only a pseudo distinction). Customer instead customerInfo,
+account instead accountData.
+  
+   
+=== Use of solution/problem domain names
+
+- People reading the code are also programmers
+   
+   
+=== Add meaningfull context   
+   
+- Only a few names are meaningfull for themselves
+  - 'State': like on/off or like Nevada?
+- 
+     
+=== Don't add gratuitous context  
+  
+Our Mod's interface methods always have the mod's prefix.  
+    
+   
+   
+=== Misc.
+
+.Class names
+- Nouns, noun phrases: Customer, WikiPage, Account
+
+.Method names
+- verb, verbphrase
+  
+- Name = abbreviated brief comment
+- A variable has one Aufgabe (thats why i use const).
+- Length of variable should correspond to the size of its scope. Local names can
+  be short, members can be medium, class names shoudnt be short.
+- Shorter names are generally better; however they must be clear in theyr whole scope.
+- Don't be afraid of renaming. The better readability pays off for all future
+  reading of the code. 
+- Try different names, look at the resulting code, how it feels/reads.  
+- When the code just reads like a prosa text, without the needs for comments, then
+  you accomplished the goals of good naming.
+- As the feature set gets bigger and bigger, names must change, when new new
+  names have similarities/differences with existing names to make those
+  similarities/differences clear.  
+
+=== Personal
+
+Experience show me that I prefer abbrevations when the full word is used many
+many times. Then a reader will get accustimized to the abbrev quickly. The full
+word makes the code cumbersome to read because too many variables get too long,
+not even simple statements fit onto one line.
 
 
 == Unsorted
@@ -623,6 +883,33 @@ modified.
 Name ranges +first+, +last+ (or even +last_incl+) to make clear that the last
 is inclusive.
 
+The primal conundrum: Experience shows that a messy code slows you down. Yet you
+feel the pressure to make messes in order to meet deadlines. The *only* way to
+make the deadline / to go fast is to keep the code clean.
+
+Take the time to go fast.
+
+Code mess is proportional to Fö**s per minute.
+
+LeBlanc's law: ``Later equals never''
+
+Do it or leave it. Leave it: nicht doch aufschreiben: Wenn Problem genügend gross kommts
+einem schon wieder in den Sinn.
+
+YAGNI -- You aren't gonna need it.
+
+What is clean code? Catch-phrases from answers of programming gurus:
+
+- simple
+- reads like prose        
+- logic is straightforward        
+- does not obscure the writters intent      
+- each routine you read turns out to be pretty much what you expected
+- does one thing well 
+- provides one way, rather than many, for doing one thing
+- minimal dependencies/API
+
+
 
 == References
 
@@ -640,7 +927,6 @@ is inclusive.
 
 
 == Further reading
-
 
 - http://stackoverflow.com/questions/388242/the-definitive-c-book-guide-and-list
 - https://sourcemaking.com/
