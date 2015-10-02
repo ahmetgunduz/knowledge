@@ -73,8 +73,18 @@ Glyph:: A glyph is a specific shape that represents that grapheme. E.g. in each 
 
 Character in computing:: Historically, the term character has been widely used by industry professionals to refer to an encoded character.  Nowadays a character is increasingly being seen as a unit of information, independent of any particular visual manifestation.
 
+text element:: A sequence of one or more characters. Certain of these sequences are called combining character sequences, see there. What a text element exactly is, is dependend on the process of handling the text. E.g. in historic Spanish language sorting, "ll" counts as single text element, but when typed, it's two seperate text elements.
+
+combining character sequence:: See also text element.
+
+character::
+code element:: A code element (aka character) is fundamental and useful for computer text processing. Each code element has a single number (called code point) and a unique name (e.g. ``LATIN CAPITAL LETTER A'') assigned. For the most part, code elements correspond to the most commonly used text elements.
+
 code point::
-code position:: is any of the numerical values that make up the _code space_.
+code position:: The number assigned to a code element, see there.
+
+grapheme cluster::
+user-perceived character::
 
 code page:: A vendor specific character encoding. The name of a code page is vendor specific and typically a number. The actual definition of the mapping might be something that is well known in a larger scope, e.g. UTF-8 has code page numbers 1208 at IBM, 65001 at Microsoft, 4110 at SAP.
 
