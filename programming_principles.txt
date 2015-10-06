@@ -46,10 +46,29 @@ reentrant, reentrancy, thread safe, cache contention / coherence ...
 
 building, compiling, linking, JIT,
 
-Data segment, BSS segment, text segment, heap, stack segment (per thread!),
-(process) global/static data (segment), Thread-local storage (TLS) (static or
-global memory local to a thread) (one segment per thread!), local data, memory
-mapping segment,
-http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory/
+== Memory / dynamic memory management
+
+The malloc family of dynamic memory management functions internally build on
+top of virtual memory regions provided by the kernel: typically a contiguous
+heap and a set of pages via anonymous memory mapping.
+
+In case of POSIX, the heap's size can be adjusted via the brk (program break)
+and sbrk system calls.  Note that technically only it's end address can be
+modified, i.e. it's a contiguous virtual memory region, i.e. when there are
+large free gaps between used heap regions, they can't be given back to the
+kernel.
+
+In case of POSIX, anonymous memory mapped pages can be mapped with the mmap
+system call.
+
+- malloc(2) (C standard library). The notes section says that under the hood
+  sbrk and mmap is used.
+- brk(2) / sbrk(2) (C POSIX library, system calls)
+- http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory/
+- http://duartes.org/gustavo/blog/post/how-the-kernel-manages-your-memory/
+- https://sploitfun.wordpress.com/2015/02/11/syscalls-used-by-malloc/
+
+//  LocalWords:  sbrk mmap malloc brk fdisk mkdir loadkeys BSS TLS
+
 
 
