@@ -44,6 +44,10 @@ Order statistic tree
 
 === Brainstorming
 
+* Measure first, tune what matters.  If you don't have all the relevant
+  information, you can't make the right decision, and you can't have the
+  right information until you measure.
+
 * While using CPU or a ressource in general
  - Efficiency: Do the minimum amount of work needed to accomplish the task
 
