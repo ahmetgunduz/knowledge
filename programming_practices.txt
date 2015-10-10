@@ -824,6 +824,12 @@ data and environment.
 
 == Unsorted
 
+When attacking a problem, e.g. improve efficiency/performance, finding a bug,
+and after some initial investigation you have different leads, then don't follow
+one lead for a too long time, alternate between the leads (like a task
+scheduler) to avoid being stuck in a `hard' lead and avoid missing evaluating an
+`easy' lead.
+
 Object relationships:
 Composition:
   Aggregation: has-a / owns-a
@@ -894,6 +900,8 @@ What is clean code? Catch-phrases from answers of programming gurus:
 - provides one way, rather than many, for doing one thing
 - minimal dependencies/API
 
+A cache shall also store that a key is not available in the src, to distinguish
+between cachemiss and cachehit-thereIsNothingInTheSource
 
 
 == References
@@ -917,6 +925,7 @@ What is clean code? Catch-phrases from answers of programming gurus:
 - https://sourcemaking.com/
 
 // Local Variables:
+// coding: utf-8
 // compile-command: "asciidoc -a toc programming_practices.txt"
 // End:
 
