@@ -792,6 +792,36 @@ word makes the code cumbersome to read because too many variables get too long,
 not even simple statements fit onto one line.
 
 
+== Efficiency & performance
+
+You can't take the right decisions if you don't have the right information, and
+you can't have the right information if you don't meausure with the right input
+data and environment.
+
+
+=== Measurement
+
+- Measure with real world data, with real world builds (i.e. typically release,
+  i.e. typically with optimizations), on real world HW, on real world ....
+
+- Measure different things, and visualize each measurement in different way.
+  Each combination (thing measured, visualization variant) highlights a
+  different class of problems. Only then we have a good overview of all the
+  different problems that we currently have, and can have a sense which one is
+  the most serious one and should be attacked first.
+  * cpu-off time
+  * number of calls of a given method
+  * as perf report
+  * as perf flamegraph
+  * as perf samples displayed in sampling order as flame graph
+
+- On wait time / why seeing wait time (aka cpu off time) can be important:
+  Naturaly a thread might wait for many different reasons, not only for another
+  thread. I.e. its not that over all threads, work is done. E.g. if there are
+  only N entities of a given ressource, when used up, multiple threads wait
+  until they get an entity. Often N is one, e.g. a mutex.
+
+
 == Unsorted
 
 Object relationships:
