@@ -762,7 +762,7 @@ Our Mod's interface methods always have the mod's prefix.
     
    
    
-=== Misc.
+=== Naming misc.
 
 .Class names
 - Nouns, noun phrases: Customer, WikiPage, Account
@@ -784,7 +784,7 @@ Our Mod's interface methods always have the mod's prefix.
   names have similarities/differences with existing names to make those
   similarities/differences clear.  
 
-=== Personal
+=== Naming personal
 
 Experience show me that I prefer abbrevations when the full word is used many
 many times. Then a reader will get accustimized to the abbrev quickly. The full
