@@ -20,26 +20,42 @@ Status of working tree / index file::
 
 == Transitions
 
-.Working tree -> Index file
-- ++git add FILEPATTERN...++ for new or changed files
-- ++git rm FILE...++
-- ++git mv ...++
+The following copy files between the following three participants: the working
+tree, the index aka the staging area and the repository.
 
-- ++git diff++ 
+.Working tree -> Index
+- all but ignored: ++git add -A++
+- single files: ++git add <pathspec>...++
 
-- ++git reset PATH...++ Reset the index entries of the given path. 
+.Working tree -> index and new commit in repository
+I.e. additionally HEAD is modified.
+Its not possible to only copy to repository but not also to index.
+- all (which are also in index): ++git commit -a++
+- single files (which must also be in index): ++git commit <file>...++
 
-.Index file -> Repository aka HEAD
-- ++git commit++
-- ++git diff --cached++ 
+.Remove from working tree
+- single files: ++/bin/rm <file>...++
 
-.Working tree -> Repository aka HEAD (i.e. direct, without using index)
-- ++git commit FILE...++. Ignores Index. Not for new files.
-- ++git commit -a++. Add changes from all known files.
-- ++git diff HEAD++
+.Index -> new commit in repository
+I.e. additionally HEAD is modified
+- all: ++git commit++
 
-.Index file -> Working tree
-- ++git mv ...++
+.Index -> Working tree
+- all: ++git checkout-index -a++
+- single files: ++git checkout-index <file>...++
+
+.Remove from Index
+- single files: ++git rm --cache <file>...++
+
+.Repository -> Index
+- ???
+
+.Repository aka HEAD -> working tree
+- ???
+
+.Remove from repository
+Fortunately not directly possible.  When commits, or git objects in general,
+become unreachable, eventually they will be pruned by the garbage collector.
 
 
 == Undo Mistakes
@@ -156,3 +172,5 @@ Git Extensions::
 
 === Graphical log
 - Tortoise and QGit are the only ones that displays it in a way I find it convenient
+
+//  LocalWords:  pathspec
