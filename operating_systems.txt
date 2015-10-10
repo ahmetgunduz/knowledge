@@ -356,6 +356,9 @@ cache is wasted, only memory.
 - http://duartes.org/gustavo/blog/post/how-the-kernel-manages-your-memory/
 - http://gperftools.googlecode.com/svn/trunk/doc/tcmalloc.html
 - linux /proc/meminfo: https://www.centos.org/docs/5/html/5.2/Deployment_Guide/s2-proc-meminfo.html
+- http://www.akkadia.org/drepper/tls.pdf, http://docs.oracle.com/cd/E19683-01/817-3677/chapter8-1/index.html, https://en.wikipedia.org/wiki/Thread-local_storage#Pthreads_implementation
+
+
 
 // Local Variables:
 // eval: (visual-line-mode 1)
