@@ -128,3 +128,14 @@ perf report -g -T
 - http://stackoverflow.com/questions/1759300/when-should-i-write-the-keyword-inline-for-a-function-method
 - http://stackoverflow.com/questions/145838/benefits-of-inline-functions-in-c
 
+
+== Build tools / Libraries
+
+=== Linker
+Consider using gold opposed to the GNU linker
+
+=== Compiler
+gcc, clang
+
+=== dynamic memory allocation
+consider using tcmalloc
