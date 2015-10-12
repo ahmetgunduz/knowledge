@@ -73,9 +73,11 @@ Order statistic tree
 
 As root, edit +++/etc/sysctl.conf+++, add the line +++kernel.perf_event_paranoid = -1+++, make it `active' with +++sysctl -p+++. See also http://unix.stackexchange.com/questions/14227/do-i-need-root-admin-permissions-to-run-userspace-perf-tool-perf-events-ar, http://www.cyberciti.biz/faq/howto-set-sysctl-variables/
 
+Use the option -fno-omit-frame-pointer to compile.
+
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 perf record -g -s mycommand_and_args
-perf report -T
+perf report -g -T
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
 +perf top+
