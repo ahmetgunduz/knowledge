@@ -1,11 +1,11 @@
 Program       = List;
 ## 1) Guesswork: If last command is not a simple command a trailing
-##    AndOrListTerm is optional. Even for a simple command it is optional at
-##    the end of the program.
-List          = (AndOrList AndOrListTerm#1)+; 
+##    AndOrListTerminator is optional. Even for a simple command it is optional
+##    at the end of the program.
+List          = (AndOrList AndOrListTerminator#1)+; 
 AndOrList     = (Pipe (`&& #And |`|| #Or){l0})+; ## equal precedence,
-                                                ## lr associativity
-AndOrListTerm = \&#Async | (\;|\n)#Sync;  
+                                                 ## lr associativity
+AndOrListTerminator = \&#Async | (\;|\n)#Sync;  
 ## Each command is executed in its own subshell. Pipe's exit status = last
 ## commands' exit status, unless pipefail option is set.
 Pipe          = ['time [`-p ]] [\!]#NegatesExitCode (Command \|{l0} )+;  
@@ -17,7 +17,7 @@ SimpleCommand =
 CompoundCommand = 	
   `( List `)            | ## Executed in subshell.
   `{ List#1 `}          | ## Executed in current shell. 1) A trailing simple
-                          ## command must be terminated with AndOrListTerm
+                          ## command must be terminated with AndOrListTerminator
   `(( ArithmeticExp `)) | ## Arithmetic evaluation 
   `[[ CCCondExp `]] |     ## Conditional Expression. Exit status 0 when CondExp is true, 1 otherwise
   FlowControlCommand;     
