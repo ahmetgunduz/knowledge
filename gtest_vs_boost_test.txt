@@ -1,0 +1,746 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+= GTest vs boost test
+
+To avoid confusion, when GTest's terminology diverges from boost's
+terminology, this document always states both terms like so: (Google:
+__Google's term__, boost: __boost's term__). See also <<glossary>>.
+
+
+[[summary]]
+== Conclusion and summary of differences
+
+Whether Xentis should use GTest or boost test depends very much on how the
+points in which they differ are prioritized.  According to my order of
+priority, based on my experience in automated testing and on reading books and
+web sites on the topic of automated testing, I would prefer GTest over boost
+test.
+
+Roughly ordered after priority (see <<kafls_priorities>>), highest first, not
+listing points where both are on a par.
+
+[cols="30%,^10%,^10%,50%"]
+|===
+| | GTest | boost test | comment
+
+| Mock library | [green]#✔# | [red,small]#✗# | Boost doesn't provide a mock library.  GMock + GTest
+is more seamless and easier to learn/maintain than GMock + boost test.
+
+| Matchers | [green]#✔# | [red,small]#✗# | Actually part of
+GMock, not GTest
+
+| Not forced to provide operator<< for custom types  | [green]#✔# | [red,small]#✗# | 
+
+| Easier to debug | [green]#✔# | [red,small]#✗# | Boost's BOOST_TEST is
+awkward to debug.  GTest allows to turn assertion failures into breakpoints.
+
+| Assertion's custom output is _in addition_ to default output | [green]#✔# |
+[red,small]#✗# | in boost test, custom output `overwrites' the normal output
+
+| Assertion-bound context & Checkpoints | [red,small]#✗# | [green]#✔# |
+
+| More versatile unconditional log messages | [red,small]#✗# | [green]#✔# |
+
+| Death tests  | [green]#✔# | [red,small]#✗# | 
+
+| More complete and generally better documentation | [green]#✔# |
+[red,small]#✗# | This is KAFL's opinion, it might be arguable which one is
+better.
+
+| Known by much more developers | [green]#✔# | [red,small]#✗# | However the
+data is coming from Google, so it might be biased
+
+| Arbitrary deep test hierarchy | [red,small]#✗# | [green]#✔# |
+
+| Shuffle tests | [green]#✔# | [red,small]#✗# | 
+
+| Custom test event handlers | [green]#✔# | [red,small]#✗# | 
+
+| Arbitrary deep test hierarchy | [red,small]#✗# | [green]#✔# |
+
+| Number of assertion levels  | [red,small]#2# | [green]#3# | boost
+additionally also has a WARN assertion which only logs but does not modify the
+status of the (Google: test / boost: test case).
+
+| Disabling assertions to some extend | [red,small]#✗# | [green]#✔# | boost,
+can, via decorators, specify the number of assertions that can fail in a
+(Google: test / boost: test case)
+|===
+
+In this chapter I don't want to summarize the points where GTest and boost
+test are on a par, with the following note worthy exceptions:
+
+[cols="30%,^10%,^10%,50%"]
+|===
+| | GTest | boost test | comment
+
+| produce output that Hudson understands | [green]#✔# | ([green]#✔#) | I am
+not entirely sure with boost test, but I am quite confident that boost test
+can do it. 
+
+| not introducing new library dependencies | [red,small]#✗# | [red,small]#✗# |
+we already have a dependency to boost.  However since boost does not provide a
+mock library, there will be a new library dependency anyway.
+
+| BOOST_TEST is badly documented | | | BOOST_TEST sounds awesome at first since it can print every
+node in the expression of the condition, but it is badly documented and one
+thus never really knows the rules.
+
+|===
+
+
+== GTest advantages
+
+
+=== More seamless integration of GMock
+
+Boost provides no mock framework.  Google mock aka GMock is an popular one in
+the C&plus;&plus; world.  GMock can theoretically be made work with any
+testing framework, thus also with boost test, but obviously it integrates most
+seamlessly with GTest.
+
+If we would use a GMock together with boost test, then automated tests would
+use a mixture of boost's assertions / custom predicates and GMock/GTest's
+assertions / custom predicates / matchers.  That is developers had to learn
+both worlds.
+
+For more information on what GMock is see <<gmock_intro>>.
+
+Use GMock with boost test: https://www.semipol.de/2010/04/13/using-googlemock-with-the-boost-test-library.html
+
+
+=== Death tests
+
+In contrast to GTest, boost doesn't provide death tests.  Among other things,
+they are useful to ensure that a given assert (the one defined by
+C&plus;&plus; in <cassert>) in the UUT actually fires.
+
+Extract from GTest documentation: ++(EXPECT|ASSERT)_DEATH('statement',
+'regex')++ asserts that statement crashes with the given error.
+++(EXPECT|ASSERT)_EXIT('statement', 'predicate', 'regex')++ asserts that
+statement exits with the given error and its exit code matches predicate.
++'statement'+ is a statement that is expected to cause the process to die,
++'predicate'+ is a function or function object that evaluates an integer exit
+status, and +'regex'+ is a regular expression that the stderr output of
+statement is expected to match.
+
+See https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Death_Tests[GTest].
+
+
+=== Assertion's custom output is _in addition_ to default output
+
+Both GTest and boost support custom failure messages via use of streaming.
+However in GTest that user message is _in addition_ to the default message.
+In boost the user message _replaces_ the default message, which means the user
+is forced to redundantly duplicate code to also produce the default message,
+unless she really meant to completely replace it.  Note that through
+<<custom_predicates>>, GTest also supports customize the `default message
+part'.
+
+Examples:
+
+boost:
+--------------------------------------------------
+BOOST_TEST(foo(a)==b);
+BOOST_TEST(foo(a)==b, "a=" << a);
+--------------------------------------------------
+
+Output (deduced from examples, I couldn't make boost test compile):
+--------------------------------------------------
+test.cpp(16): error: in "test_message": check foo(a) < b has failed [13 >= 12]
+test.cpp(15): error: in "test_message": a=13
+--------------------------------------------------
+
+GTest:
+--------------------------------------------------
+EXPECT_EQ(foo(a), b);
+EXPECT_EQ(foo(a), b) << "a=" << a;
+--------------------------------------------------
+
+Output:
+--------------------------------------------------
+main.cpp:29: Failure
+Value of: b
+  Actual: 1
+Expected: foo(a)
+Which is: 4
+main.cpp:30: Failure
+Value of: b
+  Actual: 1
+Expected: foo(a)
+Which is: 4
+a=3
+--------------------------------------------------
+
+See also:
+https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Teaching_Google_Test_How_to_Print_Your_Values[GTest],
+http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/testing_tools/reports.html[boost]
+
+
+=== Matchers
+
+GTest has matchers, which are similar to what
+https://en.wikipedia.org/wiki/Hamcrest[Hamcrest] provides.
+
+I am not sure yet whether boost's custom predicates are as strong as google
+matchers, I guess not.  Even if so, GTest has more matchers readily available.
+Granted, boost has BOOST_TEST, see <<boost_test>>.  Still matchers are more
+generic, since they are not restricted to operators and since custom matchers
+can be written.
+
+Basic idea of matchers: Opposed to e.g. ++EXPECT_TRUE(a>=b && a\<=c)++, one
+writes ++EXPECT_THAT(a, AllOf(Ge(b), Le(c)))++, which results in much better
+messages in case of failure, because the matchers know how to print themselves
+in case of failure.  Also, the concept is much more generic, considering that
+custom matchers can easily be written.  That is similar to
+<<custom_predicates>>, but yet much cleaner and more generic, since matchers
+can be composed, but custom predicates can't.  (Really? Why should't that
+technically possible?  It would even be more generic, since with matcher's
+you're forced to pass the first arg to assert_that, i.e. the value which is
+matched against.)
+
+Example: The following fragment in a test:
+--------------------------------------------------
+int a = 1;
+int b = 2;
+int c = 3;
+EXPECT_THAT(a, AllOf(Ge(b), Le(c)));
+--------------------------------------------------
+
+produces this output:
+--------------------------------------------------
+main.cpp:27: Failure
+Value of: a
+Expected: (is >= 2) and (is <= 3)
+  Actual: 1 (of type int)
+--------------------------------------------------
+
+Note that actually, by historic accident, matchers are implemented in GMock
+instead GTest.  See
+https://code.google.com/p/googlemock/wiki/V1_7_CheatSheet#Matchers[GMock]
+
+
+=== Shuffle tests
+GTest allows to shuffle (Google: tests / boost: test cases). That is useful to
+help detect the unwanted case that tests have dependencies. 
+
+See
+https://code.google.com/p/googletest/wiki/AdvancedGuide#Shuffling_the_Tests[GTest]
+
+
+[[documentation]]
+=== More complete and generally better documentation
+
+I find the GTest and GMock documentation more complete and generally better
+than boost tests'.
+
+E.g. boost's documentation on how to customize the log
+output is empty, see
+http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/test_output/log_compil_time_configuration/custom_log_formatter.html. That
+information might be relevant to judge whether boost test can be made to
+produce an XML output which Hudson understands.
+
+E.g. boost's BOOST_TEST assertion macro seems pretty awesome since it can
+print the value of `every' (that is not really true as it turns out) node of
+the expression that makes up the condition.  It does not explain well how what
+one has to consider regarding custom types.  Which constructors and/or
+operators must be provided?  Which constructors and/or operators cannot be
+defined/overloaded?  See also chapter <<boost_test>>.
+
+
+
+[[print_custom_types]]
+=== Not forced to provide operator<< for custom types
+
+Both GTest and boost test can automatically log the content of objects using
+operator<< (i.e. ++ostream& operator<<(ostream&,const MyType&)++). E.g. if the assertion
++EXPECT_EQ(a, b)+ fails, the output contains the content of the objects a and
+b, even if they're of custom type, provided that type provides
+operator<<. GTest alternatively also allows to define the printer via a
+method defined like ++void PrintTo(const MyType&, ostream*)++
+
+In the case of boost, contrary to GTest, the test doesn't compile if no
+operator<< for a used type is provided.  To make it compile, one has to either
+define operator<<, or use a special macro to tell boost test that this given
+type has no operator<<.  This is a big burden when we would start to introduce
+boost test, since most of our types don't have operator<< defined.
+
+See
+https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Teaching_Google_Test_How_to_Print_Your_Values[GTest] and
+http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/test_output/testing_tool_output_disable.html[Boost].
+
+
+=== Custom test event handlers / customize log format
+
+Opposed to boost, GTest lets you write event handlers.  Events are
+e.g. On(TestProgram|TestCase|Test)(Start|End) or OnTestPartResult (when an
+assertion fires).
+
+The standard / default printer which is used to log is implemented in terms of
+such an event handler.  It can be replaced by a custom printer in order to
+customize the format of the log output.  See also <<custom_log_format>>.
+
+See https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Extending_Google_Test_by_Handling_Test_Events[GTest]
+
+
+=== More convenient to debug
+
+==== Boost's BOOST_TEST is awkward to debug
+
+Extract boost's documentation: In case you observe a failure in unit tests and
+you are using a debugger to determine the cause, it may get really difficult
+to step into the expression inside an assertion.  Because BOOST_TEST builds an
+expression tree before evaluating it, the "Step Into" function of the debugger
+will have to step into every step of building the expression tree before, you
+can go into the evaluation of the expression.  More:
+http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/testing_tools/debugging.html
+
+
+==== Turn assertion failures into breakpoints
+
+When running the test program under a debugger, optionally the debugger can
+catch an assertion failure and drop into interactive mode.  See
+https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Turning_Assertion_Failures_into_Break-Points[GTest]
+
+Similar behavior probably can be mimicked with boost by just setting
+breakpoints at the right locations in boost source code, but the problem is to
+find _all_ locations where a breakpoint needs to be set.
+
+
+=== Known by more developers
+
+Google trends shows that there is _much_ more interest in Google test than
+boost test.  So it's more likely that (new) developers know GTest / GMock than
+boost test.  However, obviously, the data coming from Google might be biased.
+On the other hand, Google doesn't sell GTest / GMock.
+
+
+
+== boost test advantages
+
+
+=== Arbitrary deep test hierarchy
+Testing hierarchy: GTest has exactly three levels (one test program, which
+consists of zero or more test cases, each of which consists of zero or more
+tests).  Boost's hierarchy is two levels or arbitrarily more.
+
+That might make it easier to select a subset of (Google: test / boost: test
+case)s to be run.  On the other hand, I expect that we have one (Google: test
+program, boost: ?) per module (e.g. business rules, investment
+performance, ...).  Within that test program, a larger than three level
+hierarchy is often not needed.  Also GTest offers other means (e.g. regular
+expressions matching (Google: test / boost: test case) names or (Google: case
+/ boost: test suite) names, just as boost test, to select a subset of (Google:
+test / boost: test case)s to be run.
+
+
+=== Three vs two assertion levels
+Boost and GTest both have a fatal and a non-fatal assertion, but boost
+additionally also has a WARN assertion which only logs but does not modify the
+status of the (Google: test / boost: test case).
+
+More details:
+
+GTest: +EXPECT+: non-fatal, i.e. execution of (Google: test / boost: test case)
+continues, but the output contains a note that the given assertion failed.
++ASSERT+: fatal: execution of (Google: test / boost: test case) is aborted.
+      
+boost: +CHECK+: as GTest's +EXPECT+. +REQUIRE+: as GTest's +ASSERT+. +WARN:+
+does not change the status of the (Google: test / boost: test case); only logs
+a warning message.
+
+Note: both GTest and boost test fail to provide an assertion level I deem very
+useful: an assertion level which asserts that preconditions of a test are met.
+E.g. if a test fails to setup, then it is unknown what the result of the
+`real' assertions in the verify phase is.  Thus it is unknown whether the
+specification that goes with the test was met or not, and that fact should be
+communicated to the user.  Opposed to wrongly telling him `the specification
+was not met'.
+
+
+=== Assertion-bound context
+
+Both GTest and boost have (Google: scoped traces / boost: Scope-bound
+context), see <<scoped_traces>>.  However boost additionally has what it calls
+assertion-bound context: What you `log' with +BOOST_TEST_INFO+ is only really
+logged with the next assertion of the current (Google: test / boost: test
+case) that actually fires.  That is useful if it's not feasible to provide all
+information that one likes to see at the place were the actual assertion
+macro is.
+
+--------------------------------------------------
+static bool g = true;
+
+void test() {
+  BOOST_TEST(g);
+}
+
+BOOST_AUTO_TEST_CASE(test_case1)
+{
+  BOOST_TEST_INFO("phase 1");
+  g = true;
+  test();
+  BOOST_TEST_INFO("phase 2");
+  g = false;
+  test();
+}
+--------------------------------------------------
+
+Output (deduced from examples, I couldn't make boost test compile):
+--------------------------------------------------
+test.cpp(14): error: in "test_case1": check false has failed
+Failure occurred in a following context:
+    phase 2
+--------------------------------------------------
+
+See
+http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/test_output/contexts.html[boost]
+
+
+=== Checkpoints
+
+After ++BOOST_TEST_CHECKPOINT(_message_)++, the given message will be printed
+if at some later point in the same (Google: test / boost: test case) an
+(unexpected) exception occurs.
+
+Example: the following test:
+--------------------------------------------------
+int foo( int i )
+{
+  return 1/i;
+}
+
+BOOST_AUTO_TEST_CASE( test_external_interface )
+{
+  for( int i = 3; i>=0; --i ) {
+    BOOST_TEST_CHECKPOINT( "Calling foo with i=" << i );
+    foo( i );
+  }
+}
+--------------------------------------------------
+
+produces this output (deduced from examples, I couldn't make boost test compile):
+------------------------------------------------------------
+unknown location(0): fatal error in "test_external_interface": signal: integer divide by zero; address of failing instruction: 0x00048090
+test.cpp(9): last checkpoint: Calling foo with i=1
+------------------------------------------------------------
+
+See http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/test_output/checkpoints.html[boost].
+
+
+
+=== More versatile unconditional log messages
+
+Both GTest and boost allow to log unconditionally information into the test's
+log output.  However boost's ++BOOST_TEST_MESSAGE( foo << bar << ... )++ lets
+you stream arbitrary stuff, while GTest's ++RecordProperty("'key'", 'value')++
+is less general.  
+
+https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Logging_Additional_Information[GTest],
+http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/test_output/test_output_macro_message.html[boost]
+
+
+=== Disabling assertions to some extend
+
+Both GTest and boost allow to (temporarily) disable (Google: test / boost:
+test case)s.  But boost also allows to disable (Google: test case / boost:
+test suite)s and to some extend assertions.
+
+More details:
+
+boost, can, via decorators, specify the number of assertions that can fail in a
+(Google: test / boost: test case).  This is useful when for some reasons it is
+known that temporarily N assertions of a (Google: test / boost: test case)
+fail.
+
+
+== GTest and boost on a par
+
+Since here GTest and boost are on a par, I don't give any details or examples.
+
+- Both don't enforce having to use fixtures.
+
+- Both support assertions which assert that the UUT throws any exception type,
+  or a specific exception type, or doesn't throw at all.  See
+  https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Exception_Assertions[GTest],
+  http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/utf_reference/testing_tool_ref.html[boost]
+
+- Both have multiple assertions to compare floating-points in sane ways.
+See
+https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Floating-Point_Comparison[GTest],
+http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/testing_tools/extended_comparison/floating_point.html[boost].
+
+[[scoped_traces]]
+- Both have (Google: scoped traces / boost: Scope-bound context).  See
+  https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Adding_Traces_to_Assertions[GTest],
+  http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/test_output/contexts.html[boost]
+
+- Both report execution times of (Google: test / boost: test case)s
+
+- As Glen correctly points out, Xentis already has a dependency to the boost
+  library, but not yet to GTest.  However since we most likely want a mock
+  library for sane unit testing, and boost doesn't provide a mock library,
+  there will be a new library dependency anyway.
+
+
+=== Details not yet investigated
+
+Points where both are on a par from a broad perspective, where I haven't
+looked at the details yet.
+
+[[custom_predicates]]
+- Both support custom predicates, which store the Boolean result and a message
+  in case of failure.  See
+  https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Predicate_Assertions_for_Better_Error_Messages[GTest],
+  http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/testing_tools/custom_predicates.html[boost]
+
+- Both have fixtures.  See
+  https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Sharing_Resources_Between_Tests_in_the_Same_Test_Case[GTest test fixture],  
+  https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Global_Set-Up_and_Tear-Down[GTest
+  global setup tear-down],  
+  http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/tests_organization/fixtures.html[boost]
+
+- Both have (Google: value parameterized tests / boost: Data-driven test cases).  See
+  https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Value_Parameterized_Tests[GTest],
+  http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/tests_organization/test_cases/test_case_generation.html[boost]
+
+- Both have (Google: Type-Parameterized Tests / boost: Template test
+  cases).
+https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Type-Parameterized_Tests[GTest
+type-parameterized tests],
+https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Typed_Tests[GTest
+typed test],
+http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/tests_organization/test_cases/test_organization_templates.html[boost]
+
+[[custom_log_format]]
+- Both support to customize the log format / both can be made produce XML
+  output that Hudson understands.  I'm not entirely sure with boost, there are
+  references that it is possible, but the actual documentation is empty.
+https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Extending_Google_Test_by_Handling_Test_Events[GTest],
+http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/test_output/log_compil_time_configuration.html[boost]
+
+
+[[boost_test]]
+=== boost test's BOOST_TEST assertion
+
+This chapter is about why I regard the seemingly awesome BOOST_TEST assertion
+macro as neutral after all.  It sounds awesome because it boasts that it can
+print every the value of every node of the conditional expression.  E.g. if
+the following assertion fails:
+
+--------------------------------------------------
+BOOST_TEST(a + 1 < b);
+--------------------------------------------------
+
+the output will contain:
+
+--------------------------------------------------
+test.cpp:18: error: in "mytest": check a + 1 < b has failed [1 + 1 >= 2]
+--------------------------------------------------
+
+However as the chapter <<documentation>> explains, it is badly documented what
+the rules and restrictions are for custom types.  I don't like the idea that I
+never really know what the rules are for custom types.  
+
+The following I found out by experiment:
+
+- It cannot really print the _full_ expression tree.  It works by making the
+  left-most operand and boost-internal type, and then use operator overloading
+  from there, which is affected by operator precedence and associativity.
+  That e.g. means that in ++a*b == c*d++, the nodes +c+ and +d+ are not
+  reached.  The output only the values for the nodes +a+, +b+, and +c*d+, but
+  not for +c+ and +d+.
+
+- The copy constructor _must_ be defined
+
+- As always in boost test, operator<< must be defined for all types, see
+  <<print_custom_types>>.
+
+- Apparently only available since boost 1.59.
+
+
+== To-do
+
+Minor points which are still open: 
+
+- Probably that GTest's `fatal' assertion `only' leave the current function
+  can be viewed as a disadvantage.  I don't know yet how boost implements its
+  fatal assertions.  I think its not that much of an disadvantage, since
+  EXPECT is probably more often used than ASSERT.  When there are too many
+  assertions, be it EXPECT or ASSERT, in a test then it is a smell anyway.
+  See
+  https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Propagating_Fatal_Failures[GTest].
+
+- boost: Separation of the test errors description (test log) from the results
+  report summary (test results report)
+
+- boost: The Unit Test Framework provides the ability to configure what is
+  shown in both the test log and the test report.  The configuration is
+  supported both at run-time, during test module invocation and at compile
+  time from within a test module.
+
+- Testing private functions.  See
+  https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Testing_Private_Code[GTest].
+
+- See end of matchers chapter: which is more generic?  matchers or custom
+  predicates?
+
+
+[[kafls_priorities]]
+== KAFL's priorities
+
+I am only listing thoughts which affect the list of differences between GTest
+and boost test, see <<summary>>, i.e. their priority.
+
+It might be arguable how often a (Google: test / boost: test case) should make
+use of a mock library, but not having a mock library at all is certainly the
+wrong decision.  Writing an own mock library is certainly the wrong decision
+for the usual reasons concerning writing an own library which is far away from
+the core business of a company.  Thus we will need to choose a mocking
+library, and the testing framework we choose should seamlessly work together
+with that mocking library.
+
+Easy to introduce.  See also <<print_custom_types>> which states that boost
+test forces to provide operator<< for custom types.  If it's cumbersome to
+begin to write new tests, people wont do it, and that's about the worst that
+can happen.
+
+High quality log output of a test framework is crucial to get high defect
+localization, i.e. to quickly find and then fix the problem in case one or
+more tests fail.  In the normal case (and I really mean in practice, not only
+in theory) the output is good enough that you rather quickly know how to fix
+the problem after just reading the output of the failing assertions.  In the
+majority of cases there is no need to run the test again with a debugger
+attached or with extra log statements inserted.
+
+However if there is nevertheless a need to debug, the framework should not
+impede debugging.
+
+As any book about testing will tell you, you should strive after making tests
+independent of each other.
+
+
+[[gmock_intro]]
+== Tiny GMock introduction
+
+It doesn't make sense to write yet another introduction to GMock at this
+place, the reader is redirected to
+https://code.google.com/p/googlemock/wiki/V1_7_ForDummies[gmock for dummies],
+or https://code.google.com/p/googlemock/wiki/V1_7_Documentation[all GMock
+docu].
+
+However, the following is to an large extend a copy paste from another
+document I wrote about automated testing.
+
+In GMock, a mock is an object which's methods can do simple actions and
+possibly additionally can have expectations on the number of times and the
+order they are called.
+
+A mocks's method can execute simple _actions_.  These actions are defined on a
+per object basis using the ON_CALL macro.  Such simple actions can for example
+be `return a fix value' or `set an output parameter to a fix value' or
+`delegate the call to another object/method'. The defined actions are then
+executed when the method is called during exercising the test.  Using GMock,
+each method of a mock object automatically has a default action which is
+executed when no other action is defined.
+
+A method _additionally_ can have _expectations_, definable using the macro
+EXPECT_CALL, again on every object independently.  The possible expectations
+are how exactly the UUT has to use / call the mock object.  Say the mock
+object has the methods foo and bar, then a test can define expectations such
+as:
+
+* _Cardinality_: Method foo must be called exactly 3 times.  Or bar must be
+  called at least 2 times.
+
+* _Order_: Method foo and method bar must be called in exactly that order - see
+  http://code.google.com/p/googlemock/wiki/ForDummies#Ordered_vs_Unordered_Calls[ordered calls]
+
+* Use matchers to refine the definition of an expectation: foo must be called
+  with either 2.1 or 3.1414 as argument - see
+  http://code.google.com/p/googlemock/wiki/ForDummies#Matchers[matchers].
+
+
+Example:
+--------------------------------------------------
+// interface which is used by the class under test, and which during
+// producution is implemented by some production code class, and in a given
+// test by a mock (aka test double)
+class MyInterface {
+public:
+  virtual int bar() = 0;
+  virtual int foo(int, double) = 0;
+};
+
+class MyMock : public MyInterface {
+public:
+  MOCK_METHOD0(bar, int());
+  MOCK_METHOD2(foo, int(int, double));
+};
+
+class MyClassUnderTest {
+public:
+  void fred(const MyInterface&) {
+  }
+};
+
+TEST(MyTestCase, MyTest) {
+  // setup section
+  MyClassUnderTest uut;
+  MyMock mock;
+  ON_CALL(mock, bar())
+    .WillByDefault(Return(42)); // defines action: mock.bar() now always
+                                // returns 42 when called
+  EXPECT_CALL(mock, foo(3,_)) // defines expectation: when mock.foo is called,
+                              // the value of the first arg must be 42. The
+                              // value of the 2nd arg is irrelevant
+    .Times(AtLeast(1))   // defines expectation: mock.foo must be called at
+                         // least one time
+    .WillOnce(Return(1)) // defines action for the 1st call: to return 1
+    .WillOnce(Return(2)) // defines action for the 2nd call: to return 2
+    .WillRepeatedly(Return(42)); // defines action for all following calls: to
+                                 // return 42
+
+  // exerice section
+  uut.fred(mock);
+
+  // (implicit) verify section
+  // dtor of mock will now verify if the expectations were met.  If they were
+  // not, the test fails with an appropriate nice log explaining what
+  // happened.
+}
+--------------------------------------------------
+
+
+[[glossary]]
+== Glossary
+
+|===
+|boost          |GTest            |description
+|test assertion |assertion        | 
+|test body      |(no dedicated name)|The function body of the (Google: test / boost: test case)
+|test case      |test             |A leaf in the hierarchy     
+|test suite     |test case        |Collection of (Google: tests / boost: test cases)
+|test unit      |NA               |Collective name when referred to either a test suite or test cases.
+|test tree      |NA               |This is a hierarchical structure of test suites (non-leaf nodes) and test cases (leaf nodes). 
+|?              |test fixture     |So tests can share common objects/functions
+|?              |test program     |Collection of test cases
+|test runner    |?                |  
+|test log       |?                | 
+|test report    |?                | 
+|===
+
+== References
+
+
+- http://socialcompare.com/en/comparison/c-unit-testing-framework
+
+
+
+//  LocalWords:  GTest GMock UUT regex cassert Xentis parameterized Matchers
+//  LocalWords:  Hamcrest matchers breakpoint
+
+// Local Variables:
+// compile-command: "asciidoc -a toc gtest_vs_boost_test.txt"
+// End:
