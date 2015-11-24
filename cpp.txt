@@ -44,7 +44,7 @@ Mixed value categories:
 
 glvalue (generalized lvalue);; Properties: May be polymorphic, ... (few more).
 
-rvalue;; (Flori's words: 
+rvalue;; (Flori's words:
 
 Hence if we do have an (rvalue) reference to it, we can do with it what we want (since nobody will care),
 except for bringing it into an invalid state, in order that the ctor can run
@@ -157,9 +157,9 @@ match than a higher number.
 
 |===
 |                                       | mut lvalue | immut lvalue | mut rvalue | immut rvalue
-| ++T&&++: rvalue reference             |            |              | y (*) P1   |  
+| ++T&&++: rvalue reference             |            |              | y (*) P1   |
 | ++const T&&++: const rvalue reference |            |              | y (#) P2   | y (#) P1
-| ++T&++: lvalue reference              | y P1       |              |            | 
+| ++T&++: lvalue reference              | y P1       |              |            |
 | ++const T&++: const lvalue reference  | y P2       | y            | y P3       | y P2
 |===
 
@@ -178,7 +178,7 @@ the multiple viable overloaded methods. Concerning the cases of th above table, 
 == Initialization
 
 
-static	thread local	local	member, initialized in initializer list	member, initialized in class body	heap/new	temporary	return value	parameter	exception obj when throwing	exception obj when catching	
+static	thread local	local	member, initialized in initializer list	member, initialized in class body	heap/new	temporary	return value	parameter	exception obj when throwing	exception obj when catching
 initializers for locals:
 
 blank
@@ -254,37 +254,37 @@ local reference still exists, but the refered to object has been deleted.
 +for+ can is almost identical to:
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 {
-  init_statement 
-  while ( condition ) { 
-    statement 
-    iteration_expression ; 
+  init_statement
+  while ( condition ) {
+    statement
+    iteration_expression ;
   }
 }
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
-+for ( __range_declaration__ : __range_expression__ ) loop_statement+		
++for ( __range_declaration__ : __range_expression__ ) loop_statement+
  is similar to
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 {
-  auto&& __range = range_expression ; 
-  for (auto __begin = begin_expr, __end = end_expr; __begin != __end; ++__begin) { 
-    range_declaration = *__begin; 
-    loop_statement 
-  } 
-} 
+  auto&& __range = range_expression ;
+  for (auto __begin = begin_expr, __end = end_expr; __begin != __end; ++__begin) {
+    range_declaration = *__begin;
+    loop_statement
+  }
+}
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
 and thus
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 {
-  auto&& __range = range_expression ; 
+  auto&& __range = range_expression ;
   auto __begin = begin_expr, __end = end_expr
-  while (__begin != __end) { 
-    range_declaration = *__begin; 
-    loop_statement 
+  while (__begin != __end) {
+    range_declaration = *__begin;
+    loop_statement
      ++__begin;
-  } 
-} 
+  }
+}
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
