@@ -400,23 +400,17 @@ for (( ariexpr1 ; ariexpr2 ; ariexpr3 )) ; do list ; done
 
 Quoting
 
-escape character
-\
-Preserves literal value of next char (except <newline>)
-single quotes
-'
-Preserves literal value of all enclosed chars.
-double quotes
-"
-Preserves literal value of all enclosed chars with the following exceptions/notes:
-$ retains special meaning
- retains special meaning
-\ retains special meaning if followed by $   \ <newline>
-* becomes special meaning
-@ becomes special meaning
-Ansi-c quoting
-$
-$string expands to characters as specified by the ansi-c standart
+escape character (\) preserves literal value of next char (except <newline>)
+
+single quotes (') preserves literal value of all enclosed chars.
+
+double quotes (") preserves literal value of all enclosed chars with the
+following exceptions/notes: $ retains special meaning. \ retains special
+meaning if followed by $ " ` \ <newline>. * becomes special meaning.
+@ becomes special meaning.
+
+Ansi-c quoting: $\'string' expands to characters as specified by the ansi-c
+standart
 
 Expansion
 
