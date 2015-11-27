@@ -91,14 +91,14 @@ and quote removal but not pathname expansion and word splitting.
 ## is supplied as input.
 ## No expansion is done on word following <<[-]
 $simple
-[Fd] "<<"[\-] Word#Del ... #Del     
-      
-$medium      
+[Fd] "<<"[\-] Word#Del ... #Del
+
+$medium
 [Fd] "<<"[\-] @Del(Word) ... \n ## rest of cmd upto 1st unqoted \n
   ...        ## here document, incl trailing newline
-  @>Del\n;   ## line containing only delimiter  
+  @>Del\n;   ## line containing only delimiter
 
-[Fd] << [-] Delimiter 	
+[Fd] << [-] Delimiter
 ..................................................
 
 After the list(?) any sequence of characters form the input, until a line which
@@ -130,21 +130,21 @@ rules for Delimiter and supplied input.
 - If first token is a) an opening keyword, read next command and goto tokenize
   b) an alias, expand alias and goto tokenize c) another keyword, its a syntax
   error.
-  
+
 2. Each so resulting word undergoes then
 -  Brace expansion
-  
+
 3. Each so resulting word undergoes then
 - Tilde expansion.
 - Parameter expansion. DQ, 1)
 - Command substitution. DQ
 - Arithmetic substitution. DQ
-  
-- Process substituion. 
+
+- Process substituion.
 - Word splitting. NW
 - Pathname expansion. NW
-- Quote removal 
-  
+- Quote removal
+
 4. Command lookup.  First word is the command name, the following words are
 arguments.  If command name is +eval+, concatenate arguments into a single string
 and goto tokenize.  Else setup environment and run command.
@@ -157,13 +157,13 @@ NW:: Can change the number of words.  That has effect on the following steps.
 
 // # the words resulting from brace expansion are eligible for the rest of the
 // # expansions.
-// $ echo ~{flo,edi} 
+// $ echo ~{flo,edi}
 // /home/flo /home/edi
 // $ xpostfix=1; ypostfix=2;
 // $ echo {$x,$y}postfix
 // 1 2
 
-// # Expansions (except brace- and filename-) do not change number of words. 
+// # Expansions (except brace- and filename-) do not change number of words.
 // # It's word splitting who does that.
 // $ echo flo_text > flo; echo edi_text > edi
 // $ cat $(ls edi flo)
@@ -174,7 +174,7 @@ NW:: Can change the number of words.  That has effect on the following steps.
 // flo: No such file or directory
 
 
-// TODO: Add to table where whites are removed (e.g. command subst, proc subst)  
+// TODO: Add to table where whites are removed (e.g. command subst, proc subst)
 
 // Questions:
 // * When is it split into lists/pipes/compound commands/commands ?
@@ -190,13 +190,13 @@ BraceExpansion = [Preamble]\{(Seq|(EltStr\,{l0}){2,})\}[Postscript];
   Num = ['[+-]]'[0-9]+;
   Char = \a;
   Str = %simple \a* %exact ('[^\\,}]*[\\'[\\,}\s]])*;
-Word <=| BraceExpansion;   
+Word <=| BraceExpansion;
 ## The given word is replaced by the resulting space separated list
-..................................................     
+..................................................
 
 - The string "++${++" is not eligble for the start of brace expansion
-- A literal +{+ , +\+ or space must be quoted with +\+   
-- ++echo {a,b}$PATH++ becomes ++echo a$PATH b$PATH++ which in turn is expanded later   
+- A literal +{+ , +\+ or space must be quoted with +\+
+- ++echo {a,b}$PATH++ becomes ++echo a$PATH b$PATH++ which in turn is expanded later
 - ++echo $x{a,b}++ becomes ++echo $xa $xb++, whereas ++$xa++ and ++$xb++ are
   probably not defined
 - ++{0,1}{0,1}...  ++is like ++{0,1}({0,1}(...))++, i.e. the left is the preamble
@@ -205,12 +205,12 @@ Word <=| BraceExpansion;
 === Tilde Expansion
 ..................................................
 TildeExpansion = \~(TildePrefix)[\/[WordTail]];
-  
+
 TildePrefix =
   `+  | ## PWD
   `-  | ## OLDPWD (actually ${OLDPWD-'~-'})
   Num | ## directory stack elt, i.e. output of 'dirs Num'
-  UserName; 
+  UserName;
 UserName =
   ""  |  ## HOME
   %simple
@@ -219,11 +219,11 @@ UserName =
   ^(Blank|'[\\/])+; ## ?? no idea if that is right
 
  Num = ['[+-]]'[0-9]+;
- 
-Word <=| TildeExpansion;               
+
+Word <=| TildeExpansion;
 ..................................................
-     
-If anything fails, the word is left unchanged               
+
+If anything fails, the word is left unchanged
 
 
 == Parameters / Variables
@@ -258,8 +258,8 @@ interactive login shell::
 1. +/etc/profile+
 2. First existing of
   - +~/.bash_profile+
-	- +~/.bash_login+
-	- +~/.profile+
+  - +~/.bash_login+
+  - +~/.profile+
 
 interactive non-login shell::
 +~/.bashrc+
@@ -272,11 +272,11 @@ Value of envirnoment variable +BASH_ENV+ used as file name
 - +/etc/profile+
   * sources +/etc/profile.d/*.sh+
   * sources +/etc/bash.bashrc+
-- +~/.profile+	
+- +~/.profile+
   * sources +~/.bashrc+
 - +~/.bashrc+
   * sources +~/.bash_aliases+
-  * sources +/etc/bash_completion+	
+  * sources +/etc/bash_completion+
 
 
 //////////////////////////////////////////////////////////////////////
@@ -286,7 +286,7 @@ Parameter = Variable | PositionalParameter | SpecialParameter
 An entity that stores a value
 
 Positional Parameters
-PositionalParameter = Digit+ except 0	
+PositionalParameter = Digit+ except 0
 Positional parameters are assigned from the shell's argument. $1 is first argument, $2 second and so on. Maybe reassigned using set builtin, but not with variable assignment. A shell function has its own local positional parameters.
 
 Special Parameters
@@ -307,20 +307,20 @@ array
 Zero based. No limit for the size of the array. Members must not be indexed or assigned continously.
 
 notes
-There are no pointers or references or the like. 
+There are no pointers or references or the like.
 Literals
-IntegerLiteral = 
+IntegerLiteral =
 StringLiteral = SingleQuoteLiteral | DoubleQuoteLiteral
 ArrayLiteral = ([[[subscript]=]scalar] ...)
 Creation / Memory management
-Variables are created when they are first referenced or declared, unless when options dictate otherwise. See -o nounset. 
-Variables are released using unset. 
-There is no freestore management like malloc / free in C. 
+Variables are created when they are first referenced or declared, unless when options dictate otherwise. See -o nounset.
+Variables are released using unset.
+There is no freestore management like malloc / free in C.
 See also subchapter lifetime.
 Declaration
 Since variables are created when first referenced (see subchapter creation), there is no need for an explicit declaration. It is mandatory however if nounset is set to on, or to create integer variables????.
 Globals
-Variables are global when 
+Variables are global when
 - implicetely created
 - declared with declare outside a function
 
@@ -330,21 +330,21 @@ ExplicitIntegerDeclaration = declare -i (name[=integer] )+ SD
 ExplicitArrayDeclaration =
 1) declare -a (name[[[subscript]][=scalar]] )+ SD
 2) declare -a (name[=arrayliteral] )+ SD
-If subscript is not given, then the index used is the index of the previous initializier incremented by one. Indexing starts at 0. 2) Arraycopy seems ??? not to be possible, i.e name=array 3), if subscript is provided, it is ignored.  
+If subscript is not given, then the index used is the index of the previous initializier incremented by one. Indexing starts at 0. 2) Arraycopy seems ??? not to be possible, i.e name=array 3), if subscript is provided, it is ignored.
 Locals
-Variables are local when 
+Variables are local when
 - declared using local
 - declared using declare inside a function
 
 Environment variables
 Are just globals marked for export. See chapter environment variables.
 Scope
-globals	Dynamic scoping: from creation until unset 
-			default
-			declare	when not within a function
+globals	Dynamic scoping: from creation until unset
+      default
+      declare	when not within a function
 locals		Lexical scoping: from creation until end of block
-			local		only within functions
-			declare	when used within functions
+      local		only within functions
+      declare	when used within functions
 
 Environment variables are just globals marked for export.
 Lifetime
@@ -356,7 +356,7 @@ Linkage
 Since it is a scripting language, there is no linkage issue.
 Operations
 Referencing / Parameter expansion
-name is just the string 'name', $name gets the value out of the variable with the name name. This is called parameter expansion. 
+name is just the string 'name', $name gets the value out of the variable with the name name. This is called parameter expansion.
 
 ScalarValueReference =
 1) $ScalarName
@@ -374,10 +374,10 @@ array
 assignment
 1) array[subscript]=[scalar]
 2) array=arrayliteral
-subscripting 
+subscripting
 ${array[subscript]}
 Curly braces are needed to avoid conflicts with shell's filename expansion operators.
- 
+
 Environment variables
 set -a
 set -k
@@ -388,18 +388,18 @@ Miscellaneous
 SD = \newline | ;    statement delimiter
 Name = latin letters and numbers and underscore ???, case sensitive ???
 Subscript = integer	Indexing starts at zero. The subscripts * and @ are special.
-  
+
 
 Reserved word:
 ! { } [[ ]]
- 
+
 control structs
- 
+
 if list; then list; [ elif list; then list; ] ... [ else list; ] fi
 for (( ariexpr1 ; ariexpr2 ; ariexpr3 )) ; do list ; done
- 
+
 Quoting
- 
+
 escape character
 \
 Preserves literal value of next char (except <newline>)
@@ -417,40 +417,40 @@ $ retains special meaning
 Ansi-c quoting
 $
 $string expands to characters as specified by the ansi-c standart
- 
+
 Expansion
- 
+
 brace expansion: a{b,c} expands to ab ac. May be nested. At leas one comma.
- 
+
 tilde expansion: If a word begins with unquoted ~, all chars to the next unquoted \ build the tildeprefix. Expands to various paths. ~ allone expands to $HOME
- 
+
 shell parameter expansion: $word or ${...}
- 
+
 command substitution: $(command) or `command`. All characters between the parantheses make up the command; none are treated specially.
- 
+
 arithmetic expansion: $((expression)). Expression is treated as if it were within double quotes.
- 
+
 process substitution: <(list) or >(list)
- 
+
 word splitting: Each char of $IFS is treated as an delimiter.
- 
+
 filename expansion: each word is scanned for * ? [
- 
+
 quote removal:
- 
+
 Arrays
 set array = ( $< )
- 
+
 Distribute datastream:
 tee [FILE]: Copy stdin to stdout and also to all listened files. Option -a appends to all given files.
 
 Process substitution: The constructs can stand everywhere where a command expects a filename as an argument
 <(list)
 >(list)
- 
-////////////////////////////////////////////////////////////////////// 
- 
- 
+
+//////////////////////////////////////////////////////////////////////
+
+
 // Local Variables:
 // ispell-check-comments: nil
 // End:

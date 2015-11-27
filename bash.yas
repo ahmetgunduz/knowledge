@@ -1,44 +1,59 @@
+## bash grammar
+## ============
+##
+## Meta-syntax notation is yasmala (https://github.com/sensorflo/yasmala)
+##
+## URL: https://github.com/sensorflo/knowledge.git
+
 Program       = List;
 ## 1) Guesswork: If last command is not a simple command a trailing
 ##    AndOrListTerminator is optional. Even for a simple command it is optional
 ##    at the end of the program.
-List          = (AndOrList AndOrListTerminator#1)+; 
+List          = (AndOrList AndOrListTerminator#1)+;
 AndOrList     = (Pipe (`&& #And |`|| #Or){l0})+; ## equal precedence,
                                                  ## lr associativity
-AndOrListTerminator = \&#Async | (\;|\n)#Sync;  
+AndOrListTerminator = \&#Async | (\;|\n)#Sync;
 ## Each command is executed in its own subshell. Pipe's exit status = last
 ## commands' exit status, unless pipefail option is set.
-Pipe          = ['time [`-p ]] [\!]#NegatesExitCode (Command \|{l0} )+;  
+Pipe          = ['time [`-p ]] [\!]#NegatesExitCode (Command \|{l0} )+;
 ## 1) Apparently FunDef can not really appear anywhere a Command can.
 ## 2) Within a SimpleCommand, redirections can occur any where
 Command       = ( SimpleCommand | CompoundCommand | FunDef#1 ) [Redirections#2];
 SimpleCommand =
   VariableAssignmentList |. (Word#Commandname Word*#Arguments);
-CompoundCommand = 	
+CompoundCommand =
   `( List `)            | ## Executed in subshell.
   `{ List#1 `}          | ## Executed in current shell. 1) A trailing simple
                           ## command must be terminated with AndOrListTerminator
-  `(( ArithmeticExp `)) | ## Arithmetic evaluation 
-  `[[ CCCondExp `]] |     ## Conditional Expression. Exit status 0 when CondExp is true, 1 otherwise
-  FlowControlCommand;     
+  `(( ArithmeticExp `)) | ## Arithmetic evaluation
+  `[[ CCCondExp `]] |     ## Conditional Expression. Exit status 0 when CondExp
+                          ## is true, 1 otherwise
+  FlowControlCommand;
 
 ## Question:
-## - exist status of async condition? 
-## - if ( true ) then ... is allowed but not if { true } then ... . Why is that? Incorporate into syntax.
-## Exit status of the last command executed in body, or zero if none was executed 
+## - exist status of async condition?
+## - if ( true ) then ... is allowed but not if { true } then ....
+##   Why is that? Incorporate into syntax.
+## Exit status of the last command executed in body, or zero if none was executed
 FlowControlCommand =
   'until List#Condition 'do List#body 'done |
-  'while List#Condition 'do List#body 'done |  
+  'while List#Condition 'do List#body 'done |
+
   ## 'in Word*' defaults to 'in "$@"'.
   'for Name [['in Word*] (\;|\n)] 'do List#body 'done |
-  ## condition defaults to false, init/inc to nop
-  'for `(( [ArithmeticExp#init]\; [ArithmeticExp#condition]\; [ArithmeticExp#inc] `))
+
+  ## condition defaults to false, ininit and increment default to nop
+  'for `(( [ArithmeticExp#init]\;
+           [ArithmeticExp#condition]\;
+           [ArithmeticExp#increment] `))
     (\;|\n) 'do List#body 'done |
+
   'if List#Condition 'then List#body
     ('elif List#condition 'then List#body)*
     ['else List#body]
     'fi |
-  ## Idiom: for the default case use pattern '*' 
+
+  ## Idiom: for the default case use pattern '*'
   'case Word 'in
     ( \(? (Pattern\|{l0})* \)
       List#Body
@@ -46,9 +61,10 @@ FlowControlCommand =
        `;&  #*continue executing following's clause body# |
        `;;& #*continue attempting to match patterns*# )
     )* 'esac |
-  ## 'Word*' defaults to "$@" 
+
+  ## 'Word*' defaults to "$@"
   'select Name ['in Word*] (`; | \n) 'do List#body 'done;
-  
+
 VariableAssignmentList = ???;
 ## Value defaults to the empty string. For expansions of Value see bash.txt.
 VariableAssignment = Identifier#*noblanks*#(`= |`+= ) [Value];
@@ -58,7 +74,7 @@ FunDef =
             Identifier  \( \)  CompoundCommand;
 
 Parameter = Variable | SpecialParameter | PositionalParameter;
-Variable = Identifier; 
+Variable = Identifier;
 SpecialParameter =
   \* | ## positional parameters. Not in " -> separate words, wich are subject
        ## to further word splitting and pathname expansion. In " -> one word,
@@ -74,52 +90,75 @@ SpecialParameter =
 PositionalParameter = '[0-9]+; ## except '0'
 
 
-Token = Operator | Word;## A sequence of characters considered a single unit by the shell        
+## A sequence of characters considered a single unit by the shell
+Token = Operator | Word;
+
 Operator = ControlOperator | RedirectionOperator;
 ControlOperator = \n | `|| | `&& | `& | `; | `;; | `|  | `( | `) ;
-Word = ; ## A token that is not an operator is a word. Separated by MetaCharacter+ 
-MetaCharacter = Blank | \& | \; | \( | \) | \< | \>; ## When unquoted, separates words.
+
+Word = ; ## A token that is not an operator is a word. Separated by
+         ## MetaCharacter+
+
+ ## When unquoted, separates words.
+MetaCharacter = Blank | \& | \; | \( | \) | \< | \>;
 Blank = " " | \t;
 Name = '[a-zA-Z_]'[0-9a-zA-Z_]*;
 Identifier = Name; ## Synonyms
-KeyWord = ReservedWord; ## A word that has a special meaning to the shell. 
+KeyWord = ReservedWord; ## A word that has a special meaning to the shell.
 ReservedWord =
-  `! | `[[ | `]] | `{ | `} | 
+  `! | `[[ | `]] | `{ | `} |
   'case | 'do | 'done | 'elif | 'else | 'esac |
   'fi | 'for | 'function | 'if | 'in | 'select |
   'then | 'time | 'until | 'while;
 
 FdNo = '[0-9]+; ## File descriptor number
 Fd =
-  [FdNo] | ## Defaults to 0 (stdin) for input and to 1 (stdout) for output
-  \{ Identifier \}; ## Shell allocates an FdNo > 10 and assigns it to Identifier, except for the closing redirections
+  [FdNo] |          ## Defaults to 0 (stdin) for input and to 1 (stdout) for
+                    ## output
+  \{ Identifier \}; ## Shell allocates an FdNo > 10 and assigns it to Identifier,
+                    ## except for the closing redirections
 FileName = Word; ## Subject to various expansions, see bash.txt
 RestrictedFileName = Word;    ## As FileName, but may not expand to - or a number
-FileNameOrFdNo = Word; ## As above. Additionaly, if word expands to [0-9]+, it's an FdNo, and a FileName otherwise
-FileNameOrFdNoOrMinus = Word; ## As above. Additionaly, if word expands to -, the Fd is closed.
+FileNameOrFdNo = Word; ## As above. Additionaly, if word expands to [0-9]+, it's
+                       ## an FdNo, and a FileName otherwise
+FileNameOrFdNoOrMinus = Word; ## As above. Additionaly, if word expands to -,
+                              ## the Fd is closed.
 Redirections = Redirection+;  ## Executed from left to right
 Redirection =
   ## Open for input    Pseude Code
   Fd `< FileName |  ## open( Fd, read, FileName)
+
   ## Here Document. See bash.txt
   "<<"[\-] Word ... DELIMITER |
+
   ## Here String. See bash.txt for expansions on Word.
   `<<< Word |
+
   ## Open for output
-  Fd `>  Filename |## open( Fd, write | create, FileName ) // fails if file exist and noclobber set
-  Fd `>| Filename |## open( Fd, write | create, FileName ) // always creates new file
+  Fd `>  Filename |## open( Fd, write | create, FileName )
+                   ## fails if file exist and noclobber set
+  Fd `>| Filename |## open( Fd, write | create, FileName )
+                   ## always creates new file
   Fd `>> Filename |## open( Fd, write | append, FileName )
-    ## special case: both stdout and stderr append to given file 
+    ## special case: both stdout and stderr append to given file
     `&>> FileName |
+
   ## Open for input and output
-  Fd `<> Filename |## open( FD, read | write | create, FileName ) 
-  ## Duplicate (lhs is copy of rhs) or close lhs, depending on wheter rhs expands to -
-  Fd `<& FileNameOrFdNoOrMinus |## if (rhs expands to '-') Fd=FileNameOrFdNo else close(Fd)
-  Fd `&> FileNameOrFdNoOrMinus |## if (rhs expands to '-') Fd=FileNameOrFdNo else close(Fd)
-  ## Open for output on stdout, stderr is made a copy of stdout.  The first variant is preferred. 
+  Fd `<> Filename |## open( FD, read | write | create, FileName )
+
+  ## Duplicate (lhs is copy of rhs) or close lhs, depending on wheter rhs
+  ## expands to -
+  Fd `<& FileNameOrFdNoOrMinus |## if (rhs expands to '-') Fd=FileNameOrFdNo
+                                ## else close(Fd)
+  Fd `&> FileNameOrFdNoOrMinus |## if (rhs expands to '-') Fd=FileNameOrFdNo
+                                ## else close(Fd)
+
+  ## Open for output on stdout, stderr is made a copy of stdout.  The first
+  ## variant is preferred.
  `&> AnyFileName | ## semantically equivalent to >WORD 2>&1
  `>& RestrictedFileName |
-  ## Move 
+
+  ## Move
   Fd `<& FileNameOrFdNo \- |
   Fd `&> FileNameOrFdNo \-;
 
@@ -139,7 +178,7 @@ CCCondExp =
   CCCondExp `&& CCCondExp| ## boolean and, shortcuts
   CCCondExp `|| CCCondExp; ## boolean or, shortcuts
 
-## True if ... 
+## True if ...
 CondExpPrimary = ;
   "-ae" Word#Filename | ## file exists
   ## File exists and ...: b: is a block special file, c: is a character
@@ -152,7 +191,7 @@ CondExpPrimary = ;
   \-'[bcdfghkprsuwxGLNOS] Word#Filename |
   `-t Word#Filedescriptor | ## FD is open and refers to a terminal
   ## ef: both refer to the same device and inode number.
-  ## nt: 1 is newer (modification date) or 1 exists and 2 doesn't.  
+  ## nt: 1 is newer (modification date) or 1 exists and 2 doesn't.
   ## ot: 1 is older, or 2 exists and 1 doesn't
   Word#Filename1 (`-ef | `nt | `ot) Word#Filename2 |
   `-o Word#Optionname | ## option is enabled
@@ -162,7 +201,7 @@ CondExpPrimary = ;
   ## < >: within [[ order is lexicographically, within test aka [ its ASCII
   Word#String (`== | `= | `!= | \< | \> ) Word#String |
   ## eq: equal, ne: not equal, lt: less than, le: less than or equal, gt:
-  ## greater than, ge: greater than or equal. 
+  ## greater than, ge: greater than or equal.
   Word#Int ( "-eq"|"-ne"|"-lt"|"-le"|"-gt"|"-ge") Word#Int;
-  
+
 Comment %= ; ## starts with # and extends up to the end of the line
