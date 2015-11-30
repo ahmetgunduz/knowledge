@@ -21,14 +21,14 @@ Latex, AsciiDoc etc. See also character encoding.
 ’ Apostrophe and also right single quotation mark.  The apostrophe in English
   has three purposes: omission of letters, marking of possessive case, marking
   as plural.  U+2019, HTML: &#8217; &rsquo;
-` grave accent or backtick / backquote, U+0060, 'GRAVE ACCENT'. 
+` grave accent or backtick / backquote, U+0060, 'GRAVE ACCENT'.
   Is a diacritical mark used in many written languages. Programmers have
   used the grave accent symbol as a separate character for a number of
   tasks. In this role, it is known as a backquote or backtick.
 ̏ Double grave accent.
   The double grave accent is a diacritic used in scholarly discussions of
   the Croatian, Serbian, and sometimes Slovene languages.
-´ Acute accent, 
+´ Acute accent,
   Is a diacritic used in many modern written languages with alphabets
   based on the Latin, Cyrillic, and Greek scripts.
 ˝ Double acute accent
@@ -41,7 +41,7 @@ Latex, AsciiDoc etc. See also character encoding.
   Used to emulate double quotes.
 
 ‘’ single quotes (curly). HTML: &lsquo;&#x2018; &rsquo;&#x2019;
-‹› Single left/right angle quote. 'SINGLE RIGHT-POINTING ANGLE QUOTATION MARK', HTML: &lsaquo;&#x2039; &rsaquo;&#x203A;	
+‹› Single left/right angle quote. 'SINGLE RIGHT-POINTING ANGLE QUOTATION MARK', HTML: &lsaquo;&#x2039; &rsaquo;&#x203A;
 ‚  Single low-9 quote. U+201A, 'SINGLE LOW-9 QUOTATION MARK', HTML: &sbquo;&#x201A;
 “” double quotes (curly). HTML: &ldquo;&#x201C; &rdquo;&#x201D;
 «» left/right angle quote; guillemotright: 'RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK' &laquo;&#xAB; &raquo;&#xBB;
@@ -59,7 +59,7 @@ Latex, AsciiDoc etc. See also character encoding.
   http://en.wikipedia.org/wiki/International_variation_in_quotation_marks
 
 ′ Prime symbol
-″ Double prime 
+″ Double prime
 ‴ Tripple prime
     The prime symbol ( ′ ), double prime symbol ( ″ ), and triple prime
     symbol ( ‴ ), etc., are used to designate several different units and
@@ -68,14 +68,14 @@ Latex, AsciiDoc etc. See also character encoding.
     more variable names for things which are similar, without resorting
     to subscripts – x′ generally means something related to or derived
     from x.
-  
+
 ″ Ditto mark. A typographic symbol indicating that the word(s) or
   figure(s) above it are to be repeated.
- 
+
  ‐ Hyphen. Is a punctuation mark used to join words and to separate
    syllables of a single word.
-   U+2010, `HYPHEN', HTML: no name, &#x2010; 
-   U+2011, `NON-BREAKING HYPHEN', ??Htmlname??  
+   U+2010, `HYPHEN', HTML: no name, &#x2010;
+   U+2011, `NON-BREAKING HYPHEN', ??Htmlname??
  ⁃ Hyphen bullet.
  - hyphen-minus.
    The hyphen-minus (-) is a character used in digital documents and
@@ -83,7 +83,7 @@ Latex, AsciiDoc etc. See also character encoding.
    sometimes en dash (–).
    U+002D, `HYPHEN-MINUS', (no HTML name)
 － ???
-   U+FF0D, `FULLWIDTH HYPHEN-MINUS' 
+   U+FF0D, `FULLWIDTH HYPHEN-MINUS'
  − minus
    The mathematical symbol to represent the notion of negative as well as
    the subtraction operation.
@@ -117,4 +117,3 @@ Further info:
 * http://www.fileformat.info/info/unicode/char/xxxx/index.htm
 * http://www.cs.sfu.ca/~ggbaker/reference/characters
 * http://people.w3.org/~dom/archives/2005/04/named-versus-numeric-entities/
- 
