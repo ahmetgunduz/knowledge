@@ -1,3 +1,7 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+
 = C&plus;&plus; practices
 
 See also +programming_practices.txt+.

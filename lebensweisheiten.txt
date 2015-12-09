@@ -1,3 +1,7 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+
 Es kommt wie's muss, und es wir nicht besser, wenn man sich fürchted. -- Fritz
 Feuz, 101 Jährig, Interview
 

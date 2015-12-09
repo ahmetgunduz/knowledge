@@ -1,3 +1,6 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
 Currently there is a discussion to modify these rather old [[Flori_SW#Guidelines|Flori SW Guidelines]]. These old rules stem from the old days of Flori when there where many not-so-experienced C++ developers. Also, the Flori global guidelines where quite general, and each MPS added its own more specific MPS-guidelines. Now with the collective code ownership introduced by scrum we need to have one single Flori global guideline so everybody conveniently can work with the complete code. On this page, everybody can post his opinion what you would add or modify or delete or whatever.
 
 

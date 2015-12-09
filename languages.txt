@@ -1,4 +1,8 @@
-= Formal language theory terms        
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+
+= Formal language theory terms
 == Glossary        
 Sourcecode
 (Computer)(Program|Scrip)

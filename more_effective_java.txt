@@ -1,3 +1,6 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
 == Item 2: Consider a Builder when faced with many constructor parameters
 
 Problem: A constructor call with many parameters is difficult to understand since the reader doesn't know what each argument means. [However he could use an IDE that tells him, but for that he has to ask interactively for each argument separetly in case of a long parameter list.]

@@ -1,3 +1,6 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
 = Photography
 
 == White Balance
