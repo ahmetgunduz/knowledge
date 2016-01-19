@@ -250,6 +250,22 @@ cc mod / subword minor mode: as camel case mode
 \section{help}
 sys-apropos
 
+\section{coding systems}
+
+buffer-file-coding-system: buffer-local, for save buffer (but gets overriden
+by save-buffer-coding-system) and write-region. Does not affect sending text
+to a subprocess.
+
+save-buffer-coding-system: for saving buffer (overriding
+buffer-file-coding-system).
+
+file-name-coding-system: for all file operations
+
+auto-coding-regexp-alist: This variable is an alist of `(REGEXP
+. CODING-SYSTEM)', where REGEXP must match the beginning of the file.
+
+file-coding-system-alist: This variable is an alist of `(PATTERN . CODING)'
+
 \section{other window}
 
 display-buffer::
