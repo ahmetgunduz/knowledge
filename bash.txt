@@ -254,18 +254,27 @@ the array if its a string-valued variable, value is appended
 // Todo: NAMEREF attribute
 
 == Startup files
-interactive login shell::
-1. +/etc/profile+
-2. First existing of
+
+1) interactive login shell, or non-interactive with --login::
+
+startup:
+
+1. +/etc/profile+ if it exists, unless --noprofile is given
+2. First existing and readable of (unless --noprofile is given). Typically the one existing sources +~/.bashrc+, see 2).
   - +~/.bash_profile+
   - +~/.bash_login+
   - +~/.profile+
 
-interactive non-login shell::
-+~/.bashrc+
+upon exit: +~/.bash_logout+ if it exists
 
-non-interactive::
-Value of envirnoment variable +BASH_ENV+ used as file name
+2) interactive non-login shell::
++~/.bashrc+, unless --norc is given (default when invoked as sh)
+
+3) non-interactive::
+Value of envirnoment variable +BASH_ENV+ used as file name if that file exists.
+
+With ++--login++, also read some startup files, see above 1) above.
+
 
 === Ubuntu
 
@@ -278,6 +287,33 @@ Value of envirnoment variable +BASH_ENV+ used as file name
   * sources +~/.bash_aliases+
   * sources +/etc/bash_completion+
 
+
+== Interactive Shell
+
+An interactive shell generally reads from and writes to a user's
+terminal.
+
+- either both
+  * without non-option arguments, unless -s is specified
+  * and without specifying -c
+- or -i specified
+
+An interactive shell has +i+ as value of ++$-++ and has the variable +PS1+ set
+(i.e. it is unset in non-interactive shells).
+
+== Login Shell
+
+A login shell is one whose first character of argument zero is -, or one
+invoked with the ++--login++ option.
+
++login_shell+ shell option is set.
+
+Mechanisms outside bash: +/etc/passwd+ specifies the login shell to be used
+for each user. A user can use +chsh+ to change its own login shell,
+e.g. ++chsh -s myshell myusername++. Must be one of +/etc/shells+. ssh: The
+commands given are executed by the remote user's login shell. If commands are
+given, it is an non-interactive shell, if none are given, it becomes an
+interactive shell.
 
 //////////////////////////////////////////////////////////////////////
 
