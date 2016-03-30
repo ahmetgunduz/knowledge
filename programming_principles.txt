@@ -64,14 +64,16 @@ kernel.
 In case of POSIX, anonymous memory mapped pages can be mapped with the mmap
 system call.
 
-- malloc(2) (C standard library). The notes section says that under the hood
-  sbrk and mmap is used.
+In C&plus;&plus;, double delete is undefined behavior: https://isocpp.org/wiki/faq/freestore-mgmt#double-delete-disaster, http://stackoverflow.com/questions/9169774/what-happens-in-a-double-delete.
+
+In C&plus;&plus;, all pointers into a freed memory region are invalidated: http://en.cppreference.com/w/cpp/memory/new/operator_delete.
+
+- malloc(3). The notes section says that under the hood sbrk and mmap is used.
 - brk(2) / sbrk(2) (C POSIX library, system calls)
 - http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory/
 - http://duartes.org/gustavo/blog/post/how-the-kernel-manages-your-memory/
 - https://sploitfun.wordpress.com/2015/02/11/syscalls-used-by-malloc/
 
+
+
 //  LocalWords:  sbrk mmap malloc brk fdisk mkdir loadkeys BSS TLS
-
-
-
