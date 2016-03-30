@@ -308,4 +308,26 @@ Any other non-nil value means always make a separate frame.
   
 
 
+what happens when file/buffer is visted (topics: variables, hooks, encoding,
+major mode, minor mode)
+
+- dir local variables
+- file local variables
+  - mode from file local variables
+  - encoding from file local variables
+- auto-mode-alist
+- magic-mode-alist
+- interpreter-mode-alist
+- auto-mode-alist
+- change-major-mode-after-body-hook
+- mymode-hook (for each base mode up to root)
+- after-change-major-mode-hook
+
+
+How coding of a file is determined: see info pages on find-auto-coding:
+... The order of looking for a matching rule is ‘auto-coding-alist’ first,
+then ‘auto-coding-regexp-alist’, then the ‘coding:’ tag, and lastly
+‘auto-coding-functions’.  If no matching rule was found, the function returns
+‘nil’. [When does file-coding-system-alist come?]
+
 \end{document}
