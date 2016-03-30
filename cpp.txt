@@ -107,13 +107,17 @@ abbreviation: if the expression is an lvalue it is tagged to be an rvalue
 taking reference to const may be taken.
 http://en.cppreference.com/w/cpp/language/return
 
-std::move doesn't move and std::forward doesn't forward. move is an
-unconditional cast to rvalue, and forward is an conditional cast to rvalue. When
-implementing +foo(T&&param)+, technically the same thing as in +foo(T&)+ can be
-implemented. The former case however, in contrast to the later, is allowed to
-take advantage of the fact that the caller does never access the object again.
-The only thing the caller will do is to call the dtor eventually. The former
-implementation thus usually steals the guts and ensures the param object is
++std::move+ doesn't move and +std::forward+ doesn't forward. +move+ is an
+__un__conditional cast to rvalue, and +forward+ is an _conditional_ cast to
+rvalue. When +move(x)+ is passed as an argument to a function/operator, it's
+nearly certain that +x+ gets modified (else the move semantics woudn't make
+sense, and if there is no move semantic overload, wrapping in +move+ makes no
+sense). When implementing +foo(T&&)+, technically the same thing as in
++foo(T&)+ can be implemented. The ++T&&++ case however, in contrast to ++T&++
+case, is allowed to take advantage of the fact that the caller does not need
+the information stored in the object anymore; the caller only needs the object
+to be in a valid state; he still needs to call at least the destructor. The
+++T&&++ implementation usually steals the guts while ensuring the object is
 still in a valid state.
 
 
@@ -215,12 +219,8 @@ creates a new object, ++const auto&++ / ++auto&&++ only gives a name / an alias 
 already existing object.
 
 ++auto foo = initializer++ is bad because
-- case initializer is an lvalue (i.e. move ctor is not applycable): the type might not be copyable
-- in the case initializer is a call returning a refernce to some internal object, e.g. +at()+ of containers: foo is a copy, and modifying foo does not modifie the original object, which might not be what was intended
-- might be inefficient: Semantically a copy is made, altough in most cases no copy is needed
-  * concerning the argument that due to RVO, in practice often neither copy-ctor nor move-ctor is called: RVO is often but not always possible. It depdends on the implementation of initizialier and the compiler.
-  * case RVO is not possible and initializer is an rvalue and a move ctor is available: a copy via move ctor is made
-  * case RVO is not possible and (initializer is an lvalue or initializer is an rvalue but no move ctor is available): a copy via move ctor is made, which potentially includes allocation and later freeing of resources, and a potentially expensive copy
+- case initializer is an lvalue (i.e. move ctor is not applycable): the type might not be copyable. In other words: for this to work, a copy ctor is required
+- in the case initializer is a call returning a refernce to some internal object, e.g. +at()+ of containers: foo is a copy, and modifying foo does not modify the original object, which might not be what was intended
 
 
 const auto& / auto&&: give an already existing object (another) name: the returned object (a temporary or an lvalue) a name (avoids creating an unneccessairy copy)
