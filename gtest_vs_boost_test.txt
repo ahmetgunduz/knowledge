@@ -12,59 +12,72 @@ __Google's term__, boost: __boost's term__). See also <<glossary>>.
 == Conclusion and summary of differences
 
 Whether Xentis should use GTest or boost test depends very much on how the
-points in which they differ are prioritized.  According to my order of
-priority, based on my experience in automated testing and on reading books and
-web sites on the topic of automated testing, I would prefer GTest over boost
-test.
+points in which they differ are prioritized and weighted.  According to my
+order of priority, based on my experience in automated testing and on reading
+books and web sites on the topic of automated testing, I would prefer GTest
+over boost test.
 
 Roughly ordered after priority (see <<kafls_priorities>>), highest first, not
-listing points where both are on a par.
+listing points where GTest and boost test are on a par.
 
 [cols="30%,^10%,^10%,50%"]
 |===
 | | GTest | boost test | comment
 
-| Mock library | [green]#✔# | [red,small]#✗# | Boost doesn't provide a mock library.  GMock + GTest
+| <<gmock,Mock library>> |
+[green]#✔# | [red,small]#✗# |
+Boost doesn't provide a mock library.  GMock + GTest
 is more seamless and easier to learn/maintain than GMock + boost test.
 
-| Matchers | [green]#✔# | [red,small]#✗# | Actually part of
-GMock, not GTest
+| <<matchers, Matchers>> |
+[green]#✔# | [red,small]#✗# |
+Actually part of GMock, not GTest
 
-| Not forced to provide operator<< for custom types  | [green]#✔# | [red,small]#✗# | 
+| <<print_custom_types, Not forced to provide operator<< for custom types>>  |
+[green]#✔# | [red,small]#✗# | 
 
-| Easier to debug | [green]#✔# | [red,small]#✗# | Boost's BOOST_TEST is
-awkward to debug.  GTest allows to turn assertion failures into breakpoints.
+| <<debug, More convenient to debug>> |
+[green]#✔# | [red,small]#✗# |
+Boost's BOOST_TEST is awkward to debug. GTest allows to turn assertion failures
+into breakpoints.
 
-| Assertion's custom output is _in addition_ to default output | [green]#✔# |
-[red,small]#✗# | in boost test, custom output `overwrites' the normal output
+| <<custom_output, Assertion's custom output is _in addition_ to default output>> |
+[green]#✔# | [red,small]#✗# |
+in boost test, custom output `overwrites' the normal output
 
-| Assertion-bound context & Checkpoints | [red,small]#✗# | [green]#✔# |
+| <<assertion_bound_context, Assertion-bound context>> & <<checkpoints, Checkpoints>> |
+[red,small]#✗# | [green]#✔# |
 
-| More versatile unconditional log messages | [red,small]#✗# | [green]#✔# |
+| <<unconditional_log_msgs, More versatile unconditional log messages>> |
+[red,small]#✗# | [green]#✔# |
 
-| Death tests  | [green]#✔# | [red,small]#✗# | 
+| <<death_tests, Death tests>>  |
+[green]#✔# | [red,small]#✗# | 
 
-| More complete and generally better documentation | [green]#✔# |
-[red,small]#✗# | This is KAFL's opinion, it might be arguable which one is
-better.
+| <<documentation, More complete and generally better documentation>> |
+[green]#✔# | [red,small]#✗# |
+This is KAFL's opinion, it might be arguable which one is better.
 
-| Known by much more developers | [green]#✔# | [red,small]#✗# | However the
-data is coming from Google, so it might be biased
+| <<better_known, Known by more developers>> |
+[green]#✔# | [red,small]#✗# |
+However the data is coming from Google, so it might be biased
 
-| Arbitrary deep test hierarchy | [red,small]#✗# | [green]#✔# |
+| <<deep_test_hierarchy, Arbitrary deep test hierarchy>> |
+[red,small]#✗# | [green]#✔# |
 
-| Shuffle tests | [green]#✔# | [red,small]#✗# | 
+| <<shuffle_tests, Shuffle tests>> | [green]#✔# | [red,small]#✗# | 
 
-| Custom test event handlers | [green]#✔# | [red,small]#✗# | 
+| <<custom_event_handlers, Custom test event handlers>> |
+[green]#✔# | [red,small]#✗# | 
 
-| Arbitrary deep test hierarchy | [red,small]#✗# | [green]#✔# |
+| <<assertion_levels, Number of assertion levels>>  |
+[red,small]#2# | [green]#3# |
+boost test additionally also has a WARN assertion which only logs but does not modify
+the status of the (Google: test / boost: test case).
 
-| Number of assertion levels  | [red,small]#2# | [green]#3# | boost
-additionally also has a WARN assertion which only logs but does not modify the
-status of the (Google: test / boost: test case).
-
-| Disabling assertions to some extend | [red,small]#✗# | [green]#✔# | boost,
-can, via decorators, specify the number of assertions that can fail in a
+| <<disabling_assertions, Disabling assertions to some extend>> |
+[red,small]#✗# | [green]#✔# |
+boost, can, via decorators, specify the number of assertions that can fail in a
 (Google: test / boost: test case)
 |===
 
@@ -75,24 +88,27 @@ test are on a par, with the following note worthy exceptions:
 |===
 | | GTest | boost test | comment
 
-| produce output that Hudson understands | [green]#✔# | ([green]#✔#) | I am
-not entirely sure with boost test, but I am quite confident that boost test
-can do it. 
+| <<custom_log_format, Produce output that Hudson understands>> |
+[green]#✔# | ([green]#✔#) |
+I am not entirely sure with boost test, but I am quite confident that boost test
+can do it.
 
-| not introducing new library dependencies | [red,small]#✗# | [red,small]#✗# |
+| <<lib_dependency, Not introducing new library dependencies>> |
+[red,small]#✗# | [red,small]#✗# |
 we already have a dependency to boost.  However since boost does not provide a
 mock library, there will be a new library dependency anyway.
 
-| BOOST_TEST is badly documented | | | BOOST_TEST sounds awesome at first since it can print every
-node in the expression of the condition, but it is badly documented and one
-thus never really knows the rules.
+| <<boost_test, BOOST_TEST is badly documented>> | | |
+BOOST_TEST sounds awesome at first since it can print every node in the
+expression of the condition, but it is badly documented and one thus never
+really knows the rules.
 
 |===
 
 
 == GTest advantages
 
-
+[[gmock]]
 === More seamless integration of GMock
 
 Boost provides no mock framework.  Google mock aka GMock is an popular one in
@@ -110,6 +126,7 @@ For more information on what GMock is see <<gmock_intro>>.
 Use GMock with boost test: https://www.semipol.de/2010/04/13/using-googlemock-with-the-boost-test-library.html
 
 
+[[death_tests]]
 === Death tests
 
 In contrast to GTest, boost doesn't provide death tests.  Among other things,
@@ -128,6 +145,7 @@ statement is expected to match.
 See https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Death_Tests[GTest].
 
 
+[[custom_output]]
 === Assertion's custom output is _in addition_ to default output
 
 Both GTest and boost support custom failure messages via use of streaming.
@@ -178,12 +196,13 @@ https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Teaching_Google_Tes
 http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/testing_tools/reports.html[boost]
 
 
+[[matchers]]
 === Matchers
 
 GTest has matchers, which are similar to what
 https://en.wikipedia.org/wiki/Hamcrest[Hamcrest] provides.
 
-I am not sure yet whether boost's custom predicates are as strong as google
+I am not sure yet whether boost's custom ``predicates''' are as strong as google
 matchers, I guess not.  Even if so, GTest has more matchers readily available.
 Granted, boost has BOOST_TEST, see <<boost_test>>.  Still matchers are more
 generic, since they are not restricted to operators and since custom matchers
@@ -221,6 +240,7 @@ instead GTest.  See
 https://code.google.com/p/googlemock/wiki/V1_7_CheatSheet#Matchers[GMock]
 
 
+[[shuffle_tests]]
 === Shuffle tests
 GTest allows to shuffle (Google: tests / boost: test cases). That is useful to
 help detect the unwanted case that tests have dependencies. 
@@ -249,16 +269,15 @@ operators must be provided?  Which constructors and/or operators cannot be
 defined/overloaded?  See also chapter <<boost_test>>.
 
 
-
 [[print_custom_types]]
 === Not forced to provide operator<< for custom types
 
 Both GTest and boost test can automatically log the content of objects using
-operator<< (i.e. ++ostream& operator<<(ostream&,const MyType&)++). E.g. if the assertion
-+EXPECT_EQ(a, b)+ fails, the output contains the content of the objects a and
-b, even if they're of custom type, provided that type provides
-operator<<. GTest alternatively also allows to define the printer via a
-method defined like ++void PrintTo(const MyType&, ostream*)++
+operator<< (i.e. ++ostream& operator<<(ostream&,const MyType&)++). E.g. if the
+assertion +EXPECT_EQ(a, b)+ fails, the output contains the content of the
+objects a and b, even if they're of custom type, provided that type provides
+operator<<. GTest additionally also allows to define the printer via a method
+defined like ++void PrintTo(const MyType&, ostream*)++.
 
 In the case of boost, contrary to GTest, the test doesn't compile if no
 operator<< for a used type is provided.  To make it compile, one has to either
@@ -271,6 +290,7 @@ https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Teaching_Google_Tes
 http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/test_output/testing_tool_output_disable.html[Boost].
 
 
+[[custom_event_handlers]]
 === Custom test event handlers / customize log format
 
 Opposed to boost, GTest lets you write event handlers.  Events are
@@ -284,6 +304,7 @@ customize the format of the log output.  See also <<custom_log_format>>.
 See https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Extending_Google_Test_by_Handling_Test_Events[GTest]
 
 
+[[debug]]
 === More convenient to debug
 
 ==== Boost's BOOST_TEST is awkward to debug
@@ -308,18 +329,22 @@ breakpoints at the right locations in boost source code, but the problem is to
 find _all_ locations where a breakpoint needs to be set.
 
 
+[[better_known]]
 === Known by more developers
 
-Google trends shows that there is _much_ more interest in Google test than
-boost test.  So it's more likely that (new) developers know GTest / GMock than
-boost test.  However, obviously, the data coming from Google might be biased.
-On the other hand, Google doesn't sell GTest / GMock.
+https://www.google.com/trends/[Google trends] shows that there is _much_ more
+interest in Google test than boost test: see
+https://www.google.com/trends/explore#cat=0-13&q=boost%20test%2C%20google%20test&cmpt=q&tz=Etc%2FGMT-1[here].
+So it's more likely that (new) developers know GTest / GMock than boost test.
+However, obviously, the data coming from Google might be biased. On the other
+hand, Google doesn't sell GTest / GMock.
 
 
 
 == boost test advantages
 
 
+[[deep_test_hierarchy]]
 === Arbitrary deep test hierarchy
 Testing hierarchy: GTest has exactly three levels (one test program, which
 consists of zero or more test cases, each of which consists of zero or more
@@ -335,6 +360,7 @@ expressions matching (Google: test / boost: test case) names or (Google: case
 test / boost: test case)s to be run.
 
 
+[[assertion_levels]]
 === Three vs two assertion levels
 Boost and GTest both have a fatal and a non-fatal assertion, but boost
 additionally also has a WARN assertion which only logs but does not modify the
@@ -359,6 +385,7 @@ communicated to the user.  Opposed to wrongly telling him `the specification
 was not met'.
 
 
+[[assertion_bound_context]]
 === Assertion-bound context
 
 Both GTest and boost have (Google: scoped traces / boost: Scope-bound
@@ -398,6 +425,7 @@ See
 http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/test_output/contexts.html[boost]
 
 
+[[checkpoints]]
 === Checkpoints
 
 After ++BOOST_TEST_CHECKPOINT(_message_)++, the given message will be printed
@@ -429,7 +457,7 @@ test.cpp(9): last checkpoint: Calling foo with i=1
 See http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/test_output/checkpoints.html[boost].
 
 
-
+[[unconditional_log_msgs]]
 === More versatile unconditional log messages
 
 Both GTest and boost allow to log unconditionally information into the test's
@@ -441,18 +469,16 @@ https://code.google.com/p/googletest/wiki/V1_7_AdvancedGuide#Logging_Additional_
 http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/test_output/test_output_macro_message.html[boost]
 
 
+[[disabling_assertions]]
 === Disabling assertions to some extend
 
-Both GTest and boost allow to (temporarily) disable (Google: test / boost:
-test case)s.  But boost also allows to disable (Google: test case / boost:
+Both GTest and boost test allow to (temporarily) disable (Google: test / boost:
+test case)s. But boost test also allows to disable (Google: test case / boost:
 test suite)s and to some extend assertions.
 
-More details:
-
-boost, can, via decorators, specify the number of assertions that can fail in a
-(Google: test / boost: test case).  This is useful when for some reasons it is
-known that temporarily N assertions of a (Google: test / boost: test case)
-fail.
+Boost test can via decorators, specify the number of assertions that can fail in
+a (Google: test / boost: test case). This is useful when for some reasons it is
+known that temporarily N assertions of a (Google: test / boost: test case) fail.
 
 
 == GTest and boost on a par
@@ -478,6 +504,7 @@ http://www.boost.org/doc/libs/1_59_0/libs/test/doc/html/boost_test/testing_tools
 
 - Both report execution times of (Google: test / boost: test case)s
 
+[[lib_dependency]]
 - As Glen correctly points out, Xentis already has a dependency to the boost
   library, but not yet to GTest.  However since we most likely want a mock
   library for sane unit testing, and boost doesn't provide a mock library,
@@ -624,14 +651,12 @@ independent of each other.
 [[gmock_intro]]
 == Tiny GMock introduction
 
-It doesn't make sense to write yet another introduction to GMock at this
-place, the reader is redirected to
-https://code.google.com/p/googlemock/wiki/V1_7_ForDummies[gmock for dummies],
-or https://code.google.com/p/googlemock/wiki/V1_7_Documentation[all GMock
-docu].
-
-However, the following is to an large extend a copy paste from another
-document I wrote about automated testing.
+It doesn't make sense to write yet another introduction to GMock at this place,
+the reader is redirected to
+https://code.google.com/p/googlemock/wiki/V1_7_ForDummies[gmock for dummies], or
+https://code.google.com/p/googlemock/wiki/V1_7_Documentation[all GMock docu].
+However, the following is to an large extend a copy paste from another document
+I wrote about automated testing.
 
 In GMock, a mock is an object which's methods can do simple actions and
 possibly additionally can have expectations on the number of times and the
@@ -742,5 +767,5 @@ TEST(MyTestCase, MyTest) {
 //  LocalWords:  Hamcrest matchers breakpoint
 
 // Local Variables:
-// compile-command: "asciidoc -a toc gtest_vs_boost_test.txt"
+// eval: (set (make-local-variable 'compile-command) (concat "asciidoc -a toc " buffer-file-name))
 // End:
