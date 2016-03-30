@@ -11,9 +11,11 @@ determined from its corresponding public key.
 
 
 == ssh recipe
-* ssh-keygen -t rsa
+* +ssh-keygen -t rsa+
 * So local machine can connect to host without having to enter password each
-   time: ++scp id_rsa.pub _user_@_host_:.ssh/authorized_key++
+   time: ++ssh-copy-id -i ~/.ssh/id_rsa.pub user@host++
+- home and +.ssh+ directories must have exactly the permissions +700+. Files within +.ssh+ must have exactly +600+.
+
 
 == FAQ
 What is the difference between RSA and DSA keys?:: http://security.stackexchange.com/questions/5096/rsa-vs-dsa-for-ssh-authentication-keys
