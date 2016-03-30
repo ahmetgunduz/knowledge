@@ -18,25 +18,35 @@ thing, it depends on something outer.
 Todo: List possible representations (possibly plural!) in Unicode, HTML,
 Latex, AsciiDoc etc. See also character encoding.
 
-’ Apostrophe and also right single quotation mark.  The apostrophe in English
+’ RIGHT SINGLE QUOTATION MARK, U+2019, HTML named entity: &rsquo;
+  Apostrophe and also right single quotation mark.  The apostrophe in English
   has three purposes: omission of letters, marking of possessive case, marking
-  as plural.  U+2019, HTML: &#8217; &rsquo;
+  as plural.
+
+ʼ MODIFIER LETTER APOSTROPHE, U+02BC, HTML named entity: -
+  https://tedclancy.wordpress.com/2015/06/03/which-unicode-character-should-represent-the-english-apostrophe-and-why-the-unicode-committee-is-very-wrong/
+
 ` grave accent or backtick / backquote, U+0060, 'GRAVE ACCENT'.
   Is a diacritical mark used in many written languages. Programmers have
   used the grave accent symbol as a separate character for a number of
   tasks. In this role, it is known as a backquote or backtick.
+
 ̏ Double grave accent.
   The double grave accent is a diacritic used in scholarly discussions of
   the Croatian, Serbian, and sometimes Slovene languages.
+
 ´ Acute accent,
   Is a diacritic used in many modern written languages with alphabets
   based on the Latin, Cyrillic, and Greek scripts.
+
 ˝ Double acute accent
   Is a diacritic mark of the Latin script.
+
 ' Typewriter single quotes aka typewriter apostrophe.
   Used to emulate single right/left quotes or apostrophe or prime or vertical
   line or acute accent.
   U+0027, HTML: &#39; &apos;
+
 " Typewriter double quotes.  HTML: &quot; &#x22;
   Used to emulate double quotes.
 
