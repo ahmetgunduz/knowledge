@@ -142,6 +142,28 @@ This includes operators of course.
   explicitly.
 
 
+=== Namespaces
+
+Namespace usings are for your convenience, not for you to inflict on others:
+Never write a using declaration or a using directive before an #include
+directive.
+
+Namespaces deliver the powerful advantage of unambiguous name management. Most
+of the time names are unambigous, ambiguities are rare. using declarations
+make namespaces usable, because they greatly reduce code clutter in the common
+case where names are unambigous and still let you qualify names only ine those
+rare cases where you need to resolve an actual ambiguity. [However it is
+difficult to know where there are ambiguities, even more so know it up front,
+i.e. the included headers might change and silently introduce new
+ambiguities].
+
+If the implementation has a using, and the library (i.e. the included headers)
+change in that they add, remove names or modify signatures), that silently might make
+
+
+- http://stackoverflow.com/questions/1452721/why-is-using-namespace-std-considered-bad-practice
+- C++ Coding Standards: 101 Rules, Guidelines, and Best Practices.
+
 == Misc
 
 === Declare functions +noexcept+ whenever possible
@@ -178,6 +200,15 @@ This includes operators of course.
 
 https://www.youtube.com/watch?v=BezbcQIuCsY, probably in book Effective Modern
 C&plus;&plus;.
+
+
+=== Const correctness
+
+Top-level const on a pass-by-value parameter is an implementation detail; the
+signature is exactly the same. Thus don't use it in a function's declaration,
+but by default use it in the function's
+definition. http://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/
+
 
 === The big three (four in C&plus;&plus;11) and a half
 
@@ -222,14 +253,39 @@ class A {
 http://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
 
 
+== implicit defined ctor/dtor vs user defined
+
+- ability to be POD / aggregate
+ - since many members have that property not, also the whole often cant be it anyway
+- ctor is meant to establish class invariant and or alloc resources
+- So its about decoupling interface <-> implementation and the improved incremental build properties vs more efficient ctors/dtors (which also affects copying and thus containers)
+ - it is a very seldom event that the implementation of a dtor changes from
+   default/emptybody to user defined. So the costs of recompiling are
+   neglectible. It is an seldom event because that only happens if the class
+   suddenly becomes direct (i.e. not via say smart pointer) owner of a
+   ressource.
+ - it is also rather seldom that the impl of the default ctor changes from
+   default / emptybody to user defined, because it only happens when the class
+   becomes direct owner of a ressource or a new class invariant is introduced
+   that must be handled also by the default ctor.
+
+- dont forget that there's still the copy ctor/assignment
+- dtor is meant to free resources -> if there are no resources, no ctor is needed
+ - a base class does not know whether derived class needs a dtor -> typically
+   base class needs to declare virtual dtor anyway
+- having an user defined ctor/dtor communicates: I have class invariants
+  and/or I directly manage resources. However that is still an implementation
+  detail, i.e. should not be part of the interface. After all, there's still
+  the implicitly declared versions.
+
 == References
 
 - http://herbsutter.com/gotw/
-
-//  LocalWords:  noexcept Callee Reseat reseat Scott's
 
 == Raw/smart pointers
 
 Use unique_ptr by default, use shared_ptr when you _know_ you need shared
 ownership.  unique_ptr can always be moved to a shared_ptr.  If you _know_ you
 need shared ownership, use make_shared.
+
+//  LocalWords:  noexcept Callee Reseat reseat Scott's
