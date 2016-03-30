@@ -827,10 +827,19 @@ data and environment.
 == Unsorted
 
 When attacking a problem, e.g. improve efficiency/performance, finding a bug,
-and after some initial investigation you have different leads, then don't follow
-one lead for a too long time, alternate between the leads (like a task
-scheduler) to avoid being stuck in a `hard' lead and avoid missing evaluating an
-`easy' lead.
+and after some initial investigation you have different leads, then don't
+follow one lead for a too long time. Especially when stuck, step back and
+analyze the situation. Alternate between the leads (like a task scheduler) to
+avoid being stuck in a `hard' lead and avoid missing evaluating an `easy'
+lead.
+
+Store gained information, so it's not lost. Even more so if the information is
+not easily retreivable again. The cost is information management.
+
+If in deep shit, step back and honestly analyize what's going wrong and take
+countermeasures. Even if that means having to admit having made mistakes, or
+admiting not being good at a given thing/task, or having to go through
+difficult discussions. `D Wahret muess uf de Tisch'.
 
 Object relationships:
 Composition:
