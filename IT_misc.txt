@@ -1,0 +1,16 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+= IT Miscellaneous
+
+== Backup
+
+- http://www.bacula.org/
+- http://www.dirvish.org/
+- http://www.code42.com/crashplan/
+- Rent (linux) server
+
+refs:
+
+- https://en.wikipedia.org/wiki/Comparison_of_backup_software[wikipedia comparison]
+- http://www.pcmag.com/category2/0,2806,2426464,00.asp[pcmag comparison]
