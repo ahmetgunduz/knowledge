@@ -1,3 +1,6 @@
+<!-- The markup language of this document is mediawiki. -->
+<!-- mediawiki is always encoded in utf-8 -->
+
 Test-driven development (TDD) is a software development process that relies on the repetition of a very short development cycle. TDD is taking the agile principle of building SW in verified steps (i.e. each with feedback) to the max. With three simple rules TDD enforces a) advancing in tiny verified steps and b) be focused. The duration of a step may be even below a minute. Each step is verified with [[Unit Test]]s. This is why unit tests must be really fast. When you really adhere to these rules, it is not possible to program for a too long time without feedback.
 
 
@@ -75,9 +78,3 @@ Transformations, from high priority (simple) to low priority (complex):
 
 == See Also ==
 * [[Testing]] Parent level page with all the testing links
-
-<!--
-Local Variables:
-mode: mediawiki
-End:
--->
