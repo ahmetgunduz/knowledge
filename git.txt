@@ -64,6 +64,20 @@ Fortunately not directly possible.  When commits, or git objects in general,
 become unreachable, eventually they will be pruned by the garbage collector.
 
 
+
+== Patches
+
+.create with diff
+- from commit:
+- from commit range: ++git format-patch <since>++
+- from working tree: ++git diff >foo.patch++
+- from index: ++git diff --cached >foo.patch++
+
+.apply
+- ++git am -3 foo.patch++
+- ++git apply -3 foo.patch++
+
+
 == Undo Mistakes
 In addition to what is under chapter transitions.
 
@@ -74,9 +88,18 @@ In addition to what is under chapter transitions.
 ++git filter-branch++::
 ++git rebase++::
 
+== Submodules
+
+\... submodules are meant for different projects ... while the history of the
+two projects still stays completely independent
+
+Now that we already have different projects, _adding_ a super project does not
+harm mutch.
+
 == Terms
 
 See also gitglossary(7) man page.
+
 
 == Questions
 
