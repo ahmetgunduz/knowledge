@@ -132,6 +132,98 @@ perf report -g -T
 - http://stackoverflow.com/questions/145838/benefits-of-inline-functions-in-c
 
 
+== call stack
+
+A _stack frame_ (aka _frame_ aka _activation record_) contains information for
+a function: its parameters, pushed IP (instruction pointer, the value in the
+stack frame is often called _return adress_), pushed BP, its locals.
+
+Register BP (_base pointer_ aka FP (_frame pointer_)) points to top stack
+frame, i.e. the stack frame of the current function. The current function thus
+can access its params and locals with a constant offsets relative to BP. If
+there was only SP, the offsets of locals and params releative to SP would
+change after each modification of SP. E.g. consider +alloca+.
+
+Using the register BP as entry point and the BP member of each stack frame,
+the stack frames build a singly linked list with the BP register as head ptr.
+
+In this visualization the stack grows upwards:
+
+--------------------------------------------------
+frames     stack                         registers  text
+        addr  description                        
+                                              IP--+  f2:
+f2's    35    local 2 of f2               <-- SP  |   .. ...
+frame   36    local 1 of f2                       |   .. ...
+        37 /--BP of previous stack frame  <-- BP  |   .. ...
+        38 |  IP (IP when f2 was called)------+   +-->.. ...      
+        39 |  param 2 for f2                  |       .. ...
+        3A |  param 1 for f2                  |       
+--------   |                                  |      f1:
+f1's    3B |  local 2 of f1                   |       .. ...
+frame   3C \  local 1 of f1                   +------>.. call (f2's addr)
+        3D  =>BP of prevoius stack frame              .. ...
+        3E /  IP (IP when f1 was called)------+       
+        3F |  param 2 for f1                  |       
+        40 |  param 1 for f1                  |       
+--------   |                                  |       .. ...
+...     41 |  ...                             +------>.. call (f1's addr)
+        42 \=>BP                                      .. ...
+--------------------------------------------------
+
+A typical sequence of events might look like this:
+
+--------------------------------------------------
+   function call                           return from function
+1. push params (decreases SP)              10. SP += sizeof(params)
+2. call fun (pushes IP,                    9. return (pops IP,
+           decreases SP,                           increases SP)
+           reseats IP)
+3. push BP (decreases SP)                  8. pop BP
+4. BP = SP                                 7. SP = BP
+5. alloc locals (decrease SP)              6. -
+--------------------------------------------------
+
+
+References:
+- http://www.cs.princeton.edu/courses/archive/spr06/cos320/notes/Stack-handout.pdf
+
+
+=== Howto use a stack trace (aka stack backtrace)
+
+1) extract function name from stacktrace
+[01]: 0x00002b162f974735 BOBuchhaltungTaskWorker::adhoc(BOManager*, BOBuchhaltungTaskDataElement*)+0x85 (at 0x00002b162f974735 in /home/xentis/xentis/packages/XENTIS/lib/libAmisBO.so)
+...
+
+2) get relative address of that function symbol
+$ nm /home/xentis/xentis/packages/XENTIS/lib/libAmisBO.so | c++filt | grep BOBuchhaltungTaskWorker::adhoc
+000000000074f6b0 T BOBuchhaltungTaskWorker::adhoc(BOManager*, BOBuchhaltungTaskDataElement*)
+
+3) use gdb to disassemble the function
+gdb /home/xentis/xentis/packages/XENTIS/lib/libAmisBO.so
+disass 0x000000000074f6b0
+
+4) stacktrace said its the instruction with offest +0x85 (+133 dec), so in the disassembly:
+   0x000000000074f735 <+133>:	mov    (%r12),%rax
+
+
+== Error handling
+
+Use asserts for conditions during development that can never be true if all your code is correct. `cannot be' means `will never happen if the program is correct', or `it is under my control'. Then again who is `my', what parts of the program are we talking about? When an exception fires it means that the program is in an ill state and data might be corrupt. It makes no sense to continue the current unit of work on such a basis. I.e. don't use asserts to check preconditions (since in the release version the check wont be there and the precondition would be violated).
+
+
+
+Better talk about unit of work (program/progress/thread/cmd of loop/function) than of program.
+
+Depending on the program
+- The user prefers that the program gracefully continues, altough it doesn't do exactly what it should. The displayed/outputed data might be incorrect.
+- The user prefers that the behaviour/data of the program is absolutely correct. He can better tolerate that the program terminates, maybe even ungracefully.
+
+
+- https://msdn.microsoft.com/en-us/library/hh279678.aspx[Errors and Exception Handling (Modern C++)]
+
+
+
 == Build tools / Libraries
 
 === Linker
@@ -142,3 +234,9 @@ gcc, clang
 
 === dynamic memory allocation
 consider using tcmalloc
+
+
+
+== Information managers / note taking
+
+Consider using Evernote: https://evernote.com/intl/de/?var=1
