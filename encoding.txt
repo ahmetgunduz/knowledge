@@ -92,8 +92,9 @@ code page:: A vendor specific character encoding. The name of a code page is ven
 *to-do*: Difference between grapheme and abstract character. What does UNICODE use in it's terminology (-> http://unicode.org/glossary/, http://mathias.gaunard.com/unicode/doc/html/unicode/introduction_to_unicode.html)?
 
 
-== Misc
+== Dedecting encoding
 
-The unix command +file+ dedects a file's character encoding using heuristics.
+- The unix command +file+ dedects a file's character encoding using heuristics.
+- About XML's heuristic to dedect encoding: http://stackoverflow.com/questions/5165347/what-use-is-the-encoding-in-the-xml-header
 
 // http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=IWS-Chapter02
