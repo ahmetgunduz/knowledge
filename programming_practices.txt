@@ -764,12 +764,14 @@ Our Mod's interface methods always have the mod's prefix.
    
 === Naming misc.
 
-.Class names
-- Nouns, noun phrases: Customer, WikiPage, Account
+.Class / object (aka instance) name
+- Noun (phrase): Customer, WikiPage, Account
 
-.Method names
-- verb, verbphrase
-  
+.Method name
+- functions (returning a value) aka queries: noun (phrase), just as a variable
+- commands aka procedures: verb (phrase)
+
+.General
 - Name = abbreviated brief comment
 - A variable has one Aufgabe (thats why i use const).
 - Length of variable should correspond to the size of its scope. Local names can
