@@ -26,35 +26,38 @@ Status of working tree / index file::
 The following copy files between the following three participants: the working
 tree, the index aka the staging area and the repository.
 
-.Working tree -> Index
+.Working tree -> Index, aka stage
 - all but ignored: ++git add -A++
 - single files: ++git add <pathspec>...++
 
-.Working tree -> index and new commit in repository
+.Working tree -> index and new commit in repository, aka commit -a
 I.e. additionally HEAD is modified.
 Its not possible to only copy to repository but not also to index.
 - all (which are also in index): ++git commit -a++
 - single files (which must also be in index): ++git commit <file>...++
 
-.Remove from working tree
+.Remove from working tree, aka (filesystem) remove
 - single files: ++/bin/rm <file>...++
+- untracked files: ++git clean -n++ to test, ++git clean -f++ to actually unrecoverably do it, ++git clean -i++ to interactively select files to be removed, or trash them with ++git ls-files --others --exclude-standard -z | xargs -0 trash ++
 
-.Index -> new commit in repository
+.Index -> new commit in repository, aka commit
 I.e. additionally HEAD is modified
 - all: ++git commit++
 
-.Index -> Working tree
+.Index -> Working tree, aka discard-to-index
 - all: ++git checkout-index -a++
 - single files: ++git checkout-index <file>...++
 
 .Remove from Index
 - single files: ++git rm --cache <file>...++
 
-.Repository -> Index
-- ???
+.Repository -> Index, aka unstage
+- all: ++git reset++
+- single files: ++git reset -- <file>...++
 
-.Repository aka HEAD -> working tree
-- ???
+.Repository aka HEAD -> working tree, aka discard(-to-HEAD)
+- all: ++git checkout -- .++  !!!! really ??? only when exec from repo root ???
+- single files: ++git checkout -- <file>...++
 
 .Remove from repository
 Fortunately not directly possible.  When commits, or git objects in general,
@@ -175,5 +178,16 @@ Git Extensions::
 
 === Graphical log
 - Tortoise and QGit are the only ones that displays it in a way I find it convenient
+
+== Misc
+
+g diff --summary -M10% <commit> <commit> -- <path>...
+
+git cherry-pick --strategy="recursive" --strategy-option="rename-threshold=10%" <commit>...
+
+git config merge.renameLimit 99999999
+...
+git config --unset merge.renameLimit
+
 
 //  LocalWords:  pathspec
