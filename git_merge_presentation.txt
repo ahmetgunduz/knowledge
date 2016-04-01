@@ -1,0 +1,95 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+= Merging in general and in particular with Git
+
+== What you should now
+
+A merge (here meaning 3 way merge (starting with base, A, B) opposed to 2-way merge (starting only with A, B)):  All of this is clear to you, most notably point 5.
+
+1. A merge is always about different 4 commits (aka versions): common base, A,
+   B, merged result.
+2. Correlary: A merge is always about 4 diffs: Base->A, Base->B, A->merged,
+   B->merged.
+3. The goal of a merge (where you want both sides) is that the diff A->merged
+   equals the diff base->B and the diff B->merged equals the diff base->A.
+4. Point 1-3 are true also when applying a patch (aka cherry-pick). A rebase
+   is a series of cherry-picks.
+5. Git merge does almost everything for you. In case there are no merge
+   conflicts, you're already done. In case of conflicts, you _only_ have to
+   manually resolve the merge _conflicts_. I.e. only the conflicting hunks in
+   conflicted files. All the files witout conflicts and all the
+   non-conflicting hunks in a conflicted file are allready automatically
+   merged and you don't have to care about them.
+6. You know how to configure Git and your prefered merge tool so you can
+   conveniently resolve merge conflicts as explained in point 5.
+7. Starting out with commit A and B, to find the common base commit, Git looks
+   only at the graph of commits. Dates are _not_ involved in any way.
+8. You know what to do if you think you don't need one side. E.g. one side is
+   a bugfix that is not needed in the other side since it was already
+   'accidentaly' fixed by another commit. Or you think you need to rewrite the
+   patch anyway since the other side had a big refactoring.
+
+
+- make presentation with beyond compare to better reach people
+- goal: people use Git to merge
+
+
+
+== What is a merge / what is a patch
+
+- Is about a DAG of 4 commits/versions / 4 diffs.
+- Unfortunatly many tools only show 3 versions. None (that I know of) shows
+  all 4 diffs.
+
+- Example:
+ * trivial patches
+ * non-trivial patches no conflict
+ * trivial conflict
+ * non trivial conflict
+
+== What Git does for you
+
+- Only resolve the merge conflicts. No need to look at the parts/differences
+  which are already automatically merged.
+- Has nothing to do with dates.
+- git log --merge: show more details
+
+- Git’s philosophy is to be smart about determining when a merge resolution is
+  unambiguous, but if there is a conflict, it does not try to be clever about
+  automatically resolving it.
+
+
+== Non trivial merge conflicts
+
+- Patch A modifies code which is moved by the patch B. The conflict will
+  only occure where the function is 'deleted'. One has to know its not deleted
+  but moved, and manually apply patch A also where the code block is 'inserted.
+- One patch becomes obsolete: A: delete function B: fix bug within that function
+- Semantic merge conflict not automatically dedected:
+ * A: rename B: New (includes moving [=delete + new]) usage of that idendifier
+
+== tips / howto
+- Eo merge always with clean working tree, altough this is not technically
+  required. Rational: to be able to undo _anything_. Does Git warn???
+- Before merging into public branch (e.g. 5.3.0), i.e. before pulling with
+  public branch: ensure your local version has not diverged from the public
+  version.
+
+
+== Concrete configuring examples
+
+- beyond compare, meld. The `normal' variant with a 3way diff.
+- whitespace, lineendings, renames???
+
+
+=== Howto
+
+!!! talk with you're collegue before merging her stuff for her. She might be
+in course of merging herself.o
+
+!!! howto verify working dir is clean and no unpushed changes aka branch does
+not diverge.
+
+Let's see how it works out. If we see it doesn't work in practice, we choose
+another solution.
