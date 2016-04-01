@@ -288,4 +288,26 @@ Use unique_ptr by default, use shared_ptr when you _know_ you need shared
 ownership.  unique_ptr can always be moved to a shared_ptr.  If you _know_ you
 need shared ownership, use make_shared.
 
+== Copy-and-swap idiom
+
+A recipe how to write copy/move constructor/assignment aimed to be general,
+simple and correct, as oppsed to specialized and/or efficient.
+
+This idiom is just something that works and is hard to do wrong. For every
+particular class, there is almost certainly a more efficient
+route. Copy-and-swap isn't _the_ way to do copies or assignment, it's _a_
+way.
+
+- no-throw guarantee:
+ * if pass by value: kind of a lie, since the caller must make a copy which
+   can throw, i.e. its not possible to call without possibly being thrown at
+ * if passed by const ref: then there is no no-throw guarantee since
+   the internal copy constructor can throw
+- strong exception guarantee: granted
+- Missed opportunity to reuse resources: the ressources of the old state could be reused
+- Code duplication: swap and copy-ctor are now pretty redundant, no?
+
+
+
+
 //  LocalWords:  noexcept Callee Reseat reseat Scott's
