@@ -8,52 +8,54 @@ Summary of the book `Introduction to algorithms'.
 
 == Algorithm properties
 
-=== Computational/Time complexity
 
-In the following +f(n)+ is typically the number of _steps_ needed by an algorithm, where +n+ is the _input size_.  +T(n)+ is the _running time_.
+=== Algorithmic notation, big O natotation
 
-Types of asymptotic notations O:
+In the following +n+ is the _input size_, +f(n)+ is the _number of steps_ needed by an algorithm, and  +T(n)+ is its _running time_.
 
-O:: Pronounced ``__big-oh__ of ...''. Asymptotic upper bound (no claim about how tight, i.e. e.g. +n=O(n^2^)+ footnote:[CLRS 3rd ed. sub-chapter O-notation in the middle]).  ++f(n)∊O(g(n)): there exist c>0 and n~0~>0 such that 0 ≤ f(n) ≤ c⋅g(n) for all n≥n~0~++
-Θ:: Pronounced ``__big-theta__ of ...''. ++f(n)=Θ(g(n))++ means +g(n)+ is an asymptotically tight bound for +f(n)+. ++f(n)∊Θ(g(n)): there exist c~1~>0, c~2~>0 and n~0~>0 such that 0 ≤ c~1~⋅g(n) ≤ f(n) ≤ c~2~⋅g(n) for all n≥n~0~++
-Ω:: Pronounced ``__big-omega__ of ...''. Asymptotic lower bound (no claim about how tight).  ++f(n)∊Ω(g(n)): there exist c>0 and n~0~>0 such that 0 ≤ c⋅g(n) ≤ f(n) for all n≥n~0~++
-ο:: Pronounced ``__little-oh__ of ...''. Upper bound that is _not_ asymptotically tight.
-ω:: Pronounced ``__little-omega__ of ...''. Lower bound that is _not_ asymptotically tight.
+Types of asymptotic notations:
 
-Note: Because ++O(g(n))++ is really a set, we should write ++f(n) ∊ O(g(n))++, however we often write ++f(n)=O(g(n))++, the equal sign meaning ∊.
+[cols="3,2,2,6,6"]
+|====
+| notation | | relation of growth rate | definition | Notes
+| +f(n) ∊ ο(g(n))+ | little-oh | f < g | Like O, bug for _all_ positive c | f is dominated by g asymptotically.
+| +f(n) ∊ O(g(n))+ | big-oh    | f ≤ g | ++There exist an c>0 and n~0~>0 such that \|f(n)\| ≤ c⋅\|g(n)\| for all n≥n~0~++ | Asymptotic upper bound. No claim on how tight; technically it woudn't be wrong to say that a linear algorigthm is +O(2^n)+
+| +f(n) ∊ Θ(g(n))+ | big-theta | f = g | ++There exist an c~1~>0, c~2~>0 and n~0~>0 such that c~1~⋅\|g(n)\| ≤ \|f(n)\| ≤ c~2~⋅\|g(n)\| for all n≥n~0~++ | Asymptotic tight bound. +Θ(g(n)) = O(g(n)) ∩ Ω(g(n))+. 
+| +f(n) ∊ Ω(g(n))+ | big-omega | f ≥ g | Like O, but ≥ (instead ≤) | Asymptotic lower bound.
+| +f(n) ∊ ω(g(n))+ | little-omega | f > g | Like ο, but ≥ (instead ≤) | f dominates g asymptotically.
+|====
+
+Θ is also called _rate/order of growth_.
+
+Note: Because ++O(g(n))++ is really a set, we should actually write ++f(n) ∊ O(g(n))++.  However we often write ++f(n)=O(g(n))++, the equal sign meaning ∊.
+Informally, especially in computer science, the big-oh notation often is permitted to be somewhat abused to describe an asymptotic tight bound (it really only describes an asymptotic upper bound) where using big-theta notation might be more factually appropriate in a given context.
+
 
 _worst case_ / _average case_ / _best case_ refers to the worst / average / best input -- a ``good'' input results in a short running time of the algorithm, a ``bad'' input results in a long running time.  For many algorithms we only care about the worst case, not the average case, because a) the worst case occurs fairly often in practice b) the average case is often as bad as the worst case c) it's difficult to know what an ``average'' input is (often it is assumed that all possible inputs are equally likely).
 
 _Tight bounds_: An upper bound is said to be a tight upper bound (aka _supremum_) if no smaller value is an upper bound.  Likewise for tight lower bounds (aka _infimum_).
 
-Informally, especially in computer science, the big-oh notation often is permitted to be somewhat abused to describe an asymptotic tight bound (it really only describes an asymptotic upper bound) where using big-theta notation might be more factually appropriate in a given context.
-
-Implications:
-
-* ++Θ(g(n))⊆O(g(n))++ thus from ++f(n)=Θ(g(n))++ follows ++f(n)=O(g(n))++.
-
-
-_Rate of growth_ (aka _order of growth_) +Θ(...)+ (pronounced ``theta of ...''): only the leading term with any constant factor removed; the lower-order terms are relatively insignificant for large values of n.  _Asymptotic efficiency_: Only look at rate of growth.  Usually, an algorithm that is asymptotically more efficient will be the best choice for all but very small inputs.  An algorithm is said to be _asymptotically optimal_ if, roughly speaking, its big-oh is equal to the big-oh of the best possible algorithm.
+_Asymptotic efficiency_: Only look at rate of growth.  Usually, an algorithm that is asymptotically more efficient will be the best choice for all but very small inputs.  An algorithm is said to be _asymptotically optimal_ if, roughly speaking, its big-oh is equal to the big-oh of the best possible algorithm.
 
 _amortized time_: `amortized +O(f)+' for operation o: In a sequence of length L of such o operations, the overall time is +O(L*f)+.  I.e. one of those o operations might use a particular large amount of time compared to the average case, but that time is amortized in the large.  A typical example is appending to an array; if the capacity is full, a new array of larger capacity needs to be allocated, and the data has to be copied.
 
+Common functions ordered after order of growth: c, log~c~(n), n, n·log~c~(n), n^c^, c^n^, n!, n^n^
 
-See also: http://bigocheatsheet.com/
+
+See also:
+
+- http://bigocheatsheet.com/
+- http://stackoverflow.com/questions/1364444/difference-between-big-o-and-little-o-notation
+- http://stackoverflow.com/questions/2986074/algorithm-analysis-orders-of-growth-question
 
 
-=== Memory related properties
-Locality::
+=== Properties
+
+Locality:: *to-do*
 In place:: An algorithm using +O(1)+ auxiliary memory space.  Often even +O(log n)+ is considered as in place.
-
-
-=== Other properties
 Parallel processing::
 Online:: An online algorithm is one that can process its input piece-by-piece in a serial fashion.
-
-=== Misc terms
-Rank:: The rank of an element is its position in the linear order of a set.
-__i__th order statistic:: the __i__th-smallest value in the set.
-Sentinel:: A sentinel is an object to represent the end of a data structure.
+Greedy:: Repeatedly makes locally best choice/decision, ignoring effect on future. See also <<greedy_technique>>.
 
 
 == Recursion / iteration / tail calls
@@ -195,10 +197,10 @@ More:
 *to-do*:
 - Why is in practice quick sort better than merge sort or heap sort, which both have better worst case running time, but all three have Θ(n lg n) average/expected running-time.
 
+
 == Medians and order statistics
 
 The _ith order statistic_ of a set of n elements is the ith smallest element.  For example, the _minimum_ of a set of elements is the first order statistic (i D 1), and the _maximum_ is the nth order statistic (i D n).  A _median_, informally, is the “halfway point” of the set.  When n is odd, the median is unique, occurring at i D .n C 1/=2.  When n is even, there are two medians, occurring at i D n=2 and i D n=2C1.  Thus, regardless of the parity of n, medians occur at i D b.n C 1/=2c (the _lower median_) and i D d.n C 1/=2e (the _upper median_).  For simplicity in this text, however, we consistently use the phrase “the median” to refer to the lower median.
-
 _Selection problem_: Given a set _A_ of _n_ (distinct) numbers and an integer _i_ with __i ≤ i ≤ n__, find the element _x_ ∊ A that is larger than exactly i-1 other elements of A.
 
 === Trivial algorithm
@@ -220,6 +222,12 @@ Like quicksort, the quickselect has good average performance, but is sensitive t
 The ``median of median'' algorithm is a quickselect algorithm which chooses the pivot as follows: it computes an approximate median (being between 30th and 70th percentiles):  Make groups of five elements, sort each with e.g. insertion sort, the 3rd element is the median.  We get n/5 medians.  We use quickselect (i.e. the ``median of medians'' version of it) to find the median of those medians, which is then our pivot.
 
 The book ``Introduction to algorithms'' calls quickselect ``randomized-select'' and ``median of medians'' ``select''.
+
+
+== Ranking
+Given a set (not sequence) of elements, the _rank_ of an given element is its position in the sequence what woul be build when the elements are ordered.
+
+*to-do*: Isn't this the same as ith order statistic?
 
 
 == String searching
@@ -310,6 +318,22 @@ formula to compute +cut_rod(n)+ in a recursive way and/or then program it.
 Memoization:: The solution to a sub-problem is memoized in a table.  Instead of solving/computing the sub-problem again just the value in the table is looked-up.
 
 **to-do:** List examples of problems which can be solved using dynamic programming, e.g. from the problems sections.
+
+
+[[greedy_technique]]
+=== Greedy technique / algorithm
+
+A _greedy algorithm_ repeatedly makes locally best choice/decision, ignoring effect on future, with the hope, but not guarantee, of finding a global optimum.
+
+Problems for which an greedy algorithm works well (*to-do*: guartenteed to find the global optimum?) will have two properties:
+
+- Like in dynamic programing, the greedy technique needs optimal substructure, but unlike in dynamic programing, subproblems are not required to overlap.
+
+- _Greedy choice property_: localy optimal choices lead to globally optimal solutions. *to-do* Is this property required or just nice to have?
+
+In many problems, a greedy strategy does not in general produce an optimal solution, but nonetheless a greedy heuristic may yield locally optimal solutions that approximate a global optimal solution in a reasonable time.  A greedy algorithm never reconsiders its choices; it makes locally best choices. This is the main difference from dynamic programming, which is exhaustive and is guaranteed to find the solution.
+
+
 
 == Graph (incl. tree) Algorithms
 
@@ -684,6 +708,8 @@ A graph +G=(V,E)+ is given by a set of _vertices_ +V+ (aka _nodes_) and a set of
 
 In an undirected graph, two vertices are called _connected_ if there is a path between the two, otherwise they are called _disconnected_. A graph is said to be connected if every pair of vertices is connected.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.  If each strongly connected component is contracted to a single vertex, the resulting graph is a directed acyclic graph, the _condensation_ of G.  A _cut_ (aka _vertex cut_, or _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  A _complete graph_ with n vertices, denoted Kn, has no vertex cuts at all, but by convention κ(Kn) = n − 1.  The _connectivity_ (or _vertex connectivity_) κ(G) (where G is not a complete graph) is the size of a minimal vertex cut.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater.
 
+A _tree_ is a conncted acyclic graph.  A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the vertices of G.  A _minimum spanning tree_ (aka _MST_) of is a spanning tree of G with the minimal total weighting for its edges.
+
 A _flow network_ (aka _transportation network_) is a directed graph where each edge has a _capacity_ and a _flow_ which can no exceed the capacity.  The amount of flow into a node must equal the amount of flow out of it, unless the node is a _source_ or a _sink_. _maximum flow problems_ involve finding a feasible flow through a single-source, single-sink flow network that is maximum.  It can be seen as a special case of the more complex problems, e.g. the circulation problem.   The _max-flow min-cut theorem_ states that the maximum flow is equal to the minimum capacity over all possible s-t edge cuts.  An s-t edge cut is an edge cut such that one of the resulting component contains the source and the other component contains the sink.  The capacity of an edge-cut is the sum of the capacities on the cut edges.  Solutions of max-flow: _Ford–Fulkerson algorithm_ +O(E*f)+ for the case where capacities are integers, whereas f is the maximum flow.
 
 Common problems: _single-pair shortest path_ problem: from single source to a single destination, _single-source shortest path_ problem: from a single source to all others, _single-destination shortest path_ problem: form all others to a destination, _all-pairs shortest path_ problem: from all to all.  The chapter <<NP_complete>> also lists some graph problems.
@@ -942,9 +968,13 @@ Examples of NP-complete problems:
 *to-do*:
 
 
+=== Misc terms
+Sentinel:: A sentinel is an object to represent the end of a data structure.
+
+
 == References
 - http://ocw.mit.edu/courses/civil-and-environmental-engineering/1-204-computer-algorithms-in-systems-engineering-spring-2010/lecture-notes/ 
-
+- https://www.quora.com/What-are-the-very-basic-algorithms-that-every-Computer-Science-student-must-be-aware-of
 
 
 
