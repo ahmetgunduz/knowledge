@@ -358,7 +358,7 @@ formula to compute +cut_rod(n)+ in a recursive way and/or then program it.
 3. Compute the value of an optimal solution.  E.g. execute +cut_rod(n)+.
 4. Construct an optimal solution from computed information.  E.g. so far +cut_rod(n)+ only prints the maximal revenue, but not yet the lengths of the pieces. Augment +cut_rod(n)+ such that this missing information is provided.
 
-Memoization:: The solution to a sub-problem is memoized in a table.  Instead of solving/computing the sub-problem again just the value in the table is looked-up.
+Memoization:: The solution to a sub-problem is memoized (aka remembered) in a  `memo pad' (aka table).  Instead of solving/computing the sub-problem again just look-up the value in the table.
 
 **to-do:** List examples of problems which can be solved using dynamic programming, e.g. from the problems sections.
 
@@ -501,7 +501,7 @@ void traverse(Node* n) {
 *to-do*:
 
 === A*
-A* is an algorithm which solves the single source shortest path problem.  Is a generalized version of the earlier invented Dijkstra's algorithm.  A* uses an heuristic to find the next node to be added to the shortest path tree.  Intuitively (use case `monotonic h'):  Construct the shortest path tree (spt) from a given source vertex to a given destination vertex by starting with adding source, and then iteratively adding a next vertex.  The vertex v to be added is the one with minimal `estimated shortest path length from source to destination via v'. That is correct due to the monotonic h and the fact that any sub path of a shortest path is itself a shortest path.
+A* is an algorithm which solves the single source shortest path problem.  Is a generalized version of the Dijkstra's algorithm.  A* uses an heuristic to find the next node to be added to the shortest path tree.
 
 Properties:
 
@@ -528,7 +528,9 @@ Each vertex gets attached these additional attributes:
 
 ++function vertex::k() = spwfs + estimated_spw_to_dest(this);++:  Returns the estimated shortest path weight from the implicit source vertex to the implicit destination vertex via vertex v.  k() is used as the key for the min priority queue.
 
-The following is the implementation for the case where h is monotonic:
+Intuitively the allgorithm is, assuming h is monotonic: Greedely iteratively add the vertex, dubed the `current' vertex, to the shortest path tree with the minimal k (i.e. tentative estimated path weight from source to dst via the current vertex).  For all neighbors of current vertex, relax their tentative sptwfs and spt_parent.
+
+Algorithm in pseudo code, assuming h is monotonic:
 --------------------------------------------------------------------------------
 function AStarMonotonicH(graph, source : vertex, dest:vertex,
         estimated_spw_to_dest : function(:vertex)->double )
