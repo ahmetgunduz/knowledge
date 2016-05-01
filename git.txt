@@ -78,6 +78,18 @@ become unreachable, eventually they will be pruned by the garbage collector.
 - ++git apply -3 foo.patch++
 
 
+== Specifying revisions
+
+start with empty set
+
+r: include set of commits reachable from r, incl. r.
+^r: exclude set of commits reachable from r, incl. r.
+
+r1 r2: union of r1 and r2
+\^r1 r2 / r2 ^r1 / r1..r2 : difference: 
+r1\...r2: symmetric difference
+
+
 == Undo Mistakes
 In addition to what is under chapter transitions.
 
