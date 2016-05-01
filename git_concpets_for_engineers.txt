@@ -1,0 +1,84 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+
+The objective of learning the basics is that it is the most simple and
+efficient way (for an engineer) to efficiently work with Git.
+
+Most humans can learn stuff using images, using concepts they already know
+well. Often rightfully omitting the complicated details.  With Git, the
+simplest image / concept is exactly how Git internally really works. I don't
+think there are any simpler / better views than the way it actually is.
+
+``... the data structures are really really really simple ...''
+footnote:[https://git.wiki.kernel.org/index.php/LinusTalk200705Transcript]
+
+`` ... git actually has a simple design, with stable and reasonably well-documented data structures. In fact, I'm a huge proponent of designing your code around the data, rather than the other way around, and I think it's one of the reasons git has been fairly successful […] I will, in fact, claim that the difference between a bad programmer and a good one is whether he considers his code or his data structures more important. Bad programmers worry about the code. Good programmers worry about data structures and their relationships. '' http://lwn.net/Articles/193245/
+
+
+When in discussion I often talk about that Git is a DAG, then the answer is
+``well that is your view/interpretation''.  No, it is fundamentaly how Git is
+designed. [Reword that in a more positive, less accusing way].
+
+It doesn't matter which Terms we use, but we should use the same term for the
+same thing / concept, else comminucation is deeply flawed and problems will arise.
+. Note that we encompases Git manuals, other developpers,
+new developers, so the best thing to do is to use the terms Git uses.
+
+
+== Presentation
+
+Simple git-draw image of a simple repo, to make the following two slides
+easier to put in context.  Start with a picture that looks like what is
+
+== The basics
+
+The basic entities of Git are objects and references
+
+1. Obj id = hash over obj's content
+2. Obj content: part of it can refer to other objs using their id
+3. Ref name = an hierarchical name (e.g. refs/heads/master)
+4. Ref content = either the name of a ref or the id of an obj
+
+It follows:
+
+7. Objs are immutable (1)
+8. There's an immutable (7) DAG (2) of objs  footnote:[Reason for no cycles not yet explained]
+9. Adding refs, an even larger DAG is formed (4, 8)
+10. Objs are universally (i.e. across any git repository) uniquely identified (1)
+11. Ref names are unique only within local repository, but not across
+    repositories (3)
+
+
+== How common entities build up on refs and objs
+
+- Branches and lightweight tags are references
+- The ref named HEAD defines the current branch or commit
+- A commit obj refers to zero or more parent commits and to one tree
+- A tree obj (think directory), refers to one or more (tree or blob)
+- A blob obj (think file) is a leaf.  Its content contains the file's content
+- A tag obj refers to any object, typically a commit
+
+It follows: Git tracks content, not changes
+
+From the above, most common questions about commit, merge, rebase, cherry-pick,
+fetch, pull, push, reset, creating/deleting branches etc. can directly be
+answered.
+
+== Collaboration
+
+Both sides have arbitrary DAGs.  E.g. can be completely unrelated repositories. Pushing means send a given commit x and all its descendants and on the other side let a given branch refer to commit x.  When e.g. bob does "git push alice deadbeef:bar" it means: hey alice, I want that your branch `bar' points to commit with id deadbeef. In order that alice repo can do that, it needs the commit deadbeef and all its descendants, and bob will send all the commits of that set that alice doesnt have yet.
+
+Git fetch is the other way round. When bob does "git fetch alice deadbeef:bar" means "hey alice, send me the commit deadbeef and all its descendants". Once received, bob repo lets the branch 'bar' point to deadbeef.
+
+
+== Misc
+
+- Prove that +git mv+ does the same as +/bin/mv old new; git rm old; git add new+ by doing it both, each time in a separate copy, and then recursively make a dir compare.
+
+
+== To-do
+
+What really is shared between repositories are objs, not refs
+
+//  LocalWords:  rebase
