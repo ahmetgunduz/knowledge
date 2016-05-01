@@ -446,6 +446,16 @@ Inheritance is a very strong coupling and has a couple of drawbacks:
   i.e. inclusive the semantic part.  Note that when using private inheritance,
   you're not creating a sub type, i.e. there is no obligation to fulfill
   Liskov.
++
+The Liskov substitution principle (LSP) is a particular definition of a
+  subtyping relation, called (strong) behavioral subtyping.  Formally: Let
+  ɸ(t) be a property proveable about objects t of type T. Then ɸ(s) should be
+  true for objects s of type S where S is a subtype of T.  Informally: If S is
+  a subtype of T, then objects of type T may be replaced with objects of type
+  S without altering any of the desirable properties of the program.
++
+Regarding functions of a subtype: Pre conditions must be equal or widened, post
+  conditions must be equal or narrowed.
 
 - The semantic API of a base class for its sub classes is often not trivial,
   at least its often more complex than the semantic API of the public
