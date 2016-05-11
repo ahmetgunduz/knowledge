@@ -47,64 +47,49 @@ See also:
 
 == Computational complexity classes
 
-The field of computational complexity categorizes decidable decision problems by how difficult they are to solve. "Difficult", in this sense, is described in terms of the computational resources needed by the most efficient algorithm for a certain problem.
+The field of computational complexity categorizes decidable decision problems by how difficult they are to solve. "Difficult", in this sense, is described in terms of the needed computational resources.
 
-A _decision problem_ is a problem with a binary answer, e.g. yes or no.  A _function problem_ can have answers that are more complex than a simple `yes' or `no'.  Function problems can be transformed into decision problems and vice versa.  Thus computational complexity can focus on decision problems.
+A _decision problem_ is a problem with a binary answer, e.g. yes or no.  A _function problem_ can have answers that are more complex than a simple `yes' or `no'.  Function problems can be transformed into decision problems and vice versa.  Thus computational complexity can focus on decision problems. An _intractable_ problem is one that can be solved in theory (i.e. which is in R), but which in practice takes too long to be usefull. There's no exact definition, but in general problems not in P (but in R) are considered intractable.
 
 
-P: (Decision) problems solvable in at most polynomial tyme (n^c).
+P:: (Decision) problems solvable in at most polynomial tyme (n^c^).  If you can establish a problem as not in P, you provide good evidence for its intractability.  You'd better spend your time developing an approximation algorithm or solve a tractable special case.
 
-NP (from non-determiniatic polynomial): Decision problems where the a given yes-answer (e.g. yes, this sudoku has a solution), has a proof (can take more than polynomial time) (e.g. this solved sudoku) which can be checked in at most polynomial time (e.g. take the alleged solution / proof and verify it holds up to the sudoku rules).
+NP (non-determiniatic polynomial):: (Decision) problems solveable in polynomial time via a ``lucky'' algorithm: Like in dynamic programm the algorithm makes a guess at each branch points where it could follow multiple paths.  However, if the overall answer of the decision problem is yes, it magically (being an awsome cool fairy tale computer) always guesses the path that ultimatively leads to the yes.
++
+Equivalently: (Decision) problems where the a given yes-answer (e.g. yes, this sudoku has a solution), has a proof (can take more than polynomial time) (e.g. this solved sudoku) which can be checked in at most polynomial time (e.g. take the alleged solution / proof and verify it holds up to the sudoku rules).
++
+Is a nondeterministic computation model.  It's not a realistic model, but it's still a usefull model.
 
-EXP: (Decision) problems solvable in at most exponential tyme (2\^n^c).
+EXP:: (Decision) problems solvable in at most exponential tyme (2^n^).
 
-R (R for recursive, in the old days recursive stod for will terminate): (Decision) problems solvable in finite time
+R (recursive):: (Decision) problems solvable in finite time. Etymology: R stands for recursive, which in the old days stood for `will terminate'.
 
-NP-hard (or X-hard in general): at least as hard as every element in NP (X in general) (i.e. same hardness or harder, but not less hard than any element in NP (X in general))
+NP-hard (or X-hard in general):: at least as hard as every element in NP (X in general) (i.e. same hardness or harder, but not less hard than any element in NP (X in general))
 
-N-complete (or X-complete in general): intersection of NP and NP-hard.
+N-complete (or X-complete in general):: intersection of NP and NP-hard.
 
 Set of problems, orderer on a line after hardness:
 
-foo
 --------------------------------------------------
-              P-complete  NP-complete  EXP-complete
-easier <----------|----------|-------------|----------------> harder
+              P-complete  NP-complete  EXP-complete    R-complete
+easier <----------|----------|-------------|---------|------> harder
       
- P                   P-hard
- (incl P-complete)   (incl P-complete)
+P(incl P-complete)   P-hard (incl P-complete)
 <---------------->|<---------------------------------....
 
-           NP                      NP-hard
-           (incl NP-complete)      (incl NP-complete)
+      NP (incl NP-complete)     NP-hard (incl NP-complete)
 <--------------------------->|<---------------------....
 
-           EXP                               EXP
-           (incl EXP-complete)               (incl EXP-complete)
+           EXP (incl EXP-complete)           EXP (incl EXP-complete)
 <---------------------------------------->|<---------------------....
 --------------------------------------------------
 
-
-P ≠ NP:
- ≈ ``you can't engineer luck''
- ≈ ``solving problems is harder than check solutions''
-
-Most people think P ≠ NP is true, but no one could prove it so far.
-
-
-
-The class _P_ consists of those problems that are solvable in polynomial time.  Alternatively, P  is the class of problems that are _tractable_ (``efficiently solvable'').  The class _NP_ (non-deterministic polynomial time) consists of those problems that are `verifiable' in polynomial time, i.e. given a solution it is verifiable in polynomial time that the solution is correct.  _NP-hard_ is a class of problems that are, informally, ``at least as hard as the hardest problem in NP''.  A problem is in the class _NPC_ (aka _NP-complete_) if it is in NP and in NP-hard.
-
-- If any NP-complete problem can be solved in polynomial time, then every problem in NP has a polynomial time algorithm.
-- No polynomial-time algorithm has yet been discovered for an NP-complete problem.
-- If you can establish a problem as NP-complete, you provide good evidence for its intractability.  You'd better spend your time developing an approximation algorithm or solve a tractable special case.
-- Not yet proven that no polynomial-time algorithm can exist for any NP-complete problem.
+Most people think P≠NP is true, but no one could prove it so far (it's one of the Millenium Prize Problems), so it could be that P=NP is true.  P≠NP translates to ``you can't engineer luck'', or to  ``solving problems is harder than check solutions''.  NP is an awfully powerfull model of computation -- it can use this fairy tale computer which always magically guesses the right path -- so NP `obviously' is more powerfull than P -- except we don't know how to proof it.
 
 Examples of NP-complete problems:
 
 - Determining whether a graph contains a simple path with at least a given number of edges
-
-- _Travelling salesman problem (TSP)_: Given a list of cities and the distances between each pair of cities, what is the shortest possible route that visits each city exactly once and returns to the origin city.  TSP is a special case of the traveling purchaser problem.
+- <<TSP,Travelling salesman problem>>
 - _Knapsack_: Given a set of items, each with a mass and a value, determine the number of each item to include in a collection so that the total weight is less than or equal to a given limit and the total value is as large as possible.
   * Resource allocation
 - _Hamiltonian path/cycle_: a path/cycle in an undirected or directed graph that visits each vertex exactly once
@@ -1391,6 +1376,22 @@ test:   x &   y
 In C / C&plus;&plus;, +CHAR_BIT+ is the number of bits in a byte.
 
 - http://graphics.stanford.edu/~seander/bithacks.html
+
+
+[[TSP]]
+=== Travelling salesman problem (TSP)
+In an weighted graph (directed or undirected), the TSP is finding the path with mimimum weight visiting each vertice exactly once and start vertex being the end vertex.
+
+TSP is a special case of the travelling purchaser problem.  
+
+TSP is NP-complete.
+
+Algorithms:
+
+- Exact: Held–Karp, a dynamic programming algorithm.
+- Exact: Various branch-and-bound algorithms
+- Exact: ... linear programming ...
+- Approximations:                 
 
 === Misc terms
 Sentinel:: A sentinel is an object to represent the end of a data structure.
