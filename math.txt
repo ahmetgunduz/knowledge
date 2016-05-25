@@ -17,5 +17,35 @@ The notion of _permutation_ relates to the act of permuting, or rearranging,
 all the members of a set into some ordered sequence.  P(n,k)= C(n,k)*k! =
 n!/(n-k)!.
 
+== Misc
+
+=== Fibonacci sequence / numbers
+
+reccurence relation: F~n~ = F~n-1~ + F~n-2~
+
+closed form expression: F~n~ = (ϕ^n^ - ψ^n^) / √5 = [ϕ^n^ / √5], where ϕ is golden ratio and ψ=1-ϕ, and [x] is the nearest integer function (aka round function).
+
+Note: lim~n→∞~ F~n~ / F~n-1~ = ϕ
+
+Applications: Fibonacci heap
 
 
+=== Golden ratio
+
+ϕ = (1+√5)/2 ≈ 1.618…
+
+Two quantities a and b are in the golden ratio ϕ iff a+b / a = a / b = ϕ, i.e. a=ϕb
+
+=== Factorial
+
+reccurence relation: x! = x*(x-1) and 0!=1
+
+stirlings approximation: n! ~ √(2πn)*(n/e)^n^
+
+
+== to-do
+
+- skalarproduct
+- greatest common divider/divisor
+- log/exp relation to mul/div
+- angle between vector
