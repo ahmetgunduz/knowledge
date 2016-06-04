@@ -388,6 +388,14 @@ To sort linked lists:
 * Copy it to an temporary array, sort that, copy the array back to the linked list.  Main reason: array has much better locality than a linked list where the nodes are scattered within memory.
 * Variant of merge sort
 
+To sort strings:
+
+* *to-do*
+
+To sort integers:
+* *to-do* see e.g. at 6:40 https://www.youtube.com/watch?v=pOKy3RZbSws&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&index=14
+
+
 *to-do*: Why is in practice quick sort better than merge sort or heap sort, which both have better worst case running time, but all three have Θ(n lg n) average/expected running-time.
 
 References:
@@ -402,6 +410,7 @@ Time: +O(n^2^)+ worst case & average case, +O(n)+ best case.  Auxiliary space: +
 === Selection sort
 Time: +O(n^2^)+ worst case & average case & best case.  Auxiliary space: +O(1)+.  Divide the input logically into a sorted part (initially empty) followed by an unsorted part (initially the whole input).  In each iteration search the smallest element in the unsorted part, swap it with the leftmost element of the unsorted part, then increment the pointer dividing the sorted / unsorted sub lists.
 
+[[quick_sort]]
 === Quick sort
 Time: +O(n^2^)+ worst case, +O(n lg(n))+ average case, best case: (simple partition: +O(n lg(n))+, 3way partition and equal keys: +O(n)+).  Auxillary space: worst case: (naive: +O(n)+, Sedgewick +O(log n)+).  Not stable in naive implementation.  Hidden factor in time complexity in practice quite small.  The +O(n^2^)+ worst case running time might be a problem when input size is large and used in an real-time system or system concerned with security (because malicious user potentially can trigger worst case behaviour).
 
@@ -417,7 +426,7 @@ Time: +O(n lg(n))+ worst case & average case & best case.  Auxillary Space: +O(1
 === Bucket sort
 Time: +O(n^2^)+ worst case, +O(n+k)+ average-case and best case.  Auxiliary space: +O(n+k)+.  Stable.  Not comparison-based; it assumes that the elements' values are uniformly distributed, for simplicity, without loss of generality, assume in [0,1).  Make an array of k `buckets', where each bucket is a sequence of elements, initially empty.  For each element in the input, insert it into the bucket having the array index k*elementvalue.  Then sort each of the buckets with another sort.  Then produce the final output by concatenating the buckets.  Note: the time complexity gets worse if the data is not uniformly distributed as assumed, since certain bucket sequences get much longer than other.
 
-=== Counting sort (aka histogram sort)::
+=== Counting sort (aka histogram sort)
 +Θ(k+n)+ time complexity, +Θ(k+n)+ or +Θ(k)+ space complexity, depending on whether the _required_ output array (sorting in-place only with the input array is not possible) is taken into account or not.  Not comparison-based; it assumes that each element is an integer in the range +0--k+, where +k=O(n)+.  Stable sort.  Algorithm: With an array a of size k, for each input element x, count the elements less than x, which so gives the index / position of x in the sorted output sequence.  Mental image: internally counting sort computes an histogram of the number of times each key occurs.
 
 === Radix sort
@@ -428,6 +437,12 @@ Time: +Θ(n)+.  Space: +O(n)+. Imagine n cards within m sorted piles of cards fa
 
 === Externally merge sorted sequences
 Given N sorted sequences on disk which do not fit all together into memory.  For each, make an buffered (in memory) input stream.  Make an (buffered) output stream for the result.  Now there are N input streams and 1 output stream and the algorithm works as described in ``merge sorted sequences''.
+
+[[BST_sort]]
+=== BST sort
+Take an implementation of the BST ADT, insert all elements of the input, then do an in-order walk.
+
+When the <<naive_BST>> is used, BST sort does same comparisons as <<quick_sort>>, but in a different order. (where quick sort uses first element as pivot, and then does stable partitioning). When the input is randomly permuted before building the BST, _randomized BST sort_ does again the same comparisons as randomized quick sort choosing its pivot randomly.
 
 
 == Medians and order statistics
@@ -461,12 +476,15 @@ Given a set (not sequence) of elements, the _rank_ of an given element is its po
 *to-do*: Isn't this the same as ith order statistic?
 
 
-== String searching
-Problem: search a given pattern in a given text.  Let _Σ_ be an alphabet (finite set), _T_ a text of length _n_, _p_ a pattern of length _m_.  Both the pattern and searched text are vectors of elements of Σ.
+[[string_searching]]
+== String searching / matching
+Problem: Find all/some occurences of a pattern P in a given text T.  Let _Σ_ be an alphabet (finite set), _T_ a string of length _n_, _P_ a string of length _m_.  Both the pattern and searched text are vectors of elements of Σ.
 
 _naive string search_: iteratively check at each location in the searched-text.  Time: +O((n-m+1)m)+ worst case, +O(n)+ average case (note that m<=n).
 
-_FSA_ / _DFA_: *to-do*
+Comparision *to-do*: Small/big T, small/big P, small/big Σ, repeatedly searching in same T, repeatedly searching same P, ...
+- http://programmers.stackexchange.com/questions/183725/which-string-search-algorithm-is-actually-the-fastest
+-
 
 
 === Rabin-Karp
@@ -505,6 +523,24 @@ int rollinghash(int hash, char ch_out, char ch_in) {
     return (radix*(hash - ch_out*h) + ch_in) % q;
 }
 --------------------------------------------------
+
+
+=== Knuth-Morris-Pratt
+Time O(n+m) worst case [O(m) preprocessing], O(m) auxillary space
+
+*to-do*
+
+
+=== Boyer-Moore
+O(n+m) worst case
+
+*to-do*
+
+
+=== Misc
+
+- <<suffix_tree>>
+- _FSA_ / _DFA_: *to-do*
 
 
 == Graph (incl. tree) Algorithms
@@ -615,14 +651,21 @@ Tree-Level-Order-Traversal(root):
 [[DFS]]
 === Depth-first search (DFS) / traversal
 
-An algorithm for traversing or searching a graph in depth first order.  Typically used to traverse the complete, possibly disconnected graph.  As opposed to search only a connected graph starting from a single source; however that is also possible.
+An algorithm for traversing or searching a graph in depth first order.  In +Θ(V+E)+ time and +O(V)+ space.  Typically used to traverse the complete, possibly disconnected graph.  As opposed to search only a connected graph starting from a single source; however that is also possible.
+
 
 ==== Recursive algorithm
 
-Intuitively the algorithm is:  Imagine a maze.  Start following any path and leave bread crumbs at each node (crossing) you passed. Once you reach a dead end node (i.e. a node which has no edges wich lead to a node without bread crumbs), you backtrack to the previous node and try the next edge, until that node becomes a dead end node too, and then you backtrack again, and so on.
+Basic algorithm for a connected graph:
+--------------------------------------------------
+DFS-visit(graph, source:vertex):
+  mark source as visited
+  for each neighbor of source:
+    if neighbor is unvisited:
+      DFS-visit(graph, source)
+--------------------------------------------------
 
-To be able to know whether a given node (aka vertex) was already visited typically each node gets a `color' attribute attached.  If it is known that the graph is acyclic that color attribute is not needed since it's inherently not possible for that algorithm to visit a node twice.
-
+More detailed algorithm for a general graph:
 [[DFS_all_source]]
 --------------------------------------------------
 DFS-all-source(graph):
@@ -649,13 +692,36 @@ DFS-visit(graph, current:vertex):
 
 Analysis DFS-all-source: Time complexity: +Θ(V+E)+. Rational: Each vertex is visited (is current) once -> +O(V)+.  Each outgoing edge of each current (i.e. each node) is looked at -> +O(E)+. Space complexity: +O(V)+. Rational: Each vertex has at least the color attribute attached. Also in the worst case, when the graph is a list, there are as many recursion calls (stack pushes) as vertices.
 
+
 ==== Iterative algorithm
+
+Basic algorithm 1 for a connected graph:
+--------------------------------------------------
+DFS-visit(G:graph, root:vertex):
+  while stack is not empty:
+    current = stack.pop()
+    if current.color == unvisited:
+      current.color = visited
+      for each neighbor of current:
+        stack.push(neighbor)
+--------------------------------------------------
+
+Basic algorithm 2, which is closer to the detailed that follows, for a connected graph:
+--------------------------------------------------
+DFS-visit(G:graph, root:vertex):
+  while stack is not empty:
+    current = stack.top()
+    if current.color == unvisited:
+      current.color = visited
+      for each neighbor of current:
+        stack.push(neighbor)
+    else
+      stack.pop() 
+--------------------------------------------------
 
 The recursive DFS saves on its call stack for each recursion the pair 1) the current vertex and 2) for that current vertex the current neighbor in the sequence of neighbors it is iterating over. The following iterative solution saves neighbors on the stack, but not the `current neighbor'. E.g. when starting, _all_ neighbors of the src node are pushed immediately onto the stack, and only after that the next iteration begins; that is unlike the recursive solution, which only explores the 2nd neighbor of the src after the complete DFS tree of the first neighbor has been explored. 
 
 Note that DFS-visit is only part of DFS-all-src, *to-do* make it correct where to place init
-
-*top-do*: topo order
 
 --------------------------------------------------
 DFS-visit(G:graph, root:vertex):
@@ -674,7 +740,7 @@ DFS-visit(G:graph, root:vertex):
       current.color = discovered <2>
       [push to front of topo sorted sequence]
       S.pop()
-    eliif current.color = discovered <1>
+    elif current.color = discovered <1>
       S.pop()
 
 init(G:graph, root:vertex, S:stack)
@@ -709,19 +775,43 @@ is as discovered, pushed C _again_, pops C and marks it as discovered, pops C
 *to-do*: symmetry between DFS and BFS: http://stackoverflow.com/questions/5278580/non-recursive-depth-first-search-algorithm
 
 
+[[DFS_forest]]
 [[DFS_edge_classification]]
-==== Edge classification
+==== Edge classification / DFS forest
 
-These edge properties are edge properties of the forest that results from a DFS, not of the graph per se.  Here, exploring an edge (current, neighbor) means the loop body within DFS-visit.
+These edge properties are edge properties of the spanning forest (aka DFS forest) that results from a particular DFS run, not of the graph per se.
 
-_Tree edges_ are edges in the depth-first forest.  Edge (current, neighbor) is a tree edge if neighbor is unvisited when first exploring that edge.
+The trees in the DFS forest produced by the algorithm above are in-trees (edges point towards root), i.e. edge direction is reversed relativ to the underlying graph.  When in the following ancestry terms are used, they refer to the edges in the DFS tree, not the edges in the underlying graph.
 
-_Back edges_ are those edges (u,v) connecting u to an ancestor v of u in a depth-first tree.  
+--------------------------------------------------
+        A----->B  directed edge in graph
+         <·····   directed edge in DFS forest
+   parent      child  
+  current      neighbor
+--------------------------------------------------
 
-_Forward edges_ are those edges (u,v) connecting u to an descendant v of u in a depth-first tree.
+_Tree edges_: node->child / neighbor is univisited (aka white). I.e. an edge in the DFS forest.
 
-_Cross edges_ are all the other edges: between two non-ancestor-related subtrees (i.e. between trees in the depth-first forest or between sub-trees within a given tree).
+_Back edges_: node->anchestor / neighbor is exploring (aka gray). A self-loop is considered a back edge.
 
+_Forward edges_: node->descendant(non-child) / neighbor is finished (aka black) and node.starttime<neighbor.starttime.
+
+_Cross edges_: node->neither-anchestor-nor-descendant / neighbor is finished (aka black) and neighbor.starttime<node.starttime. Between two non-ancestor-related sub-trees (i.e. between trees in the depth-first forest or between sub-trees within a given tree).
+
+--------------------------------------------------
+      ---A<--
+     /  / \  \
+     | V   V  |
+for  | B   C  |back edge
+ward | |   |  |
+edge | V   V  |
+     \>D<--E-/
+       cross edge
+--------------------------------------------------
+
+Applications:
+
+- <<cycle_dedection>>: A graph is acyclic iff there are no back edges.
 
 
 ==== Tree (pre-/in-/post-) order traversal: Recursive approach
@@ -783,7 +873,7 @@ void traverse(Node* n) {
 === A*
 A* is an algorithm which solves the single-pair shortest path problem.  A* uses an heuristic, involving the function h, to find the next node to be added to the shortest path tree.  It can also be used to solve the single-source shortest-path problem, but is not intended for it, since h is typically optimized for a specific destination node.  A* is a generalized version of the Dijkstra's algorithm: if h returns always 0 (i.e. is independent of a destination node) then A* equals Dijkstra.
 
-How the algorithm works intuitively (use case `monotonic h'):  Construct the shortest path tree (*spt*) from a given source vertex to a given destination vertex by starting with adding source to the shortest path tree, and then iteratively adding a next vertex to the shortest path tree.  The vertex v to be added to the spt is the one of the yet unadded ones with minimal `estimated shortest path length from source to destination via v'. That is correct due to the monotonic h and the fact that any sub path of a shortest path is itself a shortest path.
+How the algorithm works intuitively (use case `monotonic h'):  Construct the shortest path tree (_spt_) from a given source vertex to a given destination vertex by starting with adding source to the shortest path tree, and then iteratively adding a next vertex to the shortest path tree.  The vertex v to be added to the spt is the one of the yet unadded ones with minimal `estimated shortest path length from source to destination via v'. That is correct due to the monotonic h and the fact that any sub path of a shortest path is itself a shortest path.
 
 Each vertex gets attached two additional attributes: shortest path tree parent (*+spt_parent+*) and shortest path weight from source to this node (*+spwfs+*).  While a node is in the queue, these are tentative values. Once a node is dequed and thus really added to the shortest path tree, they remain at that final value.  In case of +spwfs+ it's value is often called (upper bound) estimate; it will only decrease, never increase during the algorithm, it is thus never smaller than the true value.
 
@@ -793,7 +883,7 @@ From h another function is derived: ++function vertex::**k**() = .spwfs + estima
 
 Algorithm which assumes h is monotonic:
 
-When dest==NIL the algorithm solves the single-source shortest path problem.  The solution is the shortest path tree given by the .spt_parent attribute of each vertex, along with the .spfs attribute of each vertex.
+When dest==NIL the algorithm solves the single-source shortest path problem.  The solution is the shortest path tree given by the .spt_parent attribute of each vertex, along with the .spwfs attribute of each vertex.
 
 When dest!=NIL the algorithm solves the single-pair shortest path problem.  The solution is the shortest path from source to dest with a weight of dest.spwfs and given by a linked list from dest to source, starting at dest.spt_parent.
 
@@ -871,15 +961,28 @@ up the weights.
 
 [[Dijkstra]]
 === Dijkstra's algorithm
-Solves the single-source <<shortest_path>> problem for a weighted graph with non-negative edge weights, able to produce a shortest path tree.  That notably includes directed or undirected graphs and graphs with cycles.
+Solves the single-source <<shortest_path>> problem in +O(E+V*lg(V))+ time and +O(V)+ space for a weighted graph with non-negative edge weights, able to produce a shortest path tree.  That notably includes directed or undirected graphs and graphs with cycles.
 
-Basic algorithm: Each node has an attribute `shortest path weight from source' which is initially tentative and infinite and then gradually is relaxed until it reaches its final, true smallest value.  A min priority queue, with key being this attribute, contains initially all nodes.  The top node in the priority queue is guaranteed to have the smalles spwfs among all the nodes still in the queue.  Dequeing it semantically adds it to the spt.  At that point its spwfs is at its true value, i.e. is no longer a tentative value.
+Basic algorithm:
 ----------------------------------------------------------------------
-// Terminology: spwfs=shortest path weight from source, parent = parent in the
-// shortest path tree
+Dijkstra(graph, source:vertex)
+  // Q is a priority queue with spwfs being key
+  for vertex v in graph:
+    v.spwfs = (v==source ? 0 : INFINITE)
+    Q.enque(v)
+  while Q not empty:
+    current = Q.deque()
+    for each neighbor of current:
+      relax(current, neighbor)
+----------------------------------------------------------------------
 
+Each node has an attribute `shortest path weight from source' (aka distance) which is initially tentative and infinite and then gradually is relaxed until it reaches its final, true smallest value.  A min priority queue, with key being this attribute, contains initially all nodes.  The top node in the priority queue is guaranteed to have the smalles spwfs among all the nodes still in the queue.  Dequeing it semantically adds it to the spt.  At that point its spwfs is at its true value, i.e. is no longer a tentative value.
+
+
+Detailed algorithm:
+----------------------------------------------------------------------
 Dijkstra(graph, source:vertex [,dest:vertex])
-  create min priority queue unvisitedQ where key is the vertice's spfs attribute
+  create min priority queue unvisitedQ where key is the vertice's spwfs attribute
   for all vertices v in graph:
     [v.parent = NIL]
     v.spwfs   = (v==source ? 0 : INFINITE)
@@ -953,14 +1056,15 @@ dedect-negative-cycles(G)
 === Floyd–Warshall algorithm
 Solves the <<shortest_path>> all pairs problem in O(|V|^3^). Negative weights are allowed, negative cycles are dedected.
 
-Basic idea: You have a matrix C storing shortest path for all
+Basic idea: You have a matrix C (V×V) storing shortest path for all vertex
 pairs. Initially, no intermediate vertices are allowed, i.e. C corresponds to
-the graph in its Matrix representation. Then you iterate |V| times: in each
-iteration, one more intermediate vertex is allowed, thus relaxing each cell.
+the graph in its adjacency matrix representation. Then you iterate |V| times:
+in each iteration, one more intermediate vertex is allowed, thus relaxing each
+cell.
 
 ----------------------------------------------------------------------
-Floyd-Warshall(A:GraphAsMatrix)
-  C = A
+Floyd-Warshall(G:GraphAsAdjacencyMatrix)
+  C = G
   for k=1 to |V|:
     for i=1 to |V|:
       for j=1 to |V|:
@@ -971,44 +1075,12 @@ Explanation: c~ij~^k^ is a cell in the matrix in iteration k. It represents
 the shortest path from v~i~ to v~j~, choosing intermediate vertices only from
 the set {v~1~, ..., v~k~}. It's value is the min of:
 
-- directly going from v~i~ to v~j~, choosing intermediate vertices only from set
-  {v~1~, ..., v~k-1~}, i.e. equal to c~ij~^k-1^.
-- going via v~k~, and both v~i~ to v~k~ and v~k~ to v~j~ choosing intermediate
+- c~ij~^k-1^, i.e. directly going from v~i~ to v~j~, choosing intermediate
+  vertices only from set {v~1~, ..., v~k-1~}.
+- c~ik~^k-1^ + c~kj~^k-1^, i.e. going via v~k~, and both v~i~ to v~k~ and v~k~ to v~j~ choosing intermediate
   vertices also only from set {v~1~, ..., v~k-1~}.
 
 *to-do* cycle dedection
-
-
-[[topsort]]
-=== Topological sort
-A _topological sort_ (aka _topsort_, _toposort_, _topological ordering_) of a directed acyclic graph (DAG) is a linear ordering of its vertices such that for every directed edge (u,v) from vertex u to vertex v, u comes before v in the ordering.  Toposort is possible only for DAGs; see <<cycle_dedection>> for how to check.
-
-Algorithm: Augment the <<DFS_all_source,DFS-all-source>> algorithm: when an vertex v is finished, insert it onto the front of the output sequence.  Time complexity +Θ(V+E)+.
-
-
-[[cycle_detection]]
-=== Cycle detection
-
-Algorithms:
-- <<DFS>> finds a <<DFS_edge_classification,back edge>>.
-- Rocha–Thatte, a distributed algorithm.
-
-Applications:
-- Dedect cycles (i.e. problems) in a dependency graph
-
-
-=== Eulerian trail / Eulerian cycle
-An Euler tour in an undirected graph is a walk that traverses each edge exactly once.  If such as walk exists, the graph is called _traversable_ or _semi-eulerian_.  An Eulerian cycle (aka Eulerian tour) in an undirected graph is a cycle that uses each edge exactly once.  If such a cycle exists, the graph is called Eulerian or unicursal.
-
-Hierholzer's algorithm solves the Eulerian cycle problem in linear time: +O(E)+.
-
-Trivia: Was first discussed by Leonhard Euler while solving the famous _Seven Bridges of Königsberg_ problem in 1736.
-
-
-=== Hamiltonian path / cycle
-A Hamiltonian path is a path in an undirected or directed graph that visits each vertex exactly once.  A Hamiltonian cycle (or Hamiltonian circuit) is a Hamiltonian path that is a cycle.  A Hamiltonian cycle is a special case of the traveling salesman problem: adjacent cities have distance one, the others distance two, and verifying that the total distance traveled is equal to n.
-
-Determining whether such a path or cycle exists is NP-complete.
 
 
 == Concurrency related algorithms
@@ -1253,19 +1325,17 @@ Implementations: <<array>>, <<linked_list>>.
 === Tree
 Note that there is a distinction between a tree as 1) an abstract data type,  2) a data structure and 3) a topic in graph theory.
 
-Terms (see also those of <<graph>>):
+Terms (see also those of <<graph>>, in particular <<tree_graph>> and <<DAG>>):
 
 - _siblings_: nodes with the same parent.
 - _cousins_: nodes with the same grand parent.
 - _internal node_: A node with at least one child.
 - _external node_ (aka _leaf_): A node with no children.
 - _degree_: Number of sub trees of a node
-- _level_: *to-do*: i don't understand that
+- _level_: Depth + 1
+- _size_: Number of nodes
 - _height of tree / node_: Informally: Largest distance (see <<graph>>) between root / that node and any leaf. Formally: ++height(node) = max(height(node.left), height(node.right)) + 1++, whereas height of NULL is -1 (equalently: height of leaf node is 0). Height of tree, height of root, depth of deepest leaf are all synonymous.
 - _depth_ of node: Distance from root to that node.
-- _ancestor_: Whether or not a node is it's own ancestor is not defined across literature. CLRS say yes.p
-- _descendant_: Whether or not a node is it's own descendant is not defined across literature. CLRS say yes.
-
 
 Implementations: See those of <<graph>>,  and the methods for storing a <<binary_tree>>
 
@@ -1291,7 +1361,6 @@ A     y     →     x    C
 A  x ByC         AxB y C
 ----------------------------------------------------------------------
 
-
 _Min_/_Max_: +O(h)+. Follow left/right subtree until the leaf is reached.
 
 _Successor_/_Predecessor_: +O(h)+. **To-do**
@@ -1313,7 +1382,11 @@ A _path_ (aka _walk_, however Wikipedia says that path commonly refers to an ope
 
 Two vertices v and u are called _connected_ if there is a path from v to u, otherwise they are called _disconnected_.  A _connected graph_ is one where every pair of vertices is connected.  A directed graph is considered a connected graph if for every pair of vertices there is a path in either direction.  A _weakly connected_ graph is a directed graph which would be a connected graph if the edges were taken to be undirected.  A directed graph is _strongly connected_, if for every pair there's a path in both directions.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.  If each strongly connected component is contracted to a single vertex, the resulting graph is a directed acyclic graph, the _condensation_ of G.  A _cut_ (aka _vertex cut_, or _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  A _complete graph_ with n vertices, denoted Kn, has no vertex cuts at all, but by convention κ(Kn) = n − 1.  The _connectivity_ (or _vertex connectivity_) κ(G) (where G is not a complete graph) is the size of a minimal vertex cut.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.
 
-A _tree_ is an undirected graph in which any two vertices are connected by exactly one path (which then naturally is a simple path).  Alternatively: an undirected connected acyclic graph.  Thus it's always undirected, acylic, connected and bipartite.  Note that an arborescence is not a connected graph (consider a root with two childs; the two childs are not connected).  In informatic context, the term tree is often used for what we call here an directed rooted tree.  A _rooted tree_ is a tree in which one vertex has been designated the root.  An _arborescence_ (aka _directed rooted tree_ or _out-tree_) is a directed rooted tree in which all edges point away from the root.  An _anti-arborescence_ (aka _in-tree_) is an arborescence where all edge directions are reversed.  A _forest_ is a disjoint union of trees.  Alternatively: an acyclic undirected graph.  An _ordered tree_ (aka _plane tree_) is a rooted tree in which an ordering is specified for the children of each vertex.  A _poly tree_ is a directed acyclic graph which would be a tree if it's edges were undirected.  A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the vertices of G.  A _minimum spanning tree_ (aka _MST_) of is a spanning tree of G with the minimal total weighting for its edges.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
+[[DAG]]
+A _directed acyclic graph_ (_DAG_) is a graph with no directed cycles.  Given a directed edge C->P, C is the _child_ and P the _parent_. Nodes reachable from C are C's _ancestors_, nodes which can reach P are P's _descendants_.  Whether or not a node is it's own ancestor/descendant is not defined across literature. CLRS say yes.  The _lowest common ancestor_ (_LCA_, aka, less accurately, _least common anchestor_) of two nodes x and y is the first common ancestor in topo order.
+
+[[tree_graph]]
+See also <<tree_ADT>>. A _tree_ is an undirected graph in which any two vertices are connected by exactly one path (which then naturally is a simple path).  Alternatively: an undirected connected acyclic graph.  Thus it's always undirected, acylic, connected and bipartite.  Note that an arborescence is not a connected graph (consider a root with two childs; the two childs are not connected).  In informatic context, the term tree is often used for what we call here an directed rooted tree.  A _rooted tree_ is a tree in which one vertex has been designated the root.  An _arborescence_ (aka _directed rooted tree_ or _out-tree_) is a directed rooted tree in which all edges point away from the root.  An _anti-arborescence_ (aka _in-tree_) is an arborescence where all edge directions are reversed.  A _forest_ is a disjoint union of trees.  Alternatively: an acyclic undirected graph.  An _ordered tree_ (aka _plane tree_) is a rooted tree in which an ordering is specified for the children of each vertex.  A _poly tree_ is a directed acyclic graph which would be a tree if it's edges were undirected.  A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the vertices of G.  A _minimum spanning tree_ (aka _MST_) of is a spanning tree of G with the minimal total weighting for its edges.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
 
 A _flow network_ (aka _transportation network_) is a directed graph where each edge has a _capacity_ and a _flow_ which can no exceed the capacity.  The amount of flow into a node must equal the amount of flow out of it, unless the node is a _source_ or a _sink_. _maximum flow problems_ involve finding a feasible flow through a single-source, single-sink flow network that is maximum.  It can be seen as a special case of the more complex problems, e.g. the circulation problem.   The _max-flow min-cut theorem_ states that the maximum flow is equal to the minimum capacity over all possible s-t edge cuts.  An s-t edge cut is an edge cut such that one of the resulting component contains the source and the other component contains the sink.  The capacity of an edge-cut is the sum of the capacities on the cut edges.  Solutions of max-flow: _Ford–Fulkerson algorithm_ +O(E*f)+ for the case where capacities are integers, whereas f is the maximum flow.
 
@@ -1390,7 +1463,7 @@ Terms/Variables: +m+ is the table size. +k+ is the key of the item to be put int
 
 Basic idea: Implements <<associative_array>> ADT; more terms there.  Initial idea is to store all values in a <<dynamic_table,(dynamic) table>>  with the keys (being (large) integers) as index.  However that obviously uses way too much space.  So make the table smaller, that is of size +m+.  Use the hashfunction +h(k,m)+ to map from a key +k+ to an index into the table.
 
-Access time is +O(k)+ best/average case, ++O(k+n)++ worst case.  Part of that time is the time needed to generate the hash, which is +O(k)+.
+Search/insert/delete time is +O(k)+ best/average case, ++O(k+n)++ worst case. Space is +O(n)+.
 
 When two keys hash to the same slot that is called a _collision_.  If no collision occurs, that is the best case, and the overall access time is +O(k)+ as noted above.  Depending on the collision resolution algorithm, in the worst case all slots are tried, and overall access time is ++O(k+n)++ as noted above.
 
@@ -1400,9 +1473,9 @@ See also <<table_doubling>>.
 ==== Chaining
 Each table slot has associated an sequence of items, typically a singly linked list. The expected chain length is the table's load factor.
 
-Insert/delete/find: +Θ(1)+ (+Θ(1+loadfactor)+, but when the the loadfactor is a constant (relative to n), it becomes +Θ(1)+).
+Insert/delete/find: +Θ(1)+ (Actually +Θ(1+loadfactor)+, but when loadfactor=O(1) (i.e. m=Ω(n)), it becomes +Θ(1)+). Rational: Paying O(n) to find table slot, then O(loadfactor) to walk the list.
 
-m should be +Θ(1)+. If +m+ is too small, the loadfactor is too high, in the worst case not constant (relative to n) anymore.  That would lead to hash table operations not being +Θ(1)+ anymore.  If +m+ is too small, we waste space.
+loadfactor should be +Θ(1)+ (i.e. m should be +Θ(n)+). If +m+ is too small, the loadfactor is too high, in the worst case not +Θ(1)+ anymore.  That would lead to hash table operations not being +Θ(1)+ anymore.  If +m+ is too large, we waste space.
 
 
 === Association list
@@ -1421,6 +1494,7 @@ Properties:
 - _perfect_: (aka ambiguously (see next) complete): A full binary tree in which all leaves have the same depth
 - _complete_: Every level, except possibly the last, is completely filled, and all nodes are as far left as possible.
 - [[balanced]]_balanced_: height is +Θ(lg |V|)+
+- [[weight_balanced]]_weight balanced_: The size difference between the left and the right subtree is kept within some constant factor.
 - _degenerated_ (aka _pathological_): Each node has at most one child.  The tree is thus effectively a linked list.
 
 Methods of storing:
@@ -1428,6 +1502,17 @@ Methods of storing:
 - See <<graph>>
 - As an implicit data structure in an array.  Be i the current node's index, 0 the first index, then its parent is at index floor((i-1)/2), its right child at 2i+1 and its left child at 2i+2.  In the case of a complete binary tree, no space is wasted.  See also <<binary_heap>> which commonly uses this scheme.
 
+
+[[naive_BST]]
+=== (Naive) binary search tree (data structure)
+A data structure implementing the binary search tree ADT. When inserting, the elements are always inserted as leaves, whithout changing previous nodes.
+
+
+[[random_binary_tree]]
+=== Randomized binary search tree
+Randomly permute the input before building the <<naive_BST>>.
+
+Expected height E[height]=O(lg(n))
 
 [[avl]]
 === AVL Tree
@@ -1476,8 +1561,40 @@ See also <<search_tree_comparison>>
 *to-do*
 
 
+[[vEB_tree]]
+=== Van Emde Boas tree (aka vEB tree)
+Is a tree data structure implementing the ordered <<associative_array>> ADT with m-bit integer keys. It performs all operations in O(lg m) time. The vEB tree has good space efficiency when it contains a large number of elements
+
+
+[[cartesian_tree]]
+=== Cartesian tree
+
+Reduces an array A to a binary tree T which is a min heap.  <<RMQ>> in A
+corresponds to <<LCA_problem,LCA>> in T. Can be built in O(n) time.
+
+Reduction A to T: The smallest element in A, say A[i], becomes the root. In
+case of multiple equal elements, take any as the new root.  The root's left
+and right child nodes are the cartesian trees that result, recursively, from
+the remaining ranges [0,i) and (i,A.size-1].
+
+Example:
+--------------------------------------------------
+A = [8,7,2,8,6,9,4,5]
+
+T =      2
+        / \______
+       7         4
+      /       __/ \
+     8       6     5
+            / \
+           8   9
+--------------------------------------------------
+
+Reduction T to A: If T's nodes are not labeled with values as above, which is likely, label each node with it's depth. Do an inorder traversal, resulting in an array of node labels.  LCA on T is the same as RMQ on A.
+
+
 === Skip list
-**to-do**
+Is a data structure implementing the ordered <<associative_array>> ADT. Search, insert, delete in +O(lg n)+ time with high probability (opposed to `only' on average)
 
 
 === Treap
@@ -1546,20 +1663,100 @@ left-child(i) = (i+1)*2
 *to-do*:
 
 
+[[tries_comparision]]
+=== Tries / suffix tree/arrays comparison
+
+Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
+
+|=======
+|                               | query     | space      | ordering
+| c. trie / array               | O(P)      | O(k·Σ)     | ✓
+| c. trie / BST                 | O(P·lg Σ) | O(k)       | ✓
+| c. trie / weight balanced BST | O(P+lg k) | O(k)       | ✓
+| c. trie / w.b. BST + trimming | O(P+lg Σ) | O(k)       | ✓
+| c. trie / van Emde Boas       | O(P)      | O(k·lglgΣ) | ✓
+| c. trie / hash table          | O(P)      | O(k)       | ✗
+| suffix tray                   | O(P+lg Σ) | ?          | ?
+| suffix array                  | ?         | ?          | ?
+|=======
+
+
+[[trie]]
 === Trie (aka digital tree, radix tree, prefix tree)
-Let k be the length of the search key.  Let n be the number of elements in the trie.  Time complexity is +O(k)+.
+See this as an intro to what a trie is. In practice you will use a <<compressed_trie>>, see there for more details.
+
+Is an implementation of the ordered <<associative_array>> ADT. It stores +k+ items (key/value pairs), the stored keys being strings _T~i~_, i=1,...,k, the strings' letters are from alphabet _Σ_.  Internally, there is also the special letter _$_ which represents the end of a string.  A trie is a rooted tree where each edge is labeled with a letter.  Thus child nodes have an order.  A root-to-leaf path represents a string/key, the so reached leaf node the value associated with that key.  The strings derived from paths root to leaf are called _words_, the strings from other paths are called _prefixes_. |T|=|T~1~|+...+|T~k~| is the max number of nodes stored in the tree. In query/lookop, _P_ is a pattern/query searched in the trie.
+
+Since the child nodes have an ordering, an in-order traversal prints the stored keys in order.
 
 A trie can be seen as a DFA (Deterministic finite automaton) without loops.  A trie can be compressed into an DAFSA (deterministic acyclic finite state automaton).  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.
 
-Is an implementation of the ADT <<associative_array>>.
+Applications: See <<suffix_tree>>
+
+Trivia: The name trie is a pun on re__trie__val.  Originally pronounced it as `tree'.  However, other authors pronounce it as `try', in an attempt to distuinguish it from `tree'.
+
+
+[[compressed_trie]]
+=== Compressed trie (aka radix tree, radix trie, compact prefix tree)
+Based on <<trie>>, see there for terms and symbols. Is an implementation of the ordered <<associative_array>> ADT.  A radix tree is a space-optimized trie, where a node with only one child is removed, merging its two adjacent edges into one, which is then labeled with the concatenation of the labels of the two previous edges.  That is each edge is no longer labeled with a single character but potentially with a string. The [[letter_depth]]_letter depth_ of a node is the lenght of the key/path that leads to it.
+
+Each node has at least two children, so there are less internal nodes than leaves. Recall there are as many leaves as stored strings, i.e. k. Thus there are O(k) nodes in the compressed trie.
+
+Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
 
 Compared to a hash table:
 
-- Trie has predictable look-up time +O(k)+.  A hash table has +O(k+n)+ time complexity worst case:  O(k) is used to generate the key, looking up the key is O(1) average but O(n) worst case.
+- A trie can have (depending on how nodes are represented) predictable look-up time +O(k)+.  A hash table has +O(k+n)+ time complexity worst case:  O(k) is used to generate the key, looking up the key is O(1) average but O(n) worst case.
 - A trie does not need a hash function
-- A trie can provide an alphabetic ordering of the entries by key.  I.e. a trie supports ordered traversal.
+- A trie can provide an ordering of the entries by key.  I.e. a trie supports ordered traversal.
 - Locality is worse for a key, since it randomly accesses the nodes.
-- A trie typically uses more space than a hash table, since the graph uses quite a lot pointers, and typically one pointer equals 4 characters.
+- A trie typically uses more space than a hash table, since the graph uses quite a lot pointers.
+
+Compared to a binary tree:
+
+- Binary tree has +O(k * (lg n))+ time complexity for look-up, insertion, deletion.  Mind that comparing a key requires +O(k)+; in many times the worst-case occurs, due to long prefixes towards the leaves.
+
+References:
+
+- https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf
+
+
+[[suffix_tree]]
+=== Suffix tree (aka PAT tree, suffix trie)
+Based on compressed trie, see there for terms and symbols. Given a text T, append $ (see <<trie>>), then store all suffixes of T in a (compressed) <<trie>>. The value associated with a leaf is the starting position of the suffix in T.
+
+When given multiple documents T^i^, i=1, 2, ..., n, append $~1~, $~2~, ... and $~n~ to each T^i^ respectively, and then throw all suffixes of each document into the suffix tree.
+
+The suffix tree contains O(T) nodes, thuse O(T) space needed (using reasonable representations of the trie, see there).
+
+Details: Seeing a letter as a string of size one, all edges in a compressed trie have strings on them. Such a string can be stored in O(1) by storing only the indicies (within T) of its first and last letter.
+
+Applications:
+
+- <<string_searching>>:
+  * Find (all) occcurences of pattern P in text T. Create suffix tree for T. Using P as key delivers subtree whose leaves corresponds to all occurences of P in T.
+  * Find first i occurences of pattern P in text T: Augment the leave nodes so they build a linked list, and augment internal nodes by a pointer to its leftmost descendant leaf.
+  * Find number of occurences of pattern P in T: Augment internal nodes in the suffix tree with the number of leaves. Use P as key, the found node thus delivers number of leaves, which equals number of occurences.
+  * Find longest substring that occures twice in P: Augment internal nodes with their <<letter_depth>>. Then search the internal node with the largest letter depth in O(T) time.
+  * Find longest substring that occures in multiple documents T^i^: Similar to above, but look for the internal nodes with maximum letter depth with greater than one distinct $~x~ below.
+  * Longest common prefix of two substrings in T in O(1) time: Take the two leaves corresponding to the indexes where the substring start, <<LCA_problem,find LCA>> in O(1) time, and the letter depth of the found node is the answer.
+  * Find all occurences of T[i:j]: Instead of, as in a normal search, finding the node from the root in O(j-i) time, find the (j-i)the ancestor of leaf i in O(1) time (via an _LA_query_)
+
+
+=== Suffix array
+*to-do*
+
+References:
+- https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf
+
+
+=== Suffix tray
+Is a combination of a suffix tree and a suffix array, and based on a similar idea
+
+*to-do*
+
+References:
+- https://courses.csail.mit.edu/6.851/spring07/scribe/lec09.pdf
 
 
 === DAFSA as data structure
@@ -1569,17 +1766,6 @@ Can be seen as an compact form of a trie.  Uses less space than a trie.  A trie 
 
 Is an implementation of the ADT <<associative_array>>.
 
-
-=== Radix tree (aka radix trie, compact prefix tree)
-A radix tree is a space-optimized trie, where each node with only one child is merged with its parents.  That each child is no longer labeled with a single character potentially with a string.
-
-Be k key length, n the number of members in the data structure.  Lookup, insertion, deletion have time complexity +Θ(k)+.
-
-Is an implementation of the ADT <<associative_array>>.
-
-Compared to a binary tree:
-
-- Binary tree has +O(k * (lg n))+ time complexity for look-up, insertion, deletion.  Mind that comparing a key requires +O(k)+; in many times the worst-case occurs, due to long prefixes towards the leaves.
 
 
 == Augmenting data structures
@@ -1659,7 +1845,7 @@ bipartite matching
 
 [[TSP]]
 === Travelling salesman problem (TSP)
-In an weighted graph (directed or undirected), the TSP is finding the path with mimimum weight visiting each vertice exactly once and start vertex being the end vertex.
+In an weighted graph (directed or undirected), the TSP is finding the path with mimimum weight visiting each vertex exactly once and start vertex being the end vertex.
 
 TSP is a special case of the travelling purchaser problem.  
 
@@ -1672,7 +1858,7 @@ Algorithms:
 - Exact: ... linear programming ...
 - Approximations: *to-do*
 
-Applicatinos: *to-do*
+Applications: *to-do*
 
 
 === Travelling purchaser problem
@@ -1903,11 +2089,77 @@ general group (neg weights, dedects neg. cycles): <<floyd_warshall>> in O(|V|^3^
 Relation to four color problem?
 
 
+[[topsort]]
+=== Topological sort
+A _topological sort_ (aka _topsort_, _toposort_, _topological ordering_) of a directed acyclic graph (DAG) is a linear ordering of its vertices such that for every directed edge (u,v) from vertex u to vertex v, u comes before v in the ordering.  Toposort is possible only for DAGs; see <<cycle_dedection>> for how to check.
+
+Algorithm: Augment the <<DFS_all_source,DFS-all-source>> algorithm: when an vertex v is finished, insert it onto the front of the output sequence.  Time complexity +Θ(V+E)+.
+
+
+[[cycle_detection]]
+=== Cycle detection
+
+Algorithms:
+- <<DFS>> finds a <<DFS_edge_classification,back edge>>.
+- Rocha–Thatte, a distributed algorithm.
+
+Applications:
+- Dedect cycles (i.e. problems) in a dependency graph
+
+
+=== Eulerian trail / Eulerian cycle
+An Euler tour in an undirected graph is a walk that traverses each edge exactly once.  If such as walk exists, the graph is called _traversable_ or _semi-eulerian_.  An Eulerian cycle (aka Eulerian tour) in an undirected graph is a cycle that uses each edge exactly once.  If such a cycle exists, the graph is called Eulerian or unicursal.
+
+Hierholzer's algorithm solves the Eulerian cycle problem in linear time: +O(E)+.
+
+Trivia: Was first discussed by Leonhard Euler while solving the famous _Seven Bridges of Königsberg_ problem in 1736.
+
+
+=== Hamiltonian path / cycle
+A Hamiltonian path is a path in an undirected or directed graph that visits each vertex exactly once.  A Hamiltonian cycle (or Hamiltonian circuit) is a Hamiltonian path that is a cycle.  A Hamiltonian cycle is a special case of the traveling salesman problem: adjacent cities have distance one, the others distance two, and verifying that the total distance traveled is equal to n.
+
+Determining whether such a path or cycle exists is NP-complete.
+
+
+[[LCA_problem]]
+=== Lowest common ancestor (LCA) problem
+See <<DAG>> for the definition of LCA.
+
+Solutions:
+- With O(n^2^) space, O(1) time is trivial: An O(1) time lookup table stores the answer for all input pair vertices.
+- Tarjan's off-line LCA: After preprocessing the DAG, solvable in O(1) time and O(n) space.
+- If DAG is a cartesian tree: reduce to array, see <<cartesian_tree>>, and solve <<RMQ>> there.
+
+
+[[LA_query]]
+=== Level ancestor problem / query
+Given a rooted tree and a node v, LA(v,d) delivers the ancestor node of v which is at depth d, or equalently, delivers the kth ancestor (where parent is the 1st ancestor), k=height(node)-d.
+
+When n is the number of nodes, after preprocessing which takes O(n) time and O(n) space, solvable in O(1) time.
+
+
+[[RMQ]]
+=== Range minimim query (RMQ)
+
+Given an array A, find index (here named k) of minimum element in range [i,j].
+
+++k=RMQ(i,j)=(arg)min{A[n]|i≤n≤j}++
+
+(arg)min says that we're interested in the index, not the value of the minimum element.
+
+Solutions:
+- Convert A to a <<cartesian_tree>>, see there, and in that tree, solve the <<LCA_problem>>, see there.
+
+
 == References
 - http://ocw.mit.edu/courses/civil-and-environmental-engineering/1-204-computer-algorithms-in-systems-engineering-spring-2010/lecture-notes/
 - https://www.quora.com/What-are-the-very-basic-algorithms-that-every-Computer-Science-student-must-be-aware-of
-
-
+- MIT 6.006: Introduction to Algorithms: https://courses.csail.mit.edu/6.006
+  * (fall'11): https://courses.csail.mit.edu/6.006/fall11/notes.shtml, https://www.youtube.com/playlist?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb
+  * Newest lecture notes which are freely available spring'14: the newest vidoes seem to be from fall'11.
+- MIT 6.851: Advanced Data Structures: https://courses.csail.mit.edu/6.851/
+  * spring'12: https://courses.csail.mit.edu/6.851/spring12/lectures/, https://www.youtube.com/playlist?list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf
+  * Newest spring'14: The link to the vidoes are the same as those of spring'12.
 
 // Local Variables:
 // eval: (visual-line-mode 1)
