@@ -26,7 +26,6 @@ Types of asymptotic notations:
 Note: Because ++O(g(n))++ is really a set, we should actually write ++f(n) ∊ O(g(n))++.  However we often write ++f(n)=O(g(n))++, the equal sign meaning ∊.
 Informally, especially in computer science, the big-oh notation often is permitted to be somewhat abused to describe an asymptotic tight bound (it really only describes an asymptotic upper bound) where using big-theta notation might be more factually appropriate in a given context.
 
-
 _worst case_ / _average case_ / _best case_ refers to the worst / average / best input -- a ``good'' input results in a short running time of the algorithm, a ``bad'' input results in a long running time.  For many algorithms we only care about the worst case, not the average case, because a) the worst case occurs fairly often in practice b) the average case is often as bad as the worst case c) it's difficult to know what an ``average'' input is (often it is assumed that all possible inputs are equally likely).
 
 _Tight bounds_: An upper bound is said to be a tight upper bound (aka _supremum_) if no smaller value is an upper bound.  Likewise for tight lower bounds (aka _infimum_).
@@ -355,16 +354,16 @@ Such algorithms include local search, tabu search, simulated annealing, and gene
 == Misc algorithm properies & terms
 
 .Properties
-Locality::
+Locality:: *to-do*
 In-place:: An algorithm using +O(1)+ auxiliary memory space.  Often even +O(log n)+ is considered as in place.
 
 .Terms
-Rank:: The rank of an element is its position in the linear order of a set.
-__i__th order statistic:: the __i__th-smallest value in the set.
 Sentinel:: A sentinel is a dummy object that allows us to simplify boundary conditions.
-Online:: An online algorithm is one that can process its input piece-by-piece in a serial fashion.
-_Memoization_: The solution to a given (sub)problem is memoized in a `memo pad' (aka table).  E.g. upfront or when first encountering it.  When later seeing the same (sub)problem again, its solution can be looked up in the memo.  See also <<dynamic_programming>>.
-
+Online:: An online algorithm is one that can process its input piece-by-piece in a serial fashion, i.e. the algorithm does not need to see the entire input from the beginning.
+Offline:: An offline algorithm requires to see the complete input from the beginning.
+Memoization:: The solution to a given (sub)problem is memoized in a `memo pad' (aka table).  E.g. upfront or when first encountering it.  When later seeing the same (sub)problem again, its solution can be looked up in the memo.  See also <<dynamic_programming>>.
+[[whp]]
+With high probability (w.h.p.):: An event E occurs with high probability if Pr[E] ≥ 1−1/n^c^ for any constant c.
 
 == Sorting
 Properties of sorting algorithms.  See also properties of algorithms in general.  Comparison-based sorting algorithm are asymptotically optimal when they run in +O(n lg(n))+ time.
@@ -427,10 +426,19 @@ Time: +O(n lg(n))+ worst case & average case & best case.  Auxillary Space: +O(1
 Time: +O(n^2^)+ worst case, +O(n+k)+ average-case and best case.  Auxiliary space: +O(n+k)+.  Stable.  Not comparison-based; it assumes that the elements' values are uniformly distributed, for simplicity, without loss of generality, assume in [0,1).  Make an array of k `buckets', where each bucket is a sequence of elements, initially empty.  For each element in the input, insert it into the bucket having the array index k*elementvalue.  Then sort each of the buckets with another sort.  Then produce the final output by concatenating the buckets.  Note: the time complexity gets worse if the data is not uniformly distributed as assumed, since certain bucket sequences get much longer than other.
 
 === Counting sort (aka histogram sort)
-+Θ(k+n)+ time complexity, +Θ(k+n)+ or +Θ(k)+ space complexity, depending on whether the _required_ output array (sorting in-place only with the input array is not possible) is taken into account or not.  Not comparison-based; it assumes that each element is an integer in the range +0--k+, where +k=O(n)+.  Stable sort.  Algorithm: With an array a of size k, for each input element x, count the elements less than x, which so gives the index / position of x in the sorted output sequence.  Mental image: internally counting sort computes an histogram of the number of times each key occurs.
++Θ(k+n)+ time complexity, +Θ(k+n)+ or +Θ(k)+ space complexity, depending on whether the _required_ output array (sorting in-place only with the input array is not possible) is taken into account or not.  Not comparison-based; it assumes that each element is an integer in the range +0--k+, where +k=O(n)+ (If you start off with non-integers, you might be able to map to integers).  Stable sort.  Algorithm: With an array a of size k, for each input element x, increment a[x]. Then for each item (index i) in the array, print the number i a[i] times. 
+
+--------------------------------------------------
+k=5, input={3,4,2,2,4}
+             1s   2s  3s  4s  5s
+a           { 0,  2,  1,  2,  0 }
+output      {     2,2,3,  4,4   }
+--------------------------------------------------
+
 
 === Radix sort
-Not comparison-based.  Stable sort.  Given n d-digit numbers, each digit can take up to k possible values.  Time: +Θ(d(n+k))+ (provided the internally used stable sort has +Θ(n+k)+), however the hidden constant factor is in practice quite large relative to other sort algorithms.  First sort after least significant digit, then after second least, ....
+Not comparison-based.  Stable sort.  Given n d-digit numbers/strings, each digit can take up to k possible values.  Time: +Θ(d(n+k))+ (provided the internally used stable sort has +Θ(n+k)+), however the hidden constant factor is in practice quite large relative to other sort algorithms.  First sort after least significant digit, then after second least, ....
+
 
 === Merge sorted sequences
 Time: +Θ(n)+.  Space: +O(n)+. Imagine n cards within m sorted piles of cards face up.  Take the smallest card yous see and put it on the sorted pile.
@@ -444,36 +452,90 @@ Take an implementation of the BST ADT, insert all elements of the input, then do
 
 When the <<naive_BST>> is used, BST sort does same comparisons as <<quick_sort>>, but in a different order. (where quick sort uses first element as pivot, and then does stable partitioning). When the input is randomly permuted before building the BST, _randomized BST sort_ does again the same comparisons as randomized quick sort choosing its pivot randomly.
 
+=== Partial sorting
 
-== Medians and order statistics
+Sort the k smallest elements.  Opposed to all elements, as in total sorting.
 
-The _ith order statistic_ of a set of n elements is the ith smallest element.  For example, the _minimum_ of a set of elements is the first order statistic (i D 1), and the _maximum_ is the nth order statistic (i D n).  A _median_, informally, is the “halfway point” of the set.  When n is odd, the median is unique, occurring at i D .n C 1/=2.  When n is even, there are two medians, occurring at i D n=2 and i D n=2C1.  Thus, regardless of the parity of n, medians occur at i D b.n C 1/=2c (the _lower median_) and i D d.n C 1/=2e (the _upper median_).  For simplicity in this text, however, we consistently use the phrase “the median” to refer to the lower median.
+_partial heapsort_: Heapify to a min heap, then do m extractions.
 
-_Selection problem_: Given a set _A_ of _n_ (distinct) numbers and an integer _i_ with __i ≤ i ≤ n__, find the element _x_ ∊ A that is larger than exactly i-1 other elements of A.
+_quickselsort_: Use quickselect to find k-th smallest element. The way that
+algorithm works will leave it at the k-th position. Sort the elements [0,k).
 
-=== Trivial algorithm
-Finding the minimum and maximum element can be trivially solved in +O(n)+ time and +O(1)+ auxillary space by iteratively searching through the array for the smallest or largest element respectively.
+|=====
+|                    | time av.       
+| partial heapsort   | O(n + k log n)
+| quickselsort       | O(n + k log k)
+|=====
 
-If the input is sorted first, then we can just access the i-th element in the sorted collection in +O(1)+ for arrays or +O(n)+ for lists respectively.  Certain input can be sorted in +O(n)+ time worst case; for that input also the selection problem can be solved in +O(n)+.
+
+[[order_statistics]]
+[[Selection]]
+== Order statistics / Medians / selection problem
+
+_Selection problem_: Find the i-th order statistic, i.e. find the i-th smallest element out of an, typically unsorted, set of elements.
+
+The _i-th order statistic_ is the i-th smallest element out of a set of elements.  For example, the _minimum_ of a set of elements is the first order statistic, and the _maximum_ is the n-th order statistic.  A _median_, informally, is the “halfway point” of the set.  When n is odd, the median is unique, occurring at i D .n C 1/=2.  When n is even, there are two medians, occurring at i D n=2 and i D n=2C1.  Thus, regardless of the parity of n, medians occur at i D b.n C 1/=2c (the _lower median_) and i D d.n C 1/=2e (the _upper median_).  For simplicity in this text, however, we consistently use the phrase “the median” to refer to the lower median.
+
+Overview:
+
+|======
+|                                  | time av.               | time worst  
+|quick select / random             | O(n) almost certain    | O(n^2)     
+|quick select / median of 3        | O(n)                   | O(n^2)
+|quick select / median of medians  | O(n) high const factor | O(n) high const factor
+|Introselect                       | O(n)                   | O(n)
+|Floyd–Rivest algorithm            | O(n)                   | ? *to-do*
+|via sort                          | O(sort(n))             | O(sort(n))
+|======
+
+
+=== Trivial algorithms
+Finding the minimum, i.e. i=1, element can be trivially solved in +O(n)+ time and +O(1)+ auxillary space by iteratively searching through the array for the smallest element respectively.
+
+If the input is preprocessed sorting it first, then we can just access the i-th element in the sorted collection in +O(1)+. Recalling sorting algorithms, the cost of the preprocessing is typically +O(n log n)+, but can be +O(n)+ for certain input. Obviously this might be a good strategy if the collection is static and thus has to be preprocessed only once, and there are more than +O(log n)+ queries (assuming +O(n log n)+ sorting and +O(n)+ for the competing selection algorithm).
+
+
+=== Introselect
+The idea is to start out with an decrease and conquer selection algorithm that has very good average performance but bad worst case performance, and if it on the fly remarks that it is making bad progress (i.e. steers towards the worst case), switch to choosing a selction algorithm that has optimal worst case perforamnce.
+
+Concretely, starts out with the quick select variant which uses a random pivot, and potentially switches to the median of medians quick select variant.
+
+Examples of possible switching strategies:
+
+- If the sum of partitions so far exceeds the original input size times a constant factor. Only one variable needed to track sum of partitions so far.
+- If at any point the last k partitions did not half the input size, where k is some small positive constant. 
+
+Trivia: Introselect is short for introspective selection.
+
+=== Floyd–Rivest
+Functionally equivalent to quickselect, but runs faster in practice on average.
+
+*to-do*
 
 
 === Quick select
-Time:: +O(n)+ average/best case.  worst case depends on pivot selection method: random: +O(n^2^)+ (very unlikely for unsorted input),  median of medians: +O(n)+ (high constant factor)
-Auxillary space:: +O(1)+.
 
-A <<decrease_and_conquer>> algorithm: In each recursion step, choose a pivot and partition the input (of the current recursion step) into a part smaller than the pivot and larger than the pivot respectively.  That delivers the position / index of the pivot.  Then recurse into the left/right part depending on whether i is smaller/larger than the pivot's index.  The base case is either if i is equal the pivot after partitioning, or when the input size is 1.  *to-do* why not continue with trivial way of finding the minimum/maximum when i=0 or input.size-1?, which is +O(n)+ also in the worst case instead quick select's +O(n^2^)+.
+A <<decrease_and_conquer>> algorithm: In each recursion step, choose a pivot and partition the input (of the current recursion step) into a part smaller than the pivot and larger than the pivot respectively.  That delivers the position / index of the pivot.  Then recurse into the left/right part depending on whether i is smaller/larger than the pivot's index.  The base case is either if i is equal the pivot after partitioning, or when the input size is 1.
 
-Like quicksort, the quickselect has good average performance, but is sensitive to the pivot that is chosen.  Choosing a random pivot yields almost certain +O(n)+ time, the +O(n^2^)+ worst case is still possible however very unlikely.  Note that the best possible pivot is the median (apart from the i-th element, which would directly deliver the solution), since it halves the input.
+The best possible pivot is the median (apart from the i-th element, which would directly deliver the solution), since it halves the input.  Like quicksort, the quickselect has good average performance, but is sensitive to the pivot that is chosen.  See the next chapters on strategies how to choose the pivot.
 
-The ``median of median'' algorithm is a quickselect algorithm which chooses the pivot as follows: it computes an approximate median (being between 30th and 70th percentiles):  Make groups of five elements, sort each with e.g. insertion sort, the 3rd element is the median.  We get n/5 medians.  We use quickselect (i.e. the ``median of medians'' version of it) to find the median of those medians, which is then our pivot.
-
-The book ``Introduction to algorithms'' calls quickselect ``randomized-select'' and ``median of medians'' ``select''.
+==== Quick select / variant random pivot random
+See the previous `common core' chapter. The pivot is chosen randomly.
 
 
-== Ranking
-Given a set (not sequence) of elements, the _rank_ of an given element is its position in the sequence what woul be build when the elements are ordered.
+==== Quick select / variant median of 3
+The pivot is the median of the first, middle and last element. Also sort these three elements.
 
-*to-do*: Isn't this the same as ith order statistic?
+
+[[median_of_medians]]
+==== Quick select / variant median of medians (aka BFPRT)
+See the previous `quick select core' chapter. The chosen pivot is an approximate median (remember that the real median would be optimal). It is guaranteed being between 30th and 70th percentiles.
+
+Algorithm to find pivot in array A: Make groups of five elements and find median in each of those (e.g. via insertion sort and taking 3rd element). Then recursively find median of those medians.
+
+Trivia: BFPRT stands for the name of its inventors Blum-Floyd-Pratt-Rivest-Tarjan
+
+*to-do*: Time, auxillary space?
 
 
 [[string_searching]]
@@ -1135,9 +1197,45 @@ double polynomial(double x, const vector<double>& coefficients) {
 --------------------------------------------------
 
 
+[[hash]]
 === Hashes
-For terms and variables (+h(k,m)+, +m+, +k+, ...) see <<hash_table>>.  Typically k is an integer of the size of a CPU word. Thus prehashing is used to map any originial key of any size to k.
+A hash function +h(k,m)+ maps a key +k+ to an integer in the range [0,m), +m+ being an integer, and +U+ is the universe of possible keys. Typically k is an integer of the size of a CPU word. Thus prehashing is used to map any originial key of any size to [0,k).  
 
+References:
+
+- https://courses.csail.mit.edu/6.851/spring12/lectures/L10.html
+
+====  totally random hash(table) (aka simple uniform hashing, SUHA)
+An ideal hash is _totally random_ (aka assumption of _simple uniform hashing_, _SUHA_): Every k from U has the probability 1/m to be mapped to slot s, for every slot s in [0,m). But that requires Θ(U log m) space (a table of U entries, each storing the hash functions's output, i.e. each entry needs Θ(log m)space), which is in general too much.
+
+A _totally random hash table_ T is the lookup table implementing a totally random hash function, i.e. h(x)=T[x].
+
+
+==== universal familiy
+A family of hash functions H is _universal_ if for every h∈H, and for all x≠y ∈ U, Pr~h~{h(x) = h(y)} = O(1/m).
+
+Examples:
+
+- ++h(x) = [(ax) mod p] mod m++ for 0<a<p, wheras p is a prime. p should be larger than m, else the higher slots are unused. ax can also be vector dot product. Note that this is not exactly the same as the division method.
+
+- ++h(x) = (a · x) >> (lg u − lg m)++. Use lg m high order bits of product ax.
+
+==== strong universal family
+A famility H of hash functions is _strong universal_ if for all x,y ∈ U, x≠y, Pr~h~{h(x) = h(y)} ≤ 1/m.
+
+[[k_wise_independent]]
+==== k-Wise Independent family
+A family H of hash functions is k-wise independent if for every h ∈ H, and for all
+distinct x~1~, ..., x~k~ ∈ U, Pr{h(x~1~)=t~1~ and ... h(x~k~)=t~k~} = O(1/m^k^).
+
+Example pair-wise independent (k=2):
+
+++h(x) = [(ax + b) mod p] mod m++ for 0<a<p and for 0≤b<p. Here, again, p is a prime greater than |U|.
+
+==== simple tabulation hashing
+View key x as vector of characters x~1~, ..., x~c~. We create a totally random hash table T~i~ on each character. ++h(x)=T~1~(x~1~) xor ... xor T~c~(x~c~)++
+
+Is <<k_wise_independent,3-wise independent>>.
 
 ==== division method
 +h(k,m)=k mod m+. In practice not so bad if m is prime and not close to a power of two. Still pretty `hackish'.  Rational for m being prime: When m has common factors with k, the effectively used table size gets divided by the product of those factors: ++k=k%m=(a*f1*f2)%(b*f1*f2)=a%b)++
@@ -1147,9 +1245,6 @@ For terms and variables (+h(k,m)+, +m+, +k+, ...) see <<hash_table>>.  Typically
 ++h(k,m,a,w) =((ak) % 2^w^) >> (w-r)++, where as m=2^r^, i.e. +r=lg(m)+, and the machine stores integers in words of size w bits. a should be odd and not close to a power of two, between 2^r-1^ and 2^r^.
 
 Intuitively: The multiplication mixes up bits, especially in the area from bit (w-r) to w, so we take that area: +% 2^w^+ cuts away the part left of bit w, the shift right cuts way the bits right of bit (w-r).
-
-
-==== universal hashing
 
 
 
@@ -1451,37 +1546,58 @@ Difficulties:
 - Depending on the exact implementation, distinguish the case that the buffer is empty and that it is full is not possible, because in both cases start and end point to the same element.
 
 
-=== Direct-address tables
-Be U the universe / set of possible keys.  Time: +O(1)+ worst average best case.  Space: +O(|U|)+.
+=== Direct-address table
+Implements the <<associative_array>> ADT.  An array of size |U|, where U is the universe, i.e. the set of possible keys.  A key's value is the index into the array where the data corresponding to the key is stored.
 
-A _direct address table_ is an array of size |U|.  A key's value is the index into the array where the data corresponding to the key is stored.
+Time: +O(1)+ worst average best case.  Space: +O(|U|)+.
 
 
 [[hash_table]]
 === Hash tables
-Terms/Variables: +m+ is the table size. +k+ is the key of the item to be put into the hash table, i.e. the input to the hash function. Is an integer, theoretically of any size, e.g. tousands of bits, but see below. +h(k,m)+ is the hash function mapping keys to table slots. It's codomain is thus [0,m).  +n+ is the number of elements stored in the table. +α=n/m+ is the _load factor_ of the table.
+Implements the <<associative_array>> ADT.  Is an array of size m. A <<hash>> function +h(k,m)+ is used to map a key +k+ to [0,m), i.e. to an index into the table. When two keys hash to the same slot that is called a _collision_. The following subchapters describe ways how to deal with collisions. +α=n/m+ is the _load factor_ of the table.
 
-Basic idea: Implements <<associative_array>> ADT; more terms there.  Initial idea is to store all values in a <<dynamic_table,(dynamic) table>>  with the keys (being (large) integers) as index.  However that obviously uses way too much space.  So make the table smaller, that is of size +m+.  Use the hashfunction +h(k,m)+ to map from a key +k+ to an index into the table.
+In general, the various variants have the following properties: Search/insert/delete time in +O(k)+ for the best and average case, and ++O(k+n)++ worst case. Space is usually +O(n)+.
 
-Search/insert/delete time is +O(k)+ best/average case, ++O(k+n)++ worst case. Space is +O(n)+.
-
-When two keys hash to the same slot that is called a _collision_.  If no collision occurs, that is the best case, and the overall access time is +O(k)+ as noted above.  Depending on the collision resolution algorithm, in the worst case all slots are tried, and overall access time is ++O(k+n)++ as noted above.
-
-See also <<table_doubling>>.
-
-
-==== Chaining
-Each table slot has associated an sequence of items, typically a singly linked list. The expected chain length is the table's load factor.
+==== Collision resolution with (separate) chaining
+Each table slot has associated a sequence of items, typically a singly linked list. The expected chain length is the table's load factor.
 
 Insert/delete/find: +Θ(1)+ (Actually +Θ(1+loadfactor)+, but when loadfactor=O(1) (i.e. m=Ω(n)), it becomes +Θ(1)+). Rational: Paying O(n) to find table slot, then O(loadfactor) to walk the list.
 
-loadfactor should be +Θ(1)+ (i.e. m should be +Θ(n)+). If +m+ is too small, the loadfactor is too high, in the worst case not +Θ(1)+ anymore.  That would lead to hash table operations not being +Θ(1)+ anymore.  If +m+ is too large, we waste space.
+Loadfactor should be +Θ(1)+ (i.e. m should be +Θ(n)+). If +m+ is too small, the loadfactor is too high, in the worst case not +Θ(1)+ anymore.  That would lead to hash table operations not being +Θ(1)+ anymore.  If +m+ is too large, we waste space.
+
+==== Collision resolution with open addressing
+Each slot can really only take one key, and has an attribute whether it's free. If a hash maps a given key to an non-free slot, a probe sequence is used iteratively to ultimatively find a free slot. Typically delition and table resize are possible but complicated, since *to-do*.  Unlike with chaining, if all slots are used, the table must be enlarged, see also <<table_doubling>>.
+
+Probe sequences. +h(k,m,i)+ is the same as +h(k,m)+, with the aditional parameter i, denothin the i-th probe. If h(k,m,0) returns a used slot, you try h(k,m,1) and so on.
+
+Linear probing:: ++h(k,m,i) = (h(k,m)+i) mod m++. Good locality, but most sensitive to primary clustering.
+
+Quadratic probing:: Try m1=m0+1, m2=m1+2=m0+3, m3=m2+3=m0+6. Properties between linear probing and double hashing
+
+Double hashing:: ++h(k,m,i) = (h(k,m)+i*h2(k,m)) mod m++. Interval is computed by another hashfuncion. Bad locality, but exhibits virtualy no clustering. m is typically a power of two. If m is even, h2 should deliver an odd number, else every 2nd slot will never be probed.
+
+
+==== Perfect hashing (FKS)
+*to-do*
+
+
+==== Cuckoo hashing
+*to-do*
 
 
 === Association list
 Is an implementation of the ADT <<associative_array>>.
 
-*to-do*: more details
+*to-do*
+
+
+=== Selection problem
+See <<order_statistics>>
+
+
+=== Nearest neighbor search (NNN)
+
+*to-do*:
 
 
 [[binary_tree]]
@@ -1510,7 +1626,9 @@ A data structure implementing the binary search tree ADT. When inserting, the el
 
 [[random_binary_tree]]
 === Randomized binary search tree
-Randomly permute the input before building the <<naive_BST>>.
+Randomly permute the input before building the <<naive_BST>>. 
+
+*to-do*: 
 
 Expected height E[height]=O(lg(n))
 
@@ -1568,18 +1686,11 @@ Is a tree data structure implementing the ordered <<associative_array>> ADT with
 
 [[cartesian_tree]]
 === Cartesian tree
-
-Reduces an array A to a binary tree T which is a min heap.  <<RMQ>> in A
-corresponds to <<LCA_problem,LCA>> in T. Can be built in O(n) time.
-
-Reduction A to T: The smallest element in A, say A[i], becomes the root. In
-case of multiple equal elements, take any as the new root.  The root's left
-and right child nodes are the cartesian trees that result, recursively, from
-the remaining ranges [0,i) and (i,A.size-1].
+A binary tree having the heap property and having the additional porperty that its in-order traversal delivers a given sequence S. Can be built in O(n) time from S and vice versa.
 
 Example:
 --------------------------------------------------
-A = [8,7,2,8,6,9,4,5]
+S = [8,7,2,8,6,9,4,5]
 
 T =      2
         / \______
@@ -1590,15 +1701,33 @@ T =      2
            8   9
 --------------------------------------------------
 
-Reduction T to A: If T's nodes are not labeled with values as above, which is likely, label each node with it's depth. Do an inorder traversal, resulting in an array of node labels.  LCA on T is the same as RMQ on A.
+Building cartesian tree T from a sequence S, which assumes parent pointers: To process each new value x, start at the node representing the value prior to x in the sequence and follow the path from this node to the root of the tree until finding a value y smaller than x. This node y is the parent of x, and the previous right child of y becomes the new left child of x. 
+
+Building sequence S from cartesian tree T: If T's nodes are not labeled with values as above, which is likely, label each node with it's depth. Do an inorder traversal, resulting in an array of node labels.  LCA on T is still the same as RMQ on S.
+
+Applications:
+
+- <<RMQ>> in S corresponds to <<LCA_problem,LCA>> in T.
+- Range searching *to-do*
 
 
 === Skip list
 Is a data structure implementing the ordered <<associative_array>> ADT. Search, insert, delete in +O(lg n)+ time with high probability (opposed to `only' on average)
 
 
-=== Treap
-*to-do:*
+=== Treap (aka priority search tree)
+A balanced (with high probability) binary search tree. The idea is to use randomization and the heap property to maintain balance with heigh probability, i.e. balancedness is not guaranteed. Search, insert, delete in O(log n) time with high probability, but O(n) worst case.
+
+Each node in the this BST additionally has a priority, which is assigned a random value upon insertion. Upon insertion/deletion, both the BST invariant regarding the key and the heap property regarding the priority have to be fullfulled. This is done by a normal BST insert using the key, and then do rotations until the heap property is fullfulled regarding the priorities.
+
+Trivia: The name is a portmenteau of tree and heap.
+
+=== kd tree
+A binary search tree ... *to-do*
+
+
+=== splay tree
+*to-do*
 
 
 [[search_tree_comparison]]
@@ -1676,7 +1805,7 @@ Data structure used to store a node (having up to Σ childs), and the resulting 
 | c. trie / w.b. BST + trimming | O(P+lg Σ) | O(k)       | ✓
 | c. trie / van Emde Boas       | O(P)      | O(k·lglgΣ) | ✓
 | c. trie / hash table          | O(P)      | O(k)       | ✗
-| suffix tray                   | O(P+lg Σ) | ?          | ?
+| suffix tray                   | O(P+lg Σ) | O(k)       | ?
 | suffix array                  | ?         | ?          | ?
 |=======
 
@@ -1751,7 +1880,11 @@ References:
 
 
 === Suffix tray
-Is a combination of a suffix tree and a suffix array, and based on a similar idea
+
+Is a combination of a suffix tree and a suffix array,
+
+Note that there's this similar idea ....
+
 
 *to-do*
 
@@ -2084,7 +2217,7 @@ general group (neg weights, dedects neg. cycles): <<floyd_warshall>> in O(|V|^3^
 *to-do*
 
 
-=== graph coloring
+=== Graph coloring
 *to-do*
 Relation to four color problem?
 
@@ -2128,7 +2261,7 @@ See <<DAG>> for the definition of LCA.
 Solutions:
 - With O(n^2^) space, O(1) time is trivial: An O(1) time lookup table stores the answer for all input pair vertices.
 - Tarjan's off-line LCA: After preprocessing the DAG, solvable in O(1) time and O(n) space.
-- If DAG is a cartesian tree: reduce to array, see <<cartesian_tree>>, and solve <<RMQ>> there.
+- If DAG is a cartesian tree: reduce to array, see <<cartesian_tree>>, and solve <<RMQ>> there. *to-do*: how exactly, there we're rediricted to LCA
 
 
 [[LA_query]]
@@ -2137,6 +2270,16 @@ Given a rooted tree and a node v, LA(v,d) delivers the ancestor node of v which 
 
 When n is the number of nodes, after preprocessing which takes O(n) time and O(n) space, solvable in O(1) time.
 
+
+=== Range/interval search
+
+Given a set of values/points (k-Dim), find the ones being in a (k-Dim) range.
+
+Given a set of ranges/geomteric objects (k-Dim), find the ones overlapping/intersection.
+
+See also <<rmq>>
+
+*to-do*
 
 [[RMQ]]
 === Range minimim query (RMQ)
@@ -2148,6 +2291,7 @@ Given an array A, find index (here named k) of minimum element in range [i,j].
 (arg)min says that we're interested in the index, not the value of the minimum element.
 
 Solutions:
+
 - Convert A to a <<cartesian_tree>>, see there, and in that tree, solve the <<LCA_problem>>, see there.
 
 
@@ -2157,6 +2301,11 @@ Solutions:
 - MIT 6.006: Introduction to Algorithms: https://courses.csail.mit.edu/6.006
   * (fall'11): https://courses.csail.mit.edu/6.006/fall11/notes.shtml, https://www.youtube.com/playlist?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb
   * Newest lecture notes which are freely available spring'14: the newest vidoes seem to be from fall'11.
+- MIT 6.046J / 18.410J: In '15 "Design and Analysis of Algorithms", before "Introduction to Algorithms (SMA 5503)". Aparantly in '15 it's an advanced course between 6.006 and 6.851, before it was a course similar to 6.006.
+ * Spring '15: https://www.youtube.com/playlist?list=PLUl4u3cNGP6317WaSNfmCvGym2ucw3oGp
+ * Fall '05:
+  ** youtube: https://www.youtube.com/playlist?list=PL81A705FB7F988E7C
+  ** OCW, less videos, but title describing content: http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-introduction-to-algorithms-sma-5503-fall-2005/video-lectures/
 - MIT 6.851: Advanced Data Structures: https://courses.csail.mit.edu/6.851/
   * spring'12: https://courses.csail.mit.edu/6.851/spring12/lectures/, https://www.youtube.com/playlist?list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf
   * Newest spring'14: The link to the vidoes are the same as those of spring'12.
