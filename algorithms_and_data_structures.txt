@@ -292,7 +292,6 @@ Overall running time: +#subprobs * time/subprob+. #suprobs comes from step 1.  t
 
 Examples of those 5 steps, see <<edit_distance>>, <<knapsack>>.
 
-
 --------------------------------------------------
 # bottup-up                          # top down
                                      memo = {}
@@ -305,13 +304,9 @@ fun fib(n):                          fun fib(n):
                                        return f
 --------------------------------------------------
 
+Trivia: `Dynamic programming' is a wierd term, just take it for what it is. Still: in british english, `programming' means optimize.  The inventor, bellman, choose it for reasons among `sounds cool to a congress man', `to hide the fact he was doing math research'.
 
-
-Misc phrases:
-
-- Etymology / trivia: `Dynamic programming' is a wierd term, just take it for what it is. Still: in british english, `programming' means optimize.  The inventor, bellman, choose it for reasons among `sounds cool to a congress man', `to hide the fact he was doing math research'.
-
-**to-do:** List examples of problems which can be solved using dynamic programming, e.g. from the problems sections. https://en.wikipedia.org/wiki/Dynamic_programming
+Example algorithms / example problems solvable with dynamic programing: Bellman-Ford, Floyd-Warshall, edit distance, knapsack (rod cutting problem, change-making problem). *to-do* more examples of problems which can be solved using dynamic programming, e.g. from the problems sections. https://en.wikipedia.org/wiki/Dynamic_programming
 
 
 [[greedy_technique]]
@@ -326,6 +321,8 @@ Problems for which a greedy algorithm works well generally have these two proper
 - _Greedy choice property_: Locally optimal choices lead to globally optimal solutions.
 
 In many problems, a greedy strategy does not in general produce an optimal solution, but nonetheless a greedy heuristic may yield locally optimal solutions that approximate a global optimal solution in a reasonable time.  A greedy algorithm never reconsiders its choices; it makes locally best choices. This is the main difference from dynamic programming, which is exhaustive and is guaranteed to find the solution.
+
+Example algorithms: (Greedy) best-first search, A*, Dijkstra, fractional knapsack problem, change-making problem for canonical coin system. *to-do*: more examples.
 
 
 [[relation_between_techniques]]
@@ -933,11 +930,11 @@ void traverse(Node* n) {
 
 [[A_star]]
 === A*
-A* is an algorithm which solves the single-pair shortest path problem.  A* uses an heuristic, involving the function h, to find the next node to be added to the shortest path tree.  It can also be used to solve the single-source shortest-path problem, but is not intended for it, since h is typically optimized for a specific destination node.  A* is a generalized version of the Dijkstra's algorithm: if h returns always 0 (i.e. is independent of a destination node) then A* equals Dijkstra.
+A* is a greedy algorithm which solves the single-pair shortest path problem.  A* uses an heuristic, involving the function h, to find the next node to be added to the shortest path tree.  It can also be used to solve the single-source shortest-path problem, but is not intended for it, since h is typically optimized for a specific destination node.  A* is a generalized version of the Dijkstra's algorithm: if h returns always 0 (i.e. is independent of a destination node) then A* equals Dijkstra.
 
-How the algorithm works intuitively (use case `monotonic h'):  Construct the shortest path tree (_spt_) from a given source vertex to a given destination vertex by starting with adding source to the shortest path tree, and then iteratively adding a next vertex to the shortest path tree.  The vertex v to be added to the spt is the one of the yet unadded ones with minimal `estimated shortest path length from source to destination via v'. That is correct due to the monotonic h and the fact that any sub path of a shortest path is itself a shortest path.
+How the algorithm works intuitively (use case `monotonic h'):  Construct the shortest path tree (_SPT_) by adding source to the SPT, and then iteratively adding a vertex to the SPT.  The vertex v to be added to the SPT is the one with minimal `estimated shortest path length from source to destination via v'. That is correct due to the monotonic h and the fact that any sub path of a shortest path is itself a shortest path.
 
-Each vertex gets attached two additional attributes: shortest path tree parent (*+spt_parent+*) and shortest path weight from source to this node (*+spwfs+*).  While a node is in the queue, these are tentative values. Once a node is dequed and thus really added to the shortest path tree, they remain at that final value.  In case of +spwfs+ it's value is often called (upper bound) estimate; it will only decrease, never increase during the algorithm, it is thus never smaller than the true value.
+Each vertex gets attached two additional attributes: shortest path tree parent (*+spt_parent+*) and shortest path weight from source to this node (*+spwfs+*).  While a node is in the queue, these are tentative values. Once a node is dequed and thus really added to the shortest path tree, they remain at that final value.  In case of +spwfs+ its value is an upper bound on the true value.
 
 As parameter the algorithm takes an heuristic function *h*, or more verbosely, +*estimated_spw_to_dest*(from:vertex)+, which shall return an estimated shortest path weight from the given vertex to the implicit destination vertex. More on h later.
 
@@ -952,20 +949,19 @@ When dest!=NIL the algorithm solves the single-pair shortest path problem.  The 
 --------------------------------------------------------------------------------
 function A*(graph, source:&vertex, dest:&vertex,
         estimated_spw_to_dest:function(:vertex)->double )
-    create min priority queue unvisitedQ  where key is vertex::k() <1>
+    create min priority queue outsideSptQ  where key is vertex::k() <1>
     for all vertices v in graph:
-        [v.spt_parent = NIL] // spt = shortest path tree
-        v.spwfs       = (v==source ? 0 : INFINITE) // spwf == shortest path
-                                                   // weight from source
-        unvisitedQ.enqueue(v)
+        [v.spt_parent = NIL]
+        v.spwfs       = (v==source ? 0 : INFINITE)
+        outsideSptQ.enqueue(v)
 
-    while unvisitedQ not empty:
-        current = unvisitedQ.deque() <2>
-        [if current == dest return] // if dest is not NIL
+    while outsideSptQ not empty:
+        current = outsideSptQ.deque() <2>
+        [if current == dest return]
         for each neighbor of current:
-            relax(current, neighbor, unvisitedQ) <3>
+            relax(current, neighbor, outsideSptQ) <3>
 
-function relax(u:vertex, v:&vertex, Q)
+function relax(u:vertex, v:&vertex, Q:MinPriorityQ)
     alternate_spwfs_for_v = u.spwfs + weight(u,v)
     if alternate_spwfs_for_v < v.spwfs:
         Q.decreaseKey(v, alternate_spwfs_for_v)
@@ -975,7 +971,7 @@ function relax(u:vertex, v:&vertex, Q)
 Optimizations and notes to the above algorithm:
 
 <1> Optionally adapt the min priority queue implementation slightly: If +dequeue+ returns NIL if all remaining keys are infinite, we can sooner terminate.  Also the implementation might take advantage of the knowledge that many keys are infinite, especially at the beginning.
-<2> Extracting vertex +current+ from +unvisitedQ+ means that  +current.spwfs+ and +current.spt_parent+ are no longer temporary approximations but now have their final value.  Intellectually that means that now the node is really added to the spt, although technically the values have been already modified at some earlier time.
+<2> Greedely choose vertex with smallest k and add it to the SPT. +current.spwfs+ is now at its final true value, i.e. no longer an estimate / upper bound.
 <3> Note that +neighbor+ could already be part of shortest path tree and thus could be skipped.  However it's not worth explicitly checking that (in the presented implementation there would also not be a trivial way to do so), since the if statement within +relax+ implicitely ensures that not much is made with +v+.
 
 Properties of the A* algorithm:
@@ -998,71 +994,71 @@ About the heuristic function h aka +estimated_spw_to_dest(from:vertex)+:
 [[bounded_relaxation]]
 _Bounded relaxation_: While the admissibility criterion guarantees an optimal solution path, it also means that A* must examine all equally meritorious paths to find the optimal path.  It is possible to speed up the search at the expense of optimally by relaxing the admissibility criterion.
 
-Relation between diffrent naming schemes. Note that in scheme 1 unvisited means ``it still is in Q'', whereas in scheme 2 unvisited means ``it has never been `seen' in any way (was never the current or the neighbor of the current)''.
+Relation between different common naming schemes. spt_parent and and spwfs are my own abbreviations/terms; I prefer them over just parent and distance respectively since they more precisely say what they mean exactly.
 
 [options="header"]
 |=====
-   |scheme 1           | scheme 2       | scheme 3 | relation to spwfs
-.2+|unvisited / in Q   | unvisited      | white    | INFINIT, tentative value
-                       | tentative/open | gray     | <INFINIT, tentative value
-   |visited / not in Q | closed         | black    | final value
+   |scheme 1  | scheme 2       | scheme 3 | spwfs' value           | is in queue
+.2+|unvisited | unvisited      | white    | INFINIT, upper bound   | yes 
+              | tentative/open | gray     | < INFINIT, upper bound | yes
+   |visited   | closed         | black    | final value            | no
 |=====
-
-Literature commonly uses the term distance, but I personaly prefer spwfs,
-because 1) I keep forgetting to which two vertices the distance applies to and
-2) with distance it's not clear wether it counts the number of edges or sums
-up the weights.
 
 [options="header"]
 |=====
-|scheme 1           | scheme 2
-|spt_parent         | π
-|spwfs              | d or distance
+|scheme 1   | scheme 2
+|spt_parent | π or parent
+|spwfs      | d or distance
 |=====
 
 
 [[Dijkstra]]
 === Dijkstra's algorithm
-Solves the single-source <<shortest_path>> problem in +O(E+V*lg(V))+ time and +O(V)+ space for a weighted graph with non-negative edge weights, able to produce a shortest path tree.  That notably includes directed or undirected graphs and graphs with cycles.
+A greedy algorithm which solves the single-source <<shortest_path>> problem, not allowing negative weights, in +O(E+V*lg(V))+ time and +O(V)+ space, assuming Fibonacci heaps are used. That notably includes directed or undirected graphs and graphs with cycles.
 
-Basic algorithm:
+Terms and abbreviations: spwfs = shortest path weight from source, SPT = shortest path tree. See also <<A_star>>.
+
+Basic algorithm in pseudo code:
 ----------------------------------------------------------------------
 Dijkstra(graph, source:vertex)
-  // Q is a priority queue with spwfs being key
+  create min priority queue outsideSptQ with spwfs as key
   for vertex v in graph:
     v.spwfs = (v==source ? 0 : INFINITE)
-    Q.enque(v)
-  while Q not empty:
-    current = Q.deque()
+    outsideSptQ.enque(v)
+  while outsideSptQ not empty:
+    current = outsideSptQ.deque() // greedely choose vertex and add it to SPT
     for each neighbor of current:
       relax(current, neighbor)
 ----------------------------------------------------------------------
 
-Each node has an attribute `shortest path weight from source' (aka distance) which is initially tentative and infinite and then gradually is relaxed until it reaches its final, true smallest value.  A min priority queue, with key being this attribute, contains initially all nodes.  The top node in the priority queue is guaranteed to have the smalles spwfs among all the nodes still in the queue.  Dequeing it semantically adds it to the spt.  At that point its spwfs is at its true value, i.e. is no longer a tentative value.
+Basic algorithm in prose: Out of the vertices not yet in the SPT, iteratively greedely choose vertex with smallest spwfs and add it to the SPT.
 
+Each node has an attribute `shortest path weight from source' (aka distance). It is an upper bound on the true spwfs. It is initially infinite and then gradually is made smaller, i.e. the upper bound is tightened, until it reaches its final, true smallest value.  There's a min priority queue, with key being this attribute, containing all vertices not yet added to the SPT, this initially it contains all nodes.  Thus the top (aka front) vertex in the priority queue is guaranteed to have the smallest spwfs among all the vertices not yet added to the SPT.  Dequeing it semantically adds it to the SPT.  At that point its spwfs is at its true final value.
 
 Detailed algorithm:
 ----------------------------------------------------------------------
 Dijkstra(graph, source:vertex [,dest:vertex])
-  create min priority queue unvisitedQ where key is the vertice's spwfs attribute
+  create min priority queue outsideSptQ where key is the vertice's spwfs attribute
   for all vertices v in graph:
-    [v.parent = NIL]
+    [v.spt_parent = NIL]
     v.spwfs   = (v==source ? 0 : INFINITE)
-    unvisitedQ.enqueue(v)
-  while unvisitedQ not empty:
-    current = unvisitedQ.deque()
+    outsideSptQ.enqueue(v)
+  while outsideSptQ not empty:
+    current = outsideSptQ.deque() // greedely choose vertex and add it to SPT
     [if current==dest return]
     for each neighbor of current:
-      relax(current, neighbor, unvisitedQ)
+      relax(current, neighbor, outsideSptQ)
 
-relax(u:vertex, v:vertex, Q)
+relax(u:vertex, v:vertex, Q:MinPriorityQueue)
   alternate_spwfs_for_v = u.spwfs + weight(u,v)
   if alternate_spwfs_for_v < v.spwfs:
     Q.decreaseKey(v, alternate_spwfs_for_v)
-    [v.parent = u]
+    [v.spt_parent = u]
 ----------------------------------------------------------------------
 
-Dijkstra a special case of the A* in that that A*'s h function is constant 0, but is a generalization of A* in that that it not only can solve the single-pair shortest path problem but also the single-source shortest path problem. Algorithm when implemented in terms of A*:
+Notes: relax is called for all neighbors, even if they are already part of the SPT. Since their spwfs is already at the true final value, it will never be decreased anymore, so always calling relax doesn't hurt.
+
+Relation to other algorithms: Dijkstra is a special case of the A* in that that A*'s h function is constant 0, but is a generalization of A* in that that it not only can solve the single-pair shortest path problem but also the single-source shortest path problem. Algorithm when implemented in terms of A*:
 
 ----------------------------------------------------------------------
 function Dijkstra(graph, source:vertex)
@@ -1072,9 +1068,14 @@ function Dijkstra(graph, source:vertex, dest:vertex)
     return Base(graph, source, dest, lambda(v:vertex){0})
 ----------------------------------------------------------------------
 
-Time +O(E+V*lg(V))+ if a Fibonacci heap is used to implement the min priority queue.  Using a binary heap it's +O((E+V)*lg(V))+, with an array it's  +O(E+V^2^)+.  Auxillary space: +O(V)+ -- however, the same space amount is also used for an answer which includes all shortest path weights and the shortest path tree.  If the answer must only include the weight of one target node the time and auxiliary space complexity remains the same.
+Analysis: Time +O(E+V*lg(V))+ if a Fibonacci heap is used to implement the min priority queue.  Using a binary heap it's +O((E+V)*lg(V))+, with an array it's  +O(E+V^2^)+.  Auxillary space: +O(V)+ -- however, the same space amount is also used for an answer which includes all shortest path weights and the shortest path tree.  If the answer must only include the weight of one target node the time and auxiliary space complexity remains the same.
 
-Rational why negative weights are not allowed: The Dijkstraw algorithm relies upon that adding a node to the shortest path does not decrease the shortest path weight.
+Rational why negative weights are not allowed: The Dijkstra algorithm relies upon that adding a vertex to a shortest path does not decrease the shortest path's weight.
+
+Trivia: Etymology of the term `relaxation': There are two variants. 1) It comes from mathematics where relaxation means relaxing a constraint. Here the constraint is v.spwfs<=u.spwfs+weight(u,v). The smaller v.spwfs is, the less `pressure' there is to satisfy this constraint, thus the constraint is relaxed. 2) Think of the upper bound as an extended spring. Making the upper bound smaller relaxes the spring. The true value is reached when the spring is in its resting position. However from another viewpoint one could find it strange to call tightening an upper bound a relaxation.
+
+Here the constraints reduced 2) http://www.egr.unlv.edu/~larmore/Courses/CSC269/pathing says
+
 
 
 === Bidirectional search
@@ -1084,7 +1085,7 @@ It runs two simultaneous searches: one forward from the initial state, and one b
 
 [[Bellman_Ford]]
 === Bellman-Ford
-Solves the shortest-path single source problem in O(|V|·|E|). Allows for negative weights (which Dijkstra doesn't) and can report negative cycles.
+A dynamic programming algoritm solving the shortest-path single source problem in O(|V|·|E|). Allows for negative weights (which Dijkstra doesn't) and can report negative cycles.
 
 --------------------------------------------------
 fun bellman-ford(G, source:vertex)
@@ -1116,7 +1117,7 @@ dedect-negative-cycles(G)
 
 [[floyd_warshall]]
 === Floyd–Warshall algorithm
-Solves the <<shortest_path>> all pairs problem in O(|V|^3^). Negative weights are allowed, negative cycles are dedected.
+A dynamic programming algorithm which solves the <<shortest_path>> all pairs problem in O(|V|^3^). Negative weights are allowed, negative cycles are dedected.
 
 Basic idea: You have a matrix C (V×V) storing shortest path for all vertex
 pairs. Initially, no intermediate vertices are allowed, i.e. C corresponds to
@@ -1648,8 +1649,6 @@ Rough description of how insertion/deletion work:
 2. For each node on the path from the newly inserted node up to the root: if balance factor is not in range [-1,1], fix it by only _rotation_ operations.
 
 See also <<search_tree_comparison>>
-
-Trivia: Is named after its inventors Georgy Adelson-Velsky and Evgenii Landis'.
 
 
 [[red_black]]
@@ -2200,7 +2199,7 @@ Is undefined for negative cycles, because one can always make an allegedly
 ==== single source shortest path
 general graph: <<Bellman_Ford>> +O(V*E)+
 
-non-negative weights: <<Dijkstraw>> +O(E+V*lg(V))+, <<A_star>>
+non-negative weights: <<Dijkstra>> +O(E+V*lg(V))+, <<A_star>>
 
 DAG: <<topsort>>, then for each node, for each neighbor, relax. +Θ(E + V)+
 
