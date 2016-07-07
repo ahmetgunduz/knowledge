@@ -1146,6 +1146,55 @@ the set {v~1~, ..., v~k~}. It's value is the min of:
 *to-do* cycle dedection
 
 
+[[Kruskal]]
+=== Kruskal's algorithm
+A greedy algorithm solving the <<MST>> problem for a possibly disconnected graph in O(sort(E)+(E+V)α(V)) time, assuming an asymptotically optimal disjoint-set data structure is used internally, and where α is the very slowly growing inverse function of the Ackermann function. Rember that despite the name, it is actually a minimum spanning forest, not tree.
+
+Basic algorithm in words: Start out with the MST being the empty list of edges; in other words, a forest where each vertex is one tree. Then iteratively add the smallest weighted edge to the MST iff that does not produce a cycle in the MST, since a by definition a tree is not allowed to have cycles.
+
+Basic algorithm in pseudo code; see also <<disjoint_set>>:
+--------------------------------------------------
+KRUSKAL(G):
+  foreach vertex v: MAKE-SET(v)
+  order edges by weight, increasing
+  foreach edge (u, v) in that ordered edge sequence:
+    if FIND-SET(u) ≠ FIND-SET(v):
+      add edge to MST, e.g. u.MSTparent = v
+      MERGE-SETS(u, v)
+--------------------------------------------------
+
+Note that the running time depends heavily on the used sort algorithm used to sort the edge weights.  So if the weights are integers, a non-comparative sorting algorithm such as radix sort can be used.
+
+
+[[Prim]]
+=== Prim's algorithm
+A greedy algorithm solving the <<MST>> problem for a connected graph in O(E + V log V) time (i.e. the same as Dijkstra's algorithm), assuming a Fibonacci heap is used.
+
+Basic algorithm. Note that it's quite similar to Dijkstra's shortest path algorithm.
+--------------------------------------------------
+MST-Prim(G:graph):
+  for each vertex v: v.key = infinit, v.parent = NIL, v.inMST = false
+  choose any vertex as root, and set root.key = 0
+  create min priority queue outsideMstQ out of all vertexes, v.key being key  
+  while outsideMstQ not empty:
+    current = outsideMstQ.deque() // greedely add vertex to MST
+    current.inMST = true
+    for each neighbor of current:
+      prim-relax(current, neighbor, outsideMstQ)
+
+prim-relax(u:vertex, v:vertex, Q):
+  if not current.inMST and weight(u,v)<neighbor.key
+    Q.decreaseKey(neighbor, weight(u,v))
+    neighbor.parent = current
+--------------------------------------------------
+
+Analysis:
+
+- Initialization loop is done V times, and costs O(V) overall
+- Overall prim-relax is called twice for each edge, i.e. O(E) times. prim-relax costs O(decrease-key), which is O(1) for a Fibonacci heap, so its O(E) overall.
+- Outer loop is over all vertices, i.e V times. O(dequeue) is O(log V), so overall its O(V log V).
+- All together its thus O(E + V log V)
+
 == Concurrency related algorithms
 
 === Consumer producer
@@ -1464,6 +1513,32 @@ _Successor_/_Predecessor_: +O(h)+. **To-do**
 Implementations: <<AVL>> trees, red-black trees
 
 Implements these more general ADTs: <<associative_array>>
+
+
+[[disjoint_set]]
+=== Disjoint-set (aka union-find, merge-find set)
+A collection of n elements, partitioned into a number of disjoint sets. Or from another point of view: Given an undireced graph of n vertices, keeps track of connected components, and thus can answer which vertices are connected.
+
+Usually each set chooses one of its elements as the representative; that representative element identifies the set. It is undefined which element is chosen, but it stays the same as long as the data structure is not modified.
+
+Main operations:
+
+- make-set(v): Adds element / vertex v to the collection, as a new set containing only that element.
+- find-set(v): Returns the id of the set / connected-component element / vertex v is in. To see if elements / vertices u and v are in same set / connected: find-set(u)==find-set(v).
+- merge-sets(u,v): Merges the sets of elements u and v / adds edge between vertex u and vertex v. It is undefined what the id of the new set is.
+
+Implementations: <<disjoint_set_linked_list>>, <<disjoint_set_forest>>
+
+|============
+|                  | linked-list | forest / union by rank | forest / union by rank + path compression
+| insert(v)        |             | O(1)                   | O(1)
+| find-set(v)      | *to-do*     | O(log n)               | O(log* n)
+| merge-sets(u,v)  |             | O(log n)               | O(log* n)
+|============
+
+Applications: <<Kruskal>>'s algorithm, *to-do*
+
+Trivia: Was invented specifically to make Kruskal's algorithm more efficient
 
 
 [[graph]]
@@ -1899,6 +1974,42 @@ Can be seen as an compact form of a trie.  Uses less space than a trie.  A trie 
 Is an implementation of the ADT <<associative_array>>.
 
 
+[[disjoint_set_linked_list]]
+=== Disjoint-set linked list
+A data structure implementing the <<disjoint_set>> ADT, using a linked list for each set. The element at the head of each list is chosen as its representative.
+
+*to-do*
+
+
+[[disjoint_set_forest]]
+=== Disjoint-set forest
+A data structure implementing the <<disjoint_set>> ADT using a forest. Each element gets two attributes: A reference to parent element/vertex and its rank (see the weighted tree optimization). Imagine the elements to be organized as a forest. Each tree represents a set. find-set(v) means now finding the root of the tree v is in, which is done by chasing parent pointers. merge-sets(u,v) is implemented by attaching the root of the tree of u to the tree of v, or vice verca.
+
+Optimizations: To avoid high trees which would make find-set (i.e. chasing lots of parent pointers up to the root) expensive, two optimizations are made: 1) union by rank: merge-sets always attaches the smaller to the larger tree. In that case the resulting tree only gets higher (by one) if both original trees had the same height. For that, we need to maintain the height of each tree. Due to path compression, the next optimization, we use an approximation of the height which we call rank. 2) Path compression: find-set(v) shortens the path from v to its root by, after finding the root, making the root the parent of v. That might change the height of the tree, but not our rank.
+
+--------------------------------------------------
+insert(v):
+  parent[v] = v
+  rank[v] = 0
+
+find-set(v):
+ if parent[v]!=v:
+   parent[v] = find-set(parent[v]) // "parent[v] =" is path compression
+ return parent[v]
+
+merge-sets(u,v):
+  rootOfU = find-set(u)
+  rootOfV = find-set(v)
+
+  // naive variant
+    parent[rootOfU] = rootOfV
+
+  // union by rank optimization
+    if rank[rootOfU]<=rank[rootOfV]: parent[rootOfU] = rootOfV
+    else                           : parent[rootOfV] = rootOfU
+    if rank[rootOfU]==rank[rootOfV]: rank[rootOfV] += 1
+--------------------------------------------------
+
 
 == Augmenting data structures
 
@@ -1995,6 +2106,16 @@ Applications: *to-do*
 
 === Travelling purchaser problem
 *to-do*
+
+
+[[MST]]
+=== Minimum spanning tree (MST)
+Finding the MST (actually minimum spanning forest) in an undirected weighted possibly disconnected graph.
+
+Algorithms:
+- <<Kruskal>>'s algorithm
+- <<Prim>>'s algorithm (restricted to connected graphs)
+- *to-do* more
 
 
 [[edit_distance]]
