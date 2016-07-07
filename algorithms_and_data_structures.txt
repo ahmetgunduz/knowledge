@@ -998,7 +998,7 @@ Relation between different common naming schemes. spt_parent and and spwfs are m
 
 [options="header"]
 |=====
-   |scheme 1  | scheme 2       | scheme 3 | spwfs' value           | is in queue
+   |scheme 1  | scheme 2       | scheme 3 | spwfs' value           | is in outsideSptQ
 .2+|unvisited | unvisited      | white    | INFINIT, upper bound   | yes 
               | tentative/open | gray     | < INFINIT, upper bound | yes
    |visited   | closed         | black    | final value            | no
@@ -1006,9 +1006,9 @@ Relation between different common naming schemes. spt_parent and and spwfs are m
 
 [options="header"]
 |=====
-|scheme 1   | scheme 2
-|spt_parent | π or parent
-|spwfs      | d or distance
+|scheme 1   | scheme 2       | comments
+|spwfs      | d or distance  | actually an upper bound
+|spt_parent | π or parent    |
 |=====
 
 
@@ -1016,14 +1016,14 @@ Relation between different common naming schemes. spt_parent and and spwfs are m
 === Dijkstra's algorithm
 A greedy algorithm which solves the single-source <<shortest_path>> problem, not allowing negative weights, in +O(E+V*lg(V))+ time and +O(V)+ space, assuming Fibonacci heaps are used. That notably includes directed or undirected graphs and graphs with cycles.
 
-Terms and abbreviations: spwfs = shortest path weight from source, SPT = shortest path tree. See also <<A_star>>.
+Terms and abbreviations: ubspwfs = upper bound on shortest path weight from source, SPT = shortest path tree. See also <<A_star>>.
 
 Basic algorithm in pseudo code:
 ----------------------------------------------------------------------
 Dijkstra(graph, source:vertex)
-  create min priority queue outsideSptQ with spwfs as key
-  for vertex v in graph:
-    v.spwfs = (v==source ? 0 : INFINITE)
+  create empty min priority queue outsideSptQ with ubspwfs as key
+  for each vertex v in graph:
+    v.ubspwfs = (v==source ? 0 : INFINITE)
     outsideSptQ.enque(v)
   while outsideSptQ not empty:
     current = outsideSptQ.deque() // greedely choose vertex and add it to SPT
@@ -1031,17 +1031,15 @@ Dijkstra(graph, source:vertex)
       relax(current, neighbor)
 ----------------------------------------------------------------------
 
-Basic algorithm in prose: Out of the vertices not yet in the SPT, iteratively greedely choose vertex with smallest spwfs and add it to the SPT.
-
-Each node has an attribute `shortest path weight from source' (aka distance). It is an upper bound on the true spwfs. It is initially infinite and then gradually is made smaller, i.e. the upper bound is tightened, until it reaches its final, true smallest value.  There's a min priority queue, with key being this attribute, containing all vertices not yet added to the SPT, this initially it contains all nodes.  Thus the top (aka front) vertex in the priority queue is guaranteed to have the smallest spwfs among all the vertices not yet added to the SPT.  Dequeing it semantically adds it to the SPT.  At that point its spwfs is at its true final value.
+Basic algorithm in prose: Out of the vertices not yet in the SPT, iteratively greedely choose vertex with the smallest ubspwfs and add it to the SPT, then update the ubspwfs for all it's neighbors.
 
 Detailed algorithm:
 ----------------------------------------------------------------------
 Dijkstra(graph, source:vertex [,dest:vertex])
-  create min priority queue outsideSptQ where key is the vertice's spwfs attribute
-  for all vertices v in graph:
+  create empty min priority queue outsideSptQ with ubspwfs as key
+  for each vertex v in graph:
     [v.spt_parent = NIL]
-    v.spwfs   = (v==source ? 0 : INFINITE)
+    v.ubspwfs   = (v==source ? 0 : INFINITE)
     outsideSptQ.enqueue(v)
   while outsideSptQ not empty:
     current = outsideSptQ.deque() // greedely choose vertex and add it to SPT
@@ -1050,13 +1048,19 @@ Dijkstra(graph, source:vertex [,dest:vertex])
       relax(current, neighbor, outsideSptQ)
 
 relax(u:vertex, v:vertex, Q:MinPriorityQueue)
-  alternate_spwfs_for_v = u.spwfs + weight(u,v)
-  if alternate_spwfs_for_v < v.spwfs:
-    Q.decreaseKey(v, alternate_spwfs_for_v)
+  alternate_ubspwfs_for_v = u.ubspwfs + weight(u,v)
+  if alternate_ubspwfs_for_v < v.ubspwfs:
+    Q.decreaseKey(v, alternate_ubspwfs_for_v)
     [v.spt_parent = u]
 ----------------------------------------------------------------------
 
+More details in prose: Each node has an attribute ubspwfs. It is initially infinite, and each relaxation step potentially makes it smaller, i.e. potentially tightens the upper bound, until it reaches its final, true smallest value. It can be proven that the smallest ubspwfs in outsideSptQ, i.e. the one that the next dequeue call will return, has arrived at its true final spwfs value, and will never change again. Thus by choosing the vertex with the smallest ubspwfs, the algorithm always adds a vertex to the SPT for which the spfws is known.
+
+Proof: Note that the shortest path problem has optimal substructere, see <<shortest_path>>. *to-do*: Understand proof that the (upper bound) spwfs of the front vertex of outsideSptQ has arrived at it's true final value.
+
 Notes: relax is called for all neighbors, even if they are already part of the SPT. Since their spwfs is already at the true final value, it will never be decreased anymore, so always calling relax doesn't hurt.
+
+Rational why negative weights are not allowed: The Dijkstra algorithm relies upon that adding a vertex to a shortest path does not decrease the shortest path's weight.
 
 Relation to other algorithms: Dijkstra is a special case of the A* in that that A*'s h function is constant 0, but is a generalization of A* in that that it not only can solve the single-pair shortest path problem but also the single-source shortest path problem. Algorithm when implemented in terms of A*:
 
@@ -1069,8 +1073,6 @@ function Dijkstra(graph, source:vertex, dest:vertex)
 ----------------------------------------------------------------------
 
 Analysis: Time +O(E+V*lg(V))+ if a Fibonacci heap is used to implement the min priority queue.  Using a binary heap it's +O((E+V)*lg(V))+, with an array it's  +O(E+V^2^)+.  Auxillary space: +O(V)+ -- however, the same space amount is also used for an answer which includes all shortest path weights and the shortest path tree.  If the answer must only include the weight of one target node the time and auxiliary space complexity remains the same.
-
-Rational why negative weights are not allowed: The Dijkstra algorithm relies upon that adding a vertex to a shortest path does not decrease the shortest path's weight.
 
 Trivia: Etymology of the term `relaxation': There are two variants. 1) It comes from mathematics where relaxation means relaxing a constraint. Here the constraint is v.spwfs<=u.spwfs+weight(u,v). The smaller v.spwfs is, the less `pressure' there is to satisfy this constraint, thus the constraint is relaxed. 2) Think of the upper bound as an extended spring. Making the upper bound smaller relaxes the spring. The true value is reached when the spring is in its resting position. However from another viewpoint one could find it strange to call tightening an upper bound a relaxation.
 
@@ -2312,9 +2314,9 @@ Applications:
 
 [[shortest_path]]
 === shortest path
+For the definition of shortest path, see chapter <<graph>>. The shortest path undefined, or -INFINIT, for negative cycles, because one can always make an allegedly `shortest path' shorter by walking through the cycle one more time.
 
-Is undefined for negative cycles, because one can always make an allegedly
-`shortest path' shorter by walking through the cycle one more time.
+optimal substructure: The shortest path problem has optimal substructure. A subpath of a shortest path is itself a shortest path; if it wasn't, we could replace it by the alegedly shorter path and thus make the overall path shorter.
 
 
 ==== single source shortest path
