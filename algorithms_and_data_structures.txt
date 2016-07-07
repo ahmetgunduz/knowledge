@@ -286,7 +286,7 @@ _top-down approach_: DFS traverse the subproblem DAG from the root via recursion
 
 _bottom-up approach_: Iteratively solve the subproblems, in reverse topological order of the subproblem DAG.  Each iteration blindly uses the memo (knowing the solution must be there due to the topological order) and then memoizes the solution in memo. In general does the same computation as the top-down approach, provided you only solve those subproblems needed to ultimatively solve the orginal problem (e.g. a naive bottom-up approach of solving the _knapsack_ problem solves the whole DAG / matrix which includes nodes not reachable from the root / original problem).  Sometimes the bottom-up approach can save space, because you might know that you only need the last i solutions, e.g. in the fibonacci example you only need the last two. The topological sorted DAG helps to see if that is the case and how big i is.
 
-_shortest path in DAG_: Often (*to-do*: when exactly / when not?) possible: Solve the <<shortest_path>> problem (which is has a specialiced, more efficient version for DAGs) in the DAG.
+_shortest path in DAG_: Often (*to-do*: when exactly / when not?) possible: Solve the <<shortest_path_problem>> (which is has a specialiced, more efficient version for DAGs) in the DAG.
 
 Overall running time: +#subprobs * time/subprob+. #suprobs comes from step 1.  time/subprob comes from step 3; calculate running time of DP, ignoring the recursion.
 
@@ -659,7 +659,7 @@ init(graph, source:vertex):
 
 Applications:
 
-- Solves the single-source <<shortest_path>> problem where all edge weights are equal / absent, i.e. where for all paths the path weight equals the path distance.
+- Solves the single-source <<shortest_path_problem>> where all edge weights are equal / absent, i.e. where for all paths the path weight equals the path distance.
 
 
 
@@ -928,9 +928,10 @@ void traverse(Node* n) {
 === (Greedy) best-first search
 *to-do*:
 
+
 [[A_star]]
 === A*
-A* is a greedy algorithm which solves the single-pair shortest path problem.  A* uses an heuristic, involving the function h, to find the next node to be added to the shortest path tree.  It can also be used to solve the single-source shortest-path problem, but is not intended for it, since h is typically optimized for a specific destination node.  A* is a generalized version of the Dijkstra's algorithm: if h returns always 0 (i.e. is independent of a destination node) then A* equals Dijkstra.
+A* is a best-first-search algorithm which solves the single-pair <<shortest_path_problem>>, not allowing negative weights.  A* uses an heuristic, involving the function h, to find the next node to be added to the shortest path tree.  It can also be used to solve the single-source shortest-path problem, but is not intended for it, since h is typically optimized for a specific destination node.  A* is a generalized version of the Dijkstra's algorithm: if h returns always 0 (i.e. is independent of a destination node) then A* equals Dijkstra.
 
 How the algorithm works intuitively (use case `monotonic h'):  Construct the shortest path tree (_SPT_) by adding source to the SPT, and then iteratively adding a vertex to the SPT.  The vertex v to be added to the SPT is the one with minimal `estimated shortest path length from source to destination via v'. That is correct due to the monotonic h and the fact that any sub path of a shortest path is itself a shortest path.
 
@@ -981,7 +982,6 @@ Properties of the A* algorithm:
 - *to-do:* I don't trust the time complexity, space complexity noted in Wikipedia,  I guess they forget to account for the costs of the min priority queue and of h.  If h is const, then there two options: call it once for every vertex at the beginning and store the result, or call it every time when needed.  Depending on the problem one or the other will be more optimal.
 - *to-do:* Does it work for the case when the single-source shortest path problem is tried to be solved?
 - Is an best-first search, but not greedy
-- *to-do*: Are negative weights allowed? Put it into the beginning of the A* chapter
 
 About the heuristic function h aka +estimated_spw_to_dest(from:vertex)+:
 
@@ -1014,9 +1014,9 @@ Relation between different common naming schemes. spt_parent and and spwfs are m
 
 [[Dijkstra]]
 === Dijkstra's algorithm
-A greedy algorithm which solves the single-source <<shortest_path>> problem, not allowing negative weights, in +O(E+V*lg(V))+ time and +O(V)+ space, assuming Fibonacci heaps are used. That notably includes directed or undirected graphs and graphs with cycles.
+A greedy algorithm which solves the single-source <<shortest_path_problem>>, not allowing negative weights, in +O(E+V*lg(V))+ time and +O(V)+ space, assuming Fibonacci heaps are used. That notably includes directed or undirected graphs and graphs with cycles.
 
-Terms and abbreviations: ubspwfs = upper bound on shortest path weight from source, SPT = shortest path tree. See also <<A_star>>.
+Terms and abbreviations: ubspwfs = upper bound on shortest path weight from source (in literature often called distance), SPT = shortest path tree. See also <<A_star>>.
 
 Basic algorithm in pseudo code:
 ----------------------------------------------------------------------
@@ -1054,9 +1054,9 @@ relax(u:vertex, v:vertex, Q:MinPriorityQueue)
     [v.spt_parent = u]
 ----------------------------------------------------------------------
 
-More details in prose: Each node has an attribute ubspwfs. It is initially infinite, and each relaxation step potentially makes it smaller, i.e. potentially tightens the upper bound, until it reaches its final, true smallest value. It can be proven that the smallest ubspwfs in outsideSptQ, i.e. the one that the next dequeue call will return, has arrived at its true final spwfs value, and will never change again. Thus by choosing the vertex with the smallest ubspwfs, the algorithm always adds a vertex to the SPT for which the spfws is known.
+More details in prose: Each node has an attribute ubspwfs. It is initially infinite, and each relaxation step potentially makes it smaller, i.e. potentially tightens the upper bound, until it reaches its final, true smallest value. It can be proven that the smallest ubspwfs in outsideSptQ, i.e. the one that the next dequeue call will return, has arrived at its true final spwfs value, and will never change again. Thus by choosing the vertex with the smallest ubspwfs, the algorithm always adds a vertex to the SPT for which the spfws is known. Since the relaxation sets the spt_parent always to the current vertex, i.e. a node which already is in the SPT, when a vertex is dequed, its spt_parent is in the SPT, and thus it is implicitely added to the SPT.
 
-Proof: Note that the shortest path problem has optimal substructere, see <<shortest_path>>. *to-do*: Understand proof that the (upper bound) spwfs of the front vertex of outsideSptQ has arrived at it's true final value.
+Proof: Note that the shortest path problem has optimal substructere, see <<shortest_path_problem>>. *to-do*: Understand proof that the (upper bound) spwfs of the front vertex of outsideSptQ has arrived at it's true final value.
 
 Notes: relax is called for all neighbors, even if they are already part of the SPT. Since their spwfs is already at the true final value, it will never be decreased anymore, so always calling relax doesn't hurt.
 
@@ -1119,7 +1119,7 @@ dedect-negative-cycles(G)
 
 [[floyd_warshall]]
 === Floyd–Warshall algorithm
-A dynamic programming algorithm which solves the <<shortest_path>> all pairs problem in O(|V|^3^). Negative weights are allowed, negative cycles are dedected.
+A dynamic programming algorithm which solves the <<shortest_path_problem>> all pairs problem in O(|V|^3^). Negative weights are allowed, negative cycles are dedected.
 
 Basic idea: You have a matrix C (V×V) storing shortest path for all vertex
 pairs. Initially, no intermediate vertices are allowed, i.e. C corresponds to
@@ -1150,7 +1150,7 @@ the set {v~1~, ..., v~k~}. It's value is the min of:
 
 [[Kruskal]]
 === Kruskal's algorithm
-A greedy algorithm solving the <<MST>> problem for a possibly disconnected graph in O(sort(E)+(E+V)α(V)) time, assuming an asymptotically optimal disjoint-set data structure is used internally, and where α is the very slowly growing inverse function of the Ackermann function. Rember that despite the name, it is actually a minimum spanning forest, not tree.
+A greedy algorithm solving the <<MST_problem>> for a possibly disconnected graph in O(sort(E)+(E+V)α(V)) time, assuming an asymptotically optimal disjoint-set data structure is used internally, and where α is the very slowly growing inverse function of the Ackermann function. Rember that despite the name, it is actually a minimum spanning forest, not tree.
 
 Basic algorithm in words: Start out with the MST being the empty list of edges; in other words, a forest where each vertex is one tree. Then iteratively add the smallest weighted edge to the MST iff that does not produce a cycle in the MST, since a by definition a tree is not allowed to have cycles.
 
@@ -1170,7 +1170,7 @@ Note that the running time depends heavily on the used sort algorithm used to so
 
 [[Prim]]
 === Prim's algorithm
-A greedy algorithm solving the <<MST>> problem for a connected graph in O(E + V log V) time (i.e. the same as Dijkstra's algorithm), assuming a Fibonacci heap is used.
+A greedy algorithm solving the <<MST_problem>> for a connected graph in O(E + V log V) time (i.e. the same as Dijkstra's algorithm), assuming a Fibonacci heap is used.
 
 Basic algorithm. Note that it's quite similar to Dijkstra's shortest path algorithm.
 --------------------------------------------------
@@ -1547,19 +1547,22 @@ Trivia: Was invented specifically to make Kruskal's algorithm more efficient
 === Graph
 In the following, no distinction is made between the term graph referring to an specific abstract data type and the term graph referring to a topic in mathematics.
 
-See also http://en.wikipedia.org/wiki/Glossary_of_graph_theory
-
 A _graph_ +G=(V,E)+ is given by a set of _vertices_ +V+ (aka _nodes_) and a set of _edges_ +E+, each edge being an pair of elements from +V+.  A _multigraph_ is one where +E+ is a multiset (as opposed to just a set).  Alternatively: a multigraph is allowed to have _parallel edges_, that is, edges that have the same start/end vertex.  In an undirected graph the two vertices of an edge are said to be _adjacent_ to each other; in an directed graph only the dst vertex of an edge is adjacent to the src vertex.  Two edges are called _incident_ if they share a vertex.  An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++. An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs and are also called _arcs_, _directed edges_ or _arrows_.  A _loop_ is an edge which starts and ends on the same vertex.  _Link_ is an edge with two different ends.  A _simple_ graph is an undirected graph that has no loops and at most one edge between any two different vertices.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.  A _vertex cover_ is a set of vertices such that each edge of the graph is incident to at least one vertex of the set.  An _independent set_ (aka _stable set_) is a set of vertices, no two of which are adjacent.
 
-A _path_ (aka _walk_, however Wikipedia says that path commonly refers to an open walk) in an undirected graph is an ordered sequence of vertices {v~1~,...,v~n~} such that v~i~ is adjacent to v~i+1~.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a path in which all edges are distinct.  A _simple path_ does not have any repeated vertices.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The _shortest path_ from vertex u to v is any path with minimal path weight.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
+A _path_ (aka _walk_, however Wikipedia says that path commonly refers to an open walk) in an undirected graph is an ordered sequence of vertices {v~1~,...,v~n~} such that v~i~ is adjacent to v~i+1~.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a path in which all edges are distinct.  A _simple path_ does not have any repeated vertices.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The [[shortest_path]]_shortest path_ from vertex u to v is any path with minimal path weight.  See also <<shortest_path_problem>>.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path, and often defined as -infinite it contains a negative-weight cycle.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
 
 Two vertices v and u are called _connected_ if there is a path from v to u, otherwise they are called _disconnected_.  A _connected graph_ is one where every pair of vertices is connected.  A directed graph is considered a connected graph if for every pair of vertices there is a path in either direction.  A _weakly connected_ graph is a directed graph which would be a connected graph if the edges were taken to be undirected.  A directed graph is _strongly connected_, if for every pair there's a path in both directions.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.  If each strongly connected component is contracted to a single vertex, the resulting graph is a directed acyclic graph, the _condensation_ of G.  A _cut_ (aka _vertex cut_, or _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  A _complete graph_ with n vertices, denoted Kn, has no vertex cuts at all, but by convention κ(Kn) = n − 1.  The _connectivity_ (or _vertex connectivity_) κ(G) (where G is not a complete graph) is the size of a minimal vertex cut.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.
+
+References:
+
+- http://en.wikipedia.org/wiki/Glossary_of_graph_theory
+
 
 [[DAG]]
 A _directed acyclic graph_ (_DAG_) is a graph with no directed cycles.  Given a directed edge C->P, C is the _child_ and P the _parent_. Nodes reachable from C are C's _ancestors_, nodes which can reach P are P's _descendants_.  Whether or not a node is it's own ancestor/descendant is not defined across literature. CLRS say yes.  The _lowest common ancestor_ (_LCA_, aka, less accurately, _least common anchestor_) of two nodes x and y is the first common ancestor in topo order.
 
 [[tree_graph]]
-See also <<tree_ADT>>. A _tree_ is an undirected graph in which any two vertices are connected by exactly one path (which then naturally is a simple path).  Alternatively: an undirected connected acyclic graph.  Thus it's always undirected, acylic, connected and bipartite.  Note that an arborescence is not a connected graph (consider a root with two childs; the two childs are not connected).  In informatic context, the term tree is often used for what we call here an directed rooted tree.  A _rooted tree_ is a tree in which one vertex has been designated the root.  An _arborescence_ (aka _directed rooted tree_ or _out-tree_) is a directed rooted tree in which all edges point away from the root.  An _anti-arborescence_ (aka _in-tree_) is an arborescence where all edge directions are reversed.  A _forest_ is a disjoint union of trees.  Alternatively: an acyclic undirected graph.  An _ordered tree_ (aka _plane tree_) is a rooted tree in which an ordering is specified for the children of each vertex.  A _poly tree_ is a directed acyclic graph which would be a tree if it's edges were undirected.  A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the vertices of G.  A _minimum spanning tree_ (aka _MST_) of is a spanning tree of G with the minimal total weighting for its edges.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
+See also <<tree_ADT>>. A _tree_ is an undirected graph in which any two vertices are connected by exactly one path (which then naturally is a simple path).  Alternatively: an undirected connected acyclic graph.  Thus it's always undirected, acylic, connected and bipartite.  Note that an arborescence is not a connected graph (consider a root with two childs; the two childs are not connected).  In informatic context, the term tree is often used for what we call here an directed rooted tree.  A _rooted tree_ is a tree in which one vertex has been designated the root.  An _arborescence_ (aka _directed rooted tree_ or _out-tree_) is a directed rooted tree in which all edges point away from the root.  An _anti-arborescence_ (aka _in-tree_) is an arborescence where all edge directions are reversed.  A _forest_ is a disjoint union of trees.  Alternatively: an acyclic undirected graph.  An _ordered tree_ (aka _plane tree_) is a rooted tree in which an ordering is specified for the children of each vertex.  A _poly tree_ is a directed acyclic graph which would be a tree if it's edges were undirected.  A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the vertices of G.  A [[MST]]_minimum spanning tree_ (aka _MST_) of is a spanning tree of G with the minimal total weighting for its edges.  See also the <<MST_problem>>.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
 
 A _flow network_ (aka _transportation network_) is a directed graph where each edge has a _capacity_ and a _flow_ which can no exceed the capacity.  The amount of flow into a node must equal the amount of flow out of it, unless the node is a _source_ or a _sink_. _maximum flow problems_ involve finding a feasible flow through a single-source, single-sink flow network that is maximum.  It can be seen as a special case of the more complex problems, e.g. the circulation problem.   The _max-flow min-cut theorem_ states that the maximum flow is equal to the minimum capacity over all possible s-t edge cuts.  An s-t edge cut is an edge cut such that one of the resulting component contains the source and the other component contains the sink.  The capacity of an edge-cut is the sum of the capacities on the cut edges.  Solutions of max-flow: _Ford–Fulkerson algorithm_ +O(E*f)+ for the case where capacities are integers, whereas f is the maximum flow.
 
@@ -2110,9 +2113,9 @@ Applications: *to-do*
 *to-do*
 
 
-[[MST]]
-=== Minimum spanning tree (MST)
-Finding the MST (actually minimum spanning forest) in an undirected weighted possibly disconnected graph.
+[[MST_problem]]
+=== Minimum spanning tree problem
+The problem of finding the <<MST>>, actually minimum spanning forest, in an undirected weighted possibly disconnected graph.
 
 Algorithms:
 - <<Kruskal>>'s algorithm
@@ -2312,30 +2315,42 @@ Applications:
 *to-do*: process https://en.wikipedia.org/wiki/List_of_knapsack_problems
 
 
-[[shortest_path]]
-=== shortest path
-For the definition of shortest path, see chapter <<graph>>. The shortest path undefined, or -INFINIT, for negative cycles, because one can always make an allegedly `shortest path' shorter by walking through the cycle one more time.
+[[shortest_path_problem]]
+=== shortest path problem
+The problem of finding a <<shortest_ path>> (there might be multiple shortest paths) in a graph. Recall that the shortest path is undefined, or it's weight is -INFINIT, if it contains negative-weight cycles, because one can always make an allegedly `shortest path' shorter by walking through the cycle one more time.
 
 optimal substructure: The shortest path problem has optimal substructure. A subpath of a shortest path is itself a shortest path; if it wasn't, we could replace it by the alegedly shorter path and thus make the overall path shorter.
 
+Applications: *to-do*
 
-==== single source shortest path
+
+==== single source shortest path problem
 general graph: <<Bellman_Ford>> +O(V*E)+
 
-non-negative weights: <<Dijkstra>> +O(E+V*lg(V))+, <<A_star>>
+non-negative weights: <<Dijkstra>> +O(E+V*lg(V))+
 
-DAG: <<topsort>>, then for each node, for each neighbor, relax. +Θ(E + V)+
+DAG: <<toposort>>, then for each node, for each neighbor, relax. +Θ(E + V)+
 
 unweighted graph: <<BFS>> +O(E+V)+
 
-integer weights: Thorup
-
-==== shortest path all pairs
-
-general group (neg weights, dedects neg. cycles): <<floyd_warshall>> in O(|V|^3^)
+integer weights: Thorup *to-do*
 
 
-=== Longest path
+==== single destination shortest path problem
+Can be reduced to single source shortest path by reversing direction of each edge.
+
+
+==== single pair shortest path problem
+All known algorithms for this problem have the same worst case asymptotic running time as the best single source algorithms.
+
+non-negative weights: <<A_star>>
+
+
+==== all pairs shortest path problem
+general graph (neg weights, dedects neg. cycles): <<floyd_warshall>> in O(|V|^3^)
+
+
+=== Longest path problem
 *to-do*
 
 
@@ -2344,7 +2359,7 @@ general group (neg weights, dedects neg. cycles): <<floyd_warshall>> in O(|V|^3^
 Relation to four color problem?
 
 
-[[topsort]]
+[[toposort]]
 === Topological sort
 A _topological sort_ (aka _topsort_, _toposort_, _topological ordering_) of a directed acyclic graph (DAG) is a linear ordering of its vertices such that for every directed edge (u,v) from vertex u to vertex v, u comes before v in the ordering.  Toposort is possible only for DAGs; see <<cycle_dedection>> for how to check.
 
