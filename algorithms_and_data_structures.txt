@@ -306,7 +306,7 @@ fun fib(n):                          fun fib(n):
 
 Trivia: `Dynamic programming' is a wierd term, just take it for what it is. Still: in british english, `programming' means optimize.  The inventor, bellman, choose it for reasons among `sounds cool to a congress man', `to hide the fact he was doing math research'.
 
-Example algorithms / example problems solvable with dynamic programing: Bellman-Ford, Floyd-Warshall, edit distance, knapsack (rod cutting problem, change-making problem). *to-do* more examples of problems which can be solved using dynamic programming, e.g. from the problems sections. https://en.wikipedia.org/wiki/Dynamic_programming
+Example algorithms / example problems solvable with dynamic programing: Bellman-Ford, Floyd-Warshall, edit distance, knapsack (rod cutting problem, change-making problem), Dijkstra *to-do* more examples of problems which can be solved using dynamic programming, e.g. from the problems sections. https://en.wikipedia.org/wiki/Dynamic_programming
 
 
 [[greedy_technique]]
@@ -1014,9 +1014,9 @@ Relation between different common naming schemes. spt_parent and and spwfs are m
 
 [[Dijkstra]]
 === Dijkstra's algorithm
-A greedy algorithm which solves the single-source <<shortest_path_problem>>, not allowing negative weights, in +O(E+V*lg(V))+ time and +O(V)+ space, assuming Fibonacci heaps are used. That notably includes directed or undirected graphs and graphs with cycles.
+A greedy (can also be seen as dynamic programming) algorithm which solves the single-source <<shortest_path_problem>>, not allowing negative weights, in +O(E+V*lg(V))+ time and +O(V)+ space, assuming Fibonacci heaps are used. That notably includes directed or undirected graphs and graphs with cycles.
 
-Terms and abbreviations: ubspwfs = upper bound on shortest path weight from source (in literature often called distance), SPT = shortest path tree. See also <<A_star>>.
+Terms and abbreviations: ubspwfs = upper bound on shortest path weight from source (in literature often called distance or simply d), SPT = shortest path tree. See also <<A_star>>.
 
 Basic algorithm in pseudo code:
 ----------------------------------------------------------------------
@@ -1031,7 +1031,7 @@ Dijkstra(graph, source:vertex)
       relax(current, neighbor)
 ----------------------------------------------------------------------
 
-Basic algorithm in prose: Out of the vertices not yet in the SPT, iteratively greedely choose vertex with the smallest ubspwfs and add it to the SPT, then update the ubspwfs for all it's neighbors.
+Basic algorithm in prose: Out of the vertices not yet in the SPT, iteratively greedely choose vertex with the smallest ubspwfs (i.e. which is closest to the so-far SPT) and add it to the SPT, then update the ubspwfs for all it's neighbors.
 
 Detailed algorithm:
 ----------------------------------------------------------------------
@@ -1054,13 +1054,15 @@ relax(u:vertex, v:vertex, Q:MinPriorityQueue)
     [v.spt_parent = u]
 ----------------------------------------------------------------------
 
-More details in prose: Each node has an attribute ubspwfs. It is initially infinite, and each relaxation step potentially makes it smaller, i.e. potentially tightens the upper bound, until it reaches its final, true smallest value. It can be proven that the smallest ubspwfs in outsideSptQ, i.e. the one that the next dequeue call will return, has arrived at its true final spwfs value, and will never change again. Thus by choosing the vertex with the smallest ubspwfs, the algorithm always adds a vertex to the SPT for which the spfws is known. Since the relaxation sets the spt_parent always to the current vertex, i.e. a node which already is in the SPT, when a vertex is dequed, its spt_parent is in the SPT, and thus it is implicitely added to the SPT.
+More details in prose: Each node has an attribute ubspwfs. It is initially infinite, and each relaxation step potentially makes it smaller, i.e. potentially tightens the upper bound, until it reaches its final, true smallest value. It can be proven that the smallest ubspwfs in outsideSptQ, i.e. the one that the next dequeue call will return, has arrived at its true final spwfs value, and will never change again. Thus by choosing the vertex with the smallest ubspwfs, the algorithm always adds a vertex to the SPT which is not only closest, but in fact for which the spfws is known. Since the relaxation sets the spt_parent always to the current vertex, i.e. a node which already is in the SPT, when a vertex is dequed, its spt_parent is in the SPT, and thus it is implicitely added to the SPT.
 
 Proof: Note that the shortest path problem has optimal substructere, see <<shortest_path_problem>>. *to-do*: Understand proof that the (upper bound) spwfs of the front vertex of outsideSptQ has arrived at it's true final value.
 
-Notes: relax is called for all neighbors, even if they are already part of the SPT. Since their spwfs is already at the true final value, it will never be decreased anymore, so always calling relax doesn't hurt.
+Notes:
 
-Rational why negative weights are not allowed: The Dijkstra algorithm relies upon that adding a vertex to a shortest path does not decrease the shortest path's weight.
+- relax is called for all neighbors, even if they are already part of the SPT. Since their spwfs is already at the true final value, which can be proven, it will never be decreased anymore, so always calling relax doesn't hurt.
+- Rational why negative weights are not allowed: The Dijkstra algorithm relies upon that adding a vertex to a shortest path does not decrease the shortest path's weight.
+- Dijkstra can be seen as dynamic programming algorithm. DP(i) is the spwfs for vertex i: DP(i) = min~all predecessors j of i~{DP(j) + weight(j,i)}, with base case DP(startvertex)=0. See also https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Dynamic_programming_perspective.
 
 Relation to other algorithms: Dijkstra is a special case of the A* in that that A*'s h function is constant 0, but is a generalization of A* in that that it not only can solve the single-pair shortest path problem but also the single-source shortest path problem. Algorithm when implemented in terms of A*:
 
@@ -1075,9 +1077,6 @@ function Dijkstra(graph, source:vertex, dest:vertex)
 Analysis: Time +O(E+V*lg(V))+ if a Fibonacci heap is used to implement the min priority queue.  Using a binary heap it's +O((E+V)*lg(V))+, with an array it's  +O(E+V^2^)+.  Auxillary space: +O(V)+ -- however, the same space amount is also used for an answer which includes all shortest path weights and the shortest path tree.  If the answer must only include the weight of one target node the time and auxiliary space complexity remains the same.
 
 Trivia: Etymology of the term `relaxation': There are two variants. 1) It comes from mathematics where relaxation means relaxing a constraint. Here the constraint is v.spwfs<=u.spwfs+weight(u,v). The smaller v.spwfs is, the less `pressure' there is to satisfy this constraint, thus the constraint is relaxed. 2) Think of the upper bound as an extended spring. Making the upper bound smaller relaxes the spring. The true value is reached when the spring is in its resting position. However from another viewpoint one could find it strange to call tightening an upper bound a relaxation.
-
-Here the constraints reduced 2) http://www.egr.unlv.edu/~larmore/Courses/CSC269/pathing says
-
 
 
 === Bidirectional search
