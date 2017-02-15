@@ -1,0 +1,133 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+= Google Test vs QTestLib
+
+In short: QTestLib provides little more than the bare minimum. For serious testing, that is definitely not enough.
+
+Reasons to use Google Test over QTestLib
+
+- Google test has more predifined assertions, and allows to write custom ones.
+  * Much better quality of output
+
+- Only Google Test has scoped traces
+  * This feature is required to make it feasible that a test can call functions which eventually contain assertions. Without, in such a case, the test output has _much_ less value.
+
+- Google test has two types of assertions: fatal (ASSERT...) and non-fatal (EXPECT...)
+  * If there are only fatal assertions as in QTestLib, but they should be non-fatal, one has more information in case a test fails: the one of the other non-fatal assertions.
+
+- Only Google Test has matchers, which is an even better concept that assertions
+  * To better express what the semantics of the verification is
+  * Composeable
+  * Custom matchers addable
+  * Hand in hand with printers
+
+- Actually, in generall, test source files should have no header file associated. But if we neverthelless want fixture classes defined in a header file, then QTestLib leads to more redundancy (which is especially akward since test names tend to be long), since tests need to be declared in the header file and defined in the source file. With google tests, there is only a definition in the source file.
+
+- Both provide a way to define a custom failure message. However Google Test allows much more convenient definition of additional information which an assertion should print in case of failure. Opposed to having pass it as an string argument, one can stream into the assertion (with operator<<).
+
+- Unlike Google Test, QTestLib doesn't make use of operator<< as a printer if it's defined for a type. Both Google Test and QTestlib allow to define a custom printer via an non member overloaded function.
+
+- Only Google Test has unconditional log messages
+
+- Only Google Test allows to write tests without being forced to use a fixture.
+ * Less boilerplate if the benefits of a fixture are not needed
+
+- Probably _much_ more developpers are experienced with Google Test than with QTestlib
+ * https://trends.google.com/trends/explore?cat=13&date=all&q=google%20test,QTestLib,qt%20Test
+
+- Google Test has _much_ better documentation. Or QTestLib is really that tiny and limited. QTestLib information is spread all over. I haven't found a good reference manual.
+  * QTestLib
+   ** http://doc.qt.io/qt-5/qttest-module.html (http://doc.qt.io/qt-5/qtest.html)
+  * Google Test: https://github.com/google/googletest/tree/master/googletest/docs
+   ** https://github.com/google/googletest/blob/master/googletest/docs/Primer.md
+   ** https://github.com/google/googletest/blob/master/googletest/docs/AdvancedGuide.md
+
+- Only Google Test allows to customize the log format. With the same feature, only Google Test allows to define custom test event handlers.
+
+- Only Google test allows to temporarily disable assertions. The test's output contains the number of disabled tests, i.e. you know that not really all tests were run.
+
+- Most probably slightly better integration with GMock -- an argument not based on data, but on the fact that google test and google mock are developed in tandem.
+
+- Only Google Test allow to shuffle tests
+
+- Only Google Test allows to break (debugger) on failing assertion
+
+- QTestLib better to test a Qt GUI
+ * But that is _only_ of interest for the small UIView(FocusAdvanced|Wolf|...) libraries.
+ * Also Qt Signals/Slots should probably be only _within_ the UIView... libraries, not at their API.
+
+- Regarding IDE integration:
+  * google test apparently also integrates natively into Qt Creator
+  * google test probably integrates into more IDEs than QTestLib
+
+- Only Google Test gas type parameterized tests
+
+- Both have value parametrized tests (at least i think QTestLib data driven test )
+
+
+Examples:
+
+Simple test:
+
+--------------------------------------------------
+TEST(test_case_name, test_name) { ... }
+--------------------------------------------------
+
+Simple Test Fixture:
+
+--------------------------------------------------
+class MyFixture: public ::testing::Test {
+protected:
+  void SetUp() override { ... }
+  void TearDown() override { ... }
+  ... members ...
+}
+TEST_F(MyFixture, test_name_1) { ... }
+TEST_F(MyFixture, test_name_2) { ... }
+--------------------------------------------------
+
+
+Custom failure message:
+
+--------------------------------------------------
+EXPECT_EQ(x[i], y[i]) << "Vectors x and y differ at index " << i;
+--------------------------------------------------
+
+Scoped trace:
+
+--------------------------------------------------
+void Sub(...) {
+  EXPECT_EQ(..., ...);
+}
+
+TEST(FooTest, Bar) {
+  {
+    SCOPED_TRACE("1st example");
+    Sub(...);
+  }
+  {
+    SCOPED_TRACE("wnd example");
+    Sub(...);
+  }
+}
+--------------------------------------------------
+
+
+Matchers:
+
+The following fragment in a test:
+--------------------------------------------------
+int a = 1;
+int b = 2;
+int c = 3;
+EXPECT_THAT(a, AllOf(Ge(b), Le(c)));
+--------------------------------------------------
+
+produces this output:
+--------------------------------------------------
+main.cpp:27: Failure
+Value of: a
+Expected: (is >= 2) and (is <= 3)
+  Actual: 1 (of type int)
+--------------------------------------------------
