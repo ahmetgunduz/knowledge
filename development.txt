@@ -33,7 +33,9 @@ Order statistic tree
 == Performance measurements
 
 - Glen suggests the tool `code performance'
-- perf (mind off-cpu option)
+- perf
+ * http://www.brendangregg.com/linuxperf.html
+ * off-cpu: http://www.brendangregg.com/offcpuanalysis.html
 - strace / ltrace
 - valgrind, cachegrind, callgrind, ...
 - kcachegrind
@@ -42,8 +44,7 @@ Order statistic tree
 - systemtab
 - dtrace
 - Intel® VTune™ Amplifier 2016: https://software.intel.com/en-us/intel-vtune-amplifier-xe/try-buy
-- http://www.brendangregg.com/linuxperf.html
- * off-cpu: http://www.brendangregg.com/offcpuanalysis.html
+
 
 === Brainstorming
 
@@ -224,16 +225,91 @@ Depending on the program
 
 
 
+== Static / Dynamic code analysis
+
+https://clang.llvm.org/docs/index.html
+
+
+=== clang tidy
+
+clang-tidy is a LibTooling-based tool. It can be used as a frontend for the static analyzer checkers (clang-analyzer-*).
+
+
+=== clang static analizer
+
+Tutorial
+
+- scan-build cmake ...
+- scan-build [generator-cmd, e.g. make] ...
+
+
+Notes:
+
+- The `clang --analyze' command should be viewed as an implementation detail. You should rely on scan-build.
+
+
+=== AddressSanitizer (ASan)
+
+Memory error dedector. But _not_ a leak dedector, however apparently LeakSanitizer is integrated by default.
+
+- Needs compiler instrumentation module. Available at least for gcc (4.8) and clang (3.1). Compile with -fsanitize=address.
+- Needs a runtime lib which replaces the malloc/free functions. Link with -fsanitize=address (use clang++, not ld, says the manual).
+- Allows to ignore certain functions. One can use the no_sanitize_address attribute supported by Clang (3.3+) and GCC (4.8+).
+- Allegedly has no false positives
+- Apparently relatively fast. Slowdown ~2x.
+- Uses a lot of memory. Stack ~3x, heap depends on allocation sizes (larger relative overhead for smaller allocations).
+
+Consequences:
+
+- Does not handle libraries built without -fsanitize=address (because asan depends on compiler instrumentation module)
+
+Recommendations:
+
+- Better stack traces: compile with -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 (to disable inlining)
+- -01 for acceptable performance
+- Set env variable ASAN_SYMBOLIZER_PATH to path of llvm-symbolizer to symbolize output
+- Enable address-use-after-scope: Compile with -fsanitize-address-use-after-scope. To turn off at runtime: Env variable ASAN_OPTIONS=detect_stack_use_after_scope=0 (colon separated)
+- redzone size of up to 128: ASAN_OPTIONS=redzone=128 (colon separated)
+- debuggig:
+ * stop before an asan error: breakpoint on __asan::ReportGenericError.
+ * stop after asan error: breakpoint on __sanitizer::Die or use ASAN_OPTIONS=abort_on_error=1.
+- Env variable ASAN_OPTIONS=check_initialization_order=1.
+
+
+=== LeakSanitizer (LSan)
+
+Run-time memory leak detector. Integrated into AddressSanitizer, see there. To use LSan in standalone mode, link with -fsanitize=leak.
+
+
+=== Undefinded behaviour sanitizer (UBSan)
+
+- Modifies program at compile time. Compile with -fsanitize=undefined (clang 3.3). (gcc also has this option, but I don't know if it's the same sanitizer)
+ * Enables all checks other than unsigned-integer-overflow and the nullability-*.
+
+Recommendations:
+- Nicer stack trace: Compile with -g -fno-omit-frame-pointer. Run with env variable UBSAN_OPTIONS=print_stacktrace=1. Make sure llvm-symbolizer binary is in PATH.
+
+
+=== cppchecker
+
+
+
+
 == Build tools / Libraries
 
 === Linker
-Consider using gold opposed to the GNU linker
+gold
 
 === Compiler
 gcc, clang
 
-=== dynamic memory allocation
-consider using tcmalloc
+=== Build
+build system: cmake, ant, maven
+?: ninja, make
+
+
+=== Dynamic memory allocation
+tcmalloc
 
 
 
