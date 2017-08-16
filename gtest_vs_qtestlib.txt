@@ -16,7 +16,7 @@ Reasons to use Google Test over QTestLib
 - Google test has two types of assertions: fatal (ASSERT...) and non-fatal (EXPECT...)
   * If there are only fatal assertions as in QTestLib, but they should be non-fatal, one has more information in case a test fails: the one of the other non-fatal assertions.
 
-- Only Google Test has matchers, which is an even better concept that assertions
+- Only Google Test has matchers, which is an even better concept than assertions
   * To better express what the semantics of the verification is
   * Composeable
   * Custom matchers addable
@@ -107,7 +107,7 @@ TEST(FooTest, Bar) {
     Sub(...);
   }
   {
-    SCOPED_TRACE("wnd example");
+    SCOPED_TRACE("2nd example");
     Sub(...);
   }
 }
