@@ -168,7 +168,7 @@ _semaphore_:  Is about mutual exclusion.  Quite a general construct.  A semaphor
 
 _Mutex_ (*wrongly* also dubbed _mutex semaphore_):  Is about mutual exclusion.  Can be seen as binary semaphore which additionally has the concept of ownership.  The net effect is that mutexes don't have some of the semaphore's problems, see also below.  A mutex is a kernel object used for allowing only one active thread from many others, among different processes, to enter the critical region.  The other non selected threads are put to sleep.  Supports thread ownership (the thread that locked it), thread termination notification, recursion (multiple `acquire' calls from same thread) and `priority inversion avoidance' (see also below).  May also provide deletion safety, where the thread (*to-do* process?) holding the mutex cannot be accidentally deleted.  Only the owner can signal.
 
-_Monitor_: See below and here (the two sources contradict each other I think) http://en.wikipedia.org/wiki/Monitor_(synchronization)#Synchronization_primitives
+_Monitor_: Two common definitions 1) A construct allowing threads to have both mutual exclusion and the ability to (efficiently) wait for a certain condition to become true. Typically consists of a mutex and a condition variable 2) (aka _thread-safe object/class/module_) A thread safe object/class/module that uses a `mutual exclusion wrapper' around its members.
 
 _Critical Section Object_: A critical section can be used only by the threads of a single process.  The other non selected threads are put to sleep.  There is no way to tell whether a critical section has been abandoned.
 
