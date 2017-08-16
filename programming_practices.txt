@@ -926,6 +926,9 @@ What is clean code? Catch-phrases from answers of programming gurus:
 A cache shall also store that a key is not available in the src, to distinguish
 between cachemiss and cachehit-thereIsNothingInTheSource
 
+Be liberal in what you accept and strict in what you emit (regarding format of
+input / output of a program)
+
 
 == References
 
