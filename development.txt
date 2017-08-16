@@ -241,6 +241,8 @@ Tutorial
 
 - scan-build cmake ...
 - scan-build [generator-cmd, e.g. make] ...
+- Note: QtCreator has `running clang static analyzer' conveniently integrated. *to-do*: how about eclipse?
+
 
 
 Notes:
@@ -292,6 +294,42 @@ Recommendations:
 
 === cppchecker
 
+=== valgrind
+
+
+==== general
+
+- Essentially a virtual machine using JIT.
+- Liscence: GNU GPL
+- Widely used
+
+Limitations:
+- Memcheck doesn't do bounds checking on globals or local arrays.
+
+Consequences:
+
+- Any executable can be run, i.e. it's language/compiler agnostic.
+- 100% of user space is covered. I.e. also parts you don't have the source code for, e.g. certain libraries.
+
+Recommendations / tips:
+
+- Compile with -g, -fno-omit-frame-pointer, -O0 or -O1, and don't strip symbol tables for more detailed call stacks
+- Don't link libc statically, or if you do links statically later use valgrind option --soname-synonyms=somalloc=NONE, in order valgrind can replace malloc etc with its own versions. See also --soname-synonyms=somalloc=foo option to let valgrind replace foo if you use the foo lib (tcmalloc, jemalloc, ...).
+- Adjust --num-callers when callstacks are not deep enough
+- With option --track-origins=yes (since 3.4.0), valgrind's output lets you more easily track down `uninitialized value' errors, at the cost of speed. See also client request VALGRIND_CHECK_VALUE_IS_DEFINED.
+- avoid calling dlclose on shared objects, because valgrind will discard debug information, which means that you have ?? entries in the callstack
+- To trace child processes, use the --trace-children=yes option
+- Occasionally Valgrind stack traces get the wrong function names. Examples: bcmp instead of memcmp, index instead of strchr, and rindex instead of strrchr.
+
+- Example:
+ * Many checks and rather verbose output: valgrind  --leak-check=full --show-leak-kinds=all --track-origins=yes --num-callers=100 --gen-suppressions=all --suppressions=<suppressions-file> foo
+
+Memcheck;; Calls to malloc/new/free/delete are intercepted. Memcheck tracks addressability at the byte-level, and initialisation of values at the bit-level (i.e. does not report spurious errors on bitfield operations). Slowdown ~10x-30x.
+Cachegrind;; CPU cache profiler. It performs detailed simulation of the I1, D1 and L2 caches in your CPU. Slowdown ~20x-100x.
+Callgrind / KCacheGrind;; Extension to Cachegrind: Additionally delivers callgraph information. KCacheGrind is a visualization frontend.
+Massif;; Heap profiler.
+Helgrind;; Thread debugger / finds data races.
+DRD;; Also thread debugger?
 
 
 
