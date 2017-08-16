@@ -197,6 +197,12 @@ unsorted:
 
 - the standard is explicit that an empty ++{ }++ list means to call the default constructor if available
 
+Guidelines:
+
+- If you provide an initializer-list constructor, also provide a default
+  constructor with the same semantics as though you were initializinng with a
+  zero-size initializer_list.
+
 
 
 Most vexing parse::
