@@ -108,6 +108,41 @@ two projects still stays completely independent
 Now that we already have different projects, _adding_ a super project does not
 harm mutch.
 
+Superproject has socalled `gitlink' tree entries in its trees (commit and
+index). A gitlink refers to a particular commit obj in the inner
+repository. Mode (as reported by git status) of a gitlink entry is
+160000. Gitlinks are allowed to refer inexistent commit objects (see also
+`registred submodule'). This allows for partial checkouts, i.e. not checking
+out submodules one doesn't need.
+
++++git add+++ automatically creates a gitlink if a path argument is a
+directory (_without_ trailing slash) being the top-level directory of a git
+project.
+
+The +++.gitmodules+++ file in the superproject's top-level directory mainly
+defines +path+ and +url+. +path+ is the relativ path within the superprojects
+tree where the submodule's tree is placed in. +url+ is the submodudle's url,
+i.e. from where the submodule can be cloned. To be precise, it's the
+`official' url from the point of view of the superproject. You can always
+personalize it by modifying the url in your git config file (probably the
+repository related one).
+
+++submodule init++: Of those submodules having an gitlink entry in the index,
+copy respective configurations from .gitmodules to .git/config. git-config(1)
+says: submodule.<name>.url: ... After obtaining the submodule, the presence of
+this variable is used as a sign whether the submodule is of interest to git
+commands.
+
+++submodule update++ `updates' the working tree of _registered_ submodules
+(i.e. the ones in .git/config?) to match what the superproject expects. That
+includes cloning if neccessairy. There are several supported update
+procedures: `checkout', `rebase', `merge', `custom command', `none'.
+
+++submodule init; ...; submodule update++ vs ++submodule update --init++. The
+former is intended for the case where you want to customize submodule related
+config in .git/config.
+
+
 == Terms
 
 See also gitglossary(7) man page.
