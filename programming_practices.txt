@@ -116,10 +116,12 @@ Try that problems pop up as high up as possible in the following chain
   Less chance of allowing oneself to be sloppy.
 
 [[redundancy]]
+[[dry]]
 - Redundancy is the primary enemy of a well-designed system.  Opposite of
-  <<reuse>>.  Applies to everything: code, data, comments, ....  Rational: It's
-  _very_ difficult to _each time_ _correctly_ update _all_ redundant parts if
-  one part changes.  Such a difficulty is clearly the opposite of <<KISS>>.
+  <<reuse>>.  Similarly: Don't repeat yourself (DRY). Applies to everything:
+  code, data, comments, ....  Rational: It's _very_ difficult to _each time_
+  _correctly_ update _all_ redundant parts if one part changes.  Such a
+  difficulty is clearly the opposite of <<KISS>>.
 
 - Choose constructs / names which _directly_ express the intend of what is
   accomplished. The readers mind should not be troubled with unneeded
