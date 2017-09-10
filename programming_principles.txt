@@ -19,8 +19,107 @@ inheritance vs subtyping, Liskov
 (class) invariants, preconditions, postconditions, (ref to semantic interface)
 
 closure, lambda, (member) method, (member) function, procedure, class static
-method, pure function, free (aka nonmember) function, tail call, functor,
-function object, delegate, function/method pointer, instance method, field
+method, free (aka nonmember) function, tail call, functor, function object,
+delegate, function/method pointer, instance method, field
+
+=== Overview
+
+observable side effect = modifying non-local variable or I/O
+(strict) side effect = observable side effect or modifying local variable
+idempotent = produces always same effects for same input
+referentially transparent / pure function = idempotent and no observable side effects
+
+|=====
+                           writing    reading     writing     
+                           local      non-local   non-local
+                                                  I/O
+side effect                no         yes         no
+observeable side effect    yes        yes         no
+idempotent                 yes        no          yes
+pure function              yes        no          no
+|=====
+
+When `locals' are closed over they are not really locals anymore. Here I/O
+includes what C++ dubes volatile.
+
+=== Side effect
+
+- strictly: any modifaction of any state, in particular including modifying
+  locals
+- looser (aka _observeable side effects_?, aka _action_) definition, which
+  mostly is meant by developpers: side effects (in a strict sense) that are
+  observeable from the function caller. E.g. modifying a non-local
+  variable. Note that in general derefering a pointer/reference potentially
+  yields a non-local variable, so in genereal no referee can be
+  modified. *to-do* difference to observeable behaviour?
+- C++: \[intro.execution] Accessing an object designated by a volatile glvalue
+  (3.10), modifying an object, calling a library I/O function, or calling a
+  function that does any of those operations are all side effects, which are
+  changes in the state of the execution environment.
+
+IO: Doing IO is apparently assumed to always have an observeable
+effect. E.g. do the following IO have side effects? Get current time, random
+number generator, write to /dev/null. The effects, appart from returning a
+value, of these function calls are not observe able.
+
+Etymology: Computing the return value of a is considered a function's primary
+effect. Followingly further effects are side effects.
+
+- http://stackoverflow.com/questions/9563600/what-exactly-is-a-side-effect-in-c
+- http://stackoverflow.com/questions/5381901/functional-programming-side-effects
+- is modifying a local a side effect? https://www.quora.com/Why-is-changing-the-value-of-a-variable-considered-a-side-effect-in-programming
+
+=== Observable behaviour
+
+- C++: See the standard
+- http://martinfowler.com/bliki/ObservableState.html
+
+
+=== Idempotent operation
+An operation that will produce, for a given set of arguments, always the same
+effects. Note that this includes side effects. E.g. it might set a non-local
+variable to a constant.
+
+
+=== Pure function
+A function that is idempotent and has no observeable side-effects.
+
+Notable consequences: [Assuming no function is returned that closes over local
+variables] It can write-to/read-from local variables, cannot write to
+non-local variables, can read from immutable non-local variables, cannot do
+I/O [however Wikipedia's site on pure function has a chapter saying
+otherwise]. Remember that in general it is unknown whether the pointee of a
+pointer is a local or a non-local variable.
+
+C++ compilers:
+
+$$__attribute__ ((pure))$$: Is not allowed to write non-local variable [Is
+pure in the sense that it's only effect is to return a value]
+
+$$__attribute__ ((const))$$: Is not allowed to read/write non-local variable
+Etymology: How close a function in the context of a programming language comes
+to the concept of a function in mathematics.
+
+
+=== Referentially transparent(RT) expression
+
+An expression that can be replaced with the result of evaluating it, without
+affecting the observable result of the program. Absence of obervable side
+effects is a necessary but not sufficient condition for RT.
+
+http://stackoverflow.com/questions/8346119/a-grasp-of-immutable-datastructures/8346779#8346779.
+
+The following SO answer says that RT has no universally agreed upon
+definition, so it the tern RT should not be used. From my point of view however the definitions I have seen so far are pretty consistent.
+http://stackoverflow.com/questions/4865616/purity-vs-referential-transparency
+
+
+=== Monad
+
+
+Trivia: From Bertrand Meyer as part of working on Eiffel.
+
+
 
 call decl, cdecl, ...
 
