@@ -1,4 +1,4 @@
-:encoding: UTF-8
+m:encoding: UTF-8
 // The markup language of this document is AsciiDoc
 
 == Introduction
@@ -14,13 +14,11 @@ The library procedure, possibly written in assembly language, typically puts the
 
 == Processes and threads
 
-Overview:
-
-A computer _program_ is a passive collection of (machine) instructions.  Several processes may be associated with the same program, e.g. when the same program is `opened'/started multiple times.
+A _(computer) program_ is a passive collection of (machine) instructions.  Several processes may be associated with the same program, e.g. when the same program is `opened'/started multiple times.
 
 A _process_ is an instance of an executing program and a way to group related resources such as an address space, file descriptors etc.
 
-A thread of execution (shortened to just _thread_) is the smallest sequence of programmed instructions that can be managed independently by a scheduler.
+A _thread of execution_ (aka _thread_) is the smallest sequence of programmed instructions that can be managed independently by a scheduler.
 
 A _task_ is a unit of execution; in some OS a task is synonymous with a process, in others with a thread.
 
@@ -121,7 +119,7 @@ _HW interrupts_ are used by devices to communicate that they require attention f
 
 [[mutual_exclusion]]
 === Mutual exclusion / Synchronization meaning `not at the same time'
-_race condition_: The outcome is dependent on the timing of processes/threads, e.g. the exact point in time when they are interrupted or when they continue. Race conditions typically occur when an shared resource is not protected by a mutual exclusion primitive. _critical region_ (aka _critical section_) is the part (which might consist of discontiguous fragments) of a program that accesses a shared resource. _Mutual exclusion_ is some way of making sure only one thread/process is executing a critical region (aka protect the critical region), which is not the same as <<synchronization>>. A good solution needs four conditions:
+_(problematic|benign) race condition_: The outcome is dependent on the timing of processes/threads, e.g. the exact point in time when they are interrupted or when they continue. Strictly speaking the term race condition encompasses also benign outcomes like multiple threads adding to the same queue. However commonly the term is used to mean problematic outcomes, e.g. when invariants are broken. Race conditions typically occur when an shared resource is not protected by a mutual exclusion primitive. _critical region_ (aka _critical section_) is the part (which might consist of discontiguous fragments) of a program that accesses a shared resource. _Mutual exclusion_ is some way of making sure only one thread/process is executing a critical region (aka protect the critical region), which is not the same as <<synchronization>>. A good solution needs four conditions:
 
 - No two processes may be simultaneously inside their critical regions.
 - No assumptions may be made about speeds or the number of CPUs.
@@ -129,6 +127,11 @@ _race condition_: The outcome is dependent on the timing of processes/threads, e
 - No process should have to wait forever to enter its critical region.
 
 _busy waiting_: continuously testing a variable until some value appears.
+
+*to-do*: what exactly must be protected, i.e. what exactly is meant with a shared ressource in this context? Probably 1) multiple data (what is a single datum in this context? see next points) constituting an invariant, and we have to ensure the invariant holds 2) Is read/write to a single char/byte also something that must be protected, from a portable point of view? 3) What about native type (int) of a cpu? What about larger types, such as double, long long, long double?
+
+*to-do*: term data race
+
 
 === Locks
 A _lock_ enforces mutual exclusion.  Lock is the name of a concept.  Semaphore or mutex are well known examples of specific implementations.
@@ -138,6 +141,9 @@ Lock concepts:
 - _lock overhead_: The extra resources for using locks, like memory space,  CPU time to initialize, destroy, acquire, release locks.
 - _lock contention_: Whenever a thread attempts to acquire a lock held by another process.
 - _deadlock_: See chapter <<deadlock>>.
+- _readers-writer lock_ (aka _RW lock_, _shared-exclusive lock_, _multi-reader lock_, _push lock_, _multiple readers/single writer lock_): Multiple threads can have shared ownership (typically for reading). But at most one thread can have exclusive ownership (typically for writing), and if any thread does have exclusive ownership, no other threads can have shared or exclusive ownership.
+
+
 
 Lock properties:
 
@@ -152,11 +158,22 @@ Lock disadvantages:
 - <<priority_inversion>>
 - They cause blocking.  *to-do*: list counter measures
 - Lock overhead: I.e. overhead to access a resource, even if the chances for collision are very rare
-- Lock contention limits scalability
+- Lock contention limits scalability, which is one of the main reasons to use threads
+ * Counter meassure: While having lock acquired, only do the minimal operations needed on the shared ressource which absolutely must be done while being protected by a lock.
 - Finding the optimal balance between lock overhead and lock contention is difficult
 - Difficult to reason about, resulting in programs expensive to maintain and prone to bugs
 - _lock convoy_:  When multiple threads wait for the same lock, and the wait is not free of run-time costs.  That includes the case where the lock is released, and the threads not getting the lock have to pay runt-time costs.  Thus CPU time is burned for no real benefit.  Or from the thread point of view, he uses up the remainder of its scheduling quantum for no real benefit.
 - An interrupt handler cannot savely aquire a lock since the thread preempted by the interrupt may hold the lock.
+
+Some programming pitfalls / tips:
+
+- Be carefull to not pass out pointers/references to data protected by a lock, unless you're sure the recipent will only access the data via the lock. That includes don't pass pointers/refs to other functions, unless you're sure they don't store them.
+- Only have lock acquired for the shortest possible amount of time. I.e. while having lock acquired, only do the absolut neccessairy operations on the shared data. I.e. don't do operations that also could be done while not protected by the lock.  For other operations, give up lock. That might mean lock/unlock a few times (in C++, e.g. using unique_lock). On the flip-side, locking/unlocking also adds some overhead.
+- If working with non-recursive mutexes, between locking and unlocking it, best call no other functions, or only functions where you definitely *know* they won't ultimatively lock the same mutex again.
+- C&plus;&plus;: Consider choosing once_flag, call_once over mutex
+- C&plus;&plus;: Starting with C&plus;&plus;11, the initialization of static local variables is guaranteed to be thread safe.
+- When writes are much more seldom than reads, consider using a readers-writer lock. C&plus;&plus;17 provides shared_mutex, shared_lock.
+- Be carefull not to delete objects like mutex, condition_variable etc. while any thread is still using them.
 
 
 === Lock implementations
@@ -164,7 +181,7 @@ _spinlock_: *to-do* elaborate more.  say that probably internally an atomic `tes
 
 _atomic `test and set'_ operations: *to-do*: elaborate
 
-_semaphore_:  Is about mutual exclusion.  Quite a general construct.  A semaphore is a kernel object which allows entering n active threads from many others, (*to-do:* among different processes?), to enter the critical region.  The other non selected threads are put to sleep.  No concept of ownership.  (*to-do*: I'm not sure: Anyone can signal, also a thread not currently having acquired access to the critical region).  Metaphorically speaking, a semaphore is a record how many units of an particular resource are available, coupled with operations to safely (without race conditions) modify that record.  _counting semaphores_ (aka _general semaphore_) allow an arbitrary resource count, while _binary semaphores_ are restricted to the values 0 and 1 (or _locked_/_unlocked_, _unavailable_/_available_).  The operations / primitives of counting semaphores are _wait_ (or _P_ (Proberen -- try)) which decrements the semaphore and _signal_ (or _V_ (Verhogen -- raise)) which increments the semaphore and.  Optimally the two have an parameter defining the number of units the semaphore is to be decremented/incremented.  Many OS provide efficient semaphore primitives that unblock a waiting process when the semaphore is signaled / incremented.  To avoid starvation, a semaphore has an associated queue of processes.  There are multiple policies how to choose the process that is dequeued next: 1) FIFO 2) Priority queue 3) others.
+_semaphore_:  Is about mutual exclusion.  Quite a general construct.  A semaphore is a kernel object which allows entering n active threads from many others, (*to-do:* among different processes?), to enter the critical region.  The other non selected threads are put to sleep.  No concept of ownership.  (*to-do*: I'm not sure: Anyone can signal, also a thread not currently having acquired access to the critical region).  Metaphorically speaking, a semaphore is a record how many units of an particular resource are available, coupled with operations to safely (without race conditions) modify that record.  _counting semaphores_ (aka _general semaphore_) allow an arbitrary resource count, while _binary semaphores_ are restricted to the values 0 and 1 (or _locked_/_unlocked_, _unavailable_/_available_).  The operations / primitives of counting semaphores are _wait_ (or _P_ (Proberen -- try)) which decrements the semaphore and _signal_ (or _V_ (Verhogen -- raise)) which increments the semaphore.  Optimally the two have an parameter defining the number of units the semaphore is to be decremented/incremented.  Many OS provide efficient semaphore primitives that unblock a waiting process when the semaphore is signaled / incremented.  To avoid starvation, a semaphore has an associated queue of processes.  There are multiple policies how to choose the process that is dequeued next: 1) FIFO 2) Priority queue 3) others.
 
 _Mutex_ (*wrongly* also dubbed _mutex semaphore_):  Is about mutual exclusion.  Can be seen as binary semaphore which additionally has the concept of ownership.  The net effect is that mutexes don't have some of the semaphore's problems, see also below.  A mutex is a kernel object used for allowing only one active thread from many others, among different processes, to enter the critical region.  The other non selected threads are put to sleep.  Supports thread ownership (the thread that locked it), thread termination notification, recursion (multiple `acquire' calls from same thread) and `priority inversion avoidance' (see also below).  May also provide deletion safety, where the thread (*to-do* process?) holding the mutex cannot be accidentally deleted.  Only the owner can signal.
 
@@ -172,7 +189,45 @@ _Monitor_: Two common definitions 1) A construct allowing threads to have both m
 
 _Critical Section Object_: A critical section can be used only by the threads of a single process.  The other non selected threads are put to sleep.  There is no way to tell whether a critical section has been abandoned.
 
+_condition variable_: Allows one thread to notify one or more allready waiting threads; the waiting threads being in a queue. Or in other words: a mechanism so an thread can wait efficiently for a condition to become true. You must make sure not to start waiting after the notify already happened. (Or the other way round, you must make sure not to notify when at least one already is waiting.). Also, the wait function has suffers from spurious wake ups.
+
+to-do:
+- Is it _in general_ wise to unlock mutex before notifying, in order to prevent the case that a thread is woke up, only to discover that it can't acquire the lock and being sent to sleep again. A so-called "hurry up and wait" situation. Then again, some implementations move the thread from the condition variable's wait queue directly to the mutex's queue, thus not waking it up; it is woken up later by the mutxe's wait.
+- If yes, why should the `sender' thread protect writing the flag with a mutex?
+           
 *to-do*: questions: Which are blocking (which do specify that)? Which allow for multiple readers?  The ones that talk about processes -- are different user-level/kernel-level threads in one process treated as the same entity?  I.e. I still can have troubles if different threads in one process access the critical region.
+
+- The notifying thread should protect setting state variable with the mutex
+
+// thread 1
+// ---------
+// note that the sequence of checking predicate and then calling wait is under the protection of the mutex
+mutex.lock();
+// 1) loop instead a simple if due to spurious wakeups
+// 2) having the ok variable ensures to not call wait after notify has already been called, which would result in an eternal wait
+while(!done) 
+  // point 1, se
+  // wait:
+  // precondition: mutex must be held
+  // action: release lock, waits, wakes up
+  // potentially spurious, acquires
+  // lock
+  cv.wait(mutex);
+mutex.unlock();
+
+
+// thread 2
+// ---------
+mutex.lock()
+// must be under the protection of the mutex to prevent the case setting it to
+// true while other thread is at point 1, and before we call notify, the other
+// resumes at 1, calling wait before we call notify
+done = true 
+mutex.unlock(); // variant 1. Seems to be prone to subtle bugs. 1) Not a viable variant if the other thread would delete the condition variable (e.g. because it exists) after seeing the precicate to be true, causing the following notify to cause havok. 2) Not a viavle variant if there are more than two involved threads, and the waiting threads, after getting trough the `condition guard', modify the variable.
+cv.notify() 
+mutex.unlock(); // variant 2. Seems to be the safer variant in general. But might be less optimal (according to cppereference) than variant 1, due to the "hurry up and wait" situation for the other thread (condition variable wakes it up, only to be sent to sleep right away by the locked mutex). On the other hands, some (most?) implementations implement `wait morphing': defer wakeup from condition variable to mutex.
+
+Personal bottom line: Variant 2 is always more robust than Variant 1, and Variant 1 is only an optimization over Variant 1. You can only optimize what you measure. On you're system, the implemention might make use of wait morphing, in which case it gets less likely that Variant 1 is really more performant for your use case / data. http://www.domaigne.com/blog/computing/condvars-signal-with-mutex-locked-or-not/ (see also references there)
 
 
 Problems of semaphores solved by mutexes:
@@ -258,13 +313,15 @@ A _deadlock_ is a situation in which two or more competing actions are each wait
 
 _Coffman conditions_: A deadlock can occur if all the four following simultaneously; Unfulfillment of any of the four is enough to preclude a deadlock from occurring.
 
-1. _Mutual exclusion_: At least one resource must be held in an non-sharable mode.  Only one process can use the resource at any given instant of time.
+1. _Mutual exclusion_: There are at least two unshareable resources. An unshareable resource implies it needs to be protected via mutual exclusion.
 
-2. _Hold and Wait_ or _Resource Holding_: A process is currently holding at least one resource and is requesting additional resources which are being held by other processes.  That implies _multiple processes must acquire more than one shared resource_.
+2. _Hold and Wait_ or _Resource Holding_: A process is currently holding at least one resource and is requesting one or more additional resources which are being held by other processes.  That implies _multiple processes must acquire more than one shared resource_.
 
 3. _No preemption_: A resource can be released only voluntarily by the process holding it.
 
 4. _Circular Wait_ (aka _deadly embrace_): Thread T1 owns mutex M1 and is waiting for mutex M2, which is owned by thread T2 which is waiting for mutex M1.  This can e.g. happen when each of two task needs two acquire two mutex (e.g. one for accessing input data and one for accessing output data) to enter the critical region.
+
+Note that's not only about waiting for locks (protecting ressources), but also e.g. to wait for another thread to finish (within join).
 
 
 ==== Deadlock handling: Ignoring deadlock
@@ -283,7 +340,8 @@ First detect a deadlock (*to-do*: how?), then correct it by:
 
 _Deadlock prevention_ works by preventing one of the four Coffman conditions from occurring.
 
-- _remove the mutual exclusion_ condition, i.e. remove having a shared resource which must be guarded by mutual exclusion.  For example:
+- _remove the mutual exclusion_ condition, i.e. remove having at least two unshareable resources.
+  * Merge the two ressources into one ressource
   * Spooling (probably seldom applicable *to-do*: explore more)
   * A non-blocking synchronization algorithm.  E.g. _read-copy_update_ (_RCU_).  *to-do*: explore them.
 
@@ -295,10 +353,11 @@ _Deadlock prevention_ works by preventing one of the four Coffman conditions fro
  * Disable interrupts and preemption during critical sections
  * <<dijkstra_solution>>
  * <<arbitrator_solution>>
+ * <<lock_hierarchy>>
  * Chandy/Misra solution: *to-do*:
 
 [[dijkstra_solution]]
-===== Dijkstra's solution
+===== Dijkstra's solution (aka lock ordering)
 * Assign a partial order to the resources
 * Establish the convention that all resources will be requested in their order.  Order of release does not matter.  That includes that when already owning a resource and wanting to acquire a next, lower order one, that the higher order resource is released first to `start from the beginning'
 * No two resources unrelated by order will ever be used by a single unit of work at the same time *to-do* I don't properly understand that yet
@@ -309,6 +368,11 @@ Disavdantages: Often the list of required resources in not completely known in a
 [[arbitrator_solution]]
 ===== Arbitrator solution
 The set of resources RS={R1,R2,...,Rn} is itself regarded as a resource T which is protected by yet another lock (e.g. mutex) LA (the arbitrator).  Multiple acquire operations on the members of a sub-set of RS as a whole is an operation that has race conditions and thus needs mutual exclusion. Disadvantages:  Looking at the dining philosophers problem:  if the philosopher next to an eating philosopher wants to eat, he waits for the `arbitrator' lock and after acquiring the arbitrator he needs to wait for both forks to become free, which does not happen until is neighbor stops eating. During this waiting the time the arbitrator is locked, thus also those other philosophers can't eat which two forks would be free.
+
+
+[[lock_hierarchy]]
+===== Lock hierarchy
+Really only a particular case of Dijektsra's solution
 
 
 ==== Deadlock handling: Deadlock avoidance
@@ -342,6 +406,20 @@ e.g. `is free'. If not free, it continues to search another free. Say the read
 element. The case that just after the read, the boolean value might have changed
 to `is free' is ignorable, it's just that we missed an opportunity.
 
+
+== Storage hierarchy
+
+From fast(latency&througput)/expensive/lowcapacity to slow/cheap/highcapacity. Sequenciall access typically is considerably faster than random access (only looking at the medium itself, not considering caching techniques through other layers in the storage hierarchy).
+
+--------------------------------------------------
+                  Registers
+                  On-Chip Cache
+                  On-Board Cache
+Primary Storage   RAM
+Secondary Storage SD
+Tertiary storage  Disk
+                  Tape
+--------------------------------------------------
 
 == Memory
 
