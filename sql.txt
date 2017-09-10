@@ -3,8 +3,32 @@
 
 = SQL
 
+The most widely used relational query language. Standardized, however most systems add their own special constructs.
+
+Trivia: Was originally designed to be a very simple small language.
+
 == Intro
 
-_SQL_ stands for structured query language. _RDBMS_ stands for Relational Database Management system.  A database most often contains one or more _tables_.  Each table is identified by a name.  Tables contain _records_ (rows) with data.  
+_SQL_ stands for structured query language. _RDBMS_ stands for Relational Database Management system.  A database most often contains one or more _tables_.  Each table is identified by a name.  Tables contain _records_ (rows) with data.
 
-== Statements
+SQL is a DLS. Not turing complete. But being a constrained language, it is easier for the optimzer, since it's easier to determine whether a given optimization is safe. Especially parallizing is often rather easy.
+
+SQL is close to the relational model, but not purely, for practical reasons. E.g. duplicate rows in a table are allowed. The relational model is all about sets where order doesn't matter, in practice one orders a lot in SQL. Differences regarding null values, set operations, .... Th
+
+type conversions
+
+- See chapter 5.5 Q27. Tables with one row and one column can be implicitely
+  converted to scalar if needed.
+
+== Efficiency / Optimizations
+
+Projection is relatively cheap. Join is relatively expensive. Join is obviously faster for fewer rows. But also for fewer columns, or fewer data in general, since more tuples fit into a page, and thus there's less page I/O.
+
+For example, as an optimization, we want to 'push down projections': Do many projections as eary as possible, cut away every column you can and keep only those you must, having fewer data left for the next operators. Push down is in the sense that, assuming you have an projection as outermost operation keeping only one column, i.e. cutting away all the others, part of that can maybe done earlier.
+
+There's even the field of 'column oriented databases' which store columns seperately. The idea being doing projections as early as possible and only work with as few data as possible.
+
+
+== Grammar / Syntax
+
+See sql.yas

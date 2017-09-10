@@ -1,0 +1,233 @@
+## https://docs.oracle.com/cd/B28359_01/server.111/b28286/toc.htm
+
+## evaluated each time it's referenced; it's never stored, aka never
+## materialized. You can also think of it as a stored query.
+create_view = 'CREATE ['OR 'REPLACE] [['NO] 'FORCE] 'VIEW
+  ... id#viewname ... 'AS subquery ... \;;
+
+select = ... subquery ... \;;
+
+subquery =
+  query_block [order_by_clause] |
+  \( subquery \) [order_by_clause] |
+  (subquery (subquery_operator subquery)+) [order_by_clause];
+
+## Operands and result are tables.  Precedence (hi to lo): {INTERSECT},
+## {UNION,EXCEPT}. Associativity ltr. The sequence of column types of the two
+## input tables must match. Without 'ALL, duplicates are eliminated.
+subquery_operator =
+  'UNION ['ALL] |
+  ('MINUS|'EXCEPT) ['ALL] | ## set difference
+  'INTERSECT ['ALL];
+
+## The result of a query is a table. The order of processing is:
+##
+## FROM [ON]: Joins the given tables based on the given condition.
+## WHERE: Discard failing rows.
+## GROUP BY: Sort by given columns, creating set of aggregations for identical
+##   (over given colums) columns, each aggregation being a table. 1)
+## HAVING: discard failing aggregations.
+## SELECT: create table, one row per aggregation, columns as specified, the
+##   given expressions defining the values of the cells.
+## ORDER BY: order by given columns.
+## DISTINCT: discard duplicate rows.
+## LIMIT: discard excess rows
+##
+## 1) When from now on columns are refered in another way than within expression
+## being argument to an aggregate function, depending on sql version/flavour
+## used, the select stament is illegal or the column's value is inteteminate
+## (http://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html)
+query_block =
+  'SELECT
+  [ 'DISTINCT | ## discard duplicate rows, after HAVING
+    'UNIQUE |
+    'ALL ]
+  select_expr_list ## columns to retreive, exprs can only reference columns of
+                   ## the CPT. projection in the relational algebra sense.
+  ['FROM join_expression] ## join input tables
+  ['WHERE condition] ## discard rows that fail. selection in the relational
+                     ## algebra sense. For inner joins, you can semantically
+                     ## logical and-append it to the join condition.
+  [group_by_clause]
+  ['HAVING condition] ## discard failing rows, after GROUP BY
+  ['ORDER 'BY ... ['ASC|'DESC]]
+  ['LIMIT ([offset \,] row_count | row_count 'OFFSET offset)+]
+  ...;
+
+## Matching records form a group.  Aggregate functions operate on the rows in
+## a group.  Output is one row per group.  select_expr in select_expr_list
+## refering to a column make only sense if that column appears in group by
+## clause.
+group_by_clause =
+  'GROUP 'BY ...;
+
+select_expr_list =
+  \* | ## all columns of CPT resulting from where clause
+  (select_expr_column \,{-})+;
+
+select_expr_column =
+  select_expr
+  [["AS"] id#alias]; ## column name of select_expr, usable by the clauses GROUP BY, ORDER BY, or HAVING.
+
+select_expr =
+  select_expr binary_operator select_expr |
+  prefix_operator select_expr |
+  select_primary;
+
+select_primary =
+  [id#table\.]id | ## column name, possibly qualified with table name
+  id#table \. \* | ## all columns of table identified by id
+  literal |
+  id ['DISTINCT] \( expr \) | ## function call. http://www.w3resource.com/sql/sql-functions.php
+  \( expr \);             ## grouping
+
+binary_operator = ...; ## http://www.w3resource.com/sql/operators.php
+prefix_operator = ...;
+
+## the ',' builds the crossproduct table of its rhs and lhs (i.e. an (inner)
+## join of rhs and lhs with a condition being always true).
+join_expression =
+  ((table_ref|join_clause|\(join_clause\)) \,{-})+;
+
+join_clause =
+  table_ref (inner_cross_join_clause|outer_join_clause)+;
+
+inner_cross_join_clause =
+  ['INNER] 'JOIN table_ref ('ON condition|'USING \((column\,{-})+\)) |
+  ('CROSS |'NATURAL ['INNER]) 'JOIN table_ref;
+
+outer_join_clause = ...;
+
+table_ref = ... query_table_expr ...;
+
+query_table_expr = query_name | ... id#viewname ... |
+  \( subquery ... \) | table_collection_expr;
+
+table_collection_expr = ;
+
+create_table =
+  'CREATE ['GLOBAL 'TEMPORARY] 'TABLE
+  [id#schema \.]  id#table
+  (relational_table | object_table | XMLType_table)\;;
+
+relational_table =
+  \( relational_properties \)
+  ['ON 'COMMIT ('DELETE|'PRESERVE) 'ROWS]
+  [physical_properties] [table_properties];
+
+relational_properties =
+  ( ( column_definition | virtual_column_definition |
+      out_of_line_constraint | out_of_line_ref_constraint |
+      supplement_logging_props)
+    \,{-})+;
+
+column_definition =
+  id#column id#datatype
+  ['SORT]
+  ['DEFAULT expr]
+  ['ENCRYPT encryption_spec]
+  [inline_ref_constraint|inline_constraint+];
+
+physical_properties =
+ segment_attributes_clause [table_expression] |
+ 'ORGANIZATION
+   ('HEAP [segment_attribues_clase] [table_compressin] |
+    'INDEX [segment_attribues_clase] index_org_table_clause |
+    'EXTERNAL external_table_clause) |
+  'CLUSTER cluster \((column \,{-})+\);
+
+inline_constraint =
+  ['CONSTRAINT id#constraintname ]
+  ( ['NOT] 'NULL | ## the default is that NULL values are allowed
+    'UNIQUE |
+    'PRIMARY 'KEY |
+    references_clause |
+    'CHECK \( condition \) )
+  constraint_state;
+
+out_of_line_constraint =
+  ['CONSTRAINT id#constraintname ]
+  (  ## a table can have at most one primary key
+    'PRIMARY 'KEY \( (id#column \,{-})+ \) |
+    'UNIQUE \( (id#column \,{-})+ \) |
+    'FOREIGN 'KEY \( (id#column \,{-})+ \) references_clause |
+     ## general constraint. Validates INSERTs and UPDATEs. Some DBMS allow
+     ## subqueries referencing other tables.
+    'CHECK \( condition \) )
+  constraint_state;
+
+references_clause =
+  ## if the list of referenced columns is omitted, the referenced key is the
+  ## primary key of the parent object.
+  'REFERENCES [id#schema \.] id#object [\( id#column \)]
+
+  ## what to do if deletion/update of a referenced key would break referential
+  ## integrity
+  ['ON ('DELETE (
+     'NO 'ACTION | ## error is raised, delete/update is rolled back
+     'CASCADE | ## depending foreign keys are deleted/updated
+     ## all columns in all depending foreign keys are set to ...
+     'SET 'NULL | ## ... NULL
+     'SET 'DEFAULT)]; ## ... their default value
+
+## precedence table:
+## - SQL operators
+## - =, !=, <, >, <=, >=
+## - IS [NOT] NULL, LIKE, [NOT] BETWEEN, [NOT] IN, EXISTS, IS OF
+## - NOT
+## - AND
+## - OR
+condition_expr = ...;
+  condition_unary_prefix_operator condition_expr |
+  condition_expr condition_binary_operator condition_expr |
+  condition_expr ['NOT] 'BETWEEN condition_expr 'AND condition_expr |
+  'EXISTS \( subquery \); ## true if subquery returns at least one row
+
+condition_unary_postfix_operator =
+  ## multiset conditions
+  'IS ['NOT] 'A 'SET |
+  'IS ['NOT] 'EMPTY;
+
+condition_unary_prefix_operator =
+  ## logical/compound conditions
+  'NOT |
+  ## null conditions
+  'IS ['NOT];
+
+condition_binary_operator =
+  ## comparison conditions.
+  `= | `!= | `^= #also_inequality | `< `> #also_inequality |
+  `< | `<= | `> | `>= |
+    ## compares lhs (a scalar) with each value in rhs (a list)
+    ((\=|"!="|\>|\<|"<="|">=") ('ANY|'SOME|'ALL))
+    ['NOT] 'IN ## equivalent to !=ANY / =ANY
+  ## logical/compound conditions
+  'AND | 'OR |
+  ## pattern matching. rhs is a string being a pattern. '_' stands for exactly
+  ## one, arbitrart char. '%': zero or more arbitrary chars.
+  'LIKE |
+  ## regular expression matching
+  'SIMILAR |
+  ## multiset conditions
+  ['NOT] 'MEMBER ['OF] |
+  ['NOT] 'SUBMULTISET ['OF];
+
+condition_primary =
+  \( condition_expr \);
+
+literal = string_literal | ...; ## http://dev.mysql.com/doc/refman/5.7/en/literals.html
+string_literal = string_literal_elt+; ## adjacent literals are concatenated
+string_literal_elt =
+  [id#charset_name]
+  (\'...\' | \"...\") ## see also character_sequences
+  ['COLLATE id#collation_name];
+
+character_sequences =
+  \"\" | ## a literal double quote (") within a double quote literal
+  \'\' | ## a literal single quote (') within a single quote literal
+  character_escape_sequences;
+
+## http://dev.mysql.com/doc/refman/5.7/en/string-literals.html#character-escape-sequences
+character_escape_sequences = ...;
+
+id = ...;

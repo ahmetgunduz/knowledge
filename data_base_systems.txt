@@ -1,0 +1,289 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+== Intro
+
+Terms:
+
+- relation and table are synonyms
+- attribute, column and fields are synonyms
+- (data) record, row, tuple are synonyms
+- block is a synonym to page. Unit of transfer for disk I/O.
+
+A 'data model' is a collection of high-level data description constructs that hide many low-level storage details. Most DBMS today are based on the 'relational data model'. Here, a description of data in terms of a data model is called a _schema_. The schema of a _relation_ (aka _table_) specifies its _name_ and the name and _domain_ (aka _type_) of each _field_ (aka _attribute_ or _column_). Think of a relation as a type; concrete instances thereof are called, well 'instances'. 'Integrity constraints' are conditions that the records in a relation must satisfy. 
+
+Levels of abstraction:
+
+- Views describe how users see the data
+- Conceptual schema defines logical structure
+- Physical schema describes the files and indexes used
+
+--------------------------------------------------
+                 Query Optimization 
+                 and Execution
+                       |             
+                       V
+                 Relational Operators
+                       |             
+                       V
+            +--> Files and Access Methods <--+   
+            |          |                     |
+            |          V                     |
+Concurrency-+--> Buffer Manager           <--+- Recovery
+Controll    |          |                     |  Manager
+            |          V                     |
+            +--> Disk Space Manager       <--+ 
+--------------------------------------------------
+
+Notation:
+
+- +[T]+: The number of pages needed to store all records of table T.
+- +p~T~+: The number of records of table T fitting into a single page.
+- +|T|+: Cardinality: the number of records in table T.
+
+Typical disk block sizes are 0.5kB to 4kB. Virtual memory page size is typically 4kB. Typicall a DB does I/O in 64kB blocks.
+
+
+'Query optimzer' translates SQL to 'Query Plans' , an internal language. The
+'query executor' is an interpreter for query plans. Think of query plans and
+(dataflow) directed graphs, where nodes are relational operators and directed
+edges represent data tuples (columns as specified).
+
+Relational operators may be implemented using the iterator design pattern.
+
+When measuring costs, often asymptotic notations in terms of number of I/O accesses are used, since I/O is much more expensive than CPU, even with flash. Sometimes, as improvement, a distinction is made between random access and sequential access, since also their costs differ substantially.
+
+
+Random notes:
+
+- Random access to pages is generally expensive, or the other way round, sequencial access is much faster
+ * binary search is a bad option
+- Dealing with (multi)sets, i.e. unordered collections, as most SQL queries do, has the advantage that it is more parallelizable as when it had to be ordered.
+
+== Integrity Constraints
+
+Part of the DDL (data definition language).
+
+Give a table, a set of columns is a 'superkey' if no two distinct tuples can have same values in all key columns. A set of columns is a 'key' for a table if it's minimal, it is a superkey, but no subset is a superkey.  The other way round, a superkey is a set that conatains a key.  A table can have multiple keys, e.g. table student can have studentid or emailaddress. A table can have at most one 'primary key', the other keys are the 'candidate keys' (aka 'unique key').
+
+primary key vs unique key: It seems that technically the only difference is that a table can have at most one primary key, but zero or more unique keys. Further differences are among typicall defaults associated with these constraints, and the semantic meaning. Primary key is meant to identify a row, unique key is meant to ensure a constraint. Most DBMS will by default create a clustered index for primary key and an unclustered index for each unique key, and by default primary key has a non-null constrained while unique key doesn't. At least in Oracle, when all columns of a key are null, and there is no not-null constraint, then the key constraint is satisfied.
+
+'Domain constraint': Kind of a type, but with additional conditions attached. (Chapter 5.7.2).
+
+'Primary key constraint': Key must be unique within table
+
+'Foreign key constraint' (aka 'referential integrity constraint'): A key that establishes a relationship between its table or view and a primary key or unique key, called the 'referenced key', of onther table or view. The table or view containing the foreign key is called the 'child' object, the table or view containing the referenced key is called the 'parent' object. Child and parent can be the same table or view.
+
+'General contstraint': View CHECK constraint on a table or an ASSERTION which is global / not associated with any table.
+
+Note that being able to write down constraints in the DDL helps to remove redundancy. If we coudn't do that, these constraints would appear at multiple places / multiple programs working with the DB.
+
+
+== Relational operators & algebra
+
+=== sort
+
+=== select
+
+FP: number of pages in file. As always, time analysis is in terms of page I/Os, not considering writing the result.
+
+OMP: in case of ordered input, number of pages containing the matching tuples
+
+MT: number of matching tuples
+
+no index on column, unsorted data:: Scan all tuples. O(FP)
+
+no index on column, sorted data:: Binary search to find first matching tuple, then sequential scan as long as tuples match. O(log FP + OMP)
+
+B+ tree index on column:: Walk B+ tree to find first matching tuple, then scan as long as tuples match. O(log~fanout~
+
+=== group
+
+=== join
+
+_Theta join_: Given sets R and S, the theta join R ⨝~Θ~ S delivers all pairs {r,s} where the predicate Θ(r,s) is true, r and s being members of the set R and S respectively. In an _equi-join_ Θ is an equality test; it can be optimed. As a special case of that, even more optimizeable, is when one operand is a key.
+
+
+==== simple nested loop join algorithm
+
+--------------------------------------------------
+foreach record r in R:
+  foreach record s in S:
+    if theta(r,s): result.add({r,s})
+--------------------------------------------------
+
+page I/O cost, assuming arbitrary large [T] and [R], ignoring writing result: |R|*[S]+[R], i.e. _very_ bad.
+
+==== chunk (oriented) nested loop join algorithm
+
+
+Improvement: Make number of iterations in outer loop as small as possible, so we have to go pages of S as few times as possible. So outer loop reads from R in `chunks', one chunk being B-2 pages large. It's -2 because we need one page for the input streaming buffer for S, and one page for the output streaming buffer of the result.
+
+--------------------------------------------------
+foreach chunk in R:
+  read in chunk from R
+  for each record r in current Rchunk:
+    foreach record s in S:
+      if theta(r,s): result.add({r,s})
+--------------------------------------------------
+
+page I/O cost: [R]/(B-2)*[S]\+[R], becomming [S]+[R] if outer table, i.e. the Rchunk, fits completely into memory, i.e. if [R]<=B-2.
+
+
+==== indexed nested loop join
+
+For the special case of equi-joins.
+
+--------------------------------------------------
+foreach record r in R:
+  foreach record s in R where r==s:
+    result.add({r, s})
+--------------------------------------------------
+
+page I/O cost: [R]+|R|*costOfFindingAKey
+
+
+==== sort-merge join
+
+For the special case of equi-joins, here R.r_attrib=S.s_attrib
+
+------------------------------------------------------------
+sort R on r_attrib -> sortedR
+sort S on s_attrib -> sortedS
+scan sortedR and sortedS in tandem to find matches
+------------------------------------------------------------
+ 
+page I/O cost: cost(sort R) + cost(sort S) + [R]+[S].
+
+As an optimization, the sorts, each having internally a set of sorted chunks, ommit writing an output. Instead, the `scan sortedR and sortedS in tandem' step operatoes on all these chunks; each chunk is connected to an input buffer. Thus instead of the normal B-1 chunks a sort creates, now it can only create (B-1)/2 chunks. So we saved 2*([R]+[S]), since we saved writing/reading the sortedR and sortedS.
+
+Naturally a good variant if R and S need to be sorted on r_attrib and s_attrib respectively anyway in the query plan.
+
+
+==== hash join
+
+For the special case of equi-joins, here R.r_attrib=S.s_attrib
+
+------------------------------------------------------------
+using coarse hash function, partitionate R,
+  restriction: no partition might be larger than B-2 pages,
+                  so it might be as usual a recursive process
+using coarse hash function, partitionate S, partitions can be of any size
+for each partition pr of R
+  read in partition pr, building an inmemory hashtable (using upto B-2 pages of memory)
+  for each record s in partition of S being associated to pr: (nomal streaming using one input buffer)
+    if hash table contains key s.s_attrib:
+      result.add({r, s}) (normal streaming using one output buffer)
+----------------------------------------------------------------------
+
+Often R is called the building table, and S the probing table.
+
+Note that the probing table's partitions can have an arbitrary size (in pages), since they are streamed. Thus you want to make the smaller table the building table, and the larger table the probing table.
+
+
+== Files and Access Methods
+
+A _(DB) file_ is a collection of pages. A _page_ is a collection of records. Each _record_ has an _(physical) record id_ (rid), which is a pair (page_id, slot_id). Records can be fixed width or variable width. The file API supports insert/delete/modify/find(via recordid) a record, scan all records.
+
+_System catalogs_ store properties of each table, index, view and other stuff such as statistics, authorization etc.
+
+A DB file is typically implemented as one or more OS files, or as raw disk space, e.g. in POSIX directly a device. Note that a DB file might spawn multiple disks. 
+
+[[index]]
+=== Index
+An 'index' (aka _access path_) is a disk based data structure that organizes data records of a given table, or references to them, on disk to optimize certain kinds of retrieval opereations. A table can have multiple indexes on it. A 'search key' is over any subset of columns of that table. In contrast to the key of the table, multiple records can match a search key. An index is implemented as a collection of 'data entries'. A data entry with search key value k, denoted as k*, contains enough information to locate the matching records. There are three main alternatives of how to store a data entry: Alternative 1) (k,record). I.e. the index directly the stores the records of a table. To avoid redundancy, this alternative is used at most once per table. Alternative 2) (k, rid). Alternative. 3) (k, rid-list). Alternative 2 and 3 obviously introduce a level of indirection. A 'clustered index' is one where the ordering of data records defined by its data entries is roughly the same as the ordering of the data records of the file of the underlying table. By definition alternative (1) is clustered. For alternatives (2) and (3), the file must be roughly (see <<clustered_file>>) or strictly sorted (see <<sorted_file>>). Regarding range search queries, clustered indexes are in general much faster than unclustered, due to the usual contigous access advantages and since more of read in page is actually used, i.e. less pages have to be read. The costs for a clustered index is maintainenance cost to (roughly) maintain the ordering of the data records. Often that means that the pages containing data records are not fully packed (2/3 is a common figure) to accomodate future inserts, which degrates performance since more pages nead to be read/written for a given amount of records.
+
+Common kinds of selections (aka lookups) that indexes support:
+
+- key operator constant, and specifically equality selections, where the operator is =.
+- Range selections, where op is a relational operator <, >, ....
+- N-dimensional ranges: e.g. points within a given rectangle.
+- N-dimensional radii: e.g. points within a given sphere.
+- Regular expressions
+
+[[bplus_tree]]
+=== B+ tree
+
+_B+ tree_ is an high-balanced n-ary tree. It's the most widely used data structure to implement an index. They have fast lookups and fast range querries. Is typically the most optimized part of an DBMS.
+
+Each node is stored in a page. Unlike with a B tree, internal nodes only
+contain pointers to further nodes, never data; only leaf nodes contain data or
+pointers to data. Also leaf nodes form a linked list. Together this allows for
+more efficient scans over a range of data.
+
+Regarding high-balancedness: Each node contains m entries with the soft restriction d<=m<=2d, i.e. it's always at least 50% full, where d is called the 'order' of the tree. The high balanced property guarantees O(log N) access time, i.e. guarantees that even after insertions/deletions performance can't degenerate to linear time. Then again, since keys can be of variable width (e.g. strings), and the data entries in the leaf nodes can be variable width (e.g. see alternative 3 in <<index>>), in practice this is seen sloppy. sometimes a physical criterion is used (`at least half full' in terms of bytes).
+
+Key compression increases fanout, which reduces height, which reduces access time.
+
+Algorithm to 'insert' into an already full node: split node, which obviously includes allocating a new node, and which makes space for new item. Introducing a new node obviously also means that we need to insert a new item into the parent node which points to the new node. Now this can be a recursive process, where in the worst case it ripples up all the way up and we have to split the root. If data entries are directly data records (see alternative 1 in <<index>>, advantages see there), splits can change record ids, which means having to update referees, which is considerable disadvantage.
+
+Similarly for 'deletion'. We should maintain the d<=m<=2d invariant. However in practice m<d is allowed, since in practice it's a rare case that given a big table there are so many deletions which would shrink it to a small table. Note that all leafs have the same depth, and there are no rotations upon insertion/deletion has with other kinds of balanced trees.
+
+Creation of a B+ tree given a collection of keys should no be done via individual inserts, since the resulting page access pattern is very random and thus slow. Instead, we do 'bulk loading': Sort the index's data entries. Then iteratively soak them up and create leaf nodes. A fill-factor parameter determines how full the leaves shall be. Create/update parent nodes as in the insertion algorithm. Looking at the usual tree drawing, we see that always the right-most internal nodes are touched whereas the other nodes aren't at all, an access pattern which works very well together with an LRU page buffer.
+
+
+== Buffer management
+
+A cache storing in memory a collection of pages from the disk space management below. Consists of a collection of frames, a frame having the same size as a page. Allocated at startup time.
+
+Each frame has associated: pageid/NIL, pin_count (aka reference_count), dirty_flag.
+
+A request for a page increments pin count. A requestor must eventually unpin it and indicate whether page was modified (-> dirty flag).
+
+pin_count==0 means unpinned means `free to be exchanged by another page from disk'. When pin_count goes to 0, that is the event of `page is now no longer used'.
+
+There different replacement policies for replacing a frame: least-recently-used (LRU), most-recently-used (MRU), clock, ....
+
+As an optimization, pre-fetch is often employed.
+
+Buffer leak: when a page request can't comply because all pages in buffer are pinned. That is considered a bug in the DB; pages should only be pinned for a very brief time.
+
+
+== Disk space management
+
+Disk space manager provides about this API: allocate/free a page, read/write a page. Higher levels expect that sequencial access to pages has an especially good performance.
+
+
+== Relational query languages
+
+
+=== Relational algebra
+
+'Relational algebra' (aka just 'algebgra'): Operational (thus procedural), i.e. we can build arbitrary expressions on the basis of operators, each taking one or more operands. The domain and image of each operator are relations. Relations have set semantics (in contrast to multiset), i.e. no relation can have duplicate rows (SQL has multiset semantics, i.e. tables can have duplicate rows. I.e. in pure relational algebra often there's a `remove duplicates' sub step. However in practice that is rather expensive since it involves sorting or hashing).
+
+Useful for representing execution plan semantics. Close to query plans. 
+
+There are only five operators: selection, projection, and 3 set operators: set difference, set union, crossproduct. There are convenience operators being based on these basic operators.
+
+'Selection': σ~_condition_~(_relation_) (s as in sigma/select): The (selection) condition is a boolean expression, where primaries are literals and fields of the given relation. The output are the tuples of the input instance which satisfy the condition. The output has the same schema as the input.
+
+'Projection': π~_fieldlist_~(_relation_) (p as in pi/project): Returns new relation, having only the given fields of the input relation. Has to remove duplicates.
+
+'(set) union': A ∪ B: A and B must be 'union compatible' (sequence of field domains must be equal). Has to remove duplicates.
+
+'(set) difference': A - B. A and B must be union compatible. Note that unlike the other basic operators, it cannot be implemented with an online algorithm, because each next tuple from B can remove a tuple from the tentative output.
+
+'crossproduct' (aka 'cartesian product'): A ⨯ B. Output relation's schema is the concatenation of A's schema plus B's schema. By convention field names are overtaken; in case of name conflicts, corresponding fields are unnamed and must be referred to by position. The output instance has each tuple of A followed by each tuple of B.
+
+Some important compound operators:
+
+'(set) intersection': A ∩ B. Defined as A-(A-B). A and B must be union compatible.
+
+'conditional join': A ⨝~condition~ B: Defined as σ~_condition_~(A ⨯ B). 
+
+'equi join': A conditional join where the condition solely consists of one or more equialities, combinded by logical and. They can be implemented efficiently; In effect, there is only one equiality, where the rhs and lhs are the concatenation of the individual original lhs/rhs. E.g. (r1.f1=r2.f1 and r1.f2=r2.f2) is equivalent to (concat(r1.f1,r1.f2)=concat(r2.f1,r2.f2)).
+
+'natural join': A ⨝ B: Condition demands equivality (A.fieldx=B.fieldx) for all fields having the same name. I.e. it's an implicit equi join. However, in contrast, also a projection follows which cuts away the duplicate fields. If there are no common field names, the result is the crossproduct.
+
+'division': A / B: Defined as π~x~(A)-π~x~((π~x~(A)⨯B)-A). More informally: Say A tells which supplier supplies which part, and B lists parts. A/B deliviers suppliers which supply all the parts in B.
+
+
+=== Relational calculus
+
+'Relational calculus' (aka just 'calculus'): A declarative language -- Describe what you want, rather than how to calculate it. A variant is the 'tuple relational calculus' (aka 'TRC'), which heavily influenced SQL.
+
+Exprecity of relational algebra and relational calculus is equivalent.
+
+=== SQL
+
+See sql.txt
