@@ -1,0 +1,19 @@
+- If you can't explain it simply, you don't understand it well enough -- Albert Einstein
+
+- Multiple times / iteratively explain a topic slide. Which words do I use in the first few sentences? Those should be on the slide. Don't put on the slides what I don't say.
+
+- Humans like visualisations more than words / hummans have very good pattern recognition abilities
+
+- Humans like analogies with things they already know
+
+- Humans like to succeed, dislike to fail -> make the slides easy to follow, babysteps, kiss.
+
+- For each slide, know the essence you want to teach
+
+- Repetition
+  - The overall topic: 1) in intro say what you're going to say, 2) then say it 3) then summarize what you said
+  - The important bits: say them over and over again
+
+- bring information/details now because next slides partly depend on it, or bring those details towards the end in a chapter 'further details'?
+  * at the end: Those students wanting the details, probably the stronger ones, get them sooner or later. We're talking about a short time period.
+  * at the beginning: Those students being overwhelmed by to much details to early, probably the normal/lesser ones, are left behind
