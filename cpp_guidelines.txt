@@ -2,10 +2,10 @@
 // The markup language of this document is AsciiDoc
 
 
-= C&plus;&plus; practices
+= C&plus;&plus; guidelines
 
-This document is about C&plus;&plus; specific practices. For progamming
-language agnostic practices, see ++programming_practices.txt++.
+This document is about C&plus;&plus; specific guidelines. For progamming
+language agnostic guidelines, see ++programming_guidelines.txt++.
 
 
 

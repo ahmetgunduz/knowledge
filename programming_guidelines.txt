@@ -1,10 +1,10 @@
 :encoding: UTF-8
 // The markup language of this document is AsciiDoc
 
-= Programming practices
+= Programming guidelines
 
-This document is about programming language agnostic programming practices.
-See also ++C&plus;&plus;_practices.txt++.
+This document is about programming language agnostic programming guidelines.
+See also ++C&plus;&plus;_guidelines.txt++.
 
 
 [[cost_effective]]
