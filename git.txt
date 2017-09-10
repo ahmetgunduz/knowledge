@@ -27,7 +27,7 @@ The following copy files between the following three participants: the working
 tree, the index aka the staging area and the repository.
 
 .Working tree -> Index, aka stage
-- all but ignored: ++git add -A++
+- all (modified, new, deleted): ++git add -A++
 - single files: ++git add <pathspec>...++
 
 .Working tree -> index and new commit in repository, aka commit -a
@@ -52,7 +52,7 @@ I.e. additionally HEAD is modified
 - single files: ++git rm --cache <file>...++
 
 .Repository -> Index, aka unstage
-- all: ++git reset++
+- all: ??
 - single files: ++git reset -- <file>...++
 
 .Repository aka HEAD -> working tree, aka discard(-to-HEAD)
@@ -63,6 +63,33 @@ I.e. additionally HEAD is modified
 Fortunately not directly possible.  When commits, or git objects in general,
 become unreachable, eventually they will be pruned by the garbage collector.
 
+
+== Tags
+
+git fetch
+- by default, any tag that points to the history of a fetched ref is also fetched. *to-do*: what if a tag with that name already exists locally? The effect seems not to be explainaible with a refspec analogy, because local tags are _never_ updated.
+- --tags: in addition (changed in git 1.9, before it was not 'in additon') to what otherwise would be fetched, fetch all tags from remote. *to-do*: apparently that does update local tags, even if not fast forward. It seems the effect is like _adding_ the refspec  ++++refs/tags/*:refs/tags/*+++.
+- --no-tags: do not automatically fetch tags pointing to the history of fetched refs.
+- --prune: regarding tags, only has an effect if tags are fetched due to an explicit refspe (command line or in remote config).
+- -f, --force: When git fetch is used with <rbranch>:<lbranch> refspec, it refuses to update the local branch <lbranch> unless the remote branch <rbranch> it fetches is a descendant of <lbranch>. This option overrides that check. *to-do*: it seems that this does not apply to tags implicitely fetched in the `default mode' (i.e. neither --tags nor --no-tags specified). Thus that adds a leading \+ to every refspec?
+- refspec: leading +: "the local ref is updated even if it does not result in a fast-forward update"
+
+about updating existing local tags:
+
+- never update: what the `default' behaviour does, i.e. when neither --tags nor --no-tags is given
+- only update if it's a fast forward: your refspec without leading \+ and no --force option.
+- always update: + prefix to refspec, --force option. Note that --tags seems to be equivalent to _adding_ refspec ++++refs/tags/*:refs/tags/*+++.
+
+remote.<name>.tagOpt: Either --no-tags or --tags, i.e. the option passed to fetch.
+
+git pull by
+- default does not push tags?
+- option --tags tells to push all refs under refs/tags, in addition to
+  refspecs explicitly listed on the command line.
+- push.followTags / options --follow-tags / --no-follow-tags (undocumented in
+  git push, but in git config). In addition to what would otherwise be pushed,
+  also push annotated tags pointing at commit-ish that are reachable from the
+  refs being pushed.
 
 
 == Patches
@@ -78,18 +105,6 @@ become unreachable, eventually they will be pruned by the garbage collector.
 - ++git apply -3 foo.patch++
 
 
-== Specifying revisions
-
-start with empty set
-
-r: include set of commits reachable from r, incl. r.
-^r: exclude set of commits reachable from r, incl. r.
-
-r1 r2: union of r1 and r2
-\^r1 r2 / r2 ^r1 / r1..r2 : difference: 
-r1\...r2: symmetric difference
-
-
 == Undo Mistakes
 In addition to what is under chapter transitions.
 
@@ -97,16 +112,61 @@ In addition to what is under chapter transitions.
 ++git reset++::
 ++git commit --amend++::
 ++git checkout -f++:: Throw away local changes
+++git rebase --interactive++::
 ++git filter-branch++::
-++git rebase++::
 
-== Submodules
 
-\... submodules are meant for different projects ... while the history of the
-two projects still stays completely independent
+== Questions
 
-Now that we already have different projects, _adding_ a super project does not
-harm mutch.
+What's the difference between ++git log++ and ++git rev-list++?::
+  They are mostly the same. log is from the porcelain layer, rev-list from
+  plumbing, thus rev-list is seldom used. There are only a few things rev-log
+  can do which log can't. See also
+  http://www.amailbox.org/mailarchive/git/2008/5/30/1983864/.
+
+Refspec for fetch::
+  Note that the fully qualified name for local branches is refs/heads/<name>, and for remote tracking branches its refs/remotes/<remote-name>/<name>. See also SPECIFYING REVISIONS in git-rev-parse(1). Thus fetching only some branches results in e.g. (`refs' already left away) ++fetch origin R8.0:remotes/origin/R8.0 R9.1:remotes/origin/R9.1++. Still, why does it now I don't mean a local branch FQN 'refs/remotes/origin/R9.1`? It `missinterprets' ++fetch origin R9.1:origin/R9.1++ and ++fetch origin R9.1:R9.1++. The more basic Question maybe is: what are the rules as in SPECIFYING REVISIONS in git-rev-parse(1) when creating (opposed to lookup) a ref name?
+
+
+- What happens with the `branch name/reference' after merging?
+- Where is the beginning of a branch, i.e. up to where does ++git branch -d++
+  delete? Possibly the commit given when the branch was created?
+- What's the difference between a reamote branch and a branch. Why is it `only'
+  remote? I made a clone, didn't I?
+- upstream branch?
+- From http://stackoverflow.com/questions/67699/how-do-i-clone-all-remote-branches-with-git
+----------------------------------------------------------------------
+If you just want to take a quick peek at an upstream branch, you can check it out directly:
+$ git checkout origin/experimental
+But if you want to work on that branch, you'll need to create a local tracking branch:
+$ git checkout -b experimental origin/experimental
+----------------------------------------------------------------------
+Why is the first checkout not good enough? what happens if i do git commit there?
+- difference ++git reset++ +--hard+/+--soft+. Now does both completely remove
+  commits or not? Or is a new commit created which undoes the unwanted commits?
+- `You can check out those (remote) branches like a normal branch, but you should
+  not change them.' So, what would happen?
+- what exactly does ++git branch -d++ delete? Only the reference, or also commits?
+- difference revision - commit? Add to terms
+- What's the difference between ++git describe++ and ++git name-rev++?
+
+
+== Tune rename heuristics
+
+git diff --summary -M10% <commit> <commit> -- <path>...
+
+git cherry-pick --strategy="recursive" --strategy-option="rename-threshold=10%" <commit>...
+
+git config merge.renameLimit 99999999
+...
+git config --unset merge.renameLimit
+
+
+== submodules
+
+gitlink: +git add path+ (without trailing slash), path being top-level directory of a git repository. Seems to work without respective  .gitmodules or .git/config config. Also subsequent commit, and later checkout of that commit.
+
+git clone (non recursive) creates the dirs of submodules, but does nothing more than that, i.e. it does not clone/checkout them.
 
 Superproject has socalled `gitlink' tree entries in its trees (commit and
 index). A gitlink refers to a particular commit obj in the inner
@@ -141,123 +201,5 @@ procedures: `checkout', `rebase', `merge', `custom command', `none'.
 ++submodule init; ...; submodule update++ vs ++submodule update --init++. The
 former is intended for the case where you want to customize submodule related
 config in .git/config.
-
-
-== Terms
-
-See also gitglossary(7) man page.
-
-
-== Questions
-
-What's the difference between ++git log++ and ++git rev-list++?::
-  They are mostly the same. log is from the porcelain layer, rev-list from
-  plumbing, thus rev-list is seldom used. There are only a few things rev-log
-  can do which log can't. See also
-  http://www.amailbox.org/mailarchive/git/2008/5/30/1983864/.
-
-Refspec for fetch::
-  Note that the fully qualified name for local branches is refs/heads/<name>, and for remote tracking branches its refs/remotes/<remote-name>/<name>. See also SPECIFYING REVISIONS in git-rev-parse(1). Thus fetching only some branches results in e.g. (`refs' already left away) ++fetch origin R8.0:remotes/origin/R8.0 R9.1:remotes/origin/R9.1++. Still, why does it now I don't mean a local branch FQN 'refs/remotes/origin/R9.1`? It `missinterprets' ++fetch origin R9.1:origin/R9.1++ and ++fetch origin R9.1:R9.1++. The more basic Question maybe is: what are the rules as in SPECIFYING REVISIONS in git-rev-parse(1) when creating (opposed to lookup) a ref name?
-	
-
-- What happens with the `branch name/reference' after merging?
-- Where is the beginning of a branch, i.e. up to where does ++git branch -d++
-  delete? Possibly the commit given when the branch was created?
-- What's the difference between a reamote branch and a branch. Why is it `only'
-  remote? I made a clone, didn't I?
-- upstream branch?
-- From http://stackoverflow.com/questions/67699/how-do-i-clone-all-remote-branches-with-git
-----------------------------------------------------------------------
-If you just want to take a quick peek at an upstream branch, you can check it out directly:
-$ git checkout origin/experimental
-But if you want to work on that branch, you'll need to create a local tracking branch:
-$ git checkout -b experimental origin/experimental
-----------------------------------------------------------------------
-Why is the first checkout not good enough? what happens if i do git commit there?
-- difference ++git reset++ +--hard+/+--soft+. Now does both completely remove
-  commits or not? Or is a new commit created which undoes the unwanted commits?
-- `You can check out those (remote) branches like a normal branch, but you should
-  not change them.' So, what would happen?
-- what exactly does ++git branch -d++ delete? Only the reference, or also commits?
-- difference revision - commit? Add to terms
-- What's the difference between ++git describe++ and ++git name-rev++?
-
-
-
-== Cotchas
-- After resolving merge conflicts, or after doing anything to your files after automatic merge without automatic commit, make sure to add all the changes you want to the index, and thus to the next commit, (typically all) with +git add+.
-- *rebase*: if you merge two branches which are based upon a commit with wrong eol (but the branch heads are ok), you're in hell. try use tortoise conflict editor, it doesn't see the whole file as in conflict.
-- *sync*: Pushing changes to remote how? Currently I push unmerged feature branches and merge on the `central' (aka ~vss) repo.
-
-== SmartGitHg
-
-=== cumbersome to use / missing featurres
-- See Guis/Rebase
-- when merging to branches, the commit message has includes the sha1 of the merged commit instead the branch name (may
-
-=== bugs
-- saves with eol unix style (mindestens merge conflict editor).
-  * find -iname '*.cpp' -o -iname '*.h' | xargs perl -ne 'if (/\n/ && !/\r\n/) { print "$ARGV:$.:"; close ARGV } if (eof) {close ARGV}'
-	* find -iname '*.cpp' -o -iname '*.h' | xargs perl -ne 'if (/\n/ && !/\r\n/) { print "$ARGV\n"; close ARGV }' | xargs unix2dos
-
-
-== Git command notes / howtos
-
-Summary of manuals tailored towards me. Notes on how to (best) use certain git commands
-
-== Fetch
-refspec:
-  src: <refname> applyied within the remote repo. Howto resolve, see git-rev-parse(1)/SPECIFYING REVISIONS/<refname>
-	dst: <refname> applyied within the local repo. Howto resolve, see ??? probably again git-rev-parse(1), but the name must be almost fully qualified, only "refs/" can be left away.
-	
-== Pull
-refspec: see chapter fetch
-
-Which branch to merge into HEAD: see git-pull(1)/DEFAULT BEHAVIOUR
-
-
-=== Rebase
-
-==== Cookbook
-- ++git rebase -i++
-- Edit, remove changes:
-  * ++git reset --soft++
-	* Edit index with smart git. That only works if one of the sides is the working tree. For that, you may have to unstage the file in question. Alternatively, you can use the edit index feature. 
-	* ++git commit -a -c HEAD{1}++
-	* ++git rebase --continue++
-
-==== Problems
-CLI::
-- Funny problems when files are on a cifs. It seems that they go away when client's clock is ahead of server's clock.
-Gitk::
-Does not offer it
-SmartGit::
-- Apperently can not nicely rebase two branches, only a commit onto a branch, or a branch onto its tracking branch.
-- The original head moves (which it shoudn't) and the from-branch is not moved (only the commits). 
-- Note the eol bug of the conflict resolution editor
-Tortoise::
-- _Bug_ I again haid funny eol problems when rebasing a branch upon another. One file had the wrong line teminator. Git (CLI) had no problem doing it.
-- _Bug_ Suash does not work, it behaves as pick
-- _Kludge_ List is inverse compared to how +git rebase -i+ does it.
-- Nice `interactive rebase' editor.
-- From Shell (i.e. context menu) can only rebase branches onto branches.
-- From Log can rebase current branch
-onto arbitrary commit.
-Git Extensions::
-- _Bug_ The last rewritten commit behaves funny, it seems to remove all files.
-
-=== Graphical log
-- Tortoise and QGit are the only ones that displays it in a way I find it convenient
-
-== Misc
-
-g diff --summary -M10% <commit> <commit> -- <path>...
-
-git cherry-pick --strategy="recursive" --strategy-option="rename-threshold=10%" <commit>...
-
-git config merge.renameLimit 99999999
-...
-git config --unset merge.renameLimit
-
 
 //  LocalWords:  pathspec
