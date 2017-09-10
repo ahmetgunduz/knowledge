@@ -3,8 +3,8 @@
 
 = Programming practices
 
-This is about language agnostic programming practices.  See also
-++C\++_practices.txt++.
+This document is about programming language agnostic programming practices.
+See also ++C&plus;&plus;_practices.txt++.
 
 
 [[cost_effective]]
@@ -23,15 +23,16 @@ correctly.
 
 == General / Basic Axioms
 
-Defaults / guidelines help to not overthink, but don't stop thinking.
+Learn the rules so you know how to break them properly.  Guidelines help to
+not overthink -- but don't stop thinking.
 
 [[KISS]]
-- _KISS_ principle -- Keep it simple, stupid.  Keep simple things simple.
-  Don't make complex things unnecessarily complex.
-  Nearly all tips / heuristics to achieve cost effectiveness are based on that
-  in one way or the other.
-+
-Make an entity easy to be used correctly and hard to be used incorrectly.
+- KISS principle -- Keep it simple, stupid.  Keep simple things simple.  Don't
+  make complex things unnecessarily complex.  Nearly all principles to achieve
+  cost effectiveness are based on that idea in one way or the other.
+
+[[easy_to_use_correctly]]
+- Make an entity easy to be used correctly and hard to be used incorrectly.
   Mind Murphy's law: Anything that can go wrong, will go wrong (sooner or
   later).  Similarly: to err is human (i.e. for a human it is especially
   likely that if he can do an error he will, probably rather sooner than
@@ -39,125 +40,46 @@ Make an entity easy to be used correctly and hard to be used incorrectly.
   incorrectly, and that will happen the sooner and the more likely the more
   clients / usages there are.  It's e.g. hard if the client must not forget to
   do certain actions, even worse when that must be in a certain order, and /
-  or when arguments must fulfill a predicate.  Clever programmers like writing
-  clever code, but we don't like maintaining clever code.  Debugging is twice
-  as hard as writing the program in the first place.  So, if you're as clever
-  as you can be when you write it, how can you debug it?
-+
-Premature optimization is the root of all evil.  Prefer clear over optimal.
-  Law of diminishing returns: The benefits of a more optimal solution might
-  not outweigh the costs of increased complexity.  It's much easier to make a
-  slow correct program fast than to make an fast incorrect program correct.
-  Most programs are I/O bound anyway, not CPU bound.  Measure / profile with
-  real world data and HW (e.g. CPU cache properties are important).  Many
-  times even experts are wrong when guessing which of multiple variants is
-  more optimal and/or where the hot spots are.  *to-do*: tips with the topic
-  that a good heuristic is to not implement a feature unless you really need
-  it now.
-+
-But also don't overshoot by making it too simple or care too less about
-  optimizations: Make it as simple as possible, but not simpler.  Don't
-  pessimize prematurely: prefer more optimal when equally clear.  Always look
-  out for inefficiencies where you can get the task done with less work and
-  equally clear code.  A lot of small inefficiencies add up and are difficult
-  to profile, since its a lot of small things that make the program slow. 
+  or when arguments must fulfill a predicate.
 
-Simple = Make the code directly express intent.
-
-- Work methodology: Decompose a big complicated task / step (see
-  <<divide_and_conquer>>) into small easy tasks / steps.  Each step is focused
-  on a single topic / gain (see also <<SRP>>) and has quick <<feedback>>.
-+
-Topics of leaf steps: 1) add / modify a specification aka test which
-  necessarily makes a test fail 2) make the test green by modifying
-  productive code to fulfill the new / modified specification 3) optimize test
-  or productive code.
-+
-Top level optimizations: optimize structure aka do a refactoring, optimize
-  resource usage at build time aka optimize build time, optimize run time aka
-  optimize resource usage at run time.
+- You aren't gonna need it (YAGNI): Don't implement a feature until you really
+  need it now. Comes down to <<KISS>>: Don't introduce complexity if it's for
+  certain that it is needed.
 
 - Make common use cases brief and easy to use, while not making seldom use cases
   impossible to use.
 
-[[feedback]]
-- Work methodology: (Quick) feedback for each step, the closer in time the
-  better, the less manual work (slow, error prone) -- i.e. the more automated
-  work (fast, repeatable) -- for getting feedback the better.  Each step
-  should be accompanied by a feedback whether the step was made correctly.
-  <<pair_programming>>, peer <<reviews>>, Build tools (compiler, linker,
-  analysis tools (static, dynamic)), automated tests (locally (typically
-  unenforced) and enforced as part of continuous integration), manual tests.
-  High level steps have high level tests associated, and leaf steps have low
-  level tests (i.e. unit tests) associated.
+- Clever programmers like writing clever code, but we don't like maintaining
+  clever code.  Debugging is twice as hard as writing the program in the first
+  place.  So, if you're as clever as you can be when you write it, how can you
+  debug it?
 +
-Try that problems pop up as high up as possible in the following chain
-  * find problems on the fly while editing: configure IDE to run the following
-    steps on the fly in the background and make problems apparent to you,
-    e.g. by highlighting them in the editor.
-  * find problems at (local) build time: as high warning level as possible,
-    make warnings errors, prefer compiler error over linker error, ...
-  * find problems at (local) `extended' build time: automated tests, static
-    code analysis, ...
-  * ... *to-do*
-  * Problems which really seldom show up at run-time, e.g. in seldom executed
-    code (automated tests help to reduce the amount of code that is seldom
-    executed)
-   ** Problems in error handling code.  When the API changes the exception
-      safety (e.g. from strong to a lesser one), which is not detectable by
-      the compiler.
+Not having to be smart is a good sign. It's good if we _don't_ have choices,
+  then we can do it only exactly one way, and we don't have to and don't try
+  to be smart about making apparently good choices.
 
-  
-[[pair_programming]]
-[[review]]
-- Work methodology: Pair programming and or code reviews.  Rational
-  additionally to benefits of <<feedback>>: Two eyes see more than one.
-  Distribution of knowledge (code base, working methodologies, tools, ...).
-  Less chance of allowing oneself to be sloppy.
+- Code is read much more often than it is written. Thus it pays off to invest
+  time in writing readable, comprehensible code.
 
 [[redundancy]]
-[[dry]]
 - Redundancy is the primary enemy of a well-designed system.  Opposite of
   <<reuse>>.  Similarly: Don't repeat yourself (DRY). Applies to everything:
   code, data, comments, ....  Rational: It's _very_ difficult to _each time_
   _correctly_ update _all_ redundant parts if one part changes.  Such a
-  difficulty is clearly the opposite of <<KISS>>.
+  difficulty is clearly the opposite of <<easy_to_use_correctly,make an entity
+  easy to be used correctly and hard to be used incorrectly >>.
 
-- Choose constructs / names which _directly_ express the intend of what is
-  accomplished. The readers mind should not be troubled with unneeded
-  transformations / indirections he has to do in his head which drains his
-  mental power, i.e. takes away power for the important stuff; everything should
-  already be written directly in the code in plain. Based on <<KISS>> /
-  ``...easy to be used correctly ...''. When each reader has to do
-  transformations in his head, sooner or later one will make a mistake. Programs
-  should be written for people to read, and only incidentally for machines to
-  execute.
-+
-Good naming. A name should be short and sweet and to the point (German: kurz
-  knapp und prägnant). Names do / store what the average reader expects, do not
-  omit important to know responsibilities, do certainly not mislead, the actual
-  behavior is not surprising. This is goes together with the <<SRP>>, since an
-  entity with multiple responsibilities is unlikely to have a good name,
-  i.e. one that fulfills the previous description.  Code should read as
-  English prose when read from left to right -- and do what the average reader
-  understands from that English prose.
-+
-Tips: 1) Given a function does too many things, and given you can't change that
-  at the moment, choose a rather short deliberate broad name as opposed to a
-  very long name trying to describe everything. 2) All the words in a name
-  should also occur in its brief description.
+[[reuse]]
+- Reuse code, especially (standard) library code, instead of handcrafting
+  your own.  Don't reinvent the wheel.  Is essentially the same advice as to
+  avoid <<redundancy>>.  In general the standard library code is _much_ better
+  tested than anything you will write.
 
-[[encapsulation]]
 [[SRP]]
-[[divide_and_conquer]]
-- Principle of encapsulation, necessarily combined with that each capsule /
-  entity follows the single responsibility principle (SRP, S of
-  SOLID).  Everything belonging to a given capsule (buzzwords: API,
-  declaration, implementation, state / data, behavior / methods) is localized,
-  i.e. in close proximity. See also code <<reuse>>.
-+
-Similarly: Divide and conquer, i.e. divide a big complicated task /
-  responsibility into small easy tasks / responsibilities.
+- Single responsibility principle (SRP). Each entity (type (class), function,
+  variable, ...) should only have one single clearly defined
+  responsibility. The UNIX philosophy sais the same in different words: Do One
+  Thing and Do It Well (DOTADIW).
 +
 Rational: Then the mind can concentrate on one topic at a time when looking at
   the implementation of an entity, or put the other way round, when thinking
@@ -165,12 +87,33 @@ Rational: Then the mind can concentrate on one topic at a time when looking at
   implementation of a single localized entity.  The more complex a task is, the
   more important that principle is.
 
-[[reuse]]
-- Reuse code -- especially (standard) library code -- instead of handcrafting
-  your own.  Don't reinvent the wheel.  Reuse is <<SRP>> stated in the inverse
-  direction: one responsibility (idea, task, ...) should be implemented by
-  only one capsule / entity.  Reuse is the opposite <<redundancy>>.
+[[command_query_separation]]
+- Command-query separation (CQS): Asking questions should not change any
+  answer.  More formally, methods should return a value only if they are
+  referentially transparent (and hence possess no side effects).
++
+Queries: Return a result and do not change the observable state of the system
+(are free of side effects). The onlye effect is to return a value.
++
+Commands (aka modifier, mutator, action): Change the state of a system but do
+not return a value. The only effect is to change the state of the system (but
+not to return a value).
 
+[[divide_and_conquer]]
+- Divide and conquer. Divide a big complicated task (of the program) /
+  responsibility into small easy tasks / responsibilities.  Can be seen as a
+  consequence of the <<SRP>>: If an entity becomes too large, i.e. currently
+  has more than one responsibility, it should be divided into multiple
+  entities, each one having a single responsibility.
+
+[[encapsulation]]
+- Principle of encapsulation. Everything belonging to a given topic /
+  responsibility should be in close proximity, and should thus be put into one
+  capsule / entity (typically class or function). Rational: While the mind
+  concentrates on this one topic, one has to look only at that single capsule,
+  opposed to jump around multiple scattered places.
+
+[[information_hiding]]
 - Information hiding is part of doing encapsulation properly: Each capsule has
   an API through which other capsules (called clients) can talk to it, and an
   implementation which is hidden from the clients.  If done right that ensure
@@ -182,16 +125,15 @@ Rational: Then the mind can concentrate on one topic at a time when looking at
   its implementation while all clients can remain unmodified.
 
 - Explicit is better than implict, because intentional is better than
-  accidental.  Specialization of <<KISS,make it easy to be used correctly and
-  hard to be used incorrectly>>.
+  accidental.  Specialization of <<KISS>>.
 
 - On ``unintentional point of customization'' (probably specialization of the
   above):  E.g. operator overloads, in particular a) defined in wrong
   namespace b) used in a way that allows unintentional point of customization.
 
-- About APIs and relationships: The client should have to know as few things as possible
-  (i.e. do divide and conquer properly).  I.e. make the API as simple and thin
-  as possible.
+- About APIs and relationships: The client should have to know as few things
+  as possible (i.e. do <<divide_and_ conquer>> properly).  I.e. make the API
+  as simple and thin as possible.
   * Heuristic: Choose the weakest relationship that is practical (e.g. see
     `prefer composition over inheritance').
   * Formal API: A change forces clients to recompile.  Thus the smaller the
@@ -199,9 +141,9 @@ Rational: Then the mind can concentrate on one topic at a time when looking at
     times.  Note the whole formal API is a tree of formal APIs, types
     referenced also have a formal API which needs to be known /
     parsed.  Forward declarations are maximally small.
-   - Accessible (and thus also visible) part of formal API:
-   - Visible but not accessible part of formal API: A change requires clients
-     to recompile although not really needed.
+   ** Accessible (and thus also visible) part of formal API:
+   ** Visible but not accessible part of formal API: A change requires clients
+      to recompile although not really needed.
   * Semantic API: The less complexity a client has to know, the easier it is
     to correctly use the API.
 
@@ -234,9 +176,9 @@ Rational: Then the mind can concentrate on one topic at a time when looking at
   also hopefully small.  On the other hand, all derived classes have access to
   protected members, and everybody has access to public members, which is in
   both cases an unknown / potentially unlimited amount of clients, i.e. it can
-  be impossible to find all of them.  Then again in practice, it's most of the
-  times quite easy to find all clients accessing the public / protected
-  interface.
+  be impossible to find all of them.  Then again in practice when you don't
+  write a library, it's most of the times quite easy to find all clients
+  accessing the public / protected interface.
 
 - Use polymorphism (sub typing aka inclusion polymorphism or parametric
   polymorphism or dynamic polymorphism) aka program to an interface (meaning
@@ -256,185 +198,410 @@ Rational: Then the mind can concentrate on one topic at a time when looking at
   based on <<KISS>>, getting concurrency related issues right is very
   difficult.
 
-- Less intelligent classes / layers should depend on more intelligent classes
-  / layers (better even have an abstraction in between, see DIP).  It's better
-  if the dumber classes need to be changed after a change in a smarter class
-  than vice versa since it is a simpler task.  Example of DIP: X shall depend
-  on an interface IXLogger which has to be implemented by a concrete logger,
-  opposed to that X uses the interface or concrete logger provided by a
-  concrete logger.
+- Dump classes / layers should depend on intelligent classes / layers (better
+  even have an abstraction in between, see DIP).  It's better if the dumber
+  classes need to be changed after a change in a smarter class than vice versa
+  since it is a simpler task.
 
 - The boy scout rule: ``Always leave the campground cleaner than you found
   it.''.  Improve the code base step by step.  Broken window theory: humans
   are likely to keep clean code clean and are also likely to let decay rotten
   code even more.
 
-
-
-== Small scale patterns
+- Robustness Princliple (aka Postel's Law): Be conservative in what you do, be
+  liberal in what you accept from others. However some say that this is too
+  gentle, they say you should also be conservative in what you accept from others.
 
 [[prefer_immut_to_mut]]
-- Heuristic: Prefer immutable objects to mutable objects.  Rational: Largely
-  based on <<KISS>>.  Const objects are easier to reason about (*to-do*: why
-  exactly? 1) They can't be modified accidentaly), inherently thread safe
-  (*to-do*: ref to concurrency), larger opportunity to make optimizations for
-  the compiler.  Members should not be public in general, but if they are at
-  least const then class invariants can still be enforced.  Classes meant for
-  immutable objects exclusively are easier to implement than their
-  counterparts which allow mutable objects.
-  *to-do*: Digest http://www.gotw.ca/gotw/006.htm,
-  http://herbsutter.com/2013/05/28/gotw-6b-solution-const-correctness-part-2/,
-  http://www.gotw.ca/gotw/081.htm, Effective C&plus;&plus; Item 3.  However those are not language agnostic
-  but C&plus;&plus; related.
- * In a method declaration a parameter should not be marked const, since it
-   has no effect whatsoever.
- * In a method definition, the normal guidelines apply whether or not a
-   parameter (which is just a local variable) should be const or not.
- * Prefer const member methods to non-const member methods
- * *To-do*: in case of return by value, should return type be const or not?
-   For C&plus;&plus;11, to support rvalue references, all seem to agree that
-   non-const is the better heuristic.  Before C&plus;&plus;11: Gotw says const
-   for non builtin types, Effective C&plus;&plus; Item 3 says const (however
-   the errata http://www.aristeia.com/BookErrata/ec++3e-errata.html
-   relativates).  I personally think trains like
-   x.strip(...).reverse(...)... are `good', and they need mutable objects (no
-   they don't, probably they modify the this object and return a reference to
-   the this object).  Also I feel that the returned object belongs to the
-   caller, so it's the caller who can decide about constness.  I think when
-   declaring return type const the callee patronizes _all_ it's callers
-   telling them (one could oppose that the caller can use const cast, but that
-   makes the trains very verbose and inconvenient )
- * Prefer const member methods over non-const.  Rational: 1) Allows working
-   with const objects.  2) The interface is easier to understand when one
-   knows which methods do modify an object and which don't.
+- Prefer immutable objects to mutable objects.  Rational: Largely based on
+  <<KISS>>.  Const objects are easier to reason about. They can't be
+  modified. They are inherently thread safe.  Larger opportunity to make
+  optimizations for the compiler.  Members should not be public in general,
+  but if they are at least const then class invariants can still be enforced.
+  Classes meant for immutable objects exclusively are easier to implement than
+  their counterparts which allow mutable objects.
+
+- What is clean code? Catch-phrases from answers of programming gurus:
+ * simple
+ * reads like prose
+ * logic is straightforward
+ * does not obscure the writters intent
+ * each routine you read turns out to be pretty much what you expected
+ * does one thing well
+ * provides one way, rather than many, for doing one thing
+ * minimal dependencies/API
 
 
-[[prefer_ref_to_ptr]]
-- Heuristic: Order of preference: 1) T& 2) T*const 3) T*. Rational: 1)
-  <<prefer_immut_to_mut>> makes 1 and 2 come before 3.  2) <<KISS>> makes 1
-  come before 2 and 3, because 1 can ignore the special case of a null
-  pointer.  Similarly, if `no object' is not a use case, use a reference.  Try
-  to avoid the need for the use case `no object', e.g. via a null object.
+== Naming
 
-- C&plus;&plus;: How to declare parameters aka how to pass an argument of type
-  ++T++.  When in the following multiple types are given as answer, use
-  <<prefer_ref_to_ptr>> and <<prefer_immut_to_mut>> to choose the final
-  concrete type.
+A program is made up of names. Having good names is one of the most important
+parts, if not the most important part, to make a program comprehensible.
+
+- Code should read as English prose when read from left to right -- and do
+  exactly, without any surprises, what the average reader understands from
+  that English prose.  Programs should be written for people to read, and only
+  incidentally for machines to execute. When code just reads like prose,
+  without the needs for comments, then you accomplished the goals of good
+  naming.
 +
---
-  * Method reads-only from argument: See Rational 1.
+Try different names, look at the resulting code that uses the name, how it
+  feels / reads.
 
-   ** pass by value: +const T+ or +T+ if +T+ is one of: fundamental type,
-      (raw) pointer, iterator.
+- Choose names which _directly_ express the intend of what is
+  accomplished. Use intention revealing names.
 
-   ** pass by (const) reference: ++T const&++ or ++T const* const++ or ++T
-      const*++ if +T+ is another type (inclusive +shared_ptr+).
+- Expressed from the other side: Avoid mental mapping. Names which do not
+  directly express intend require mental mapping.  The readers mind should not
+  be troubled with unneeded transformations / indirections. That only drains
+  mental power; less mental power is available for the important stuff. When
+  each reader has to do transformations in his head, sooner or later one will
+  make a mistake. Most very short names (a,b,x,y,tmp) are used as placeholder,
+  and the reader always has to map them to the actual concept.
 
-  * Method writes to argument: ++T&++ or ++T*const++ or ++T*++.
+- A name should be short and sweet and to the point (German: kurz knapp und
+  prägnant).
 
-  * Method wants a copy of the argument in a local object: ++T++ (aka pass by
-    value). See Rational 2.
+- When the single responsibility principle is vioalated, e.g. when a variable
+  / type does more than one thing, it is likely that you can't come up with a
+  good name. Or vice versa, if you have troubles comming up with a good
+  acurate name it can be a sign that the SRP is violated.
 
-  * Method wants a copy of the argument in a non-local object: two versions,
-    i.e. overload, one +const T&+ and one +T&&+. (*to-do*: really? it it was
-    my own idea after looking at e.g. stl's push_back)
+- Use pronouncable names. The human brain is good at words, which are by
+  definition pronouncable.
 
-  * Method has sink semantics (take / share ownership of an object and keep
-    ownership longer than the call duration) regarding the argument:
-    ++unique_ptr<T>++ (take ownership) or ++shared_ptr<T>++ (share
-    ownership). See rational 3.  *to-do* why not ++unique_ptr<T>&&++, so the
-    caller has to make it explicit that he knows ownership is transfered.
+- Be consistent. The same thing / concept has always the same name, and
+  exactly same spelling. So the reader doesn't need a table for which names
+  are synonyms.
 
-  * Note regarding smart pointers: In short: The above rules still hold.  See
-    rational 4.  *to-do*: none of this talks about the use case of the caller
-    having an aliased smart pointer.
+- Make meaningfull distinctions. In a set of similar but slightly different
+  things, be especially carefull in naming them. E.g. the names could point
+  out what the similarity is, but also what the individual
+  difference is. Don't use noise words to make a distinction. It's then only a
+  pseudo distinction. Customer instead customerInfo, account instead
+  accountData.
 +
-When T is a non-smart-pointer type, and the method is interested in T, then
-  use the above rules, i.e. don't pass the smart pointer object in any way
-  (assuming that smart pointer object is not aliased).  That is more abstract
-  (*to-do*: link to point which says `use as abstract abstractions as
-  possible') than a given smart pointer.  When T is a smart pointer,
-  i.e. the method needs to read and / or write to the smart pointer object,
-  the above rules still hold.
+As the feature set gets bigger and bigger, names must change, when new
+  names have similarities/differences with existing names to make those
+  similarities/differences clear.
 
-Rational 1: Choose pass by value when the cost of one copy construction and one
-  destruction of a T is smaller than the cost of copying the reference /
-  pointer and the indirections.  Choose pass by reference / pointer otherwise,
-  or when T does not support both a copy constructor accessible to the caller
-  and a destructor accessible to the method.
+- Don't be cute. Don't show off your smartness. Everyone should be able to
+  read the code. Choose clarity over entertainment value. Bad examples: whack
+  for an premature abort. r for an url with host and
 
-Rational 2: So the compiler has more ways to optimize the copy (move, use the
-  original object, ...).
+- Avoid disinformation. E.g. inconsistent naming. Words that have different
+  meanings in the business language than in the programming language.
 
-Rational 3: *to-do*: why is that a special case?  Shouldn't it be part of the
-  others, or are there more special cases like this one?
+- Avoid noninformation. Words like manager, processor, data, info are
+  non-informative.
 
-Rational 4: Rational for why function is not required to get smart_ptr<T> in
-  any way when it is only interested in T.  Due to structured lifetimes, the
-  smart pointer object (assumed it is directly or indirectly stored on stack
-  and is not directly or indirectly aliased *to-do* these are a lot of
-  assumptions!  is that really still a good guideline then?) will not change
-  during the function call, thus it is certain that the pointee owned by the
-  smart pointer will not be deleted by anyone.  Note that passing a ++const
-  smart_ptr<...> &++ or ++const smart_ptr<...> *++ is strange, pass +T+
-  directly in an appropriate variant, unless the method really reads from the
-  smart pointer object itself.
+- Use solution/problem domain names
 
-See also <<gotw_smart_ptr_params>>.
---
+- Use nouns for types. Use imperative verbs for functions being a command (aka
+  procedure) (don't use `set...\'), use nouns for functions being a query
+  (don't use `get...').
 
-- C&plus;&plus;: Classes should behave as the builtin types.  *to-do* 1)
-  examples 2) why exactly is that good?
+- If an identifier declaration _requires_ a comment, it's a smell.
+
+- If the brief part of the comment doesn't use the same words that make up the
+  identifier name, it's a smell.
+
+- Length of identifier should correspond to the size of its scope. Local names
+  can be short, members can be medium, class/type names shoudn't be short.
+  Shorter names are generally better; however they must be clear in their
+  whole scope.
+
+- Don't be afraid of renaming. The better readability pays off for all future
+  reading of the code.
 
 
-== Redirections
+References:
 
-All problems in computer science can be solved by another level of indirection
-(... except for the problem of too many levels of indirection).
+- Chapter 2 of "Clean Code", Robert C. Martin
 
-1. Literal constant.  If used multiple times, there is redundancy.  If
-   value(s) are changed or if type(s) are changed, client needs to be
-   recompiled.  In the case of type change, the clients potentially also need
-   to be modified.
 
-2. Preprocessor macro; adds a redirection at preprocessor time.  Adds reuse /
-   elimination of redundancy.
+== Comments
 
-3. Immutable data object whose address is a compile time constant and whose
-   value is visible to a client.  Opposed to 2, the indirection is now at
-   compile time.
+- The code is the truth.  It is the _only_ source of truly accurate
+  information.
 +
-*to-do* Depending on the use case more type safety than 2, however that is not
-   directly the topic, here it's about benefits of redirection.
+Thus code must largely document itself.  Code must be easily comprehensible by
+  human readers.
++
+If the comment does not agree with the code, it is not worth mutch. Thus code
+  must largely document itself. Compilers don't read comments, i.e. the
+  validity of comments is not checked.
++
+Self explanatory code which truly doesn't need comments.  Better spend
+  energy in self explanatory code than good comment.  If you feel like writing
+  a comment, think if you not better cleaned up the code.  Use well-named
+  variables or methods instead comments.  Possibly introduce new variables or
+  sub methods.
 
-4. Data object whose address is a compile time constant.  Relative to 1) adds
-   an indirection   Globals (non-TLS)
- * immutable.  value can now
-   additionally be modified at compile time without recompiling client.  Note
-   that neglecting link seams, there is still only one value for all
-   executables, in particular a test cannot change it.
- * mutable.  Value can now additionally be modified at run time.
+- If you do have Comments, they must not be redundant to the code. Comments
+  must not parrot the code.  If there is a comment, it should provide
+  additional information that is not readily obtainable from the code itself.
++
+A comment that is redundant to the code, i.e. that parrots the code, is likely
+  that it becomes an lying comment, due to the inherent problems of
+  redundancy. And a lying comment obviously leads to problems.
 
-5. pointer to a data object.  Object can now additionally be substituted at
-  run-time.  Also the substitution can be polymorphically.
+- However, whether the code really is self documenting and whether it really
+  is comprehensible should not just be judged by the author. Show the code to
+  others, make code reviews.
 
-6. pointer to a data object recursively
+- If a programmer can't express herself by writing comprehensible code, why
+  should she suddenly be able to express himself by writing comprehensible
+  comment.
 
-7. method whose address is a compile time constant
+- If too many comments are bad, then experience will tell developers to just
+  skip reading comments. Thus the few comments that are good and really should
+  be read will be skipped too. Bad comments are just clutter, distracting from
+  the important stuff.
++
+Likewise, if comments are rather scarce and good, then readers will really
+  read them, because then comments catch attention, and from experience
+  readers know that the comments really tell non obvious important facts.
 
-// * data object whose address is a (compile time) constant offset from a pointer
-//   which is not under programmer's control
-//  * locals (relative to frame pointer)
-//  * struct/class member (relative to +this+)
-//  * array member
+
+=== Bad comments
+- Prefer no comment over lying comment.  Note that due to the redundancy
+  nature of a comment, any comment becomes a lying comment when one only makes
+  changes to a code fragment but not to the comment associated to that code
+  fragment, and it is hard to not fall into that trap.
+
+- Prefer no comment over a non-informative comment.  A non-informative comment
+  just repeats what is easily understandable by reading the code and thus
+  provides no benefits, only costs.  A non-informative comment is highly
+  redundant.  E.g. don't have a guideline that _every_ method / member /
+  parameter / return value _must_ have a comment.
+
+- When methods just propagate a call, only document the API (or alternatively
+  the method which does the actual implementation). The other method's comment
+  just refers to there.
+
+- Don't `document' a method at all it's N calls sites, document it only at its
+  single definition site.
+
+- Comments behind end of a block stating what the beginning of the block is.
+  That is redundant.  It's the job of the IDE to help you quickly identify
+  what the beginning of the block is.
+
+- `Banners' marking the beginning of a method definition / declaration.
+  That's redundant.  It's the job of the IDE / editor to highlight method
+  definitions / declarations.  At least don't repeat the method name in the
+  banner; that's too high redundancy.
+
+- `Banners' describing a large fragment of code in a function.  Better
+  refactor the method into multiple smaller methods.
+
+- Commented out code.  It's the job of the revision control system to remember
+  old code.  When we really need the code again, it probably won't be usable
+  anyway anymore.  Most probably starting from scratch will be faster anyway.
+
+- Don't tell in a comment of a method definition who calls it.  That is
+  redundant.  And it should not matter.
+
+
+=== Where / how to use comments
+
+- Emphasis of things which might be otherwise overlooked
+
+- Warning of consequences.  Prevent others from making dangerous changes
+  because an issue is hard too see.
+
+- Make clear to which part a comment applies.  E.g. just before an (if,
+  while, ...) block.
+
+- Document why you do it like you did it
+
+- If you can't bring yourself to clean up a messy part, at least write a
+  comment which states possible problems (for a bug-searcher) and ideas for a
+  improvement
+
+
+
+[[optimization]]
+== Optimization
+
+- You can't take the right decisions if you don't have the right information,
+  and you can't have the right information if you don't meausure with the
+  right input data and environment.
++
+Measure / profile with real world data and HW (e.g. CPU cache properties are
+  important).  Many times even experts are wrong when guessing which of
+  multiple variants is more optimal and/or where the hot spots are.
+
+- Premature optimization is the root of all evil.  Prefer clear over optimal.
+
+- Law of diminishing returns: The benefits of a more optimal solution might
+  not outweigh the costs of increased complexity.  It's much easier to make a
+  slow correct program fast than to make an fast incorrect program correct.
+  Most programs are I/O bound anyway, not CPU bound.
+
+- But also don't overshoot by making it too simple or care too less about
+  optimizations: Make it as simple as possible, but not simpler.  Don't
+  pessimize prematurely: prefer more optimal when equally clear.  Always look
+  out for inefficiencies where you can get the task done with less work and
+  equally clear code.  A lot of small inefficiencies add up and are difficult
+  to profile, since its a lot of small things that make the program slow.
+
+
+=== Measurement
+
+- Measure with real world data, with real world builds (i.e. typically release,
+  i.e. typically with optimizations), on real world HW, on real world ....
+
+- Measure different things, and visualize each measurement in different way.
+  Each combination (thing measured, visualization variant) highlights a
+  different class of problems. Only then we have a good overview of all the
+  different problems that we currently have, and can have a sense which one is
+  the most serious one and should be attacked first.
+  * cpu-off time
+  * number of calls of a given method
+  * as perf report
+  * as perf flamegraph
+  * as perf samples displayed in sampling order as flame graph
+
+- On wait time / why seeing wait time (aka cpu off time) can be important:
+  Naturaly a thread might wait for many different reasons, not only for another
+  thread. I.e. its not that over all threads, work is done. E.g. if there are
+  only N entities of a given ressource, when used up, multiple threads wait
+  until they get an entity. Often N is one, e.g. a mutex.
+
+
+== Working methodologies
+
+- Decompose a big complicated task / step (see <<divide_and_conquer>>) into
+  small easy tasks / steps.  Each step is focused on a single topic / gain
+  (see also <<SRP>>) and has quick <<feedback>>.
++
+Topics of resulting leaf steps: 1) add / modify a specification aka test
+  which necessarily makes a test fail 2) make the test green by modifying
+  productive code to fulfill the new / modified specification 3) optimize test
+  or productive code.
++
+Top level optimizations: optimize structure aka do a refactoring, optimize
+  resource usage at build time aka optimize build time, optimize run time aka
+  optimize resource usage at run time.
+
+[[feedback]]
+- Quick feedback for each step, the closer in time the better, the less manual
+  work (slow, error prone) -- i.e. the more automated work (fast, repeatable)
+  -- for getting feedback the better.  Each step should be accompanied by a
+  feedback whether the step was made correctly.  <<pair_programming>>, peer
+  <<reviews>>, Build tools (compiler, linker, analysis tools (static,
+  dynamic)), automated tests (locally (typically unenforced) and enforced as
+  part of continuous integration), manual tests.  High level steps have high
+  level tests associated, and leaf steps have low level tests (i.e. unit
+  tests) associated.
+
+- The earlier bugs / problems are detected the cheaper. Try that bugs don't
+  even find their way into the code base.
+  * Find problems on the fly while editing: Configure IDE to run the following
+    points on the fly in the background and make the found problems apparent
+    to you, e.g. by highlighting them in the editor.
+  * Find problems at (local) build time: as high warning level as possible,
+    make warnings errors, prefer compiler errors over linker errors.
+  * Find problems at (local) `extended' build time: automated tests,
+    static/dynamic code analysis.
+  * Problems which only occur at run-time are a risk. Especially those in code
+    that is seldom executed at run-time. Thus make sure automated tests have a
+    high code coverage.
+
+[[pair_programming]]
+[[review]]
+- Do pair programming and do code reviews. Rational: additionally to benefits
+  of <<feedback>>: Two eyes see more than one.  Distribution of knowledge
+  (code base, working methodologies, tools, ...).  Less chance of allowing
+  oneself to be sloppy.
+
+- Take the time to go fast. The primal conundrum: Experience shows that a
+  messy code slows you down. Yet you feel the pressure to make messes in order
+  to meet deadlines. The *only* way to make the deadline / to go fast is to
+  keep the code clean.
+
+- `Definition of done': A feature / bug is not finished until it has
+  associated automated tests, is properly documented / commented, the final
+  code is comprehensible (i.e. required refactorings are done), etc.
++
+LeBlanc's law: ``Later equals never''. That is, if you don't finish a task
+  properly now, inclusive all needed tests and refactorings etc., you will
+  never do the cleanup. Thus technical dept piles up. Sooner or later you will
+  have to pay back the dept. Often just before you want to do a release: you
+  will pay endless hours of hunting bugs.
+
+- When attacking a problem, e.g. improve efficiency/performance, finding a
+  bug, and after some initial investigation you have different leads, then
+  don't follow one lead for a too long time. Especially when stuck, step back
+  and analyze the situation. Alternate between the leads, like a task
+  scheduler, to avoid being stuck in a `hard' lead and avoid missing
+  evaluating an `easy' lead.
+
+- If in deep shit, step back and honestly analyize what's going wrong and take
+  countermeasures. Even if that means having to admit having made mistakes, or
+  admiting not being good at a given thing/task, or having to go through
+  difficult discussions. `D Wahret muess uf de Tisch'.
+
+- Store gained information, so it's not lost. Even more so if the information
+  is not easily retreivable again. The cost is information management.
+
+- Do it or leave it. Leave it means really leave it. Don't put it on a
+  list. That list will get too big to be of any use.  If the problem persists
+  and is truly a problem, it will not be forgotton but pop up again.
+
+
+== Unsorted
+
+Object relationships:
+Composition:
+  Aggregation: has-a / owns-a
+  Association aka acquaintance aka using: knows-a
+Inheritance: is-a (in terms of Liskov)
+
+Ways of implementing:
+
+In any case:
+
+- Free implementation
+In case of composition:
+- Delegation aka forwarding: Optionally also passing the
+original receiver as parameter
+In case of inheritance:
+- Overriding: replace implementation of base class by an own free implementation
+- Inheriting: overtake implementation of base class without modifying it
+
+We can't look into the future, things/plans/...  change.  Base decisions on as
+much facts as possible, opposed to assumptions.  How about experience?.  Plans
+seldom work.
+
+!!! Differentiate between type definitions and class implementations.  This
+is a semantic differentiation, formally in most languages there is no
+distinction.  The heuristic is to use interfaces (aka pure abstract classes) as
+type definitions !!!
+
+Dependency between a `server' type and an `client' type.  Client is completely
+independent of point 2, the implementation of the `server' type.  Depending on
+the changes to 1, the client needs only to be recompiled, or in worse cases,
+modified.
+1. API between client and implementation
+ a. Formal contract in form of a (full) declaration of the type /
+    function.  Optionally sometimes a simple forward declaration of a name is
+    good enough.
+ b. Semantic contract in prose to specify additional things which can't be
+    specified in the syntax of the programming language.
+2. Define aka implement a type / function, naturally fulfilling contract
+   defined in 1.
+
+Name ranges +first+, +last+ (or even +last_incl+) to make clear that the last
+is inclusive.
+
+Code mess is proportional to Fö&amp;&amp;s per minute.
+
+A cache shall also store that a key is not available in the src, to distinguish
+between cachemiss and cachehit-thereIsNothingInTheSource
 
 
 == Class design
-
-// Excluding inheritance vs composition? Or move it here?
-
-- When overriding, explicitely use +override+. *to-do*: Can't I make compiler
-  warn me when I don't?
 
 
 === Inheritance vs Composition
@@ -578,7 +745,8 @@ Regarding creating test doubles which inherit from the real object
   non-overridable methods are an impediment.  The cure is ... *to-do*
 
 
-== Data vs Program
+
+== Data vs Code
 
 Programs transforms data.  The hardware takes machine code and data as input
 and has data as output.  The programmer's main responsibility is the
@@ -588,354 +756,63 @@ the hardware at hand (classes like small embedded system, consumer home PC,
 server farm, or specific HW, depending on what range of HW the product should
 run).
 
+Bad programmers worry about the code. Good programmers worry about data
+structures and their relationships.
 
-== Comments
+In fact, I'm a huge proponent of designing your code around the data, rather
+than the other way around, [...] I will, in fact, claim that the difference
+between a bad programmer and a good one is whether he considers his code or
+his data structures more important.
 
-- The code is the truth.  It is the _only_ source of truly accurate
-  information, so it better be as easy understandable as possible.  Comments
-  must not be redundant to the code.  It is easy to (accidentaly) write a
-  redundant comment, and due to redundancy's inherent problems, over time, it
-  is likely that it becomes an lying comment.  And a lying comment obviously
-  leads to problems.
 
-- Self explanatory code which truly doesn't need comments.  Better spend
-  energy in self explanatory code than good comment.  If you feel like writing
-  a comment, think if you not better cleaned up the code.  Use well-named
-  variables or methods instead comments.  Possibly introduce new variables or
-  sub methods.
+== Redirections
 
-- If too many comments are bad, then experience will tell developers to just
-  skip reading comments, thus the comments that should be read will not be
-  read.
+All problems in computer science can be solved by another level of indirection
+-- except for the problem of too many levels of indirection.
 
-- Bad comments are just clutter distracting from the important stuff.
+1. Literal constant.  If used multiple times, there is redundancy.  If
+   value(s) are changed or if type(s) are changed, client needs to be
+   recompiled.  In the case of type change, the clients potentially also need
+   to be modified.
 
+2. Preprocessor macro; adds a redirection at preprocessor time.  Adds reuse /
+   elimination of redundancy.
 
-=== Bad comments
-- Prefer no comment over lying comment.  Note that due to the redundancy
-  nature of a comment, any comment becomes a lying comment when one only makes
-  changes to a code fragment but not to the comment associated to that code
-  fragment, and it is hard to not fall into that trap.
+3. Immutable data object whose address is a compile time constant and whose
+   value is visible to a client.  Opposed to 2, the indirection is now at
+   compile time.
++
+*to-do* Depending on the use case more type safety than 2, however that is not
+   directly the topic, here it's about benefits of redirection.
 
-- Prefer no comment over a non-informative comment.  A non-informative comment
-  just repeats what is easily understandable by reading the code and thus
-  provides no benefits, only costs.  A non-informative comment is highly
-  redundant.  E.g. don't have a guideline that _every_ method / member /
-  parameter / return value _must_ have a comment.
+4. Data object whose address is a compile time constant.  Relative to 1) adds
+   an indirection   Globals (non-TLS)
+ * immutable.  value can now
+   additionally be modified at compile time without recompiling client.  Note
+   that neglecting link seams, there is still only one value for all
+   executables, in particular a test cannot change it.
+ * mutable.  Value can now additionally be modified at run time.
 
-- When methods just propagate a call, only document the API (or alternatively
-  the method which does the actual implementation). The other method's comment
-  just refers to there.
+5. pointer to a data object.  Object can now additionally be substituted at
+  run-time.  Also the substitution can be polymorphically.
 
-- Don't `document' a method at all it's N calls sites, document it only at its
-  single definition site.
+6. pointer to a data object recursively
 
-- Comments behind end of a block stating what the beginning of the block is.
-  That is redundant.  It's the job of the IDE to help you quickly identify
-  what the beginning of the block is.
+7. method whose address is a compile time constant
 
-- `Banners' marking the beginning of a method definition / declaration.
-  That's redundant.  It's the job of the IDE / editor to highlight method
-  definitions / declarations.  At least don't repeat the method name in the
-  banner; that's too high redundancy.
+// * data object whose address is a (compile time) constant offset from a pointer
+//   which is not under programmer's control
+//  * locals (relative to frame pointer)
+//  * struct/class member (relative to +this+)
+//  * array member
 
-- `Banners' describing a large fragment of code in a function.  Better
-  refactor the method into multiple smaller methods.
-
-- Commented out code.  It's the job of the revision control system to remember
-  old code.  When we really need the code again, it probably won't be usable
-  anyway anymore.  Most probably starting from scratch will be faster anyway.
-
-- Don't tell in a comment of a method definition who calls it.  That is
-  redundant.  And it should not matter.
-
-
-=== Where / how to use comments
-
-- Emphasis of things which might be otherwise overlooked
-
-- Warning of consequences.  Prevent others from making dangerous changes
-  because an issue is hard too see.
-
-- Make clear to which part a comment applies.  E.g. just before an (if,
-  while, ...) block.
-           
-- Document why you do it like you did it
-
-- If you can't bring yourself to clean up a messy part, at least write a
-  comment which states possible problems (for a bug-searcher) and ideas for a
-  improvement
-
-
-== Meaningfull Names
-Florian Kaufmann <sensorflo@bigfoot.com>
-
-A summary of chapter 2 of "Clean Code", Robert C. Martin
-
-=== Motivation
-
-- One part of clean code   
-- Names are everywhere (Files,Classe,Methods,...)
-- We name all the time, so we better be good at it
-  
-=== Be consistent
-  
-- Same thing has the same (base) name, and exactly same writting  
-  - So the reader doesn't need a table which names are synonyms (see also mental mapping)
-    - give anti example of such a mental table
-    - i really had to make such tables, even write them down, because I coudn't keep them in mind
-  - So a writer doesn't has too look up the exact spelling
-  - Quicker searching / writing (no need to look up actual name)
-  
-- Stick with *one* of:
-  * get, fetch, retreive
-  * controller, manager, driver
-  
-- If you had a controller and a manager: what should the reader think it's the
-  difference?
-  
-  
-=== Avoid mental mapping / Use intention revealing names
-
-- Most very short names (a,b,x,y,tmp) are used as placeholder, and the reader always
-  has to map them to the actual concept. 
-- i,j,k for loop counters are ok because they are traditional, and thus the
-  reader doesn't need to mentaly map them
-- If a variable *requires* a comment, it's a smell. (Classes, members, methods
-  should be documented nevertheless just to make it clear - clarity is king).
-  
-  void copy(char a1[], char a2[])
-  {
-    
-  }
-  
-  void copy(char destination[], char source[])
-  {
-    
-  }
-  
-=== Use pronouncable names
-
-- The human brain is good at words, which are by definition pronouncable.
-- 
-  
-GenerationDate instead genymd (year, month, day)
-  
-[Personal opinion: abbrevs are ok, they are spoken in mind (I speak source, not
-es ar cee)]
-
-
-=== Don't be cute / Don't show off your smartness
-
-Bad examples:
-- whack for an premature abort
-- r for an url with host and scheme removed
-
-- Every should be able to read the code  
-- Choose clarity over entertainment value
-
-  
-=== Avoid disinformation
-
-examples of disinformation   
-- inconsistent naming
-- use of names that already have a meaning for us programmers for another thing
-  
-exmaples of noninformation  
-- Avoid noninformative words like manager, processor, data, info
-  
-examples of information
-- same thing has same name
-- different things have different names
-  
-  
-=== Make Meaningful Distinctions
-
-If you have multiple similar things, then the name should reveal the difference.    
-  
-Don't use noise words to make a 'distinction' (its then only a pseudo distinction). Customer instead customerInfo,
-account instead accountData.
-  
-   
-=== Use of solution/problem domain names
-
-- People reading the code are also programmers
-   
-   
-=== Add meaningfull context   
-   
-- Only a few names are meaningfull for themselves
-  - 'State': like on/off or like Nevada?
-- 
-     
-=== Don't add gratuitous context  
-  
-Our Mod's interface methods always have the mod's prefix.  
-    
-   
-   
-=== Naming misc.
-
-.Class / object (aka instance) name
-- Noun (phrase): Customer, WikiPage, Account
-
-.Method name
-- functions (returning a value) aka queries: noun (phrase), just as a variable
-- commands aka procedures: verb (phrase)
-
-.General
-- Name = abbreviated brief comment
-- A variable has one Aufgabe (thats why i use const).
-- Length of variable should correspond to the size of its scope. Local names can
-  be short, members can be medium, class names shoudnt be short.
-- Shorter names are generally better; however they must be clear in theyr whole scope.
-- Don't be afraid of renaming. The better readability pays off for all future
-  reading of the code. 
-- Try different names, look at the resulting code, how it feels/reads.  
-- When the code just reads like a prosa text, without the needs for comments, then
-  you accomplished the goals of good naming.
-- As the feature set gets bigger and bigger, names must change, when new new
-  names have similarities/differences with existing names to make those
-  similarities/differences clear.  
-
-=== Naming personal
-
-Experience show me that I prefer abbrevations when the full word is used many
-many times. Then a reader will get accustimized to the abbrev quickly. The full
-word makes the code cumbersome to read because too many variables get too long,
-not even simple statements fit onto one line.
-
-
-== Efficiency & performance
-
-You can't take the right decisions if you don't have the right information, and
-you can't have the right information if you don't meausure with the right input
-data and environment.
-
-
-=== Measurement
-
-- Measure with real world data, with real world builds (i.e. typically release,
-  i.e. typically with optimizations), on real world HW, on real world ....
-
-- Measure different things, and visualize each measurement in different way.
-  Each combination (thing measured, visualization variant) highlights a
-  different class of problems. Only then we have a good overview of all the
-  different problems that we currently have, and can have a sense which one is
-  the most serious one and should be attacked first.
-  * cpu-off time
-  * number of calls of a given method
-  * as perf report
-  * as perf flamegraph
-  * as perf samples displayed in sampling order as flame graph
-
-- On wait time / why seeing wait time (aka cpu off time) can be important:
-  Naturaly a thread might wait for many different reasons, not only for another
-  thread. I.e. its not that over all threads, work is done. E.g. if there are
-  only N entities of a given ressource, when used up, multiple threads wait
-  until they get an entity. Often N is one, e.g. a mutex.
-
-
-== Unsorted
-
-When attacking a problem, e.g. improve efficiency/performance, finding a bug,
-and after some initial investigation you have different leads, then don't
-follow one lead for a too long time. Especially when stuck, step back and
-analyze the situation. Alternate between the leads (like a task scheduler) to
-avoid being stuck in a `hard' lead and avoid missing evaluating an `easy'
-lead.
-
-Store gained information, so it's not lost. Even more so if the information is
-not easily retreivable again. The cost is information management.
-
-If in deep shit, step back and honestly analyize what's going wrong and take
-countermeasures. Even if that means having to admit having made mistakes, or
-admiting not being good at a given thing/task, or having to go through
-difficult discussions. `D Wahret muess uf de Tisch'.
-
-Object relationships:
-Composition:
-  Aggregation: has-a / owns-a
-  Association aka acquaintance aka using: knows-a
-Inheritance: is-a (in terms of Liskov)
-
-Ways of implementing:
-
-In any case:
-
-- Free implementation
-In case of composition:
-- Delegation aka forwarding: Optionally also passing the
-original receiver as parameter
-In case of inheritance:
-- Overriding: replace implementation of base class by an own free implementation
-- Inheriting: overtake implementation of base class without modifying it
-
-
-We can't look into the future, things/plans/...  change.  Base decisions on as
-much facts as possible, opposed to assumptions.  How about experience?.  Plans
-seldom work.
-
-!!! Differentiate between type definitions and class implementations.  This
-is a semantic differentiation, formally in most languages there is no
-distinction.  The heuristic is to use interfaces (aka pure abstract classes) as
-type definitions !!!
-
-Dependency between a `server' type and an `client' type.  Client is completely
-independent of point 2, the implementation of the `server' type.  Depending on
-the changes to 1, the client needs only to be recompiled, or in worse cases,
-modified.
-1. API between client and implementation
- a. Formal contract in form of a (full) declaration of the type /
-    function.  Optionally sometimes a simple forward declaration of a name is
-    good enough.
- b. Semantic contract in prose to specify additional things which can't be
-    specified in the syntax of the programming language.
-2. Define aka implement a type / function, naturally fulfilling contract
-   defined in 1.
-
-Name ranges +first+, +last+ (or even +last_incl+) to make clear that the last
-is inclusive.
-
-The primal conundrum: Experience shows that a messy code slows you down. Yet you
-feel the pressure to make messes in order to meet deadlines. The *only* way to
-make the deadline / to go fast is to keep the code clean.
-
-Take the time to go fast.
-
-Code mess is proportional to Fö**s per minute.
-
-LeBlanc's law: ``Later equals never''
-
-Do it or leave it. Leave it: nicht doch aufschreiben: Wenn Problem genügend gross kommts
-einem schon wieder in den Sinn.
-
-YAGNI -- You aren't gonna need it.
-
-What is clean code? Catch-phrases from answers of programming gurus:
-
-- simple
-- reads like prose        
-- logic is straightforward        
-- does not obscure the writters intent      
-- each routine you read turns out to be pretty much what you expected
-- does one thing well 
-- provides one way, rather than many, for doing one thing
-- minimal dependencies/API
-
-A cache shall also store that a key is not available in the src, to distinguish
-between cachemiss and cachehit-thereIsNothingInTheSource
-
-Be liberal in what you accept and strict in what you emit (regarding format of
-input / output of a program)
 
 
 == References
 
 [bibliography]
-- [[[gotw_smart_ptr_params]]] http://herbsutter.com/2013/06/05/gotw-91-solution-smart-pointer-parameters/
 - Book Programming Pearls and its sequel
-- A tour of C++, Bjarne Stroustrup
+- A tour of C&plus;&plus;, Bjarne Stroustrup
 - http://www.akkadia.org/drepper/cpumemory.pdf[What every Programmer should
   know about Memory],
   http://lwn.net/Articles/250967/, https://lwn.net/Articles/252125/
@@ -943,12 +820,9 @@ input / output of a program)
 - references at the end of Scott Meyers' presentation
   http://www.aristeia.com/TalkNotes/codedive-CPUCachesHandouts.pdf[CPU caches
   and why you care]
-
-
-== Further reading
-
 - http://stackoverflow.com/questions/388242/the-definitive-c-book-guide-and-list
 - https://sourcemaking.com/
+- Giving Code a good name: https://www.youtube.com/watch?v=CzJ94TMPcD8&t=75s
 
 // Local Variables:
 // coding: utf-8
