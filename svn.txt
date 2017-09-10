@@ -1,0 +1,81 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+= Subversion
+
+
+== Intro
+
+glossary: https://tortoisesvn.net/docs/release/TortoiseSVN_en/tsvn-glossary.html
+
+A _repository_ stores a sequence of revisions as well as properties of that repository. A _revision_ stores the state of a file tree, inclusive properties of these files and directories, some commit information such as date author commitmessage, and additionaly properties of that revision. Each revision has a _revision number_ attached, which is an integer, the first revision having 1. Each commit bumps the revision number by one.
+
+Technically there are no projects. Logically a repository consists of one or more (logical) projects. A __(logical) project__ in its standard form has the directories trunk branches and tags at its project root. The files logically constituting the project are rooted in trunk, tags/v1, tags/v2, ..., branches/topic1, branches/topic2, ....
+
+_Properties_ are meta data attachable to files, directories and revisions. A property is a set of name-value pairs, where the name must consist of ASCII characters. Properties of files and directories are versioned. Regarding names, the prefix `svn:' is reserved by svn.
+
+_Revision specifiers_: 1) keywords: HEAD (latest in repository), BASE (of an item in working copy), COMMITED (latest revision, starting at BASE, in which an item was changed), PREV (COMMITED-1)
+
+_checkout_ creates a working copy of any directory of the repository (typically /trunk of the project you're interested in), by default of the latest revision.
+
+_merge_: A better name for the command might have been svn diff-and-apply, because that's all that happens: two repository trees are compared, and the differences are applied to a working copy.
+
+_mixed working copy_: _mixed revisions_ & _mixed repository locations_ (aka 'switched subtrees').
+
++switch+ is a superset of +update+.
+
+
+== Tutorial
+
+Create one single repository for one or more projects. /var/svn/ needs to already exist, otherwise create with mkdir
+
+  svnadmin create /var/svn/repos
+
+Add a new project named `myproject' to the repositry via importing an empty
+project having the standard subversion layout
+
+  mkdir ~/src/empty-svn-project
+  cd ~/src/empty-svn-project
+  mkdir branches trunk tags
+  svn import ~/src/empty-svn-project file:///var/svn/repos/myproject -m "initial import"
+
+Get a working copy
+
+  cd ~/src
+  svn checkout file:///var/svn/repos/myproject/trunk myproject
+
+
+Create a branch in the repository (doesn't affect working copy)
+
+  svn copy ^/myproject/trunk ^/myproject/branches/feature2 -m "creating branch feature2"
+
+Update the working copy to mirror the newly created branch
+
+ svn switch ^/myproject/branches/feature1
+
+Work and commit as usual. Every once in a while, you may want to update the branch with latest greatest from trunk
+
+  svn merge ~/myproject/trunk
+
+When finished, switch to trunk and merge in the branch. Before svn version 1.8, you needed to pass the +--reintegrate+ option to +svn merge+.
+
+  svn switch ^/myproject/trunk
+  svn merge ^/myproject/branches/feature1
+
+
+=== git svn bridge
+
+The idea is to work with a local Git repository, created from an existing subversion repository via by +git svn clone+.
+
+clone
+
+  git svn clone file:///var/svn/repos/myproject -s
+
+then work, (git) commit etc, potentially interactive rebase (with same base), then `commit' to subversion repository. That potentially modifies git commit messages, which in turn naturally modifies git commit ids
+
+  git svn dcommit
+
+
+== Questions
+
+- How to enforce that I can't accidentaly succesfully commit a `state of a tree' that has not been tested? E.g. by options to the commit command, or hooks/properties, whether local or on the repo. Like an atomic ``svn update ...; svn commit ...''.
