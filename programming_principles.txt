@@ -22,14 +22,14 @@ closure, lambda, (member) method, (member) function, procedure, class static
 method, free (aka nonmember) function, tail call, functor, function object,
 delegate, function/method pointer, instance method, field
 
-=== Overview
+== Overview
 
 observable side effect = modifying non-local variable or I/O
 (strict) side effect = observable side effect or modifying local variable
 idempotent = produces always same effects for same input
 referentially transparent / pure function = idempotent and no observable side effects
 
-|=====
+-----
                            writing    reading     writing     
                            local      non-local   non-local
                                                   I/O
@@ -37,7 +37,7 @@ side effect                no         yes         no
 observeable side effect    yes        yes         no
 idempotent                 yes        no          yes
 pure function              yes        no          no
-|=====
+-----
 
 When `locals' are closed over they are not really locals anymore. Here I/O
 includes what C++ dubes volatile.
@@ -174,5 +174,10 @@ In C&plus;&plus;, all pointers into a freed memory region are invalidated: http:
 - https://sploitfun.wordpress.com/2015/02/11/syscalls-used-by-malloc/
 
 
+== References
+
+- Webpage: http://lwn.net/Articles/250967/[What every Programmer should know about Memory],
+- Webpage: http://www.gameprogrammingpatterns.com/data-locality.html[Data Locality]
+- Document/Presentation: http://www.aristeia.com/TalkNotes/codedive-CPUCachesHandouts.pdf[CPU caches and why you care]
 
 //  LocalWords:  sbrk mmap malloc brk fdisk mkdir loadkeys BSS TLS

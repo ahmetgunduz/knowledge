@@ -810,23 +810,21 @@ All problems in computer science can be solved by another level of indirection
 
 == References
 
-[bibliography]
-- Book Programming Pearls and its sequel
-- A tour of C&plus;&plus;, Bjarne Stroustrup
-- http://www.akkadia.org/drepper/cpumemory.pdf[What every Programmer should
-  know about Memory],
-  http://lwn.net/Articles/250967/, https://lwn.net/Articles/252125/
-- http://www.gameprogrammingpatterns.com/data-locality.html[Data Locality]
-- references at the end of Scott Meyers' presentation
-  http://www.aristeia.com/TalkNotes/codedive-CPUCachesHandouts.pdf[CPU caches
-  and why you care]
-- http://stackoverflow.com/questions/388242/the-definitive-c-book-guide-and-list
-- https://sourcemaking.com/
-- Giving Code a good name: https://www.youtube.com/watch?v=CzJ94TMPcD8&t=75s
+- Book: Clean Code. Robert C. Martin.
+- Book: Clean Coder. Robert C. Martin.
+- Book: xUnit Test Patterns - Refactoring Test Code. Gerard Meszaros.
+- Book: Working Effectively with Legacy Code. Michael Feathers.
+- Book: Design Patterns: Elements of Reusable Object-Oriented Software. Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides.
+- Book: Refactoring - Improving the Design of Existing Code. Martin Fowler.
+- Video: https://www.youtube.com/watch?v=UjhX2sVf0eg&t=13s[10 Tips For Clean Code]
+- Video: https://www.youtube.com/watch?v=ZsHMHukIlJY[ITT 2016 - Kevlin Henney - Seven Ineffective Coding Habits of Many Programmers]
+- Video: https://www.youtube.com/watch?v=CzJ94TMPcD8&t=75s[Giving Code a good name - Kevlin Henney]
+- Webpage: sourcemaking. https://sourcemaking.com/design_patterns[design patterns], https://sourcemaking.com/antipatterns[antipatterns], https://sourcemaking.com/refactoring[refactoring]
+
+
 
 // Local Variables:
 // coding: utf-8
-// compile-command: "asciidoc -a toc programming_practices.txt"
 // End:
 
 //  LocalWords:  pessimize APIs SRP overridable IXLogger Cloneable readObject

@@ -383,34 +383,17 @@ way.
 
 == References
 
-
-=== Effective C&plus;&plus; (3rd Edition)
-
-To read:
-
-- Item 14: Think carefully about copying behavior in resource-managing
-  classes.
-- Item 25: Consider support for a non-throwing swap
-- Item 29: Strive for exception-safe code
-- Item 35: Consider alternatives to virtual functions
-- Chapter 7
-- Chapter 8
-
-=== More Effective C&plus;&plus; (3rd Edition)
-- Item 4: Avoid gratuitous default constructors
-- Item 24:
-
-
-=== Effective Modern C&plus;&plus;
-
-- Item 42: Consider emplacement instead insertion
-I would go further than Scott.  Use emplacement by default.  It is never
-slower than its counterparts.  The only thing you have to take care of is
-knowing that you can thus call constructors that are marked as explicit,
-i.e. as `dangerous'.  Scott's warning regarding using +new+ as part of the
-arguments is something to be avoided anyway, it has nothing to-do with emplace
-directly.
-
+- Book: Effective C&plus;&plus; (3rd Edition). Scott Meyers.
+- Book: More Effective C&plus;&plus;. Scott Meyers.
+- Book: Effective Moder C&plus;&plus;. Scott Meyers.
+- Book: Effective STL. Scott Meyers.
+- Book: A tour of C&plus;&plus;. Bjarne Stroustrup.
+- Book: The C++ Programming Language (4th Edition). Bjarne Stroustrup.
+- Webpage: The Definitive C&plus;&plus; Book Guide and List: https://stackoverflow.com/questions/388242/the-definitive-c-book-guide-and-list
+- Video: CppCon 2015: Bjarne Stroustrup "Writing Good C+&plus;14": https://www.youtube.com/watch?v=1OEu9C51K2A&t=1494s
+- Video: CppCon 2015: Herb Sutter "Writing Good C&plus;&plus;14... By Default": https://www.youtube.com/watch?v=hEx5DNLWGgA
+- Video: CppCon 2014: Herb Sutter "Back to the Basics! Essentials of Modern C&plus;&plus; Style": https://www.youtube.com/watch?v=xnqTKD8uD64&t=3470s
+- Video: CppCon 2016: Herb Sutter "Leak-Freedom in C&plus;&plus;... By Default.": https://www.youtube.com/watch?v=JfmTagWcqoE&t=4780s
 
 
 //  LocalWords:  noexcept Callee Reseat reseat Scott's
