@@ -258,7 +258,7 @@ local reference still exists, but the refered to object has been deleted.
 
 
 +for+ can is almost identical to:
-++++++++++++++++++++++++++++++++++++++++++++++++++
+----
 {
   init_statement
   while ( condition ) {
@@ -266,11 +266,12 @@ local reference still exists, but the refered to object has been deleted.
     iteration_expression ;
   }
 }
-++++++++++++++++++++++++++++++++++++++++++++++++++
+----
 
 +for ( __range_declaration__ : __range_expression__ ) loop_statement+
  is similar to
-++++++++++++++++++++++++++++++++++++++++++++++++++
+----
+
 {
   auto&& __range = range_expression ;
   for (auto __begin = begin_expr, __end = end_expr; __begin != __end; ++__begin) {
@@ -278,10 +279,10 @@ local reference still exists, but the refered to object has been deleted.
     loop_statement
   }
 }
-++++++++++++++++++++++++++++++++++++++++++++++++++
+----
 
 and thus
-++++++++++++++++++++++++++++++++++++++++++++++++++
+----
 {
   auto&& __range = range_expression ;
   auto __begin = begin_expr, __end = end_expr
@@ -291,7 +292,7 @@ and thus
      ++__begin;
   }
 }
-++++++++++++++++++++++++++++++++++++++++++++++++++
+----
 
 
 - http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3853.htm
