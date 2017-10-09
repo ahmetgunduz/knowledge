@@ -1,0 +1,71 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+= D-Bus
+
+IPC and RPC with its own marshalling, intended for processes on the same host, developed as part of the freedesktop.org project. libdbus is the reference implementation of the https://dbus.freedesktop.org/doc/dbus-specification.html[dbus specification]. Is non transactional, stateful, connection-based, massege based oppossed to stream based, supports both one-to-one messaging and publish/subscribe communication.
+
+Application Programming Interfaces for D-Bus, or bindings, are available in several languagesUsing. D-Bus should feel more like object-oriented programming than like communication.
+
+
+== Bus Model
+
+Multiple buses may be active simultaneously on a single system. Normally two buses are run: the sustem bus and a session bus. 'system bus', available all processes of the system, provides system services, i.e. services provided by the OS or system daemons. 'session bus' is for each user login session, provides services for processes in the same desktop session.
+
+Every bus has an 'address' describing how to connect to it. A bus address will typically be the filename of a Unix-domain socket such as "/tmp/.hiddensocket," but it may also be a TCP port, or conceivably a descriptor for some other low-level communications scheme.
+
+Every connection to a given bus is uniquely identified by one or more 'bus names'.  The connection is said to own its bus names.
+
+When a connection is set up, the bus immediately assigns it an immutable bus name that it will retain for as long as the bus exists. This bus name is called a 'unique connection name', because no other connection will ever have that same name on the same bus. It starts with a colon, e.g.: ":34-907". The other parts of the name have no particular meaning.
+
+A connection may have addional bus names, chosen by the owning process. These are typically well-known names, that are agreed upon by convention. These well-known bus names consist of a series of identifiers separated by dots, the identifiers themselves may contain letters, digits, dashes, and underscores, e.g. ``org.freedesktop.NetworkManager''. Some people (including Qt) _wrongly_ use 'service name' as a synonym for such bus names, see also https://dbus.freedesktop.org/doc/dbus-faq.html#service.
+
+
+== Objects
+
+One end of any exchange on a bus will always be a communications endpoint that in D-Bus parlance is called an 'object'. An object is created by a client process. One client may create any number of objects. Every bus has at least one object, representing the bus itself. Clients can obtain information about the status of the bus by sending requests to this object
+
+Any 'message' carried by the bus is of one of three 'message types': 1) Request send to an object 2) the reply of that request 3) Broadcast message from one object to any objects that have registered an interest.
+
+An object has an 'object name' (aka 'object path'), which has the form of a Unix-style, slash-separated filesystem path. An object name needs to be unique only within the context of its connection to the bus.n
+
+Objects on the bus can be accessed from a client process through references that we call 'proxies'. A proxy exists only inside the client, and the details of how it works depend entirely on the language binding you use.
+
+
+== Interfaces
+
+An object supports particular methods and may emit particular signals. These are known collectively as the object's 'members'. All of an object's members are specified in  'interfaces'. Each member has an 'member name'. An object may implement any number of interfaces. An interface defines a set of methods and signals. Whether there is "overloading" of members within interfaces, i.e. whether multiple members of the same interface may have the same name, depends on the binding.
+
+When a client invokes a method or listens for a signal, it must indicate the object path and the member name it is referring to, and it should also indicate the interface name to disambiguite in case an object implements multiple interfaces which may have members with identical names.
+
+
+== Type system
+
+The 'wire format' is a sequence of bytes. A block of values must have a known 'type signature', which is made up of zero or more single complete types.
+
+A 'single complete type' is either a basic type or a single fully-described container type.
+
+A 'type code' is an ASCII character representing the type of a value.
+
+A 'basic type' is entirely defined by a a single character type code. Basic types consist of fixed types and string-like types.
+
+'fixed types' are basic types whose values have a fixed length.
+
+'string-like' types are basic types with a variable length: Zero or more Unicode codepoints encoded in UTF-8, delimited by U+0000, this last delimiter not being considered part of the text. A 'SIGNATURE' is zero or more single complete types.
+
+A 'container type' is one of the following: STRUCT, ARRAY, VARIANT, and DICT_ENTRY.
+
+'STRUCT': Type type code is `r', but that is not used in signatures. Instead, `(' and `)' are used to delimit beginning and end of a sequence of complete types.
+
+'ARRAY': The type code is `a', which must be followed by a single complete type.
+
+'VARIANT': The type code is `v'. The marshaled value constists of the signature followed by the actual value.
+
+'DICT_ENTRY': Works like a STRUCT, but with more restrictions *todo* ...
+
+
+== References
+
+- https://www.freedesktop.org/wiki/IntroductionToDBus
+- https://pythonhosted.org/txdbus/dbus_overview.html
+- https://dbus.freedesktop.org/doc/dbus-specification.html
