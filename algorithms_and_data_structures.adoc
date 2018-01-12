@@ -316,7 +316,7 @@ A _greedy algorithm_ repeatedly makes locally best choice/decision, ignoring eff
 
 Problems for which a greedy algorithm works well generally have these two properties:
 
-- _optimal substructure_: See also <<dynamic_programing>>.  Rational: The choice we just made (an optimal solution to a (mini) sub problem), plus the optimal solution to the subproblem that remains (which we will solve recursively), yiels an optimal solution to the original problem.
+- _optimal substructure_: See also <<dynamic_programing>>.  Rational: The choice we just made (an optimal solution to a (mini) sub problem), plus the optimal solution to the subproblem that remains (which we will solve recursively), yields an optimal solution to the original problem.
 
 - _Greedy choice property_: Locally optimal choices lead to globally optimal solutions.
 
@@ -1212,6 +1212,13 @@ Analysis:
 - Outer loop is over all vertices, i.e V times. O(dequeue) is O(log V), so overall its O(V log V).
 - All together its thus O(E + V log V)
 
+
+[[ford_fulkerson]]
+== Ford-Fulkerson algorithm
+
+Is a greedy algrithm that solves the <<maximum_flow_problem>>.
+
+
 == Concurrency related algorithms
 
 === Consumer producer
@@ -1564,7 +1571,7 @@ In the following, no distinction is made between the term graph referring to an 
 
 A _graph_ +G=(V,E)+ is given by a set of _vertices_ +V+ (aka _nodes_) and a set of _edges_ +E+, each edge being an pair of elements from +V+.  A _multigraph_ is one where +E+ is a multiset (as opposed to just a set).  Alternatively: a multigraph is allowed to have _parallel edges_, that is, edges that have the same start/end vertex.  In an undirected graph the two vertices of an edge are said to be _adjacent_ to each other; in an directed graph only the dst vertex of an edge is adjacent to the src vertex.  Two edges are called _incident_ if they share a vertex.  An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++. An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs and are also called _arcs_, _directed edges_ or _arrows_.  A _loop_ is an edge which starts and ends on the same vertex.  _Link_ is an edge with two different ends.  A _simple_ graph is an undirected graph that has no loops and at most one edge between any two different vertices.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.  A _vertex cover_ is a set of vertices such that each edge of the graph is incident to at least one vertex of the set.  An _independent set_ (aka _stable set_) is a set of vertices, no two of which are adjacent.
 
-A _path_ (aka _walk_, however Wikipedia says that path commonly refers to an open walk) in an undirected graph is an ordered sequence of vertices {v~1~,...,v~n~} such that v~i~ is adjacent to v~i+1~.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a path in which all edges are distinct.  A _simple path_ does not have any repeated vertices.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The [[shortest_path]]_shortest path_ from vertex u to v is any path with minimal path weight.  See also <<shortest_path_problem>>.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path, and often defined as -infinite it contains a negative-weight cycle.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
+A _walk_ is a set of consecutive edges.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a walk with distinct edges.  A _path_ is a _trail_ with distinct vertices, except possibly the first and the last.  Some authors call that a _simple path_, and use the term path as a synonym to walk.  A _cycle_ is a path in which the first and last vertices are identical. An _open path_ is a path in which the first and last vertices are distinct.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The [[shortest_path]]_shortest path_ from vertex u to v is any path with minimal path weight.  See also <<shortest_path_problem>>.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path, and often defined as -infinite it contains a negative-weight cycle.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
 
 Two vertices v and u are called _connected_ if there is a path from v to u, otherwise they are called _disconnected_.  A _connected graph_ is one where every pair of vertices is connected.  A directed graph is considered a connected graph if for every pair of vertices there is a path in either direction.  A _weakly connected_ graph is a directed graph which would be a connected graph if the edges were taken to be undirected.  A directed graph is _strongly connected_, if for every pair there's a path in both directions.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.  If each strongly connected component is contracted to a single vertex, the resulting graph is a directed acyclic graph, the _condensation_ of G.  A _cut_ (aka _vertex cut_, or _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  A _complete graph_ with n vertices, denoted Kn, has no vertex cuts at all, but by convention κ(Kn) = n − 1.  The _connectivity_ (or _vertex connectivity_) κ(G) (where G is not a complete graph) is the size of a minimal vertex cut.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.
 
@@ -1579,9 +1586,9 @@ A _directed acyclic graph_ (_DAG_) is a graph with no directed cycles.  Given a 
 [[tree_graph]]
 See also <<tree_ADT>>. A _tree_ is an undirected graph in which any two vertices are connected by exactly one path (which then naturally is a simple path).  Alternatively: an undirected connected acyclic graph.  Thus it's always undirected, acylic, connected and bipartite.  Note that an arborescence is not a connected graph (consider a root with two childs; the two childs are not connected).  In informatic context, the term tree is often used for what we call here an directed rooted tree.  A _rooted tree_ is a tree in which one vertex has been designated the root.  An _arborescence_ (aka _directed rooted tree_ or _out-tree_) is a directed rooted tree in which all edges point away from the root.  An _anti-arborescence_ (aka _in-tree_) is an arborescence where all edge directions are reversed.  A _forest_ is a disjoint union of trees.  Alternatively: an acyclic undirected graph.  An _ordered tree_ (aka _plane tree_) is a rooted tree in which an ordering is specified for the children of each vertex.  A _poly tree_ is a directed acyclic graph which would be a tree if it's edges were undirected.  A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the vertices of G.  A [[MST]]_minimum spanning tree_ (aka _MST_) of is a spanning tree of G with the minimal total weighting for its edges.  See also the <<MST_problem>>.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
 
-A _flow network_ (aka _transportation network_) is a directed graph where each edge has a _capacity_ and a _flow_ which can no exceed the capacity.  The amount of flow into a node must equal the amount of flow out of it, unless the node is a _source_ or a _sink_. _maximum flow problems_ involve finding a feasible flow through a single-source, single-sink flow network that is maximum.  It can be seen as a special case of the more complex problems, e.g. the circulation problem.   The _max-flow min-cut theorem_ states that the maximum flow is equal to the minimum capacity over all possible s-t edge cuts.  An s-t edge cut is an edge cut such that one of the resulting component contains the source and the other component contains the sink.  The capacity of an edge-cut is the sum of the capacities on the cut edges.  Solutions of max-flow: _Ford–Fulkerson algorithm_ +O(E*f)+ for the case where capacities are integers, whereas f is the maximum flow.
+A _flow network_ (aka _transportation network_) is a directed graph where each edge has a _capacity_ and a _flow_ which can not exceed the capacity.  The amount of flow into a node must equal the amount of flow out of it, unless the node is a _source_ or a _sink_.  An __s-t edge cut__ is an edge cut such that one of the resulting component contains the source and the other component contains the sink.  The __edge-cut capacity__ is the sum of the capacities on the cut edges.
 
-Common problems: _single-pair shortest path_ problem: from single source to a single destination, _single-source shortest path_ problem: from a single source to all others, _single-destination shortest path_ problem: form all others to a destination, _all-pairs shortest path_ problem: from all to all.  The chapter <<NP_complete>> also lists some graph problems.
+Common problems: _single-pair shortest path_ problem (from single source to a single destination), _single-source shortest path_ problem (from a single source to all others) _single-destination shortest path_ problem (from all others to a destination), _all-pairs shortest path_ problem (from all to all), <<maximum_flow_problem>>. The chapter <<NP_complete>> also lists some graph problems.
 
 Common implementations:
 
@@ -2083,7 +2090,6 @@ Sentinel:: A sentinel is an object to represent the end of a data structure.
 
 === Overview
 
-
 --------------------------------------------------
 Knapsack
   unbounded knapsack problem (UKP) | DP: time O(n*S) | approx: greedy algo: O(n)
@@ -2164,14 +2170,14 @@ c2. Doing nothing modeled by cost-replace[c,c].
 
 3. recurrence: 
 +
---------------------------------------------------------------------------------
+-----
 DP(i,j) =
   if i=|x| and j=|y|: ④ 0
   else: min(
   ① cost-replace[x[i],y[j]] + DP(i+1, j+1)  if i+1≤|x| and j+1≤|y|,
   ② cost-insert[y[j]]       + DP(i  , j+1)  if             j+1≤|y|,
   ③ cost-delete[x[i]]       + DP(i+1, j  )  if i+1≤|x|            )
---------------------------------------------------------------------------------
+-----
 +
 ④ is the base case (aka smallest subproblem), which is the edit distance to
    transform the empty string to the empty string, which obviously is 0.
@@ -2451,6 +2457,16 @@ Solutions:
 - Convert A to a <<cartesian_tree>>, see there, and in that tree, solve the <<LCA_problem>>, see there.
 
 
+[[maximum_flow_problem]]
+=== Maximum Flow Problems
+
+_Maximum flow problems_ involve finding the maximum flow in a flow network.  It can be seen as a special case of more complex problems, e.g. the circulation problem.   The _max-flow min-cut theorem_ states that the maximum flow is equal to the minimum capacity over all possible s-t edge cuts.
+
+Note that a multi-source multi-sink flow network can easily be transformed to a single-source single-sink flow network by adding a consolidated source and a consolidated sink.
+
+Solutions of max-flow: _Ford–Fulkerson algorithm_ +O(E*f)+ for the case where capacities are integers, whereas f is the maximum flow. See <<ford_fulkerson>>.
+
+
 == References
 - http://ocw.mit.edu/courses/civil-and-environmental-engineering/1-204-computer-algorithms-in-systems-engineering-spring-2010/lecture-notes/
 - https://www.quora.com/What-are-the-very-basic-algorithms-that-every-Computer-Science-student-must-be-aware-of
@@ -2471,7 +2487,7 @@ Solutions:
 // eval: (visual-line-mode 1)
 // eval: (auto-fill-mode -1)
 // eval: (filladapt-mode -1)
-// compile-command: "asciidoc -a toc -a icons algorithms_and_data_structures.txt"
+// compile-command: "asciidoc -a toc -a icons algorithms_and_data_structures.adoc"
 // End:
 
 //  LocalWords:  pre th ADT Multimap multihash multimap emptyCount fullCount
