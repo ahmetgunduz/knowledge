@@ -620,7 +620,7 @@ O(n+m) worst case
 
 == Graph (incl. tree) Algorithms
 
-See also <<graph>>.
+See also <<graph_theory>> and <<graph_adt>>.
 
 [[BFS]]
 === Breadth-first search (BFS) / traversal
@@ -1252,17 +1252,24 @@ Intution in what way we want to improve the ford-fulkerson algorithm: If in the 
 
 
 [[push_relabel]]
-== push-relabel algorithms
+=== push-relabel algorithms
 
-A _preflow_ is like a flow, only that it does not need to obey the flow conservation constraint, but the following relaxation of it: The flow into a vertex may exceed the flow out of a vertex. If it does, the _excess flow_ is the difference between flow in and flow out. Note that in most physical analogies, the capacity is a quantity per time, and so is excess. An excess of 3 thus means that 3 units accumulate per unit of time in the given vertex. In a regular flow all excess flows are 0.  In a preflow they are ≥ 0. An vertex other than source or think is said to be _overflowing_ (aka _active_) if its excess flow is > 0.  Each vertex as a _height_. The source has always height |V|. The sink has always height 0.  All other vertices start at height 0 and potentially raise over time.  They never decrease.  To _push (excess) flow_ means decreasing the excess flow of a vertex by sending flow through an outgoing unsaturated downhill edge in the residual network. That increases the excess flow in the receiving vertex by the same amount. To _relabel_ a vertex means to increase its height to one unit more than the lowest of its neighbors to which there's an unsaturated pipe. The intuition is that the algorithm tries to push excess flow out of a vertex, and once it can't because there is no more unsaturated downhill edge, it relabels that vertex to become able to push.
+Is an algorithm which solves the <<maximum_flow_problem>>. Is considered one of the most efficient maximum flow algorithms. The generic algorithm has +O(V²E)+, the variant based on the highest label node selection rule has +O(V²√E)+.
 
-In the residual graph, edges can go downhill by at most 1. They can be flat an go uphill. An edge in the residual graph is _admissible_ if it's downhill. Since edges in the residual graph can go downhill only by at most one, admissible edges go downhill exactly by one.
+Concepts: A _preflow_ is like a flow, only that the flow conservation constraint is relaxed: The flow into a vertex may exceed the flow out of a vertex.  The _excess flow_ of a vertex is the difference between flow in and flow out. Note that in most physical analogies, the capacity is a quantity per time, and so is excess. An excess of 3 thus means that 3 units accumulate per unit of time in the given vertex.  Most authors describe that figuratively, each vertex has a reservoir of infinite size.  Alternatively figuratively an excess flow means that a vertex is leaking.  In a regular flow all excess flows are 0.  In a preflow they are ≥ 0. An vertex other than source or think is said to be _overflowing_ (aka _active_) if its excess flow is > 0.  Each vertex as a _height_, which is an integer. The source has always height |V|. The sink has always height 0.  All other vertices start at height 0 and potentially raise over time.  They never decrease.  In the residual graph, edges can go downhill by at most 1. They can be flat an go uphill.  An edge in the residual graph is _admissible_ if it's downhill. Since edges in the residual graph can go downhill only by at most one (see above definition of height), admissible edges go downhill exactly by one. Recall that in the residual graph, all capacities are > 0.  To _push (excess) flow_ means decreasing the excess flow of a vertex by sending flow through an outgoing unsaturated downhill edge in the residual network.  That increases the excess flow in the receiving vertex by the same amount.  To _relabel_ a vertex means to increase its height to one unit more than the lowest of its direct successors to which there's an unsaturated pipe.
+
+Intuition: The algorithm starts by setting height of source to |V|, and all other vertices to 0, flooding all out edges of the source to their capacity. The residual graph now is almost identical to the original graph, only that source's edges are reversed. All direct successors of the source are overflowing. We iteratively try to turn all remaining overflowing vertices into non-overflowing vertices, in which case the preflow proofably is the maximum flow. We do that by moving (part of) the excess flow to an direct successor vertex. More concretely by pushing flow downhill through an admissible edge in the residual graph. And if that is not possible because the overflowing vertex has no admissible outgoing edges, by relabeling it.  Ultimatively all excess flow is pushed either to the sink or to the source,  which by definition have no excess flow.  In other words, the algorithm tries to turn the initial preflow into a flow (no more overflowing vertices), which proofably will then be a maximum flow.
 
 *to-do*: why to encode in the description and in the pseudo code that source and think don't have an excess flow?
 
 
-
 --------------------------------------------------
+push-relabel(G:flownetwork)
+  init(G)
+  while there is an overflowing node u
+    If u has an admissible outgoing edge v in the residual graph: push(u, v)
+    else: relabel(u)
+
 // precondition:
 //   u is overflowing
 //   residual edge (u,v) is admissible
@@ -1274,25 +1281,15 @@ push(u:vertex, v:vertex)
   else                   : oe.flow -= df
   u.excess -= d
   v.excess += d
---------------------------------------------------
 
---------------------------------------------------
 // precondition:
 //   u is overflowing
-//   residual edge (u,v) is _not_ admissible
+//   u has no admissible outgoing edge in the residual graph
 relabel(u:vertex)
-  u.height = 1 + (minimal height among neighbor (via outgoing edges) nodes in residual graph)
+  u.height = 1 + (minimal height among u's direct successors in residual graph)
 --------------------------------------------------
 
---------------------------------------------------
-push-relabel(G:flownetwork)
-  init(G)
-  while there is an overflowing node u
-    If u has an admissible outgoing edge v in the residual graph: push(u, v)
-    else: relabel(u)
---------------------------------------------------
-
-Compare and contrast the push-relable approach with the augmenting path approach: Augmengting path maintains the invariant feasability, i.e. the conservation and the capacity constraints. The goal is to reach a residual graph where the source and the sink are disconnected; i.e. we are trying to get better and better flows. Push-relabel is the exact opposite: The invariant is that in the residual graph source and sink are disconnected. The goal is restoring feasability, or in other words, transform the preflow into a flow. I.e. push-relabel first relaxes feasability, and then tries to restore it.
+Compare and contrast the push-relabel approach with the augmenting path approach: Augmengting path maintains the invariant feasability, i.e. the conservation and the capacity constraints. The goal is to reach a residual graph where the source and the sink are disconnected; i.e. we are trying to get better and better flows. Push-relabel is the exact opposite: The invariant is that in the residual graph source and sink are disconnected. The goal is restoring feasability, or in other words, transform the preflow into a flow. I.e. push-relabel first relaxes feasability, and then tries to restore it.
 
 
 References:
@@ -1571,11 +1568,26 @@ Removal is often called _pop_ and can only be the element at the top end.  The o
 Implementations: <<array>>, <<linked_list>>.
 
 
+[[graph_adt]]
+=== Graph (ADT)
+Chapter <<graph_theory>> explains the mathematical theory behind the graph ADT.
+
+Common implementations:
+
+- _Adjacency list_: Typically for sparse graphs.  Collection of unordered vertex lists, one for each vertex.  Sub-forms of how to implement an adjacency list:
+ * An associative array associates each vertex (being the key) to an unordered list (being the value) of its adjacent vertices.  For the associative array, often a hash table is used.  If the key can be an integer, e.g. when the vertices are enumerated, then a simple array can be used instead the associative array.
+ * Object graph of vertices: Each vertex has a collection of pointers to its adjacent vertices. Optionally, each element in that collection, actually representing an outgoing edge, also stores other properties of the edge, e.g. its weight.  However note that for undirected graphs, each edge is stored redundantely twice. *to-do*: why is apparently the associative array before much more common than this graph variant?
+ * Object graph of vertices and edges: Each vertex object has a collection of pointers to its outgoing edges.  Each edge object has a pointer to its start and end vertex.
+- _Edge list_: A collection of edge objects, each edge object storing something to identify the start and end vertex, possibly additionally also the edge's weight.
+- _Adjacency matrix_ |V|×|V|:  Rows represent source vertices and columns represent destination vertices and cells the associated edge.  Data on vertices typically stored externally.  Typically for dense graphs, or when a quick way is needed to tell if two vertices are adjacent.  Does not work for multigraphs. *to-do* symetric for undirected graphs, inf for not adjacent vertexes, edge weights...
+- _Incidence matrix_ |V|×|E|: The rows represent the columns, the columns the edges, a cell is 1 if the associated vertex is an start point of the assiciated edge, -1 if it's the end point, and 0 otherwise.  In a weighted graph, the 1s are replaced by the edge's weight.
+
+
 [[tree_ADT]]
 === Tree
-Note that there is a distinction between a tree as 1) an abstract data type,  2) a data structure and 3) a topic in graph theory.
+Note that there is a distinction between a tree as an abstract data type (what this chapter is about), a data structure (see <<data_structures>>) and a topic in graph theory (see <<tree_graph_theory>>).
 
-Terms (see also those of <<graph>>, in particular <<tree_graph>> and <<DAG>>):
+Terms (see also those of <<graph_theory>>, in particular <<tree_graph_theory>> and <<DAG>>):
 
 - _siblings_: nodes with the same parent.
 - _cousins_: nodes with the same grand parent.
@@ -1584,10 +1596,10 @@ Terms (see also those of <<graph>>, in particular <<tree_graph>> and <<DAG>>):
 - _degree_: Number of sub trees of a node
 - _level_: Depth + 1
 - _size_: Number of nodes
-- _height of tree / node_: Informally: Largest distance (see <<graph>>) between root / that node and any leaf. Formally: ++height(node) = max(height(node.left), height(node.right)) + 1++, whereas height of NULL is -1 (equalently: height of leaf node is 0). Height of tree, height of root, depth of deepest leaf are all synonymous.
+- _height of tree / node_: Informally: Largest distance (see <<graph_theory>>) between root / that node and any leaf. Formally: ++height(node) = max(height(node.left), height(node.right)) + 1++, whereas height of NULL is -1 (equalently: height of leaf node is 0). Height of tree, height of root, depth of deepest leaf are all synonymous.
 - _depth_ of node: Distance from root to that node.
 
-Implementations: See those of <<graph>>,  and the methods for storing a <<binary_tree>>
+Implementations: See those of <<graph_adt>>,  and the methods for storing a <<binary_tree>>
 
 
 [[binary_search_tree]]
@@ -1646,49 +1658,70 @@ Applications: <<Kruskal>>'s algorithm, *to-do*
 Trivia: Was invented specifically to make Kruskal's algorithm more efficient
 
 
-[[graph]]
-=== Graph
-In the following, no distinction is made between the term graph referring to an specific abstract data type and the term graph referring to a topic in mathematics.
+[[graph_theory]]
+== Graph theory
+This chapter explains graphs as a mathematical concept. For the corresponding abstract data type, see <<graph_adt>>
 
-A _graph_ +G=(V,E)+ is given by a set of _vertices_ +V+ (aka _nodes_) and a set of _edges_ +E+, each edge being an pair of elements from +V+.  A _multigraph_ is one where +E+ is a multiset (as opposed to just a set).  Alternatively: a multigraph is allowed to have _parallel edges_, that is, edges that have the same start/end vertex.  In an undirected graph the two vertices of an edge are said to be _adjacent_ to each other; in an directed graph only the dst vertex of an edge is adjacent to the src vertex.  Two edges are called _incident_ if they share a vertex.  An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++. An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs (aka directed).  Such an directe edge is also called _arc_, _directed edge_ or _arrow_.  A _loop_ is an edge which starts and ends on the same vertex.  _Link_ is an edge with two different ends.  A _simple graph_ is an undirected graph that has no loops (mind: a loop is not a cycle) and at most one edge between any two different vertices.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.  A _vertex cover_ is a set of vertices such that each edge of the graph is incident to at least one vertex of the set.  An _independent set_ (aka _stable set_) is a set of vertices, no two of which are adjacent.
+A _graph_ +G=(V,E)+ is given by a set of _vertices_ +V+ (aka _nodes_) and a set of _edges_ +E+, each edge being an pair of elements from +V+.  The _order_ of a graph G, denoted by |G| is the number of its vertices, i.e. |V|.  The size of a graph G, deonoted by ||G||, is the number of its edges, i.e. |E|.
 
-A _walk_ is a set of consecutive edges.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a walk with distinct edges.  A _path_ is a walk with distinct vertices (which implies distinct edges), except possibly the first and the last.  Some authors call that a _simple path_, and use the term path as a synonym to walk.  A _cycle_ is a path in which the first and last vertices are identical. An _open path_ is a path in which the first and last vertices are distinct.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The [[shortest_path]]_shortest path_ from vertex u to v is any path with minimal path weight.  See also <<shortest_path_problem>>.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path, and often defined as -infinite it contains a negative-weight cycle.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
+An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++.  An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs (aka directed).  Such an directed edge is also called _arc_, _directed edge_ or _arrow_.  An _outgoing edge_ (_incoming edge_) of vertex v is a directed edge starting (ending) at v. A _successor_ (_predecessor_) is vertex that comes after (before) a given vertex in a directed graph. A _direct successor_ (_direct predecessor_) is an adjacent successor (predecessor).  A _loop_ is an edge which starts and ends on the same vertex.  _Link_ is an edge with two different ends.  _parallel edges_ share the same start/end vertex.  In an undirected graph the two vertices of an edge are said to be _adjacent_ (or _neihbors_) to each other; in an directed graph only the dst vertex of an edge is adjacent to the src vertex.  Two edges are called _incident_ (or _adjacent_) if they share a vertex.  Pairwise non-adjacent vertices or edges are called _independent_.
 
-Two vertices v and u are called _connected_ if there is a path from v to u, otherwise they are called _disconnected_.  A _connected graph_ is one where every pair of vertices is connected.  A directed graph is considered a connected graph if for every pair of vertices there is a path in either direction.  A _weakly connected_ graph is a directed graph which would be a connected graph if the edges were taken to be undirected.  A directed graph is _strongly connected_, if for every pair there's a path in both directions.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.  If each strongly connected component is contracted to a single vertex, the resulting graph is a directed acyclic graph, the _condensation_ of G.  A _cut_ (aka _vertex cut_, or _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  A _complete graph_ with n vertices, denoted Kn, has no vertex cuts at all, but by convention κ(Kn) = n − 1.  The _connectivity_ (or _vertex connectivity_) κ(G) (where G is not a complete graph) is the size of a minimal vertex cut.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.
+The _degree_ of a vertex v in an undirected graph is the number of edges incident with v, with loops counted twice. In directed graphs, _out degree_ (_in degree_) is the number of outgoing (incoming) edges. A vertex of degree 0 is called _isolated_ (or _disconnected_), a vertex o degree is called an _end-vertex_.
+
+A _simple graph_ is an undirected graph that has no loops (mind: a loop is not a cycle) and no parallel edges.  A _trivial graph_ is a graph of order 0 or 1.  A _multigraph_ is one where +E+ is a multiset (as opposed to just a set).  Alternatively: a multigraph is allowed to have parallel edges.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.  A _null graph_ is one with no edges.
+
+A _vertex cover_ is a set of vertices such that each edge of the graph is incident to at least one vertex of the set.  An _independent set_ (aka _stable set_) is a set of vertices, no two of which are adjacent.  Given a simple Graph G, it's _complement_ graph has the same vertices, but only an edge between any two vertices iff they are not adjacent in G.
+
+A _walk_ is a set of consecutive edges.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a walk with distinct edges.  A _circuit_ is a closed trail.  A _path_ is a walk with distinct vertices (which implies distinct edges), except possibly the first and the last.  Some authors call that a _simple path_, and use the term path as a synonym to walk.  Given a subgraph H of graph G, we call a path P an _H-path_ if it meets H only exactly at its two end vertices, i.e. no other common vertices, and no common edges.  A _cycle_ is a path in which the first and last vertices are identical.  An _open path_ is a path in which the first and last vertices are distinct.  Two paths are _vertex-independent_ (aka _vertex-disjoint_) if they do not have any vertices in common.  Two paths are _edge-independent_ (aka _edge disjoint_) if they do not have any edges in common.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The [[shortest_path]]_shortest path_ from vertex u to v is any path with minimal path weight.  See also <<shortest_path_problem>>.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path, and often defined as -infinite it contains a negative-weight cycle.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
+
+Given a graph G, a _subgraph_ of G is a graph, each of whose vertices and edges belong to G.  Given a graph G, an _induced subgraph_ is a subgraph of G, whose edge set consists of all G's edges that have both endpoints in the subgraph.  A graph is _edge-maximal_ with a given graph property if G has the property, but no Graph resulting from adding an (non-parallel) edge does.
+
+[[DAG]]
+A _directed acyclic graph_ (_DAG_) is a graph with no directed cycles.  Given a directed edge C->P, C is the _child_ and P the _parent_. Nodes reachable from C are C's _ancestors_, nodes which can reach P are P's _descendants_.  Whether or not a node is it's own ancestor/descendant is not defined across literature. CLRS say yes.  The _lowest common ancestor_ (_LCA_, aka, less accurately, _least common anchestor_) of two nodes x and y is the first common ancestor in topo order.
+
+[[tree_graph_theory]]
+See also <<tree_ADT>>. A _tree_ is an undirected graph in which any two vertices are connected by exactly one path (which then naturally is a simple path).  Alternatively: an undirected connected acyclic graph.  Alternativly:  An undirected connected graph where every edge is a bridge.  Thus it's always undirected, acylic, connected and bipartite.  Note that an arborescence is not a connected graph (consider a root with two childs; the two childs are not connected).  In informatic context, the term tree is often used for what we call here an directed rooted tree.  A _rooted tree_ is a tree in which one vertex has been designated the root.  An _arborescence_ (aka _directed rooted tree_ or _out-tree_) is a directed rooted tree in which all edges point away from the root.  An _anti-arborescence_ (aka _in-tree_) is an arborescence where all edge directions are reversed.  A _forest_ is a disjoint union of trees.  Alternatively: an acyclic undirected graph.  An _ordered tree_ (aka _plane tree_) is a rooted tree in which an ordering is specified for the children of each vertex.  A _poly tree_ is a directed acyclic graph which would be a tree if it's edges were undirected.  A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the vertices of G.  A [[MST]]_minimum spanning tree_ (aka _MST_) of is a spanning tree of G with the minimal total weighting for its edges.  See also the <<MST_problem>>.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
+
+Common graph problems:
+
+- _single-pair shortest path_ problem (from single source to a single destination)
+- _single-source shortest path_ problem (from a single source to all others)
+- _single-destination shortest path_ problem (from all others to a destination)
+- _all-pairs shortest path_ problem (from all to all)
+- <<maximum_flow_problem>>
+- The chapter <<NP_complete>> also lists some graph problems.
 
 References:
 
 - http://en.wikipedia.org/wiki/Glossary_of_graph_theory
 
 
-[[DAG]]
-A _directed acyclic graph_ (_DAG_) is a graph with no directed cycles.  Given a directed edge C->P, C is the _child_ and P the _parent_. Nodes reachable from C are C's _ancestors_, nodes which can reach P are P's _descendants_.  Whether or not a node is it's own ancestor/descendant is not defined across literature. CLRS say yes.  The _lowest common ancestor_ (_LCA_, aka, less accurately, _least common anchestor_) of two nodes x and y is the first common ancestor in topo order.
+=== Connectivity
 
-[[tree_graph]]
-See also <<tree_ADT>>. A _tree_ is an undirected graph in which any two vertices are connected by exactly one path (which then naturally is a simple path).  Alternatively: an undirected connected acyclic graph.  Thus it's always undirected, acylic, connected and bipartite.  Note that an arborescence is not a connected graph (consider a root with two childs; the two childs are not connected).  In informatic context, the term tree is often used for what we call here an directed rooted tree.  A _rooted tree_ is a tree in which one vertex has been designated the root.  An _arborescence_ (aka _directed rooted tree_ or _out-tree_) is a directed rooted tree in which all edges point away from the root.  An _anti-arborescence_ (aka _in-tree_) is an arborescence where all edge directions are reversed.  A _forest_ is a disjoint union of trees.  Alternatively: an acyclic undirected graph.  An _ordered tree_ (aka _plane tree_) is a rooted tree in which an ordering is specified for the children of each vertex.  A _poly tree_ is a directed acyclic graph which would be a tree if it's edges were undirected.  A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the vertices of G.  A [[MST]]_minimum spanning tree_ (aka _MST_) of is a spanning tree of G with the minimal total weighting for its edges.  See also the <<MST_problem>>.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
+Two vertices v and u are called _connected_ if there is a path from v to u, otherwise they are called _disconnected_.  A _connected graph_ is one where every pair of vertices is connected.  A directed graph is considered a connected graph if for every pair of vertices there is a path in either direction.  A _weakly connected_ graph is a directed graph which would be a connected graph if the edges were taken to be undirected.  A directed graph is _strongly connected_, if for every pair there's a path in both directions.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.  If each strongly connected component is contracted to a single vertex, the resulting graph is a directed acyclic graph, the _condensation_ of G.  A _cut_ (aka _vertex cut_, or _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  An _articulation point_ (aka _cut point_, _separating vertex_ or _cut vertex_) is a vertex in a connected (sub)graph whose removal would disconnect the (sub)graph.  A _bridge_ is an edge in a connected (sub)graph whose removal would disconnect the (sub)graph.  An edge can only be a bridge if it is not contained in an cycle.  The _connectivity_ (or _vertex connectivity_) κ(G) is the size of a minimal vertex cut, or in other words, the minimum number of nodes to be removed to disconnect the graph.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater, or in other words, if it remains connected whenever fewever than k vertices are removed.  2-connectivity is also called _biconnectivity_, and 3-connectivity is also called _triconnectivity_.
+
+A _complete graph_ with n vertices, denoted K~n~, is a simple undirected graph in which every pair of distinct vertices is connected by a unique edge.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.  A _biconnected graph_ is a connected graph that has no articulation points.  A _biconnected component_ (aka _block_ or _2-connected component_) is a maximal (*to-do*: what does maximal mean here?) biconnected subgraph.  Note a biconnected component, unlike connected components, can be connected to other parts of the supergraph.  A _block graph_ (aka _clique tree_) is an undirected graph in which every biconnected component (aka block) is a clique.
+
+_Menger's Theorem_: Vertex connectivity: k-connected vertices are connected by k internally vertex-disjoint paths.
+
+Motivation: Connectivity measures fault tolerance of a network. E.g. how many connections can fail without cutting off communications.
+
+
+[[flow_network]]
+=== Flow networks
 
 A _flow network_ (aka _transportation network_) is a directed graph where each edge has a _capacity_ and a _flow_ which can not exceed the capacity (_capacity constraint_).  _flow conservation_ dictates the the amount of flow into a node must equal the amount of flow out of it, unless the node is a _source_ or a _sink_.  A __s-t edge cut__ is a partition of the graph's vertices into set S and T, S containing source and T containing sink.  The __edge-cut capacity__ is the sum of the capacities of edges from S to T, thus ignoring edges from T to S. The _net flow_ f(S,T) across the cut (S,T) is the sum of the flows of edges from S to T, minus the sum of the flows of edges from T to S.  The _residual graph_ G~f~ induced by flow f conceptually has two edges for every edge in G. The forward (same direction as in G) edges capacity is c~e~-f~e~, the backward edges capacity is f~e~. However edges in G~f~ with capacity 0 are removed. The residual graph is almost a flow network just like the original graph, with the small difference, that now backward edges are allowed. An _augmenting path_ p is a path in the residual graph vom source to sink. The _residual capacity_ of p is the minimal edge capacity on p. An edge on p is said to be _critical_ if its capacity equals the residual capacity of p.
 
 Lemma: Given a flow in a flow network, the flow equals the net flow of any s-t cut. Figuratively: Any cut partitions the network in two networks, one containing source the ther the sink, the two connected by two pipe bundles. It's intuitive that the flow of these two pipe bundles equals the flow from source to sink.
 
+[[max_flow_min_cut_theorem]]
 __Max-flow min-cut theorem__: The following three are equivalent, given a graph G and a flow f: 1) f is a maximum flow in G 2) The residual network induced by f contains no augmenting path 3) There is a cut such that it's capacity equals the flow f. In other words, the maximum flow equals the capacity of the cut with the minimal capacity. Intuitively that becomes apparent having the previous lemma in mind: Since the capacity of a s-t cut is an upper limit of G's maximum flow, the maximum flow is bounded by the cut with the minimal capacity.
 
-Common problems: _single-pair shortest path_ problem (from single source to a single destination), _single-source shortest path_ problem (from a single source to all others) _single-destination shortest path_ problem (from all others to a destination), _all-pairs shortest path_ problem (from all to all), <<maximum_flow_problem>>. The chapter <<NP_complete>> also lists some graph problems.
-
-Common implementations:
-
-- _Adjacency list_: Typically for sparse graphs.  Collection of unordered vertex lists, one for each vertex.  Sub-forms of how to implement an adjacency list:
- * An associative array associates each vertex (being the key) to an unordered list (being the value) of its adjacent vertices.  For the associative array, often a hash table is used.  If the key can be an integer, e.g. when the vertices are enumerated, then a simple array can be used instead the associative array.
- * Object graph of vertices: Each vertex has a collection of pointers to its adjacent vertices. Optionally, each element in that collection, actually representing an outgoing edge, also stores other properties of the edge, e.g. its weight.  However note that for undirected graphs, each edge is stored redundantely twice. *to-do*: why is apparently the associative array before much more common than this graph variant?
- * Object graph of vertices and edges: Each vertex object has a collection of pointers to its outgoing edges.  Each edge object has a pointer to its start and end vertex.
-- _Edge list_: A collection of edge objects, each edge object storing something to identify the start and end vertex, possibly additionally also the edge's weight.
-- _Adjacency matrix_ |V|×|V|:  Rows represent source vertices and columns represent destination vertices and cells the associated edge.  Data on vertices typically stored externally.  Typically for dense graphs, or when a quick way is needed to tell if two vertices are adjacent.  Does not work for multigraphs. *to-do* symetric for undirected graphs, inf for not adjacent vertexes, edge weights...
-- _Incidence matrix_ |V|×|E|: The rows represent the columns, the columns the edges, a cell is 1 if the associated vertex is an start point of the assiciated edge, -1 if it's the end point, and 0 otherwise.  In a weighted graph, the 1s are replaced by the edge's weight.
 
 
-[[data_structure]]
+[[data_structures]]
 == Data structures
-A concrete particular iway of organizing data in memory.  In OO lingo, its is a (non-abstract) class.  See also <<ADT>>, which is in OO lingo an interface.
+A concrete particular way of organizing data in memory.  In OO lingo, its is a (non-abstract) class.  See also <<ADT>>, which is in OO lingo an interface.
 
 
 [[table]]
@@ -1803,7 +1836,7 @@ Properties:
 
 Methods of storing:
 
-- See <<graph>>
+- See <<graph_adt>>
 - As an implicit data structure in an array.  Be i the current node's index, 0 the first index, then its parent is at index floor((i-1)/2), its right child at 2i+1 and its left child at 2i+2.  In the case of a complete binary tree, no space is wasted.  See also <<binary_heap>> which commonly uses this scheme.
 
 
@@ -1983,7 +2016,7 @@ left-child(i) = (i+1)*2
 
 
 [[tries_comparision]]
-=== Tries / suffix tree/arrays compari son
+=== Tries / suffix tree/arrays comparison
 
 Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
 
@@ -2545,12 +2578,15 @@ Solutions:
 [[maximum_flow_problem]]
 === Maximum Flow Problems
 
-_Maximum flow problems_ involve finding the maximum flow in a flow network.  It can be seen as a special case of more complex problems, e.g. the circulation problem.
+_Maximum flow problems_ involve finding the maximum flow in a <<flow_network>>.  It can be seen as a special case of more complex problems, e.g. the circulation problem.
 
 Note that a multi-source multi-sink flow network can easily be transformed to a single-source single-sink flow network by adding a consolidated source and a consolidated sink.
 
-Solutions of max-flow: <<ford_fulkerson_algorithm>> in +O(E*f)+ (whereas f is the maximum flow) for the case where capacities are integers, <<edmonds_karp>> algorithm in +O(VE²)+ for the case where capacities are integers.
+Solutions of max-flow:
 
+- <<ford_fulkerson_algorithm>> in +O(E*f)+ (whereas f is the maximum flow) for the case where capacities are integers.
+- <<edmonds_karp>> algorithm in +O(VE²)+ for the case where capacities are integers.
+- An algorithm implementing the <<push_relabel>> approach. The generic version is +O(VE²)+, more specific version get better, the `highest label selection' has +O(V²√E)+
 
 == References
 - http://ocw.mit.edu/courses/civil-and-environmental-engineering/1-204-computer-algorithms-in-systems-engineering-spring-2010/lecture-notes/
