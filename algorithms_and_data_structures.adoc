@@ -627,48 +627,56 @@ See also <<graph>>.
 
 An algorithm for traversing or searching a graph in breadth first order in +O(V+E)+ (= +O(b^d+1^)+) time and +O(V)+ space.  Typically used to traverse a connected graph starting from a single source, thus that's what is shown here. Traversing a disconnected graphs, which implies multiple sources, is theoretically also possible, but not shown here. See the outer skeleton of DFS for the general idea how that would be done.
 
-Intuitively the algorithm is: Starting at the source vertex (distance 0 (here distance counts number of edges)), first nodes with distance 1 (to the root) are explored, after that nodes with distance 2, and so on.
+Intuitively the algorithm is: Starting at the source vertex (distance 0, where distance counts number of edges to the root), first nodes with distance 1 are explored, after that nodes with distance 2, and so on.  A Queue helps to add first all of distance 1, only then all of distance 2 and so on. A visited/unvisited attribute per vertex ensures that a node is not visited twice.
 
 Overview version:
 --------------------------------------------------
 Breadth-First-Search(Graph, source:vertex):
-  create empty queue Q
+  create empty queue Q # Q contains vertexes adjacent to visited notes
   Q.enqueue(root)
   while Q is not empty:
     current = Q.dequeue()
     for each neighbor node that is adjacent to current:
-      if neighbor was never visited so far:
+      if neighbor is unvisited:
         remember neighbor as visited
         Q.enqueue(neighbor)
 --------------------------------------------------
 
-Time complexity +O(V + E)+ (each vertex is enqued/dequed at most once, and each edge is looked at twice (from each of its two sides)). Auxillary space complexity is +O(V)+ (Each vertex needs an color attribute. Beside that, in the worst case, the queue contains all vertices).  For graphs which are implicitly defined or very large, time complexity is better given as +(b^d+1^)+, whereas b is the branching factor and d is the distance (weights being 1) up to which we search.
+Time complexity +O(V + E)+ (each vertex is enqued/dequed at most once, and each edge is looked at twice (from each of its two sides)). Auxillary space complexity is +O(V)+ (Each vertex needs an attribute to know wheter it was visited. Beside that, in the worst case, the queue contains all vertices).  For graphs which are implicitly defined or very large, time complexity is better given as +(b^d+1^)+, whereas b is the branching factor and d is the distance (weights being 1) up to which we search.
 
-To be able to know whether a given node (aka vertex) was already visited typically each node gets a `color' attribute and/or a distance attribute attached.  If it is known that the graph is acyclic that color attribute is not needed since it's inherently not possible for that algorithm to visit a node twice.
+To be able to know whether a given node (aka vertex) was already visited typically each node gets a `color' attribute and/or a distance attribute attached.  If it is known that the graph is acyclic that color attribute is not needed since it's inherently not possible for that algorithm to visit a node twice.  There are multiple common naming schemes for the colors. The three color schemes have no advantage over the two color schemes other than some people find the algorithm easier to understand / visualize. 
+
+[options="header"]
+|=====
+   |relation to distance      |                       |                      |       |
+   |NIL / infinite            |unvisited/undiscovered | unvisited            | white | not seen at all
+.2+|not NIL / not infinite .2+|visited/discovered     | tentative (neighbor) | gray  | not visited but neighbor of visited; member of Q
+                                                      | visited              | black | visited
+|=====
+
 
 Detailed version:
 --------------------------------------------------
 Breadth-First-Search(graph, source:vertex [, dest:vertex]):
-  init(graph, source, Q)
+  init(graph, source, Q) # Q contains vertexes adjacent to visited notes
   while Q is not empty:
     current = Q.dequeue()
+    [current.color = visited] // not needed in the two-colors schemes
     [do auxillary visit action with current]
 
     for each neighbor that is adjacent to current:
-      if neighbor.color == unvisited |or| neighbor.distance == NIL:
-        neighbor.color = visited/exploring |and/or| neighbor.distance = current.distance + 1
+      if neighbor.color == unvisited // or: neighbor.distance == NIL
+        neighbor.color = tentative // or: neighbor.distance = current.distance + 1
         [neighbor.parent = current]
         [if source==dest: return] // if its only about finding path source->dest
         Q.enqueue(neighbor)
 
-    [current.color = finished] // not needed in the two-colors schemes
-
 init(graph, source:vertex):
   for each vertex v in graph:
-    v.color = undiscovered |and/or| v.distance = NIL
+     v.color = undiscovered // or: v.distance = NIL
     [v.parent = NIL]
 
-  source.distance = 0 |and/or| source.color = tentative
+  source.color = tentative // or: source.distance = 0
   create empty queue Q
   Q.enqueue(source)
 --------------------------------------------------
@@ -679,29 +687,7 @@ Applications:
 
 
 
-
-There are multiple common naming schemes for the colors. The three color schemes have no advantage over the two color schemes other than some people find the algorithm easier to understand / visualize.
-
-[options="header"]
-|=====
-   |scheme 1     | scheme 2     | scheme 3     | relation to distance
-   |undiscovered | unvisited    | white        | NIL / infinite
-.2+|discovered   | tentative    | gray      .2+| not NIL / not infinite
-                 | visited      | black
-|=====
-
-
-The 3 colors split color 2 into two new separate colors 2.1 and 2.2.
-
-unvisited/undiscovered
-visited/discovered
-exploring / tentative☹ | explored/finished
-
-I propose: unvisited,visited(exploring, finished)
-
 DFS does not really produce a spanning tree but a spanning forest. The book says `predecessor subgraph'.
-
-
 
 
 ==== Tree level order traversal: Recursive approach
@@ -1213,10 +1199,105 @@ Analysis:
 - All together its thus O(E + V log V)
 
 
-[[ford_fulkerson]]
-== Ford-Fulkerson algorithm
+[[ford_fulkerson_method]]
+=== Ford-Fulkerson method
 
-Is a greedy algrithm that solves the <<maximum_flow_problem>>.
+The ford-fulkerson method is a greedy method which solves the <<maximum_flow_problem>>.  It's called a method opposed to algorithm since it's a template on which the more concrete algorithms are built.  *to-do*: why is it called a greedy algorithm? a) It does not choose the local best solution, it just picks _a_ solution b) it arguably undoes previous decisions by allowing `removing' already existing flow from an edge.
+
+Overview: Search some path in the residual network, augment the current flow with the found path. Iterate until there is no augmenting path in the residual network.
+
+--------------------------------------------------
+ford-fulkerson-method(G:flownetwork, source:vertex, sink:vertex)
+  flow = 0
+  while there exists an augmenting path p in the residual network:
+    augment flow along p
+  return flow
+--------------------------------------------------
+
+If graph is undirected, see <<maximum_flow_problem>> for a transformation. If the capacities are rational numbers opposed to integers, transform by appropriately scale all capacities to turn them into integers.
+
+Sending flow along the residual graphs backward edges means conceptually `undoing' decisions of previous iterations.
+
+
+[[ford_fulkerson_algorithm]]
+=== Ford-Fulkerson algorithm
+
+An implementation of the <<ford_fulkerson_method>> which solves the <<maximum_flow_problem>> in +O(Ef)+.
+
+--------------------------------------------------
+ford-fulkerson-algorithm(G:flownetwork, source:vertex, sink:vertex)
+  for each edge e in G:
+    e.flow = 0
+  while there exists an augmenting path ap in the residual network:
+    rcp = min capacity of ap's edges // residual capacity of path ap
+    for each edge re in ap:
+      be e the corresponding edge in G
+      if re is an forward edge: e.flow += rcp
+      else (i.e. backward)    : e.flow -= rcp
+  return flow
+--------------------------------------------------
+
+Analysis: In the worst case, mind that all capacities are integers, the residual capacity is 1, so there are +O(f)+ iterations. Each iteration takes +O(E)+, so the overall cost is +O(Ef)+, i.e. sudo polynomial. The reason is that the algorithm allows that in each iteration, a silly augmenting path is choosen, while there might be much better augmenting paths.
+
+
+[[edmonds_karp]]
+=== Edmonds-Karp algorithm
+
+An specialiation of the <<ford_fulkerson_algorithm>> which solves the <<maximum_flow_problem>> in ++O(VE²)++. It is a specialication by specifying that the augmenting path is to be found by a breadth-first-search (O(V+E)=O(E)) (i.e. searching the shortest path where each edge has weight 1).
+
+Analysis: Each iteration is +O(E)+. It's proofable that the number of iterations
+is +O(VE)+. Thus the overal running time is +O(VE²)+.  The mentioned proof is based upon that once a critical edge is removed from residual network, it proofably can reappear only a certain mount of times. Also, the shortest path distance in the residual network from source to sink proofably increases monotonically after each augmentation / iteration.
+
+Intution in what way we want to improve the ford-fulkerson algorithm: If in the residual graph there is no augmenting path, i.e. source and sink are disconnected, then we found the maximum flow. Thus we strive for increasing the distance (edge weights 1) between the source and the sink.
+
+
+[[push_relabel]]
+== push-relabel algorithms
+
+A _preflow_ is like a flow, only that it does not need to obey the flow conservation constraint, but the following relaxation of it: The flow into a vertex may exceed the flow out of a vertex. If it does, the _excess flow_ is the difference between flow in and flow out. Note that in most physical analogies, the capacity is a quantity per time, and so is excess. An excess of 3 thus means that 3 units accumulate per unit of time in the given vertex. In a regular flow all excess flows are 0.  In a preflow they are ≥ 0. An vertex other than source or think is said to be _overflowing_ (aka _active_) if its excess flow is > 0.  Each vertex as a _height_. The source has always height |V|. The sink has always height 0.  All other vertices start at height 0 and potentially raise over time.  They never decrease.  To _push (excess) flow_ means decreasing the excess flow of a vertex by sending flow through an outgoing unsaturated downhill edge in the residual network. That increases the excess flow in the receiving vertex by the same amount. To _relabel_ a vertex means to increase its height to one unit more than the lowest of its neighbors to which there's an unsaturated pipe. The intuition is that the algorithm tries to push excess flow out of a vertex, and once it can't because there is no more unsaturated downhill edge, it relabels that vertex to become able to push.
+
+In the residual graph, edges can go downhill by at most 1. They can be flat an go uphill. An edge in the residual graph is _admissible_ if it's downhill. Since edges in the residual graph can go downhill only by at most one, admissible edges go downhill exactly by one.
+
+*to-do*: why to encode in the description and in the pseudo code that source and think don't have an excess flow?
+
+
+
+--------------------------------------------------
+// precondition:
+//   u is overflowing
+//   residual edge (u,v) is admissible
+push(u:vertex, v:vertex)
+  oe = edge(u,v) in original graph
+  re = edge(u,v) in residual graph
+  df = min(u.excess, re.capacity)
+  if e is an forward edge: oe.flow += df
+  else                   : oe.flow -= df
+  u.excess -= d
+  v.excess += d
+--------------------------------------------------
+
+--------------------------------------------------
+// precondition:
+//   u is overflowing
+//   residual edge (u,v) is _not_ admissible
+relabel(u:vertex)
+  u.height = 1 + (minimal height among neighbor (via outgoing edges) nodes in residual graph)
+--------------------------------------------------
+
+--------------------------------------------------
+push-relabel(G:flownetwork)
+  init(G)
+  while there is an overflowing node u
+    If u has an admissible outgoing edge v in the residual graph: push(u, v)
+    else: relabel(u)
+--------------------------------------------------
+
+Compare and contrast the push-relable approach with the augmenting path approach: Augmengting path maintains the invariant feasability, i.e. the conservation and the capacity constraints. The goal is to reach a residual graph where the source and the sink are disconnected; i.e. we are trying to get better and better flows. Push-relabel is the exact opposite: The invariant is that in the residual graph source and sink are disconnected. The goal is restoring feasability, or in other words, transform the preflow into a flow. I.e. push-relabel first relaxes feasability, and then tries to restore it.
+
+
+References:
+
+- https://www.cs.cmu.edu/~avrim/451f13/lectures/lect1010.pdf
 
 
 == Concurrency related algorithms
@@ -1569,9 +1650,9 @@ Trivia: Was invented specifically to make Kruskal's algorithm more efficient
 === Graph
 In the following, no distinction is made between the term graph referring to an specific abstract data type and the term graph referring to a topic in mathematics.
 
-A _graph_ +G=(V,E)+ is given by a set of _vertices_ +V+ (aka _nodes_) and a set of _edges_ +E+, each edge being an pair of elements from +V+.  A _multigraph_ is one where +E+ is a multiset (as opposed to just a set).  Alternatively: a multigraph is allowed to have _parallel edges_, that is, edges that have the same start/end vertex.  In an undirected graph the two vertices of an edge are said to be _adjacent_ to each other; in an directed graph only the dst vertex of an edge is adjacent to the src vertex.  Two edges are called _incident_ if they share a vertex.  An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++. An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs and are also called _arcs_, _directed edges_ or _arrows_.  A _loop_ is an edge which starts and ends on the same vertex.  _Link_ is an edge with two different ends.  A _simple_ graph is an undirected graph that has no loops and at most one edge between any two different vertices.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.  A _vertex cover_ is a set of vertices such that each edge of the graph is incident to at least one vertex of the set.  An _independent set_ (aka _stable set_) is a set of vertices, no two of which are adjacent.
+A _graph_ +G=(V,E)+ is given by a set of _vertices_ +V+ (aka _nodes_) and a set of _edges_ +E+, each edge being an pair of elements from +V+.  A _multigraph_ is one where +E+ is a multiset (as opposed to just a set).  Alternatively: a multigraph is allowed to have _parallel edges_, that is, edges that have the same start/end vertex.  In an undirected graph the two vertices of an edge are said to be _adjacent_ to each other; in an directed graph only the dst vertex of an edge is adjacent to the src vertex.  Two edges are called _incident_ if they share a vertex.  An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++. An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs (aka directed).  Such an directe edge is also called _arc_, _directed edge_ or _arrow_.  A _loop_ is an edge which starts and ends on the same vertex.  _Link_ is an edge with two different ends.  A _simple graph_ is an undirected graph that has no loops (mind: a loop is not a cycle) and at most one edge between any two different vertices.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.  A _vertex cover_ is a set of vertices such that each edge of the graph is incident to at least one vertex of the set.  An _independent set_ (aka _stable set_) is a set of vertices, no two of which are adjacent.
 
-A _walk_ is a set of consecutive edges.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a walk with distinct edges.  A _path_ is a _trail_ with distinct vertices, except possibly the first and the last.  Some authors call that a _simple path_, and use the term path as a synonym to walk.  A _cycle_ is a path in which the first and last vertices are identical. An _open path_ is a path in which the first and last vertices are distinct.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The [[shortest_path]]_shortest path_ from vertex u to v is any path with minimal path weight.  See also <<shortest_path_problem>>.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path, and often defined as -infinite it contains a negative-weight cycle.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
+A _walk_ is a set of consecutive edges.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a walk with distinct edges.  A _path_ is a walk with distinct vertices (which implies distinct edges), except possibly the first and the last.  Some authors call that a _simple path_, and use the term path as a synonym to walk.  A _cycle_ is a path in which the first and last vertices are identical. An _open path_ is a path in which the first and last vertices are distinct.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The [[shortest_path]]_shortest path_ from vertex u to v is any path with minimal path weight.  See also <<shortest_path_problem>>.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path, and often defined as -infinite it contains a negative-weight cycle.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
 
 Two vertices v and u are called _connected_ if there is a path from v to u, otherwise they are called _disconnected_.  A _connected graph_ is one where every pair of vertices is connected.  A directed graph is considered a connected graph if for every pair of vertices there is a path in either direction.  A _weakly connected_ graph is a directed graph which would be a connected graph if the edges were taken to be undirected.  A directed graph is _strongly connected_, if for every pair there's a path in both directions.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.  If each strongly connected component is contracted to a single vertex, the resulting graph is a directed acyclic graph, the _condensation_ of G.  A _cut_ (aka _vertex cut_, or _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  A _complete graph_ with n vertices, denoted Kn, has no vertex cuts at all, but by convention κ(Kn) = n − 1.  The _connectivity_ (or _vertex connectivity_) κ(G) (where G is not a complete graph) is the size of a minimal vertex cut.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.
 
@@ -1586,7 +1667,11 @@ A _directed acyclic graph_ (_DAG_) is a graph with no directed cycles.  Given a 
 [[tree_graph]]
 See also <<tree_ADT>>. A _tree_ is an undirected graph in which any two vertices are connected by exactly one path (which then naturally is a simple path).  Alternatively: an undirected connected acyclic graph.  Thus it's always undirected, acylic, connected and bipartite.  Note that an arborescence is not a connected graph (consider a root with two childs; the two childs are not connected).  In informatic context, the term tree is often used for what we call here an directed rooted tree.  A _rooted tree_ is a tree in which one vertex has been designated the root.  An _arborescence_ (aka _directed rooted tree_ or _out-tree_) is a directed rooted tree in which all edges point away from the root.  An _anti-arborescence_ (aka _in-tree_) is an arborescence where all edge directions are reversed.  A _forest_ is a disjoint union of trees.  Alternatively: an acyclic undirected graph.  An _ordered tree_ (aka _plane tree_) is a rooted tree in which an ordering is specified for the children of each vertex.  A _poly tree_ is a directed acyclic graph which would be a tree if it's edges were undirected.  A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the vertices of G.  A [[MST]]_minimum spanning tree_ (aka _MST_) of is a spanning tree of G with the minimal total weighting for its edges.  See also the <<MST_problem>>.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
 
-A _flow network_ (aka _transportation network_) is a directed graph where each edge has a _capacity_ and a _flow_ which can not exceed the capacity.  The amount of flow into a node must equal the amount of flow out of it, unless the node is a _source_ or a _sink_.  An __s-t edge cut__ is an edge cut such that one of the resulting component contains the source and the other component contains the sink.  The __edge-cut capacity__ is the sum of the capacities on the cut edges.
+A _flow network_ (aka _transportation network_) is a directed graph where each edge has a _capacity_ and a _flow_ which can not exceed the capacity (_capacity constraint_).  _flow conservation_ dictates the the amount of flow into a node must equal the amount of flow out of it, unless the node is a _source_ or a _sink_.  A __s-t edge cut__ is a partition of the graph's vertices into set S and T, S containing source and T containing sink.  The __edge-cut capacity__ is the sum of the capacities of edges from S to T, thus ignoring edges from T to S. The _net flow_ f(S,T) across the cut (S,T) is the sum of the flows of edges from S to T, minus the sum of the flows of edges from T to S.  The _residual graph_ G~f~ induced by flow f conceptually has two edges for every edge in G. The forward (same direction as in G) edges capacity is c~e~-f~e~, the backward edges capacity is f~e~. However edges in G~f~ with capacity 0 are removed. The residual graph is almost a flow network just like the original graph, with the small difference, that now backward edges are allowed. An _augmenting path_ p is a path in the residual graph vom source to sink. The _residual capacity_ of p is the minimal edge capacity on p. An edge on p is said to be _critical_ if its capacity equals the residual capacity of p.
+
+Lemma: Given a flow in a flow network, the flow equals the net flow of any s-t cut. Figuratively: Any cut partitions the network in two networks, one containing source the ther the sink, the two connected by two pipe bundles. It's intuitive that the flow of these two pipe bundles equals the flow from source to sink.
+
+__Max-flow min-cut theorem__: The following three are equivalent, given a graph G and a flow f: 1) f is a maximum flow in G 2) The residual network induced by f contains no augmenting path 3) There is a cut such that it's capacity equals the flow f. In other words, the maximum flow equals the capacity of the cut with the minimal capacity. Intuitively that becomes apparent having the previous lemma in mind: Since the capacity of a s-t cut is an upper limit of G's maximum flow, the maximum flow is bounded by the cut with the minimal capacity.
 
 Common problems: _single-pair shortest path_ problem (from single source to a single destination), _single-source shortest path_ problem (from a single source to all others) _single-destination shortest path_ problem (from all others to a destination), _all-pairs shortest path_ problem (from all to all), <<maximum_flow_problem>>. The chapter <<NP_complete>> also lists some graph problems.
 
@@ -1923,7 +2008,7 @@ Is an implementation of the ordered <<associative_array>> ADT. It stores +k+ ite
 
 Since the child nodes have an ordering, an in-order traversal prints the stored keys in order.
 
-A trie can be seen as a DFA (Deterministic finite automaton) without loops.  A trie can be compressed into an DAFSA (deterministic acyclic finite state automaton).  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.
+A trie can be seen as a DFA (Deterministic finite automaton) without loops (mind: a loop is not a cycle).  A trie can be compressed into an DAFSA (deterministic acyclic finite state automaton).  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.
 
 Applications: See <<suffix_tree>>
 
@@ -2460,11 +2545,11 @@ Solutions:
 [[maximum_flow_problem]]
 === Maximum Flow Problems
 
-_Maximum flow problems_ involve finding the maximum flow in a flow network.  It can be seen as a special case of more complex problems, e.g. the circulation problem.   The _max-flow min-cut theorem_ states that the maximum flow is equal to the minimum capacity over all possible s-t edge cuts.
+_Maximum flow problems_ involve finding the maximum flow in a flow network.  It can be seen as a special case of more complex problems, e.g. the circulation problem.
 
 Note that a multi-source multi-sink flow network can easily be transformed to a single-source single-sink flow network by adding a consolidated source and a consolidated sink.
 
-Solutions of max-flow: _Ford–Fulkerson algorithm_ +O(E*f)+ for the case where capacities are integers, whereas f is the maximum flow. See <<ford_fulkerson>>.
+Solutions of max-flow: <<ford_fulkerson_algorithm>> in +O(E*f)+ (whereas f is the maximum flow) for the case where capacities are integers, <<edmonds_karp>> algorithm in +O(VE²)+ for the case where capacities are integers.
 
 
 == References
@@ -2487,7 +2572,6 @@ Solutions of max-flow: _Ford–Fulkerson algorithm_ +O(E*f)+ for the case where 
 // eval: (visual-line-mode 1)
 // eval: (auto-fill-mode -1)
 // eval: (filladapt-mode -1)
-// compile-command: "asciidoc -a toc -a icons algorithms_and_data_structures.adoc"
 // End:
 
 //  LocalWords:  pre th ADT Multimap multihash multimap emptyCount fullCount
