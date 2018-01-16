@@ -93,7 +93,7 @@ Examples of NP-complete problems:
 - Determining whether a graph contains a simple path with at least a given number of edges
 - <<TSP,Travelling salesman problem>>
 - <<knapsack>>
-- _Hamiltonian path/cycle_: a path/cycle in an undirected or directed graph that visits each vertex exactly once
+- <<hamiltoninan_path_problem>>
 - _Boolean satisfiability_ (_SAT_) problem: *to-do*:
 - _Subset sum problem_: Given a set (or multiset) of integers, is there a non-empty subset whose sum is zero?
 - _clique problems_
@@ -356,7 +356,7 @@ In-place:: An algorithm using +O(1)+ auxiliary memory space.  Often even +O(log 
 
 .Terms
 Sentinel:: A sentinel is a dummy object that allows us to simplify boundary conditions.
-Online:: An online algorithm is one that can process its input piece-by-piece in a serial fashion, i.e. the algorithm does not need to see the entire input from the beginning.
+Online:: An online algorithm is one that can process its input piece-by-piece in a serial fashion, i.e. the algorithm does not need to see the entire input from the beginning. See <<online_algorithms>>.
 Offline:: An offline algorithm requires to see the complete input from the beginning.
 Memoization:: The solution to a given (sub)problem is memoized in a `memo pad' (aka table).  E.g. upfront or when first encountering it.  When later seeing the same (sub)problem again, its solution can be looked up in the memo.  See also <<dynamic_programming>>.
 [[whp]]
@@ -1332,6 +1332,30 @@ consume:
 *to-do*
 
 
+[[online_algorithms]]
+== Online algorithms
+
+An online algorithm is _k-competitive_ if there exists a constant k such that its cost is at most k times the cost of an optimal offline algorithm.  The factor k is called the _competitive ratio_.
+
+
+=== Page replacement algorithm
+
+There's (slow) data, k faster-than-data pages. A cache _miss_ is when a requested page is not in the cache. Updating cache from data is called _evicting_ (kicking out a page from the cache) and _fetching_ data into the now free page.
+
+No deterministic algorithm is k-competitive.
+
+Page replacement strategies:
+
+- LRU (least recently used): Evict least recently used. Is an conservative algorithm.
+- FIFO (first in first out): Evict oldest-loaded page. Is an conservative algorithm.
+- LFU (least frequently used): Evict the page that has been requested least frequently.
+- MIN or OPT (offline optimal): Evict page to be used farthest in the future. A greedy algorithm. Proofably optimal. Cost +O(n/k)+ (n accesses, k pages). Proof: Only very k accesses there's an evict.
+
+Applications:
+
+- Cachings at all levels of the memory hierarchy
+
+
 == Misc algorithms
 
 === Horner's method / Horner's scheme
@@ -1664,7 +1688,7 @@ This chapter explains graphs as a mathematical concept. For the corresponding ab
 
 A _graph_ +G=(V,E)+ is given by a set of _vertices_ +V+ (aka _nodes_) and a set of _edges_ +E+, each edge being an pair of elements from +V+.  The _order_ of a graph G, denoted by |G| is the number of its vertices, i.e. |V|.  The size of a graph G, deonoted by ||G||, is the number of its edges, i.e. |E|.
 
-An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++.  An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs (aka directed).  Such an directed edge is also called _arc_, _directed edge_ or _arrow_.  An _outgoing edge_ (_incoming edge_) of vertex v is a directed edge starting (ending) at v. A _successor_ (_predecessor_) is vertex that comes after (before) a given vertex in a directed graph. A _direct successor_ (_direct predecessor_) is an adjacent successor (predecessor).  A _loop_ is an edge which starts and ends on the same vertex.  _Link_ is an edge with two different ends.  _parallel edges_ share the same start/end vertex.  In an undirected graph the two vertices of an edge are said to be _adjacent_ (or _neihbors_) to each other; in an directed graph only the dst vertex of an edge is adjacent to the src vertex.  Two edges are called _incident_ (or _adjacent_) if they share a vertex.  Pairwise non-adjacent vertices or edges are called _independent_.
+An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++.  An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs.  Such an directed edge is also called _arc_, _directed edge_ or _arrow_.  An _outgoing edge_ (_incoming edge_) of vertex v is a directed edge starting (ending) at v. A _successor_ (_predecessor_) is vertex that comes after (before) a given vertex in a directed graph. A _direct successor_ (_direct predecessor_) is an adjacent successor (predecessor).  A _loop_ is an edge which starts and ends on the same vertex.  A _link_ is an edge with two different ends.  _parallel edges_ (aka _multiple edges_ or a _multi-edge_) share the same pair of vertices, and in case of directed graphs, point in the same direction.  In an undirected graph the two vertices of an edge are said to be _adjacent_ (or _neihbors_) to each other; in an directed graph only the destination vertex of an edge is adjacent to the source vertex.  Two edges are called _incident_ (or _adjacent_) if they share a vertex.  Pairwise non-adjacent vertices or edges are called _independent_.
 
 The _degree_ of a vertex v in an undirected graph is the number of edges incident with v, with loops counted twice. In directed graphs, _out degree_ (_in degree_) is the number of outgoing (incoming) edges. A vertex of degree 0 is called _isolated_ (or _disconnected_), a vertex o degree is called an _end-vertex_.
 
@@ -1694,6 +1718,52 @@ Common graph problems:
 References:
 
 - http://en.wikipedia.org/wiki/Glossary_of_graph_theory
+
+
+[[hamiltonian_cycle]]
+[[hamiltonian_path]]
+=== Hamiltonian path / cycle
+
+An _Hamiltonian path_ (aka _traceable path_) is a path in an undirected or directed graph that visits each vertex exactly once.  A _Hamiltonian cycle_ (aka _Hamiltonian circuit_, _vertex tour_ or _graph cycle_) is a Hamiltonian path that is a cycle.  A graph that contains a Hamiltonian path is called a _traceable graph_.  A graph is _Hamiltonian-connected_ if for every pair of vertices there is a Hamiltonian path between the two vertices. A graph that contains a Hamiltonian cycle is called a _Hamiltonian graph_.
+
+Properties:
+
+All Hamiltonian graphs are biconnected, but a biconnected graph need not be Hamiltonian.
+
+A tournament (with more than two vertices) is Hamiltonian iff it is strongly connected.
+
+Common problems: <<hamiltonian_path_problem>>, <<hamiltonian_cycle_problem>>, both NP-complete.
+
+
+[[eulerian_circuit]]
+[[eulerian_trail]]
+=== Eulerian trail / circuit
+
+An _Eulerian trail_ (aka _Eulerian path_ or _Euler walk_) is a trail in an undirected or directed graph (including multigraphs) that uses all the Graph's edges.  If such as walk exists, the graph is called _traversable_ (aka _semi-eulerian_).  An _Eulerian cycle_ (aka _Eulerian circuit_, or _Eulerian tour_) is a circuit that uses all the Graph's edges.  If such a cycle exists, the graph is called _Eulerian_ or _unicursal_.
+
+Properties:
+
+An connected undirected graph has an Eulerian cycle if and only if every vertex has even degree.
+
+An connected undirected graph has an Eulerian trail if and only if exactly zero or two vertices have odd degree.
+
+A directed graph has an Eulerian trail if and only if at most one vertex has (out-degree) − (in-degree) = 1, at most one vertex has (in-degree) − (out-degree) = 1, every other vertex has equal in-degree and out-degree, and all of its vertices with nonzero degree belong to a single connected component of the underlying undirected graph.
+
+A connected directed graph has an Eulerian cycle if and only if its strongly connected and every vertex has equal in degree and out degree. Equivalently, a directed graph has an Eulerian cycle if and only if it can be decomposed into edge-disjoint directed cycles and its strongly connected.
+
+Problems:
+
+- Finding Eulerian trails:
+  * Fleury's algorithm find's Eulerian trails or cycles in +O(E²)+
+  * Hierholzer's algorithm find's Eulerian cycles linear time: +O(E)+.
+
+Applications:
+
+- Eulerian trails are used in bioinformatics to reconstruct the DNA sequence from its fragments.
+- They are also used in CMOS circuit design to find an optimal logic gate ordering.
+- There are some algorithms for processing trees that rely on an Euler tour of the tree (where each edge is treated as a pair of arcs).
+
+Trivia: Was first discussed by Leonhard Euler while solving the famous _Seven Bridges of Königsberg_ problem in 1736.
 
 
 === Connectivity
@@ -2520,18 +2590,11 @@ Applications:
 - Dedect cycles (i.e. problems) in a dependency graph
 
 
-=== Eulerian trail / Eulerian cycle
-An Euler tour in an undirected graph is a walk that traverses each edge exactly once.  If such as walk exists, the graph is called _traversable_ or _semi-eulerian_.  An Eulerian cycle (aka Eulerian tour) in an undirected graph is a cycle that uses each edge exactly once.  If such a cycle exists, the graph is called Eulerian or unicursal.
+[[hamiltonian_path_problem]]
+[[hamiltonian_cycle_problem]]
+=== Hamiltonian path / cycle problem
 
-Hierholzer's algorithm solves the Eulerian cycle problem in linear time: +O(E)+.
-
-Trivia: Was first discussed by Leonhard Euler while solving the famous _Seven Bridges of Königsberg_ problem in 1736.
-
-
-=== Hamiltonian path / cycle
-A Hamiltonian path is a path in an undirected or directed graph that visits each vertex exactly once.  A Hamiltonian cycle (or Hamiltonian circuit) is a Hamiltonian path that is a cycle.  A Hamiltonian cycle is a special case of the traveling salesman problem: adjacent cities have distance one, the others distance two, and verifying that the total distance traveled is equal to n.
-
-Determining whether such a path or cycle exists is NP-complete.
+The __<<hamiltonian_path>> problem__ and the __<<hamiltonian_cycle>> problem__ are problems of determining whether a Hamiltonian path or a Hamiltonian cycle exists in a given graph (whether directed or undirected).  Both problems are NP-complete.
 
 
 [[LCA_problem]]
