@@ -1,10 +1,21 @@
 :encoding: UTF-8
+:toc:
+:toclevels: 4
 // The markup language of this document is AsciiDoc
 
-= Algorithms & data structures
+= Algorithms and data structures
 
 
-== Asymptotic notations / Big O notation
+== Misc. terms
+
+In-place:: An algorithm using +O(1)+ auxiliary memory space.  Often even +O(log n)+ is considered as in place.
+Sentinel:: A sentinel is a dummy object that allows us to simplify boundary conditions.
+Memoization:: The solution to a given (sub)problem is memoized in a `memo pad' (aka table).  E.g. upfront or when first encountering it.  When later seeing the same (sub)problem again, its solution can be looked up in the memo.  See also <<dynamic_programming>>.
+[[whp]]
+With high probability (w.h.p.):: An event E occurs with high probability if Pr[E] ≥ 1−1/n^c^ for any constant c.
+
+
+== Asymptotic notations / big O notation
 In computer science, big O notation is used to classify algorithms by how they respond to changes in input size, typically regarding running time space (memory/disk/...).
 
 In the following +n+ is the _input size_, +f(n)+ is the _number of steps_ needed by an algorithm, and  +T(n)+ is its _running time_.
@@ -105,7 +116,7 @@ Examples of NP-complete problems:
 - _Graph coloring_ regarding vertices (edges): Coloring the vertices (edges) of a graph such that no two adjacent vertices (edges) share the same color.
 
 
-== Classifying Algorithms by Implementations
+== Algorithm classifications by implementations
 
 === Recursion vs iteration
 
@@ -122,7 +133,8 @@ Examples of NP-complete problems:
 
 Terms: _base case_ is input for which the solution is directly known.  When the recursion arrives at the base case it is said to _bottom out_.
 
-=== Recipes for convertion recursion -> iteration
+
+=== Recipes for convertion recursion to iteration
 
 ==== Tail call
 Recipe for translating recursion into iteration for a function ++foo++ for the case where recursive calls are convertible to tail calls:
@@ -229,7 +241,22 @@ jmp funAddr        addr = FunEntry              | addr = addrStack.pop()
 *to-do*
 
 
-== Algorithm design techniques/paradigms
+== Online Algorithms
+
+An online algorithm is _k-competitive_ if there exists a constant k such that its cost is at most k times the cost of an optimal offline algorithm.  The factor k is called the _competitive ratio_.
+
+
+== Algorithm design techniques / paradigms
+
+[[relation_between_techniques]]
+=== Relation between techniques
+
+Decrease and conquer is similar to divide and conquer.  However the latter splits the problem into two or more sub problems.  The former doesn't need to combine the results of the sub problems.
+
+In dynamic programming, subproblems overlapp and we need to solve them only once. In divide/decrease and conquer, sub problems do not overlap.
+
+Dynamic programming vs greedy algorithm: in dynamic programming and divide/decrease and conquer the choices are made depending on the result of the sub problems. I.e. the sub problems are solved first.  The greedy algorithm makes first a (greedy) choice, thus reduces the problem to a subproblem, and then solves that remaining subproblem.
+
 
 === Brute force (aka exhaustive search)
 This is the naive method of trying every possible solution to see which is best.
@@ -325,16 +352,6 @@ In many problems, a greedy strategy does not in general produce an optimal solut
 Example algorithms: (Greedy) best-first search, A*, Dijkstra, fractional knapsack problem, change-making problem for canonical coin system. *to-do*: more examples.
 
 
-[[relation_between_techniques]]
-=== Relation between techniques
-
-Decrease and conquer is similar to divide and conquer.  However the latter splits the problem into two or more sub problems.  The former doesn't need to combine the results of the sub problems.
-
-In dynamic programming, subproblems overlapp and we need to solve them only once. In divide/decrease and conquer, sub problems do not overlap.
-
-dynamic programming vs greedy algorithm: in dynamic programming and divide/decrease and conquer the choices are made depending on the result of the sub problems. I.e. the sub problems are solved first.  The greedy algorithm makes first a (greedy) choice, thus reduces the problem to a subproblem, and then solves that remaining subproblem.
-
-
 === Linear programming
 *todo*
 
@@ -343,26 +360,721 @@ Such algorithms include local search, tabu search, simulated annealing, and gene
 
 *to-do*
 
-=== branch and bound
+=== Branch and Bound
 
 *to-do*
 
 
-== Misc algorithm properies & terms
+[[ADT]]
+== Abstract data types (ADT)
+An abstract data type is defined only by the operations that may be performed on it and by mathematical pre-conditions and constraints on the effects (and possibly cost) of those operations.  In OO lingo, it is an interface.  See also <<data structures>>,  which in OO are (non-abstract) classes.
 
-.Properties
-Locality:: *to-do*
-In-place:: An algorithm using +O(1)+ auxiliary memory space.  Often even +O(log n)+ is considered as in place.
+=== Summary
 
-.Terms
-Sentinel:: A sentinel is a dummy object that allows us to simplify boundary conditions.
-Online:: An online algorithm is one that can process its input piece-by-piece in a serial fashion, i.e. the algorithm does not need to see the entire input from the beginning. See <<online_algorithms>>.
-Offline:: An offline algorithm requires to see the complete input from the beginning.
-Memoization:: The solution to a given (sub)problem is memoized in a `memo pad' (aka table).  E.g. upfront or when first encountering it.  When later seeing the same (sub)problem again, its solution can be looked up in the memo.  See also <<dynamic_programming>>.
-[[whp]]
-With high probability (w.h.p.):: An event E occurs with high probability if Pr[E] ≥ 1−1/n^c^ for any constant c.
+*to-do*: finish tables
 
-== Sorting
+*to-do*: combine header cells , e.g. queue and stack are specialized deques
+
+linear collections, excluding priority queues
+|=====
+|               | list | array | deque | queue  | stack
+|insert-at(iter)| x    |       |       |        |      
+|insert-front   | x    |       | x     | x      | x
+|insert-back    | (x)  |       | x     |        |
+|find(pos)      |      | x     |       |        |
+|find-front     | x    | x     | x     |        | x
+|find-back      | (x)  | x     | x     | x      |
+|delete-front   | x    |       | x     |        | x
+|delete-back    | (x)  |       | x     | x      |
+|delete(iter)   | x    |       |       |        |
+|successor/pred.| x    | x     |       |        |
+|=====
+
+associative collections and ordered by a key, plus priority queues
+|=====
+|               | priority queue | BST
+|insert         | x              | x
+|find(key)      |                | x
+|find-min       | x              | x
+|find-max       |                | x
+|delete-min     | x              | x
+|delete-max     |                | x
+|delete(key)    |                | x
+|successor/pred.|                | x
+|=====
+
+// associative unordered collections
+// |=====         | set | 
+// |insert
+// |find(value)
+// |delete
+// |=====
+
+*to-do*: draw is-specialization/generalization DAG plus data structures implementing them
+
+
+[[collection]]
+[[container]]
+=== Collection (aka container)
+Grouping of data items.  Generally, the data tiems will be of the same type.
+
+Common operations: Create empty container, report number of objects it stores (size), delete all its objects (clear), insert new objects, remove objects, provide access to stored objects.
+
+[[linear_collection]]
+.Linear collections
+The elements form a sequence. Example ADTs: <<list_adt>>, <<stack>>, <<queue>> (<<priority_queue>> [not associative since only the min element can directly be accessed], <<deque>>, <<depq>>)
+
+[[associative_collection]]
+.Associative collections (sorted or unsorted)
+Given a key, the collection yiels a value. Example ADTs: <<associative_array>> (<<set>> [value being the key] (<<multiset>>))
+
+.Graphs
+Data items have associations with one or data items in the collection. Example ADTs: <<tree_adt>>.
+
+
+Notably usually not considered a collection: fixed-sized arrays
+
+
+[[array_data_type]]
+=== Array data type
+
+Random access, fixed size.
+
+Implementation: array data structure
+
+
+[[list_adt]]
+=== List (aka sequence)
+
+Sequencial access (no random access)
+
+Implementations: linked list, doubly linked list, array data structure
+
+
+[[map]]
+[[associative_array]]
+[[dictionary]]
+=== Associative array (aka map, symbol table, dictionary)
+<<collection>> of (key, value) _pairs_ (aka _items_), such that each key appears at most once in the collection.  Specialization of <<multimap>>.
+
+Operations: _insert_ (aka add) a pair, _delete_ (aka remove) a pair, _look-up_ (aka search, find) value associated to a given key.  Optionally also _iterate_ over all pairs, _modify_ (aka reassign), the value of an already existing pair.
+
+Implementations: association list, hash table, binary search tree, radix trees, tries, Judy arrays, ....
+
+
+[[multimap]]
+==== Multimap (aka multihash)
+Is a generalization of a <<map>> (aka associative array) in which more than one value may be associated with a given key.  My words: As with <<multiset>>s, this is used in two distinct senses: either equal values are considered identical, and are simply counted, or equal values are considered equivalent, and are stored as distinct items.
+
+
+[[bag]]
+[[multiset]]
+==== Multiset (aka bag)
+A specialization of an <<associative_array>> in that the value part of the associative array's (key, value) pairs is absent or a sentinel value (like 1).
+
+A generalization of a <<set>> in that it allows duplicates.  This is used in two distinct senses: either equal values are considered identical, and are simply counted, or equal values are considered equivalent, and are stored as distinct items.
+
+
+[[Set]]
+==== Set
+A specialication of a <<multiset>> (which in turn is a specialization of an <<associative_array>>), in that no duplicates are allowed.
+
+
+[[deck]]
+[[dequeue]]
+[[deque]]
+=== Double-ended queue (aka dequeue, deque, deck)
+<<linear_collection>> where elements can only be inserted to and removed from either side of the sequence.  Is a generalization of a <<queue>> and a <<stack>> in that elements can be inserted and removed to/from both sides.
+
+Implementations: <<circular_buffer>> which resizes when it's full. <<dynamic_array>>, placing the current elements in its middle, and resize when either side becomes full.
+
+Implemented more specialized ADTs: <<collection>>.
+
+Terminology: Deque is the abbrevation of double-ended queue.  Deque (pronounced deck) is the abbbreviation thereof.  Deck is as in an deck of cars, which also provides a good mental image.
+
+See also: - http://www.codeproject.com/Articles/5425/An-In-Depth-Study-of-the-STL-Deque-Container
+- C&plus;&plus;'s deque allows random access/insertion, is thus pretty similar to vector. vector vs deque discussions: http://stackoverflow.com/questions/5345152/why-would-i-prefer-using-vector-to-deque, http://www.gotw.ca/gotw/054.htm
+
+
+[[depq]]
+=== Double-ended priority queue (aka depq or double-ended heap)
+*to-do*
+
+
+[[queue]]
+=== Queue
+<<linear_collection>> where the element removed is prespecified by a first-in-first-out (FIFO) policy.  Is a specialization of a <<deque>> in that insertion is only allowed on one side and removal only on the other side.
+
+Common operations: Elememts can only be added to its _tail_ side (_enqueue_), and only be removed from the other side called _head_ (_dequeue_).  The only element that can be accessed is the one on the head side (_front_ or _peek_).
+
+Common implementations offer +O(1)+ time and +O(1)+ auxiliary space for these operation and +O(n)+ space for the collection aspect.
+
+Common implementations: circular buffer, doubly linked list, singly linked list with an additional pointer to the last node
+
+Implemented more general ADTs: <<collection>>, <<deque>>
+
+
+[[priority_queue]]
+=== Priority Queue
+A min (max) priority queue is similar to a queue, however dequeue extracts the element with the max (min) key.  I.e. each element has a key.  Principal operations for a max-(min-)priority queue: _insert_ (aka _enqueue_), _dequeue_ (aka _extract-max_(__-min__)), _peek_ (aka _max_(_min_)), _increase-key_(_decrease-key_).
+
+Sorting and priority queues: If it is possible to perform integer sorting in time T(n) per key, then the same time bound applies to the time per insertion or deletion operation in a priority queue data structure (Thorup 2007.  It's however a complicated reduction).  *to-do*: elaborate more on relation sorting to priority queues
+
+Common implementations: <<heap>>, self-balancing binary tree
+
+
+[[stack]]
+=== Stack
+<<linear_collection>> where the element removed is prespecified by a last-in-first-out (LIFO) policy.  Is a specialization of a <<deque>> in that insertion and removal are only allowed on one single side.
+
+Main operations:  Insertion is often called _push_ and can be only to one side called _top_.
+Removal is often called _pop_ and can only be the element at the top end.  The only element that can be accessed is the one on the top end of the stack (_top_ or _peek_).
+
+Implementations: <<array>>, <<linked_list>>.
+
+
+[[graph_adt]]
+=== Graph (ADT)
+Chapter <<graph_theory>> explains the mathematical theory behind the graph ADT.
+
+Common implementations:
+
+- _Adjacency list_: Typically for sparse graphs.  Collection of unordered vertex lists, one for each vertex.  Sub-forms of how to implement an adjacency list:
+ * An associative array associates each vertex (being the key) to an unordered list (being the value) of its adjacent vertices.  For the associative array, often a hash table is used.  If the key can be an integer, e.g. when the vertices are enumerated, then a simple array can be used instead the associative array.
+ * Object graph of vertices: Each vertex has a collection of pointers to its adjacent vertices. Optionally, each element in that collection, actually representing an outgoing edge, also stores other properties of the edge, e.g. its weight.  However note that for undirected graphs, each edge is stored redundantely twice. *to-do*: why is apparently the associative array before much more common than this graph variant?
+ * Object graph of vertices and edges: Each vertex object has a collection of pointers to its outgoing edges.  Each edge object has a pointer to its start and end vertex.
+- _Edge list_: A collection of edge objects, each edge object storing something to identify the start and end vertex, possibly additionally also the edge's weight.
+- _Adjacency matrix_ |V|×|V|:  Rows represent source vertices and columns represent destination vertices and cells the associated edge.  Data on vertices typically stored externally.  Typically for dense graphs, or when a quick way is needed to tell if two vertices are adjacent.  Does not work for multigraphs. *to-do* symetric for undirected graphs, inf for not adjacent vertexes, edge weights...
+- _Incidence matrix_ |V|×|E|: The rows represent the columns, the columns the edges, a cell is 1 if the associated vertex is an start point of the assiciated edge, -1 if it's the end point, and 0 otherwise.  In a weighted graph, the 1s are replaced by the edge's weight.
+
+
+[[tree_ADT]]
+=== Tree
+Note that there is a distinction between a tree as an abstract data type (what this chapter is about), a data structure (see <<data_structures>>) and a topic in graph theory (see <<tree_graph_theory>>).
+
+Terms (see also those of <<graph_theory>>, in particular <<tree_graph_theory>> and <<DAG>>):
+
+- _siblings_: nodes with the same parent.
+- _cousins_: nodes with the same grand parent.
+- _internal node_: A node with at least one child.
+- _external node_ (aka _leaf_): A node with no children.
+- _degree_: Number of sub trees of a node
+- _level_: Depth + 1
+- _size_: Number of nodes
+- _height of tree / node_: Informally: Largest distance (see <<graph_theory>>) between root / that node and any leaf. Formally: ++height(node) = max(height(node.left), height(node.right)) + 1++, whereas height of NULL is -1 (equalently: height of leaf node is 0). Height of tree, height of root, depth of deepest leaf are all synonymous.
+- _depth_ of node: Distance from root to that node.
+
+Implementations: See those of <<graph_adt>>,  and the methods for storing a <<binary_tree>>
+
+
+[[binary_search_tree]]
+=== Binary Search Tree (aka BST, ordered/sorted binary tree)
+Is a specialized <<binary_tree>> where 1) each node has a comparable key 2) for each node: the key of the left child, if child present, is smaller-or-equal than the node's key, and the key of the right child, if present, is larger-or-equal than the node's key.  Be +n+ the number of elements.  +h≥lg n+ the height of the tree.  The expected height is +h=lg n+ for a randomly built binary tree.
+
+_binary search tree property:_ If node +y+ is in the left subtree of node +x+, then +y.key<=x.key+, if +y+ is in +x+'s right subtree, then +y.key>=x.key+.
+
+_Search_ key +k+: +O(h)+. Recursively or iteratively, for current node +x+, if +k<x.key+ continue with left subtree, else right subtree.
+
+[[rotation]]_Left/right rotation_: +O(1)+. Preserves the order of elements of an in-order traversal. Note that thus, in case of an BST, also preserves the binary-search-tree property.
++
+The following visualizes left/rifght rotation. x/y/r are nodes, A/B/C are subtrees.  The middle subtree B changes the parent from x/y to y/x, and x/y swap parent/child relation which includes that the new parent's parent must be changed to r.
++
+----------------------------------------------------------------------
+   r                 r
+   x      left       y  
+A     y     →     x    C
+     B C    ←    A B
+          right    
+A  x ByC         AxB y C
+----------------------------------------------------------------------
+
+_Min_/_Max_: +O(h)+. Follow left/right subtree until the leaf is reached.
+
+_Successor_/_Predecessor_: +O(h)+. **To-do**
+
+Implementations: <<AVL>> trees, red-black trees
+
+Implements these more general ADTs: <<associative_array>>
+
+
+[[disjoint_set]]
+=== Disjoint-set (aka union-find, merge-find set)
+A collection of n elements, partitioned into a number of disjoint sets. Or from another point of view: Given an undireced graph of n vertices, keeps track of connected components, and thus can answer which vertices are connected.
+
+Usually each set chooses one of its elements as the representative; that representative element identifies the set. It is undefined which element is chosen, but it stays the same as long as the data structure is not modified.
+
+Main operations:
+
+- make-set(v): Adds element / vertex v to the collection, as a new set containing only that element.
+- find-set(v): Returns the id of the set / connected-component element / vertex v is in. To see if elements / vertices u and v are in same set / connected: find-set(u)==find-set(v).
+- merge-sets(u,v): Merges the sets of elements u and v / adds edge between vertex u and vertex v. It is undefined what the id of the new set is.
+
+Implementations: <<disjoint_set_linked_list>>, <<disjoint_set_forest>>
+
+|============
+|                  | linked-list | forest / union by rank | forest / union by rank + path compression
+| insert(v)        |             | O(1)                   | O(1)
+| find-set(v)      | *to-do*     | O(log n)               | O(log* n)
+| merge-sets(u,v)  |             | O(log n)               | O(log* n)
+|============
+
+Applications: <<Kruskal>>'s algorithm, *to-do*
+
+Trivia: Was invented specifically to make Kruskal's algorithm more efficient
+
+
+[[data_structures]]
+== Data structures
+A concrete particular way of organizing data in memory.  In OO lingo, its is a (non-abstract) class.  See also <<ADT>>, which is in OO lingo an interface.
+
+
+[[table]]
+[[array]]
+=== Array data structure (aka table)
+Fixed size, +Θ(1)+ time for indexing, with a very low constant factor.  ++O(0)++ wasted space.  Due to the fixed size, elements cannot be added / removed.
+
+
+[[dynamic_table]]
+[[dynamic_array]]
+=== Dynamic array (aka array list, dynamic table, resizeable array)
+In contrast to <<array>> the size is variable, thus allows elements to be added / removed.  _Capacity_ is the number of elements the container could currently hold, and the _size_ is the number of elements it actually currently contains.
+
+[[table_doubling]]
+==== Table doubling
+When size=capacity upon an insertion, create a new table with double the capacity and copy all elements over -> insertions are +Θ(1)+ amortized.  Upon deletions, when you don't mind slack, never resize the table (as the STL does), or half the capacity when size drops below capacity/4. In that case both insertions and deletions are +Θ(1)+ amortized. (You can't half the capacity when the size reaches half the capacity because in a sequence like inserting/deleting/inserting/deleting, each operation could encompass a table resize which would mean +O(n)+ per operation.)  Of course, other constants than 2 can be used, as long as the factor which is to do shrink is greater than the factor to enlarge.
+
+One can get +Θ(1)+ by roughly this idea: When you remark that you start to get full, start a new table with a larger capacity, initially empty.  On each insertions operation, copy a constant amount of items from the old table to the new one.  Once the old table is really full, just switch over to the new table.  All in all it's quite complicated, so it's not that often used.
+
+
+[[linked_list]]
+=== Linked list
+
+Implementation of the ADT <<list>>.
+
+Orthogonal properties:
+
+- Singly, Doubly or Multiply linked
+- Circular linked yes/no
+- Sentinel nodes yes/no
+
+
+[[circular_buffer]]
+=== Circular buffer (aka cyclic buffer, ring buffer, circular queue)
+Uses a single, fixed-size buffer as if it were connected end-to-end.
+
+Internally uses 1) an array which's size equals circular's buffer capacity, 2) an pointer (or index) to the first element and 3) one to the last element.  Pointers in a circular buffer wrap around at the underlying array border (array.first and array.last (according array.size=circular_buffer.capacity)).
+
+Implements the ADT <<queue>>
+
+Difficulties:
+
+- Depending on the exact implementation, distinguish the case that the buffer is empty and that it is full is not possible, because in both cases start and end point to the same element.
+
+
+=== Direct-address table
+Implements the <<associative_array>> ADT.  An array of size |U|, where U is the universe, i.e. the set of possible keys.  A key's value is the index into the array where the data corresponding to the key is stored.
+
+Time: +O(1)+ worst average best case.  Space: +O(|U|)+.
+
+
+[[hash_table]]
+=== Hash tables
+Implements the <<associative_array>> ADT.  Is an array of size m. A <<hash>> function +h(k,m)+ is used to map a key +k+ to [0,m), i.e. to an index into the table. When two keys hash to the same slot that is called a _collision_. The following subchapters describe ways how to deal with collisions. +α=n/m+ is the _load factor_ of the table.
+
+In general, the various variants have the following properties: Search/insert/delete time in +O(k)+ for the best and average case, and ++O(k+n)++ worst case. Space is usually +O(n)+.
+
+==== Collision resolution with (separate) chaining
+Each table slot has associated a sequence of items, typically a singly linked list. The expected chain length is the table's load factor.
+
+Insert/delete/find: +Θ(1)+ (Actually +Θ(1+loadfactor)+, but when loadfactor=O(1) (i.e. m=Ω(n)), it becomes +Θ(1)+). Rational: Paying O(n) to find table slot, then O(loadfactor) to walk the list.
+
+Loadfactor should be +Θ(1)+ (i.e. m should be +Θ(n)+). If +m+ is too small, the loadfactor is too high, in the worst case not +Θ(1)+ anymore.  That would lead to hash table operations not being +Θ(1)+ anymore.  If +m+ is too large, we waste space.
+
+==== Collision resolution with open addressing
+Each slot can really only take one key, and has an attribute whether it's free. If a hash maps a given key to an non-free slot, a probe sequence is used iteratively to ultimatively find a free slot. Typically delition and table resize are possible but complicated, since *to-do*.  Unlike with chaining, if all slots are used, the table must be enlarged, see also <<table_doubling>>.
+
+Probe sequences. +h(k,m,i)+ is the same as +h(k,m)+, with the aditional parameter i, denothin the i-th probe. If h(k,m,0) returns a used slot, you try h(k,m,1) and so on.
+
+Linear probing:: ++h(k,m,i) = (h(k,m)+i) mod m++. Good locality, but most sensitive to primary clustering.
+
+Quadratic probing:: Try m1=m0+1, m2=m1+2=m0+3, m3=m2+3=m0+6. Properties between linear probing and double hashing
+
+Double hashing:: ++h(k,m,i) = (h(k,m)+i*h2(k,m)) mod m++. Interval is computed by another hashfuncion. Bad locality, but exhibits virtualy no clustering. m is typically a power of two. If m is even, h2 should deliver an odd number, else every 2nd slot will never be probed.
+
+
+==== Perfect hashing (FKS)
+*to-do*
+
+
+==== Cuckoo hashing
+*to-do*
+
+
+=== Association list
+Is an implementation of the ADT <<associative_array>>.
+
+*to-do*
+
+
+=== Selection problem
+See <<order_statistics>>
+
+
+=== Nearest neighbor search (NNN)
+
+*to-do*:
+
+
+[[binary_tree]]
+=== Binary tree
+A <<tree>> data structure in which each node has at most two children.  Note that a <<binary_search_tree>> is something else with more restrictions.
+
+Properties:
+
+- _full_(aka _proper_): Every node other than the leaves has two children.
+- _perfect_: (aka ambiguously (see next) complete): A full binary tree in which all leaves have the same depth
+- _complete_: Every level, except possibly the last, is completely filled, and all nodes are as far left as possible.
+- [[balanced]]_balanced_: height is +Θ(lg |V|)+
+- [[weight_balanced]]_weight balanced_: The size difference between the left and the right subtree is kept within some constant factor.
+- _degenerated_ (aka _pathological_): Each node has at most one child.  The tree is thus effectively a linked list.
+
+Methods of storing:
+
+- See <<graph_adt>>
+- As an implicit data structure in an array.  Be i the current node's index, 0 the first index, then its parent is at index floor((i-1)/2), its right child at 2i+1 and its left child at 2i+2.  In the case of a complete binary tree, no space is wasted.  See also <<binary_heap>> which commonly uses this scheme.
+
+
+[[naive_BST]]
+=== (Naive) binary search tree (data structure)
+A data structure implementing the binary search tree ADT. When inserting, the elements are always inserted as leaves, whithout changing previous nodes.
+
+
+[[random_binary_tree]]
+=== Randomized binary search tree
+Randomly permute the input before building the <<naive_BST>>. 
+
+*to-do*: 
+
+Expected height E[height]=O(lg(n))
+
+[[avl]]
+=== AVL Tree
+A data structure implementing the binary search tree ADT.  Is a <<balanced>> binary search tree; balance is ensured by the following invariant: For each node n: |height(n.left) - heigh(n.right)| ≤ 1.  From that (indirectly) follows: tree height ≈ 1.44 lg(|V|).
+
+Time complexity: O(log n) average and worst case for all basic operations (search, insert, delete).
+
+Space complexity: O(n)
+
+Each node stores its _balance factor_, which is the difference in height of the left and right subree. Must be in range [-1,1].
+
+Rough description of how insertion/deletion work:
+
+1. First do a normal BST insertion or deletetion (which honor the BST property)
+2. For each node on the path from the newly inserted node up to the root: if balance factor is not in range [-1,1], fix it by only _rotation_ operations.
+
+See also <<search_tree_comparison>>
+
+
+[[red_black]]
+=== Red-Black
+A data structure implementing the binary search tree ADT.  Is a <<balanced>> binary search tree; Balance is preserved by attributing each node with one of two colors (typically called `red' and `black') in a way that satisfies red-black properties (see below).  Tree height ≈ 2*lg(|V|).
+
+red-black properties:
+
+- Roots and NILs are black (typically NILs are called the leaves and all other `poper' nodes are called internal nodes).
+- Every red node has a black parent (i.e. never two consequtive red nodes on a simple path)
+- For each descendant of a node n, the number of black nodes on the simple path from n to descendant is the same
+
+Time and space complexity: save as <<AVL>> tree.
+
+See also <<search_tree_comparison>>
+
+
+=== 2-3 tree
+*to-do*
+
+
+=== 2-3-4 tree
+*to-do*
+
+
+=== B-tree
+*to-do*
+
+
+=== B+ tree
+See data_base_systems.txt
+
+
+[[vEB_tree]]
+=== Van Emde Boas tree (aka vEB tree)
+Is a tree data structure implementing the ordered <<associative_array>> ADT with m-bit integer keys. It performs all operations in O(lg m) time. The vEB tree has good space efficiency when it contains a large number of elements
+
+
+[[cartesian_tree]]
+=== Cartesian tree
+A binary tree having the heap property and having the additional porperty that its in-order traversal delivers a given sequence S. Can be built in O(n) time from S and vice versa.
+
+Example:
+--------------------------------------------------
+S = [8,7,2,8,6,9,4,5]
+
+T =      2
+        / \______
+       7         4
+      /       __/ \
+     8       6     5
+            / \
+           8   9
+--------------------------------------------------
+
+Building cartesian tree T from a sequence S, which assumes parent pointers: To process each new value x, start at the node representing the value prior to x in the sequence and follow the path from this node to the root of the tree until finding a value y smaller than x. This node y is the parent of x, and the previous right child of y becomes the new left child of x. 
+
+Building sequence S from cartesian tree T: If T's nodes are not labeled with values as above, which is likely, label each node with it's depth. Do an inorder traversal, resulting in an array of node labels.  LCA on T is still the same as RMQ on S.
+
+Applications:
+
+- <<RMQ>> in S corresponds to <<LCA_problem,LCA>> in T.
+- Range searching *to-do*
+
+
+=== Skip list
+Is a data structure implementing the ordered <<associative_array>> ADT. Search, insert, delete in +O(lg n)+ time with high probability (opposed to `only' on average)
+
+
+=== Treap (aka priority search tree)
+A balanced (with high probability) binary search tree. The idea is to use randomization and the heap property to maintain balance with heigh probability, i.e. balancedness is not guaranteed. Search, insert, delete in O(log n) time with high probability, but O(n) worst case.
+
+Each node in the this BST additionally has a priority, which is assigned a random value upon insertion. Upon insertion/deletion, both the BST invariant regarding the key and the heap property regarding the priority have to be fullfulled. This is done by a normal BST insert using the key, and then do rotations until the heap property is fullfulled regarding the priorities.
+
+Trivia: The name is a portmenteau of tree and heap.
+
+=== kd tree
+A binary search tree ... *to-do*
+
+
+=== splay tree
+*to-do*
+
+
+[[search_tree_comparison]]
+=== Search tree comparison
+
+<<AVL>> tree vs <<red_black>> tree: theoretically equivalent since time and space complexity are identical.  AVL trees are more rigidly balanced (≈ 1.44 lg(|V|)) than red-black trees (≈ 2 lg(|V|)), whereas the number of rotations when inserting or deleting is O(lg n) for AVL and O(1) for red-black.  Followingly prefer AVL when number of lookup operations dominate sum of insert/delete operations, and red-black oth erwise.
+
+*to-do*: B-trees for 2ndary memory
+
+
+[[heap]]
+=== Heap
+A _heap_ is a specialized tree-based data structure that satisfies the _heap property_: If node A is a parent node of B, then the key of node A is ordered with respect to the key of node B with the same ordering applying across the heap.  In a _max heap_ the parent node key is greater than or equal to those of the children, in a _min heap_ it's smaller than or equal.  Thus the element with the largest (max heap) / lowest (min heap) key is always stored at the root.  Note that there is no implied ordering between siblings or cousins.
+
+Time complexities for binary, binomial, Fibonacci, pairing, Brodal, rank pairing, strict Fibonacci:
+
+Creation::
+- create-heap: create an empty heap
+- make-heap (aka build-heap aka heapify): create a heap out of given elements. +O(n)+ binary, others *to-do*.
+- union (aka merge): +Θ(m lg(n+m))+ binary, +O(lg(n))+ binomial, +Θ(1)+ others
+
+Inspection::
+- min (max) (aka peek or find-min/max): +Θ(1)+
+- size()
+
+Modification::
+- extract-min(-max) (aka pop): +O(lg(n))+
+- insert: +Θ(lg(n))+ binary, +Θ(1)+ others
+- decrease-(increase-)key: +Θ(lg(n))+ binary & binomial & pairing,  +O(1)+ others
+
+Applications of heaps:
+
+- The heap data structure is one maximally efficient implementation of the <<priority_queue>> ADT.
+- Merge sort
+- Dijkstra's shortest-path algorithm
+- Order statistics
+
+A heap data structure should not be confused with `the heap' which is a common name for the pool of memory from which dynamically allocated memory is allocated.
+
+
+[[binary_heap]]
+==== Binary heap
+In a _binary heap_ the tree is a complete <<binary_tree>>. *to-do*: study implementation of the basic operations.
+
+--------------------------------------------------
+        0
+    1       2
+  3   4    5  6      0123456789 array index
+ 7 8 9               01-2---3-- tree level
+--------------------------------------------------
+
+parent(i) = floor((i-1)/2)
+right-child(i) = (i+1)*2 - 1
+left-child(i) = (i+1)*2
+
+
+- +heapify(i)+.  Assumes that children of node +i+ are max heaps, but +i+ might violate the heap property.  Time: +O(lg(nst))+, where nst are the number of nodes in the sub tree rooted at i.
+- +build_heap()+:  Converts an array into a heap.  Common implementation: in a bottom-up manner, for each node, starting at one-before-leaf-height height, call +heapify+.  Time: +O(n)+.
+
+
+==== Fibonacci heap
+*to-do*:
+
+
+[[tries_comparision]]
+=== Tries / suffix tree/arrays comparison
+
+Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
+
+|=======
+|                               | query     | space      | ordering
+| c. trie / array               | O(P)      | O(k·Σ)     | ✓
+| c. trie / BST                 | O(P·lg Σ) | O(k)       | ✓
+| c. trie / weight balanced BST | O(P+lg k) | O(k)       | ✓
+| c. trie / w.b. BST + trimming | O(P+lg Σ) | O(k)       | ✓
+| c. trie / van Emde Boas       | O(P)      | O(k·lglgΣ) | ✓
+| c. trie / hash table          | O(P)      | O(k)       | ✗
+| suffix tray                   | O(P+lg Σ) | O(k)       | ?
+| suffix array                  | ?         | ?          | ?
+|=======
+
+
+[[trie]]
+=== Trie (aka digital tree, radix tree, prefix tree)
+See this as an intro to what a trie is. In practice you will use a <<compressed_trie>>, see there for more details.
+
+Is an implementation of the ordered <<associative_array>> ADT. It stores +k+ items (key/value pairs), the stored keys being strings _T~i~_, i=1,...,k, the strings' letters are from alphabet _Σ_.  Internally, there is also the special letter _$_ which represents the end of a string.  A trie is a rooted tree where each edge is labeled with a letter.  Thus child nodes have an order.  A root-to-leaf path represents a string/key, the so reached leaf node the value associated with that key.  The strings derived from paths root to leaf are called _words_, the strings from other paths are called _prefixes_. |T|=|T~1~|+...+|T~k~| is the max number of nodes stored in the tree. In query/lookop, _P_ is a pattern/query searched in the trie.
+
+Since the child nodes have an ordering, an in-order traversal prints the stored keys in order.
+
+A trie can be seen as a DFA (Deterministic finite automaton) without loops (mind: a loop is not a cycle).  A trie can be compressed into an DAFSA (deterministic acyclic finite state automaton).  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.
+
+Applications: See <<suffix_tree>>
+
+Trivia: The name trie is a pun on re__trie__val.  Originally pronounced it as `tree'.  However, other authors pronounce it as `try', in an attempt to distuinguish it from `tree'.
+
+
+[[compressed_trie]]
+=== Compressed trie (aka radix tree, radix trie, compact prefix tree)
+Based on <<trie>>, see there for terms and symbols. Is an implementation of the ordered <<associative_array>> ADT.  A radix tree is a space-optimized trie, where a node with only one child is removed, merging its two adjacent edges into one, which is then labeled with the concatenation of the labels of the two previous edges.  That is each edge is no longer labeled with a single character but potentially with a string. The [[letter_depth]]_letter depth_ of a node is the lenght of the key/path that leads to it.
+
+Each node has at least two children, so there are less internal nodes than leaves. Recall there are as many leaves as stored strings, i.e. k. Thus there are O(k) nodes in the compressed trie.
+
+Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
+
+Compared to a hash table:
+
+- A trie can have (depending on how nodes are represented) predictable look-up time +O(k)+.  A hash table has +O(k+n)+ time complexity worst case:  O(k) is used to generate the key, looking up the key is O(1) average but O(n) worst case.
+- A trie does not need a hash function
+- A trie can provide an ordering of the entries by key.  I.e. a trie supports ordered traversal.
+- Locality is worse for a key, since it randomly accesses the nodes.
+- A trie typically uses more space than a hash table, since the graph uses quite a lot pointers.
+
+Compared to a binary tree:
+
+- Binary tree has +O(k * (lg n))+ time complexity for look-up, insertion, deletion.  Mind that comparing a key requires +O(k)+; in many times the worst-case occurs, due to long prefixes towards the leaves.
+
+References:
+
+- https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf
+
+
+[[suffix_tree]]
+=== Suffix tree (aka PAT tree, suffix trie)
+Based on compressed trie, see there for terms and symbols. Given a text T, append $ (see <<trie>>), then store all suffixes of T in a (compressed) <<trie>>. The value associated with a leaf is the starting position of the suffix in T.
+
+When given multiple documents T^i^, i=1, 2, ..., n, append $~1~, $~2~, ... and $~n~ to each T^i^ respectively, and then throw all suffixes of each document into the suffix tree.
+
+The suffix tree contains O(T) nodes, thuse O(T) space needed (using reasonable representations of the trie, see there).
+
+Details: Seeing a letter as a string of size one, all edges in a compressed trie have strings on them. Such a string can be stored in O(1) by storing only the indicies (within T) of its first and last letter.
+
+Applications:
+
+- <<string_searching>>:
+  * Find (all) occcurences of pattern P in text T. Create suffix tree for T. Using P as key delivers subtree whose leaves corresponds to all occurences of P in T.
+  * Find first i occurences of pattern P in text T: Augment the leave nodes so they build a linked list, and augment internal nodes by a pointer to its leftmost descendant leaf.
+  * Find number of occurences of pattern P in T: Augment internal nodes in the suffix tree with the number of leaves. Use P as key, the found node thus delivers number of leaves, which equals number of occurences.
+  * Find longest substring that occures twice in P: Augment internal nodes with their <<letter_depth>>. Then search the internal node with the largest letter depth in O(T) time.
+  * Find longest substring that occures in multiple documents T^i^: Similar to above, but look for the internal nodes with maximum letter depth with greater than one distinct $~x~ below.
+  * Longest common prefix of two substrings in T in O(1) time: Take the two leaves corresponding to the indexes where the substring start, <<LCA_problem,find LCA>> in O(1) time, and the letter depth of the found node is the answer.
+  * Find all occurences of T[i:j]: Instead of, as in a normal search, finding the node from the root in O(j-i) time, find the (j-i)the ancestor of leaf i in O(1) time (via an _LA_query_)
+
+
+=== Suffix array
+*to-do*
+
+References:
+- https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf
+
+
+=== Suffix tray
+
+Is a combination of a suffix tree and a suffix array,
+
+Note that there's this similar idea ....
+
+
+*to-do*
+
+References:
+- https://courses.csail.mit.edu/6.851/spring07/scribe/lec09.pdf
+
+
+=== DAFSA as data structure
+Represents a finite (since it has no cycles) set of strings aka keys.  Single source vertex.  Each edge is labeled by a letter / symbol.  Each vertex has at most one vertex which is labeled with a given letter.  The accepted strings are formed by the letters on paths from the source to any sink / NIL vertex.
+
+Can be seen as an compact form of a trie.  Uses less space than a trie.  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.  A trie can store attributes for each string aka key, whereas a DAFSA cannot.
+
+Is an implementation of the ADT <<associative_array>>.
+
+
+[[disjoint_set_linked_list]]
+=== Disjoint-set linked list
+A data structure implementing the <<disjoint_set>> ADT, using a linked list for each set. The element at the head of each list is chosen as its representative.
+
+*to-do*
+
+
+[[disjoint_set_forest]]
+=== Disjoint-set forest
+A data structure implementing the <<disjoint_set>> ADT using a forest. Each element gets two attributes: A reference to parent element/vertex and its rank (see the weighted tree optimization). Imagine the elements to be organized as a forest. Each tree represents a set. find-set(v) means now finding the root of the tree v is in, which is done by chasing parent pointers. merge-sets(u,v) is implemented by attaching the root of the tree of u to the tree of v, or vice verca.
+
+Optimizations: To avoid high trees which would make find-set (i.e. chasing lots of parent pointers up to the root) expensive, two optimizations are made: 1) union by rank: merge-sets always attaches the smaller to the larger tree. In that case the resulting tree only gets higher (by one) if both original trees had the same height. For that, we need to maintain the height of each tree. Due to path compression, the next optimization, we use an approximation of the height which we call rank. 2) Path compression: find-set(v) shortens the path from v to its root by, after finding the root, making the root the parent of v. That might change the height of the tree, but not our rank.
+
+--------------------------------------------------
+insert(v):
+  parent[v] = v
+  rank[v] = 0
+
+find-set(v):
+ if parent[v]!=v:
+   parent[v] = find-set(parent[v]) // "parent[v] =" is path compression
+ return parent[v]
+
+merge-sets(u,v):
+  rootOfU = find-set(u)
+  rootOfV = find-set(v)
+
+  // naive variant
+    parent[rootOfU] = rootOfV
+
+  // union by rank optimization
+    if rank[rootOfU]<=rank[rootOfV]: parent[rootOfU] = rootOfV
+    else                           : parent[rootOfV] = rootOfU
+    if rank[rootOfU]==rank[rootOfV]: rank[rootOfV] += 1
+--------------------------------------------------
+
+
+== Augmenting data structures
+
+1. Choose an underlying data structure DS.
+2. Determine additional information AI to maintain in DS.
+3. Verify that we can maintain AI for the basic operations on DS.
+4. Develop new operations.
+
+Let +f+ be an attribute that augments a red-black tree +T+, and suppose that the value +x.f+ for each node +x+ only depends on only the information in the nodes +x+, +x.left+ and +x.right+. Then we can maintain +f+ in all nodes of +T+ during insertion and deletion without affecting the +O(lg n)+ performance of these operations.
+
+
+== Sorting algorithms
 Properties of sorting algorithms.  See also properties of algorithms in general.  Comparison-based sorting algorithm are asymptotically optimal when they run in +O(n lg(n))+ time.
 
 Stable:: Stable sorting algorithms maintain the relative order of records with equal keys
@@ -415,7 +1127,7 @@ The input is devided logically into an unsorted part to the left, initially the 
 Time: +O(n^2^)+ worst case, +O(n lg(n))+ average case, best case: (simple partition: +O(n lg(n))+, 3way partition and equal keys: +O(n)+).  Auxillary space: worst case: (naive: +O(n)+, Sedgewick +O(log n)+).  Not stable in naive implementation.  Hidden factor in time complexity in practice quite small.  The +O(n^2^)+ worst case running time might be a problem when input size is large and used in an real-time system or system concerned with security (because malicious user potentially can trigger worst case behaviour).
 
 
-=== (natural/external) Merge sort
+=== Merge sort
 Time: +O(n lg(n))+ worst case & average case & best case.  Space: +O(n)+ auxiliary memory.  Stable.  Good locality of reference.  Parallelizes well.  External sorting possible.  1) Divide the sequence into two equal length subsequences 2) sort the two sequences using recursion, recursion stops at a sequence of one element 3) merge the two sequences (see below).  Discussion: Good for sequentially accessible data.  Highly parallelizable (+O(log n)+).  Variant: _natural merge sort_:  Time: +O(n)+ best case, the rest remains equal.  Exploits any naturally occurring runs in the input.  Variant: _external merge sort_: Motivation: input data does not fit into memory.  Divide the input data into N blocks, each block fitting into memory.  Sort each block with any sorting algorithm and write the result to disk (N files).  Then with ``externally merge sorted sequences'' merge the blocks/files.  Variant _merge sort for linked lists_: *to-do*
 
 
@@ -476,7 +1188,7 @@ algorithm works will leave it at the k-th position. Sort the elements [0,k).
 
 [[order_statistics]]
 [[Selection]]
-== Order statistics / Medians / selection problem
+== Order statistics / medians / selection problem
 
 _Selection problem_: Find the i-th order statistic, i.e. find the i-th smallest element out of an, typically unsorted, set of elements.
 
@@ -552,7 +1264,8 @@ Functionally equivalent to quickselect, but runs faster in practice on average.
 
 
 [[string_searching]]
-== String searching / matching
+== String searching / matching algorithms
+
 Problem: Find all/some occurences of a pattern P in a given text T.  Let _Σ_ be an alphabet (finite set), _T_ a string of length _n_, _P_ a string of length _m_.  Both the pattern and searched text are vectors of elements of Σ.
 
 _naive string search_: iteratively check at each location in the searched-text.  Time: +O((n-m+1)m)+ worst case, +O(n)+ average case (note that m<=n).
@@ -618,7 +1331,7 @@ O(n+m) worst case
 - _FSA_ / _DFA_: *to-do*
 
 
-== Graph (incl. tree) Algorithms
+== Graph (incl. tree) algorithms
 
 See also <<graph_theory>> and <<graph_adt>>.
 
@@ -1297,48 +2010,12 @@ References:
 - https://www.cs.cmu.edu/~avrim/451f13/lectures/lect1010.pdf
 
 
-== Concurrency related algorithms
-
-=== Consumer producer
-
-Solution using semaphores.  Allows for multiple producers and consumers.
-
-----------------------------------------------------------------------
-Semaphore emptyCount
-Semaphore fullCount
-Semaphore useQueue
-
-produce:
-  wait(emptyCount)
-  wait(useQueue)
-  putItemIntoQueue(item)
-  signal(useQueue)
-  signal(fullCount)
-
-consume:
-  wait(fullCount)
-  wait(useQueue)
-  item ← getItemFromQueue()
-  signal(useQueue)
-  signal(emptyCount)
-----------------------------------------------------------------------
-
-*to-do*:
-- Solution with monitors
-- Question: why isn't it in the above solution good enough to only guard the one critical section with a single binary semaphore?
-
-
-=== Dining philosophers
-*to-do*
-
-
 [[online_algorithms]]
 == Online algorithms
 
-An online algorithm is _k-competitive_ if there exists a constant k such that its cost is at most k times the cost of an optimal offline algorithm.  The factor k is called the _competitive ratio_.
 
 
-=== Page replacement algorithm
+=== Page replacement algorithms
 
 There's (slow) data, k faster-than-data pages. A cache _miss_ is when a requested page is not in the cache. Updating cache from data is called _evicting_ (kicking out a page from the cache) and _fetching_ data into the now free page.
 
@@ -1381,13 +2058,13 @@ References:
 
 - https://courses.csail.mit.edu/6.851/spring12/lectures/L10.html
 
-====  totally random hash(table) (aka simple uniform hashing, SUHA)
+====  Totally random hash(table) (aka simple uniform hashing, SUHA)
 An ideal hash is _totally random_ (aka assumption of _simple uniform hashing_, _SUHA_): Every k from U has the probability 1/m to be mapped to slot s, for every slot s in [0,m). But that requires Θ(U log m) space (a table of U entries, each storing the hash functions's output, i.e. each entry needs Θ(log m)space), which is in general too much.
 
 A _totally random hash table_ T is the lookup table implementing a totally random hash function, i.e. h(x)=T[x].
 
 
-==== universal familiy
+==== Universal familiy
 A family of hash functions H is _universal_ if for every h∈H, and for all x≠y ∈ U, Pr~h~{h(x) = h(y)} = O(1/m).
 
 Examples:
@@ -1396,7 +2073,7 @@ Examples:
 
 - ++h(x) = (a · x) >> (lg u − lg m)++. Use lg m high order bits of product ax.
 
-==== strong universal family
+==== Strong universal family
 A famility H of hash functions is _strong universal_ if for all x,y ∈ U, x≠y, Pr~h~{h(x) = h(y)} ≤ 1/m.
 
 [[k_wise_independent]]
@@ -1408,278 +2085,19 @@ Example pair-wise independent (k=2):
 
 ++h(x) = [(ax + b) mod p] mod m++ for 0<a<p and for 0≤b<p. Here, again, p is a prime greater than |U|.
 
-==== simple tabulation hashing
+==== Simple tabulation hashing
 View key x as vector of characters x~1~, ..., x~c~. We create a totally random hash table T~i~ on each character. ++h(x)=T~1~(x~1~) xor ... xor T~c~(x~c~)++
 
 Is <<k_wise_independent,3-wise independent>>.
 
-==== division method
+==== Division method
 +h(k,m)=k mod m+. In practice not so bad if m is prime and not close to a power of two. Still pretty `hackish'.  Rational for m being prime: When m has common factors with k, the effectively used table size gets divided by the product of those factors: ++k=k%m=(a*f1*f2)%(b*f1*f2)=a%b)++
 
 
-==== multiplication method
+==== Multiplication method
 ++h(k,m,a,w) =((ak) % 2^w^) >> (w-r)++, where as m=2^r^, i.e. +r=lg(m)+, and the machine stores integers in words of size w bits. a should be odd and not close to a power of two, between 2^r-1^ and 2^r^.
 
 Intuitively: The multiplication mixes up bits, especially in the area from bit (w-r) to w, so we take that area: +% 2^w^+ cuts away the part left of bit w, the shift right cuts way the bits right of bit (w-r).
-
-
-
-[[ADT]]
-== Abstract data types (ADT)
-An abstract data type is defined only by the operations that may be performed on it and by mathematical pre-conditions and constraints on the effects (and possibly cost) of those operations.  In OO lingo, it is an interface.  See also <<data structures>>,  which in OO are (non-abstract) classes.
-
-=== Summary
-
-*to-do*: finish tables
-
-*to-do*: combine header cells , e.g. queue and stack are specialized deques
-
-linear collections, excluding priority queues
-|=====
-|               | list | array | deque | queue  | stack
-|insert-at(iter)| x    |       |       |        |      
-|insert-front   | x    |       | x     | x      | x
-|insert-back    | (x)  |       | x     |        |
-|find(pos)      |      | x     |       |        |
-|find-front     | x    | x     | x     |        | x
-|find-back      | (x)  | x     | x     | x      |
-|delete-front   | x    |       | x     |        | x
-|delete-back    | (x)  |       | x     | x      |
-|delete(iter)   | x    |       |       |        |
-|successor/pred.| x    | x     |       |        |
-|=====
-
-associative collections and ordered by a key, plus priority queues
-|=====
-|               | priority queue | BST
-|insert         | x              | x
-|find(key)      |                | x
-|find-min       | x              | x
-|find-max       |                | x
-|delete-min     | x              | x
-|delete-max     |                | x
-|delete(key)    |                | x
-|successor/pred.|                | x
-|=====
-
-// associative unordered collections
-// |=====         | set | 
-// |insert
-// |find(value)
-// |delete
-// |=====
-
-*to-do*: draw is-specialization/generalization DAG plus data structures implementing them
-
-
-[[collection]]
-[[container]]
-=== Collection (aka Container)
-Grouping of data items.  Generally, the data tiems will be of the same type.
-
-Common operations: Create empty container, report number of objects it stores (size), delete all its objects (clear), insert new objects, remove objects, provide access to stored objects.
-
-[[linear_collection]]
-.Linear collections
-The elements form a sequence. Example ADTs: <<list_adt>>, <<stack>>, <<queue>> (<<priority_queue>> [not associative since only the min element can directly be accessed], <<deque>>, <<depq>>)
-
-[[associative_collection]]
-.Associative collections (sorted or unsorted)
-Given a key, the collection yiels a value. Example ADTs: <<associative_array>> (<<set>> [value being the key] (<<multiset>>))
-
-.Graphs
-Data items have associations with one or data items in the collection. Example ADTs: <<tree_adt>>.
-
-
-Notably usually not considered a collection: fixed-sized arrays
-
-
-[[array_data_type]]
-=== Array data type
-
-Random access, fixed size.
-
-Implementation: array data structure
-
-
-[[list_adt]]
-=== List (aka sequence)
-
-Sequencial access (no random access)
-
-Implementations: linked list, doubly linked list, array data structure
-
-
-[[map]]
-[[associative_array]]
-[[dictionary]]
-=== Associative array (aka map, symbol table, dictionary)
-<<collection>> of (key, value) _pairs_ (aka _items_), such that each key appears at most once in the collection.  Specialization of <<multimap>>.
-
-Operations: _insert_ (aka add) a pair, _delete_ (aka remove) a pair, _look-up_ (aka search, find) value associated to a given key.  Optionally also _iterate_ over all pairs, _modify_ (aka reassign), the value of an already existing pair.
-
-Implementations: association list, hash table, binary search tree, radix trees, tries, Judy arrays, ....
-
-
-[[multimap]]
-==== Multimap (aka multihash)
-Is a generalization of a <<map>> (aka associative array) in which more than one value may be associated with a given key.  My words: As with <<multiset>>s, this is used in two distinct senses: either equal values are considered identical, and are simply counted, or equal values are considered equivalent, and are stored as distinct items.
-
-
-[[bag]]
-[[multiset]]
-==== Multiset (aka bag)
-A specialization of an <<associative_array>> in that the value part of the associative array's (key, value) pairs is absent or a sentinel value (like 1).
-
-A generalization of a <<set>> in that it allows duplicates.  This is used in two distinct senses: either equal values are considered identical, and are simply counted, or equal values are considered equivalent, and are stored as distinct items.
-
-
-[[Set]]
-==== Set
-A specialication of a <<multiset>> (which in turn is a specialization of an <<associative_array>>), in that no duplicates are allowed.
-
-
-[[deck]]
-[[dequeue]]
-[[deque]]
-=== Double-ended queue (aka dequeue, deque, deck)
-<<linear_collection>> where elements can only be inserted to and removed from either side of the sequence.  Is a generalization of a <<queue>> and a <<stack>> in that elements can be inserted and removed to/from both sides.
-
-Implementations: <<circular_buffer>> which resizes when it's full. <<dynamic_array>>, placing the current elements in its middle, and resize when either side becomes full.
-
-Implemented more specialized ADTs: <<collection>>.
-
-Terminology: Deque is the abbrevation of double-ended queue.  Deque (pronounced deck) is the abbbreviation thereof.  Deck is as in an deck of cars, which also provides a good mental image.
-
-See also: - http://www.codeproject.com/Articles/5425/An-In-Depth-Study-of-the-STL-Deque-Container
-- C&plus;&plus;'s deque allows random access/insertion, is thus pretty similar to vector. vector vs deque discussions: http://stackoverflow.com/questions/5345152/why-would-i-prefer-using-vector-to-deque, http://www.gotw.ca/gotw/054.htm
-
-
-[[depq]]
-==== Double-ended priority queue (aka depq or double-ended heap)
-*to-do*
-
-
-[[queue]]
-=== Queue
-<<linear_collection>> where the element removed is prespecified by a first-in-first-out (FIFO) policy.  Is a specialization of a <<deque>> in that insertion is only allowed on one side and removal only on the other side.
-
-Common operations: Elememts can only be added to its _tail_ side (_enqueue_), and only be removed from the other side called _head_ (_dequeue_).  The only element that can be accessed is the one on the head side (_front_ or _peek_).
-
-Common implementations offer +O(1)+ time and +O(1)+ auxiliary space for these operation and +O(n)+ space for the collection aspect.
-
-Common implementations: circular buffer, doubly linked list, singly linked list with an additional pointer to the last node
-
-Implemented more general ADTs: <<collection>>, <<deque>>
-
-
-[[priority_queue]]
-==== Priority Queue
-A min (max) priority queue is similar to a queue, however dequeue extracts the element with the max (min) key.  I.e. each element has a key.  Principal operations for a max-(min-)priority queue: _insert_ (aka _enqueue_), _dequeue_ (aka _extract-max_(__-min__)), _peek_ (aka _max_(_min_)), _increase-key_(_decrease-key_).
-
-Sorting and priority queues: If it is possible to perform integer sorting in time T(n) per key, then the same time bound applies to the time per insertion or deletion operation in a priority queue data structure (Thorup 2007.  It's however a complicated reduction).  *to-do*: elaborate more on relation sorting to priority queues
-
-Common implementations: <<heap>>, self-balancing binary tree
-
-
-[[stack]]
-=== Stack
-<<linear_collection>> where the element removed is prespecified by a last-in-first-out (LIFO) policy.  Is a specialization of a <<deque>> in that insertion and removal are only allowed on one single side.
-
-Main operations:  Insertion is often called _push_ and can be only to one side called _top_.
-Removal is often called _pop_ and can only be the element at the top end.  The only element that can be accessed is the one on the top end of the stack (_top_ or _peek_).
-
-Implementations: <<array>>, <<linked_list>>.
-
-
-[[graph_adt]]
-=== Graph (ADT)
-Chapter <<graph_theory>> explains the mathematical theory behind the graph ADT.
-
-Common implementations:
-
-- _Adjacency list_: Typically for sparse graphs.  Collection of unordered vertex lists, one for each vertex.  Sub-forms of how to implement an adjacency list:
- * An associative array associates each vertex (being the key) to an unordered list (being the value) of its adjacent vertices.  For the associative array, often a hash table is used.  If the key can be an integer, e.g. when the vertices are enumerated, then a simple array can be used instead the associative array.
- * Object graph of vertices: Each vertex has a collection of pointers to its adjacent vertices. Optionally, each element in that collection, actually representing an outgoing edge, also stores other properties of the edge, e.g. its weight.  However note that for undirected graphs, each edge is stored redundantely twice. *to-do*: why is apparently the associative array before much more common than this graph variant?
- * Object graph of vertices and edges: Each vertex object has a collection of pointers to its outgoing edges.  Each edge object has a pointer to its start and end vertex.
-- _Edge list_: A collection of edge objects, each edge object storing something to identify the start and end vertex, possibly additionally also the edge's weight.
-- _Adjacency matrix_ |V|×|V|:  Rows represent source vertices and columns represent destination vertices and cells the associated edge.  Data on vertices typically stored externally.  Typically for dense graphs, or when a quick way is needed to tell if two vertices are adjacent.  Does not work for multigraphs. *to-do* symetric for undirected graphs, inf for not adjacent vertexes, edge weights...
-- _Incidence matrix_ |V|×|E|: The rows represent the columns, the columns the edges, a cell is 1 if the associated vertex is an start point of the assiciated edge, -1 if it's the end point, and 0 otherwise.  In a weighted graph, the 1s are replaced by the edge's weight.
-
-
-[[tree_ADT]]
-=== Tree
-Note that there is a distinction between a tree as an abstract data type (what this chapter is about), a data structure (see <<data_structures>>) and a topic in graph theory (see <<tree_graph_theory>>).
-
-Terms (see also those of <<graph_theory>>, in particular <<tree_graph_theory>> and <<DAG>>):
-
-- _siblings_: nodes with the same parent.
-- _cousins_: nodes with the same grand parent.
-- _internal node_: A node with at least one child.
-- _external node_ (aka _leaf_): A node with no children.
-- _degree_: Number of sub trees of a node
-- _level_: Depth + 1
-- _size_: Number of nodes
-- _height of tree / node_: Informally: Largest distance (see <<graph_theory>>) between root / that node and any leaf. Formally: ++height(node) = max(height(node.left), height(node.right)) + 1++, whereas height of NULL is -1 (equalently: height of leaf node is 0). Height of tree, height of root, depth of deepest leaf are all synonymous.
-- _depth_ of node: Distance from root to that node.
-
-Implementations: See those of <<graph_adt>>,  and the methods for storing a <<binary_tree>>
-
-
-[[binary_search_tree]]
-=== Binary Search Tree (aka BST, ordered/sorted binary tree)
-Is a specialized <<binary_tree>> where 1) each node has a comparable key 2) for each node: the key of the left child, if child present, is smaller-or-equal than the node's key, and the key of the right child, if present, is larger-or-equal than the node's key.  Be +n+ the number of elements.  +h≥lg n+ the height of the tree.  The expected height is +h=lg n+ for a randomly built binary tree.
-
-_binary search tree property:_ If node +y+ is in the left subtree of node +x+, then +y.key<=x.key+, if +y+ is in +x+'s right subtree, then +y.key>=x.key+.
-
-_Search_ key +k+: +O(h)+. Recursively or iteratively, for current node +x+, if +k<x.key+ continue with left subtree, else right subtree.
-
-[[rotation]]_Left/right rotation_: +O(1)+. Preserves the order of elements of an in-order traversal. Note that thus, in case of an BST, also preserves the binary-search-tree property.
-+
-The following visualizes left/rifght rotation. x/y/r are nodes, A/B/C are subtrees.  The middle subtree B changes the parent from x/y to y/x, and x/y swap parent/child relation which includes that the new parent's parent must be changed to r.
-+
-----------------------------------------------------------------------
-   r                 r
-   x      left       y  
-A     y     →     x    C
-     B C    ←    A B
-          right    
-A  x ByC         AxB y C
-----------------------------------------------------------------------
-
-_Min_/_Max_: +O(h)+. Follow left/right subtree until the leaf is reached.
-
-_Successor_/_Predecessor_: +O(h)+. **To-do**
-
-Implementations: <<AVL>> trees, red-black trees
-
-Implements these more general ADTs: <<associative_array>>
-
-
-[[disjoint_set]]
-=== Disjoint-set (aka union-find, merge-find set)
-A collection of n elements, partitioned into a number of disjoint sets. Or from another point of view: Given an undireced graph of n vertices, keeps track of connected components, and thus can answer which vertices are connected.
-
-Usually each set chooses one of its elements as the representative; that representative element identifies the set. It is undefined which element is chosen, but it stays the same as long as the data structure is not modified.
-
-Main operations:
-
-- make-set(v): Adds element / vertex v to the collection, as a new set containing only that element.
-- find-set(v): Returns the id of the set / connected-component element / vertex v is in. To see if elements / vertices u and v are in same set / connected: find-set(u)==find-set(v).
-- merge-sets(u,v): Merges the sets of elements u and v / adds edge between vertex u and vertex v. It is undefined what the id of the new set is.
-
-Implementations: <<disjoint_set_linked_list>>, <<disjoint_set_forest>>
-
-|============
-|                  | linked-list | forest / union by rank | forest / union by rank + path compression
-| insert(v)        |             | O(1)                   | O(1)
-| find-set(v)      | *to-do*     | O(log n)               | O(log* n)
-| merge-sets(u,v)  |             | O(log n)               | O(log* n)
-|============
-
-Applications: <<Kruskal>>'s algorithm, *to-do*
-
-Trivia: Was invented specifically to make Kruskal's algorithm more efficient
 
 
 [[graph_theory]]
@@ -1770,7 +2188,7 @@ Trivia: Was first discussed by Leonhard Euler while solving the famous _Seven Br
 
 Two vertices v and u are called _connected_ if there is a path from v to u, otherwise they are called _disconnected_.  A _connected graph_ is one where every pair of vertices is connected.  A directed graph is considered a connected graph if for every pair of vertices there is a path in either direction.  A _weakly connected_ graph is a directed graph which would be a connected graph if the edges were taken to be undirected.  A directed graph is _strongly connected_, if for every pair there's a path in both directions.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.  If each strongly connected component is contracted to a single vertex, the resulting graph is a directed acyclic graph, the _condensation_ of G.  A _cut_ (aka _vertex cut_, or _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  An _articulation point_ (aka _cut point_, _separating vertex_ or _cut vertex_) is a vertex in a connected (sub)graph whose removal would disconnect the (sub)graph.  A _bridge_ is an edge in a connected (sub)graph whose removal would disconnect the (sub)graph.  An edge can only be a bridge if it is not contained in an cycle.  The _connectivity_ (or _vertex connectivity_) κ(G) is the size of a minimal vertex cut, or in other words, the minimum number of nodes to be removed to disconnect the graph.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater, or in other words, if it remains connected whenever fewever than k vertices are removed.  2-connectivity is also called _biconnectivity_, and 3-connectivity is also called _triconnectivity_.
 
-A _complete graph_ with n vertices, denoted K~n~, is a simple undirected graph in which every pair of distinct vertices is connected by a unique edge.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.  A _biconnected graph_ is a connected graph that has no articulation points.  A _biconnected component_ (aka _block_ or _2-connected component_) is a maximal (*to-do*: what does maximal mean here?) biconnected subgraph.  Note a biconnected component, unlike connected components, can be connected to other parts of the supergraph.  A _block graph_ (aka _clique tree_) is an undirected graph in which every biconnected component (aka block) is a clique.
+A _complete graph_ with n vertices, denoted K~n~, is a simple undirected graph in which every pair of distinct vertices is connected by a unique edge.  A _tournament_ is a directed graph obtained by assigning a direction for each edge in an complete graph.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.  A _biconnected graph_ is a connected graph that has no articulation points.  A _biconnected component_ (aka _block_ or _2-connected component_) is a maximal (*to-do*: what does maximal mean here?) biconnected subgraph.  Note a biconnected component, unlike connected components, can be connected to other parts of the supergraph.  A _block graph_ (aka _clique tree_) is an undirected graph in which every biconnected component (aka block) is a clique.
 
 _Menger's Theorem_: Vertex connectivity: k-connected vertices are connected by k internally vertex-disjoint paths.
 
@@ -1786,492 +2204,6 @@ Lemma: Given a flow in a flow network, the flow equals the net flow of any s-t c
 
 [[max_flow_min_cut_theorem]]
 __Max-flow min-cut theorem__: The following three are equivalent, given a graph G and a flow f: 1) f is a maximum flow in G 2) The residual network induced by f contains no augmenting path 3) There is a cut such that it's capacity equals the flow f. In other words, the maximum flow equals the capacity of the cut with the minimal capacity. Intuitively that becomes apparent having the previous lemma in mind: Since the capacity of a s-t cut is an upper limit of G's maximum flow, the maximum flow is bounded by the cut with the minimal capacity.
-
-
-
-[[data_structures]]
-== Data structures
-A concrete particular way of organizing data in memory.  In OO lingo, its is a (non-abstract) class.  See also <<ADT>>, which is in OO lingo an interface.
-
-
-[[table]]
-[[array]]
-=== Array data structure (aka table)
-Fixed size, +Θ(1)+ time for indexing, with a very low constant factor.  ++O(0)++ wasted space.  Due to the fixed size, elements cannot be added / removed.
-
-
-[[dynamic_table]]
-[[dynamic_array]]
-=== Dynamic array (aka array list, dynamic table, resizeable array)
-In contrast to <<array>> the size is variable, thus allows elements to be added / removed.  _Capacity_ is the number of elements the container could currently hold, and the _size_ is the number of elements it actually currently contains.
-
-[[table_doubling]]
-==== Table doubling
-When size=capacity upon an insertion, create a new table with double the capacity and copy all elements over -> insertions are +Θ(1)+ amortized.  Upon deletions, when you don't mind slack, never resize the table (as the STL does), or half the capacity when size drops below capacity/4. In that case both insertions and deletions are +Θ(1)+ amortized. (You can't half the capacity when the size reaches half the capacity because in a sequence like inserting/deleting/inserting/deleting, each operation could encompass a table resize which would mean +O(n)+ per operation.)  Of course, other constants than 2 can be used, as long as the factor which is to do shrink is greater than the factor to enlarge.
-
-One can get +Θ(1)+ by roughly this idea: When you remark that you start to get full, start a new table with a larger capacity, initially empty.  On each insertions operation, copy a constant amount of items from the old table to the new one.  Once the old table is really full, just switch over to the new table.  All in all it's quite complicated, so it's not that often used.
-
-
-[[linked_list]]
-=== Linked list
-
-Implementation of the ADT <<list>>.
-
-Orthogonal properties:
-
-- Singly, Doubly or Multiply linked
-- Circular linked yes/no
-- Sentinel nodes yes/no
-
-
-[[circular_buffer]]
-=== Circular buffer (aka cyclic buffer, ring buffer, circular queue)
-Uses a single, fixed-size buffer as if it were connected end-to-end.
-
-Internally uses 1) an array which's size equals circular's buffer capacity, 2) an pointer (or index) to the first element and 3) one to the last element.  Pointers in a circular buffer wrap around at the underlying array border (array.first and array.last (according array.size=circular_buffer.capacity)).
-
-Implements the ADT <<queue>>
-
-Difficulties:
-
-- Depending on the exact implementation, distinguish the case that the buffer is empty and that it is full is not possible, because in both cases start and end point to the same element.
-
-
-=== Direct-address table
-Implements the <<associative_array>> ADT.  An array of size |U|, where U is the universe, i.e. the set of possible keys.  A key's value is the index into the array where the data corresponding to the key is stored.
-
-Time: +O(1)+ worst average best case.  Space: +O(|U|)+.
-
-
-[[hash_table]]
-=== Hash tables
-Implements the <<associative_array>> ADT.  Is an array of size m. A <<hash>> function +h(k,m)+ is used to map a key +k+ to [0,m), i.e. to an index into the table. When two keys hash to the same slot that is called a _collision_. The following subchapters describe ways how to deal with collisions. +α=n/m+ is the _load factor_ of the table.
-
-In general, the various variants have the following properties: Search/insert/delete time in +O(k)+ for the best and average case, and ++O(k+n)++ worst case. Space is usually +O(n)+.
-
-==== Collision resolution with (separate) chaining
-Each table slot has associated a sequence of items, typically a singly linked list. The expected chain length is the table's load factor.
-
-Insert/delete/find: +Θ(1)+ (Actually +Θ(1+loadfactor)+, but when loadfactor=O(1) (i.e. m=Ω(n)), it becomes +Θ(1)+). Rational: Paying O(n) to find table slot, then O(loadfactor) to walk the list.
-
-Loadfactor should be +Θ(1)+ (i.e. m should be +Θ(n)+). If +m+ is too small, the loadfactor is too high, in the worst case not +Θ(1)+ anymore.  That would lead to hash table operations not being +Θ(1)+ anymore.  If +m+ is too large, we waste space.
-
-==== Collision resolution with open addressing
-Each slot can really only take one key, and has an attribute whether it's free. If a hash maps a given key to an non-free slot, a probe sequence is used iteratively to ultimatively find a free slot. Typically delition and table resize are possible but complicated, since *to-do*.  Unlike with chaining, if all slots are used, the table must be enlarged, see also <<table_doubling>>.
-
-Probe sequences. +h(k,m,i)+ is the same as +h(k,m)+, with the aditional parameter i, denothin the i-th probe. If h(k,m,0) returns a used slot, you try h(k,m,1) and so on.
-
-Linear probing:: ++h(k,m,i) = (h(k,m)+i) mod m++. Good locality, but most sensitive to primary clustering.
-
-Quadratic probing:: Try m1=m0+1, m2=m1+2=m0+3, m3=m2+3=m0+6. Properties between linear probing and double hashing
-
-Double hashing:: ++h(k,m,i) = (h(k,m)+i*h2(k,m)) mod m++. Interval is computed by another hashfuncion. Bad locality, but exhibits virtualy no clustering. m is typically a power of two. If m is even, h2 should deliver an odd number, else every 2nd slot will never be probed.
-
-
-==== Perfect hashing (FKS)
-*to-do*
-
-
-==== Cuckoo hashing
-*to-do*
-
-
-=== Association list
-Is an implementation of the ADT <<associative_array>>.
-
-*to-do*
-
-
-=== Selection problem
-See <<order_statistics>>
-
-
-=== Nearest neighbor search (NNN)
-
-*to-do*:
-
-
-[[binary_tree]]
-=== Binary tree
-A <<tree>> data structure in which each node has at most two children.  Note that a <<binary_search_tree>> is something else with more restrictions.
-
-Properties:
-
-- _full_(aka _proper_): Every node other than the leaves has two children.
-- _perfect_: (aka ambiguously (see next) complete): A full binary tree in which all leaves have the same depth
-- _complete_: Every level, except possibly the last, is completely filled, and all nodes are as far left as possible.
-- [[balanced]]_balanced_: height is +Θ(lg |V|)+
-- [[weight_balanced]]_weight balanced_: The size difference between the left and the right subtree is kept within some constant factor.
-- _degenerated_ (aka _pathological_): Each node has at most one child.  The tree is thus effectively a linked list.
-
-Methods of storing:
-
-- See <<graph_adt>>
-- As an implicit data structure in an array.  Be i the current node's index, 0 the first index, then its parent is at index floor((i-1)/2), its right child at 2i+1 and its left child at 2i+2.  In the case of a complete binary tree, no space is wasted.  See also <<binary_heap>> which commonly uses this scheme.
-
-
-[[naive_BST]]
-=== (Naive) binary search tree (data structure)
-A data structure implementing the binary search tree ADT. When inserting, the elements are always inserted as leaves, whithout changing previous nodes.
-
-
-[[random_binary_tree]]
-=== Randomized binary search tree
-Randomly permute the input before building the <<naive_BST>>. 
-
-*to-do*: 
-
-Expected height E[height]=O(lg(n))
-
-[[avl]]
-=== AVL Tree
-A data structure implementing the binary search tree ADT.  Is a <<balanced>> binary search tree; balance is ensured by the following invariant: For each node n: |height(n.left) - heigh(n.right)| ≤ 1.  From that (indirectly) follows: tree height ≈ 1.44 lg(|V|).
-
-Time complexity: O(log n) average and worst case for all basic operations (search, insert, delete).
-
-Space complexity: O(n)
-
-Each node stores its _balance factor_, which is the difference in height of the left and right subree. Must be in range [-1,1].
-
-Rough description of how insertion/deletion work:
-
-1. First do a normal BST insertion or deletetion (which honor the BST property)
-2. For each node on the path from the newly inserted node up to the root: if balance factor is not in range [-1,1], fix it by only _rotation_ operations.
-
-See also <<search_tree_comparison>>
-
-
-[[red_black]]
-=== Red-Black
-A data structure implementing the binary search tree ADT.  Is a <<balanced>> binary search tree; Balance is preserved by attributing each node with one of two colors (typically called `red' and `black') in a way that satisfies red-black properties (see below).  Tree height ≈ 2*lg(|V|).
-
-red-black properties:
-
-- Roots and NILs are black (typically NILs are called the leaves and all other `poper' nodes are called internal nodes).
-- Every red node has a black parent (i.e. never two consequtive red nodes on a simple path)
-- For each descendant of a node n, the number of black nodes on the simple path from n to descendant is the same
-
-Time and space complexity: save as <<AVL>> tree.
-
-See also <<search_tree_comparison>>
-
-
-=== 2-3 tree
-*to-do*
-
-
-=== 2-3-4 tree
-*to-do*
-
-
-=== B-tree
-*to-do*
-
-
-=== B+ tree
-See data_base_systems.txt
-
-
-[[vEB_tree]]
-=== Van Emde Boas tree (aka vEB tree)
-Is a tree data structure implementing the ordered <<associative_array>> ADT with m-bit integer keys. It performs all operations in O(lg m) time. The vEB tree has good space efficiency when it contains a large number of elements
-
-
-[[cartesian_tree]]
-=== Cartesian tree
-A binary tree having the heap property and having the additional porperty that its in-order traversal delivers a given sequence S. Can be built in O(n) time from S and vice versa.
-
-Example:
---------------------------------------------------
-S = [8,7,2,8,6,9,4,5]
-
-T =      2
-        / \______
-       7         4
-      /       __/ \
-     8       6     5
-            / \
-           8   9
---------------------------------------------------
-
-Building cartesian tree T from a sequence S, which assumes parent pointers: To process each new value x, start at the node representing the value prior to x in the sequence and follow the path from this node to the root of the tree until finding a value y smaller than x. This node y is the parent of x, and the previous right child of y becomes the new left child of x. 
-
-Building sequence S from cartesian tree T: If T's nodes are not labeled with values as above, which is likely, label each node with it's depth. Do an inorder traversal, resulting in an array of node labels.  LCA on T is still the same as RMQ on S.
-
-Applications:
-
-- <<RMQ>> in S corresponds to <<LCA_problem,LCA>> in T.
-- Range searching *to-do*
-
-
-=== Skip list
-Is a data structure implementing the ordered <<associative_array>> ADT. Search, insert, delete in +O(lg n)+ time with high probability (opposed to `only' on average)
-
-
-=== Treap (aka priority search tree)
-A balanced (with high probability) binary search tree. The idea is to use randomization and the heap property to maintain balance with heigh probability, i.e. balancedness is not guaranteed. Search, insert, delete in O(log n) time with high probability, but O(n) worst case.
-
-Each node in the this BST additionally has a priority, which is assigned a random value upon insertion. Upon insertion/deletion, both the BST invariant regarding the key and the heap property regarding the priority have to be fullfulled. This is done by a normal BST insert using the key, and then do rotations until the heap property is fullfulled regarding the priorities.
-
-Trivia: The name is a portmenteau of tree and heap.
-
-=== kd tree
-A binary search tree ... *to-do*
-
-
-=== splay tree
-*to-do*
-
-
-[[search_tree_comparison]]
-=== Search tree comparison
-
-<<AVL>> tree vs <<red_black>> tree: theoretically equivalent since time and space complexity are identical.  AVL trees are more rigidly balanced (≈ 1.44 lg(|V|)) than red-black trees (≈ 2 lg(|V|)), whereas the number of rotations when inserting or deleting is O(lg n) for AVL and O(1) for red-black.  Followingly prefer AVL when number of lookup operations dominate sum of insert/delete operations, and red-black oth erwise.
-
-*to-do*: B-trees for 2ndary memory
-
-
-[[heap]]
-=== Heap
-A _heap_ is a specialized tree-based data structure that satisfies the _heap property_: If node A is a parent node of B, then the key of node A is ordered with respect to the key of node B with the same ordering applying across the heap.  In a _max heap_ the parent node key is greater than or equal to those of the children, in a _min heap_ it's smaller than or equal.  Thus the element with the largest (max heap) / lowest (min heap) key is always stored at the root.  Note that there is no implied ordering between siblings or cousins.
-
-Time complexities for binary, binomial, Fibonacci, pairing, Brodal, rank pairing, strict Fibonacci:
-
-Creation::
-- create-heap: create an empty heap
-- make-heap (aka build-heap aka heapify): create a heap out of given elements. +O(n)+ binary, others *to-do*.
-- union (aka merge): +Θ(m lg(n+m))+ binary, +O(lg(n))+ binomial, +Θ(1)+ others
-
-Inspection::
-- min (max) (aka peek or find-min/max): +Θ(1)+
-- size()
-
-Modification::
-- extract-min(-max) (aka pop): +O(lg(n))+
-- insert: +Θ(lg(n))+ binary, +Θ(1)+ others
-- decrease-(increase-)key: +Θ(lg(n))+ binary & binomial & pairing,  +O(1)+ others
-
-Applications of heaps:
-
-- The heap data structure is one maximally efficient implementation of the <<priority_queue>> ADT.
-- Merge sort
-- Dijkstra's shortest-path algorithm
-- Order statistics
-
-A heap data structure should not be confused with `the heap' which is a common name for the pool of memory from which dynamically allocated memory is allocated.
-
-
-[[binary_heap]]
-==== Binary heap
-In a _binary heap_ the tree is a complete <<binary_tree>>. *to-do*: study implementation of the basic operations.
-
---------------------------------------------------
-        0
-    1       2
-  3   4    5  6      0123456789 array index
- 7 8 9               01-2---3-- tree level
---------------------------------------------------
-
-parent(i) = floor((i-1)/2)
-right-child(i) = (i+1)*2 - 1
-left-child(i) = (i+1)*2
-
-
-- +heapify(i)+.  Assumes that children of node +i+ are max heaps, but +i+ might violate the heap property.  Time: +O(lg(nst))+, where nst are the number of nodes in the sub tree rooted at i.
-- +build_heap()+:  Converts an array into a heap.  Common implementation: in a bottom-up manner, for each node, starting at one-before-leaf-height height, call +heapify+.  Time: +O(n)+.
-
-
-==== Fibonacci heap
-*to-do*:
-
-
-[[tries_comparision]]
-=== Tries / suffix tree/arrays comparison
-
-Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
-
-|=======
-|                               | query     | space      | ordering
-| c. trie / array               | O(P)      | O(k·Σ)     | ✓
-| c. trie / BST                 | O(P·lg Σ) | O(k)       | ✓
-| c. trie / weight balanced BST | O(P+lg k) | O(k)       | ✓
-| c. trie / w.b. BST + trimming | O(P+lg Σ) | O(k)       | ✓
-| c. trie / van Emde Boas       | O(P)      | O(k·lglgΣ) | ✓
-| c. trie / hash table          | O(P)      | O(k)       | ✗
-| suffix tray                   | O(P+lg Σ) | O(k)       | ?
-| suffix array                  | ?         | ?          | ?
-|=======
-
-
-[[trie]]
-=== Trie (aka digital tree, radix tree, prefix tree)
-See this as an intro to what a trie is. In practice you will use a <<compressed_trie>>, see there for more details.
-
-Is an implementation of the ordered <<associative_array>> ADT. It stores +k+ items (key/value pairs), the stored keys being strings _T~i~_, i=1,...,k, the strings' letters are from alphabet _Σ_.  Internally, there is also the special letter _$_ which represents the end of a string.  A trie is a rooted tree where each edge is labeled with a letter.  Thus child nodes have an order.  A root-to-leaf path represents a string/key, the so reached leaf node the value associated with that key.  The strings derived from paths root to leaf are called _words_, the strings from other paths are called _prefixes_. |T|=|T~1~|+...+|T~k~| is the max number of nodes stored in the tree. In query/lookop, _P_ is a pattern/query searched in the trie.
-
-Since the child nodes have an ordering, an in-order traversal prints the stored keys in order.
-
-A trie can be seen as a DFA (Deterministic finite automaton) without loops (mind: a loop is not a cycle).  A trie can be compressed into an DAFSA (deterministic acyclic finite state automaton).  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.
-
-Applications: See <<suffix_tree>>
-
-Trivia: The name trie is a pun on re__trie__val.  Originally pronounced it as `tree'.  However, other authors pronounce it as `try', in an attempt to distuinguish it from `tree'.
-
-
-[[compressed_trie]]
-=== Compressed trie (aka radix tree, radix trie, compact prefix tree)
-Based on <<trie>>, see there for terms and symbols. Is an implementation of the ordered <<associative_array>> ADT.  A radix tree is a space-optimized trie, where a node with only one child is removed, merging its two adjacent edges into one, which is then labeled with the concatenation of the labels of the two previous edges.  That is each edge is no longer labeled with a single character but potentially with a string. The [[letter_depth]]_letter depth_ of a node is the lenght of the key/path that leads to it.
-
-Each node has at least two children, so there are less internal nodes than leaves. Recall there are as many leaves as stored strings, i.e. k. Thus there are O(k) nodes in the compressed trie.
-
-Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
-
-Compared to a hash table:
-
-- A trie can have (depending on how nodes are represented) predictable look-up time +O(k)+.  A hash table has +O(k+n)+ time complexity worst case:  O(k) is used to generate the key, looking up the key is O(1) average but O(n) worst case.
-- A trie does not need a hash function
-- A trie can provide an ordering of the entries by key.  I.e. a trie supports ordered traversal.
-- Locality is worse for a key, since it randomly accesses the nodes.
-- A trie typically uses more space than a hash table, since the graph uses quite a lot pointers.
-
-Compared to a binary tree:
-
-- Binary tree has +O(k * (lg n))+ time complexity for look-up, insertion, deletion.  Mind that comparing a key requires +O(k)+; in many times the worst-case occurs, due to long prefixes towards the leaves.
-
-References:
-
-- https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf
-
-
-[[suffix_tree]]
-=== Suffix tree (aka PAT tree, suffix trie)
-Based on compressed trie, see there for terms and symbols. Given a text T, append $ (see <<trie>>), then store all suffixes of T in a (compressed) <<trie>>. The value associated with a leaf is the starting position of the suffix in T.
-
-When given multiple documents T^i^, i=1, 2, ..., n, append $~1~, $~2~, ... and $~n~ to each T^i^ respectively, and then throw all suffixes of each document into the suffix tree.
-
-The suffix tree contains O(T) nodes, thuse O(T) space needed (using reasonable representations of the trie, see there).
-
-Details: Seeing a letter as a string of size one, all edges in a compressed trie have strings on them. Such a string can be stored in O(1) by storing only the indicies (within T) of its first and last letter.
-
-Applications:
-
-- <<string_searching>>:
-  * Find (all) occcurences of pattern P in text T. Create suffix tree for T. Using P as key delivers subtree whose leaves corresponds to all occurences of P in T.
-  * Find first i occurences of pattern P in text T: Augment the leave nodes so they build a linked list, and augment internal nodes by a pointer to its leftmost descendant leaf.
-  * Find number of occurences of pattern P in T: Augment internal nodes in the suffix tree with the number of leaves. Use P as key, the found node thus delivers number of leaves, which equals number of occurences.
-  * Find longest substring that occures twice in P: Augment internal nodes with their <<letter_depth>>. Then search the internal node with the largest letter depth in O(T) time.
-  * Find longest substring that occures in multiple documents T^i^: Similar to above, but look for the internal nodes with maximum letter depth with greater than one distinct $~x~ below.
-  * Longest common prefix of two substrings in T in O(1) time: Take the two leaves corresponding to the indexes where the substring start, <<LCA_problem,find LCA>> in O(1) time, and the letter depth of the found node is the answer.
-  * Find all occurences of T[i:j]: Instead of, as in a normal search, finding the node from the root in O(j-i) time, find the (j-i)the ancestor of leaf i in O(1) time (via an _LA_query_)
-
-
-=== Suffix array
-*to-do*
-
-References:
-- https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf
-
-
-=== Suffix tray
-
-Is a combination of a suffix tree and a suffix array,
-
-Note that there's this similar idea ....
-
-
-*to-do*
-
-References:
-- https://courses.csail.mit.edu/6.851/spring07/scribe/lec09.pdf
-
-
-=== DAFSA as data structure
-Represents a finite (since it has no cycles) set of strings aka keys.  Single source vertex.  Each edge is labeled by a letter / symbol.  Each vertex has at most one vertex which is labeled with a given letter.  The accepted strings are formed by the letters on paths from the source to any sink / NIL vertex.
-
-Can be seen as an compact form of a trie.  Uses less space than a trie.  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.  A trie can store attributes for each string aka key, whereas a DAFSA cannot.
-
-Is an implementation of the ADT <<associative_array>>.
-
-
-[[disjoint_set_linked_list]]
-=== Disjoint-set linked list
-A data structure implementing the <<disjoint_set>> ADT, using a linked list for each set. The element at the head of each list is chosen as its representative.
-
-*to-do*
-
-
-[[disjoint_set_forest]]
-=== Disjoint-set forest
-A data structure implementing the <<disjoint_set>> ADT using a forest. Each element gets two attributes: A reference to parent element/vertex and its rank (see the weighted tree optimization). Imagine the elements to be organized as a forest. Each tree represents a set. find-set(v) means now finding the root of the tree v is in, which is done by chasing parent pointers. merge-sets(u,v) is implemented by attaching the root of the tree of u to the tree of v, or vice verca.
-
-Optimizations: To avoid high trees which would make find-set (i.e. chasing lots of parent pointers up to the root) expensive, two optimizations are made: 1) union by rank: merge-sets always attaches the smaller to the larger tree. In that case the resulting tree only gets higher (by one) if both original trees had the same height. For that, we need to maintain the height of each tree. Due to path compression, the next optimization, we use an approximation of the height which we call rank. 2) Path compression: find-set(v) shortens the path from v to its root by, after finding the root, making the root the parent of v. That might change the height of the tree, but not our rank.
-
---------------------------------------------------
-insert(v):
-  parent[v] = v
-  rank[v] = 0
-
-find-set(v):
- if parent[v]!=v:
-   parent[v] = find-set(parent[v]) // "parent[v] =" is path compression
- return parent[v]
-
-merge-sets(u,v):
-  rootOfU = find-set(u)
-  rootOfV = find-set(v)
-
-  // naive variant
-    parent[rootOfU] = rootOfV
-
-  // union by rank optimization
-    if rank[rootOfU]<=rank[rootOfV]: parent[rootOfU] = rootOfV
-    else                           : parent[rootOfV] = rootOfU
-    if rank[rootOfU]==rank[rootOfV]: rank[rootOfV] += 1
---------------------------------------------------
-
-
-== Augmenting data structures
-
-1. Choose an underlying data structure DS.
-2. Determine additional information AI to maintain in DS.
-3. Verify that we can maintain AI for the basic operations on DS.
-4. Develop new operations.
-
-Let +f+ be an attribute that augments a red-black tree +T+, and suppose that the value +x.f+ for each node +x+ only depends on only the information in the nodes +x+, +x.left+ and +x.right+. Then we can maintain +f+ in all nodes of +T+ during insertion and deletion without affecting the +O(lg n)+ performance of these operations.
-
-
-== Misc. related computer science
-
-
-=== NFA
-*to-do*:
-
-
-=== DFA
-*to-do*:
-
-
-=== DAFSA
-*to-do*:
-
-
-=== Bit manipulation
-A _nibble_ is a four bit aggregation (aka _halb-byte_ or quartet).
-
---------------------------------------------------
-set:    x |=  y
-clear:  x &= ~y
-toggle: x ^=  y
-test:   x &   y
---------------------------------------------------
-
-In C / C&plus;&plus;, +CHAR_BIT+ is the number of bits in a byte.
-
-- http://graphics.stanford.edu/~seander/bithacks.html
-
-
-=== Misc terms
-Sentinel:: A sentinel is an object to represent the end of a data structure.
 
 
 == Problems
@@ -2529,7 +2461,7 @@ Applications:
 
 
 [[shortest_path_problem]]
-=== shortest path problem
+=== Shortest path problem
 The problem of finding a <<shortest_ path>> (there might be multiple shortest paths) in a graph. Recall that the shortest path is undefined, or it's weight is -INFINIT, if it contains negative-weight cycles, because one can always make an allegedly `shortest path' shorter by walking through the cycle one more time.
 
 optimal substructure: The shortest path problem has optimal substructure. A subpath of a shortest path is itself a shortest path; if it wasn't, we could replace it by the alegedly shorter path and thus make the overall path shorter.
@@ -2537,7 +2469,7 @@ optimal substructure: The shortest path problem has optimal substructure. A subp
 Applications: *to-do*
 
 
-==== single source shortest path problem
+==== Single source shortest path problem
 general graph: <<Bellman_Ford>> +O(V*E)+
 
 non-negative weights: <<Dijkstra>> +O(E+V*lg(V))+
@@ -2549,17 +2481,17 @@ unweighted graph: <<BFS>> +O(E+V)+
 integer weights: Thorup *to-do*
 
 
-==== single destination shortest path problem
+==== Single destination shortest path problem
 Can be reduced to single source shortest path by reversing direction of each edge.
 
 
-==== single pair shortest path problem
+==== Single pair shortest path problem
 All known algorithms for this problem have the same worst case asymptotic running time as the best single source algorithms.
 
 non-negative weights: <<A_star>>
 
 
-==== all pairs shortest path problem
+==== All pairs shortest path problem
 general graph (neg weights, dedects neg. cycles): <<floyd_warshall>> in O(|V|^3^)
 
 
@@ -2650,6 +2582,70 @@ Solutions of max-flow:
 - <<ford_fulkerson_algorithm>> in +O(E*f)+ (whereas f is the maximum flow) for the case where capacities are integers.
 - <<edmonds_karp>> algorithm in +O(VE²)+ for the case where capacities are integers.
 - An algorithm implementing the <<push_relabel>> approach. The generic version is +O(VE²)+, more specific version get better, the `highest label selection' has +O(V²√E)+
+
+
+=== Consumer producer
+
+Solution using semaphores.  Allows for multiple producers and consumers.
+
+----------------------------------------------------------------------
+Semaphore emptyCount
+Semaphore fullCount
+Semaphore useQueue
+
+produce:
+  wait(emptyCount)
+  wait(useQueue)
+  putItemIntoQueue(item)
+  signal(useQueue)
+  signal(fullCount)
+
+consume:
+  wait(fullCount)
+  wait(useQueue)
+  item ← getItemFromQueue()
+  signal(useQueue)
+  signal(emptyCount)
+----------------------------------------------------------------------
+
+*to-do*:
+- Solution with monitors
+- Question: why isn't it in the above solution good enough to only guard the one critical section with a single binary semaphore?
+
+
+=== Dining philosophers
+*to-do*
+
+
+== Misc. related computer science
+
+
+=== NFA
+*to-do*:
+
+
+=== DFA
+*to-do*:
+
+
+=== DAFSA
+*to-do*:
+
+
+=== Bit manipulation
+A _nibble_ is a four bit aggregation (aka _halb-byte_ or quartet).
+
+--------------------------------------------------
+set:    x |=  y
+clear:  x &= ~y
+toggle: x ^=  y
+test:   x &   y
+--------------------------------------------------
+
+In C / C&plus;&plus;, +CHAR_BIT+ is the number of bits in a byte.
+
+- http://graphics.stanford.edu/~seander/bithacks.html
+
 
 == References
 - http://ocw.mit.edu/courses/civil-and-environmental-engineering/1-204-computer-algorithms-in-systems-engineering-spring-2010/lecture-notes/
