@@ -24,12 +24,12 @@ Types of asymptotic notations:
 
 [cols="3,2,2,6,6"]
 |====
-| notation | | relation of growth rate | definition | Notes
-| +f(n) ∊ ο(g(n))+ | little-oh | f < g | Like O, bug for _all_ positive c | f is dominated by g asymptotically.
-| +f(n) ∊ O(g(n))+ | big-oh    | f ≤ g | ++There exist an c>0 and n~0~>0 such that \|f(n)\| ≤ c⋅\|g(n)\| for all n≥n~0~++ | Asymptotic upper bound. No claim on how tight; technically it woudn't be wrong to say that a linear algorigthm is +O(2^n)+
-| +f(n) ∊ Θ(g(n))+ | big-theta | f = g | ++There exist an c~1~>0, c~2~>0 and n~0~>0 such that c~1~⋅\|g(n)\| ≤ \|f(n)\| ≤ c~2~⋅\|g(n)\| for all n≥n~0~++ | Asymptotic tight bound. +Θ(g(n)) = O(g(n)) ∩ Ω(g(n))+. 
-| +f(n) ∊ Ω(g(n))+ | big-omega | f ≥ g | Like O, but ≥ (instead ≤) | Asymptotic lower bound.
-| +f(n) ∊ ω(g(n))+ | little-omega | f > g | Like ο, but ≥ (instead ≤) | f dominates g asymptotically.
+| notation | | relation of growth rate | definition | notes
+| +f(n) ∊ ο(g(n))+ | little-oh | f < g | ++For all c>0 there exists an n~0~>0 such that \|f(n)\| < c⋅\|g(n)\| for all n≥n~0~++ | f is dominated by g asymptotically.  Intuitively: grows strictly slower than. Rarely used in computer science.
+| +f(n) ∊ O(g(n))+ | big-oh    | f ≤ g | ++There exist an c>0 and n~0~>0 such that \|f(n)\| ≤ c⋅\|g(n)\| for all n≥n~0~++ | Asymptotic upper bound (Mnemonic: O has a squiggle at the top (at least in some fonts)). Intuitively: grows no faster than. No claim on how tight the upper bound is; technically it woudn't be wrong to say that a linear algorigthm is +O(2^n)+.
+| +f(n) ∊ Θ(g(n))+ | big-theta | f = g | ++There exist an c~1~>0, c~2~>0 and n~0~>0 such that c~1~⋅\|g(n)\| ≤ \|f(n)\| ≤ c~2~⋅\|g(n)\| for all n≥n~0~++ | Asymptotic tight bound (Mnemonic: the bar is in the middle). +Θ(g(n)) = O(g(n)) ∩ Ω(g(n))+
+| +f(n) ∊ Ω(g(n))+ | big-omega | f ≥ g | Like O, but ≥ instead ≤ | Asymptotic lower bound (Mnemonic: the bar is at the bottom).
+| +f(n) ∊ ω(g(n))+ | little-omega | f > g | Like ο, but ≥ instead ≤ | f dominates g asymptotically. Rarely used in computer science.
 |====
 
 Θ is also called _rate/order of growth_.
@@ -41,7 +41,7 @@ _worst case_ / _average case_ / _best case_ refers to the worst / average / best
 
 _Tight bounds_: An upper bound is said to be a tight upper bound (aka _supremum_) if no smaller value is an upper bound.  Likewise for tight lower bounds (aka _infimum_).
 
-_Asymptotic efficiency_: Only look at rate of growth.  Usually, an algorithm that is asymptotically more efficient will be the best choice for all but very small inputs.  An algorithm is said to be _asymptotically optimal_ if, roughly speaking, its big-oh is equal to the big-oh of the best possible algorithm.
+_Asymptotic efficiency_: Only look at rate of growth.  An algorithm is said to be _asymptotically optimal_ if, roughly speaking, its big-oh is equal to the big-oh of the best possible algorithm.
 
 _amortized time_: `amortized +O(f)+' for operation o: In a sequence of length L of such o operations, the overall time is +O(L*f)+.  I.e. one of those o operations might use a particular large amount of time compared to the average case, but that time is amortized in the large.  A typical example is appending to an array; if the capacity is full, a new array of larger capacity needs to be allocated, and the data has to be copied.
 
@@ -57,10 +57,9 @@ See also:
 
 == Computational complexity classes
 
-The field of computational complexity categorizes decidable decision problems by how difficult they are to solve. "Difficult", in this sense, is described in terms of the needed computational resources.
+The field of computational _complexity classes_ categorizes decidable decision problems by how difficult they are to solve. "Difficult", in this sense, is described in terms of the needed computational resources.  A _decision problem_ is a problem with a binary answer, e.g. yes or no.  A _function problem_ can have answers that are more complex than a simple `yes' or `no'.  Function problems can be transformed into decision problems and vice versa.  Thus computational complexity can focus on decision problems. An _intractable problem_ is one that can be solved in theory (i.e. which is in R), but which in practice takes too long to be usefull. There's no exact definition, but in general problems not in P (but in R) are considered intractable.
 
-A _decision problem_ is a problem with a binary answer, e.g. yes or no.  A _function problem_ can have answers that are more complex than a simple `yes' or `no'.  Function problems can be transformed into decision problems and vice versa.  Thus computational complexity can focus on decision problems. An _intractable_ problem is one that can be solved in theory (i.e. which is in R), but which in practice takes too long to be usefull. There's no exact definition, but in general problems not in P (but in R) are considered intractable.
-
+Common complexity classes:
 
 P:: (Decision) problems solvable in at most polynomial tyme (n^c^).  If you can establish a problem as not in P, you provide good evidence for its intractability.  You'd better spend your time developing an approximation algorithm or solve a tractable special case.
 
@@ -74,30 +73,27 @@ EXP:: (Decision) problems solvable in at most exponential tyme (2^n^).
 
 R (recursive):: (Decision) problems solvable in finite time. Etymology: R stands for recursive, which in the old days stood for `will terminate'.
 
-NP-hard (or X-hard in general):: at least as hard as every element in NP (X in general) (i.e. same hardness or harder, but not less hard than any element in NP (X in general))
+NP-hard (or X-hard in general):: At least as hard as every element in NP (X in general) (i.e. same hardness or harder, but not less hard than any element in NP (X in general))
 
-N-complete (or X-complete in general):: intersection of NP and NP-hard.
+NP-complete (or X-complete in general):: Intersection of NP and NP-hard.
 
 [[pseudo_polynomial]]
-pseudo polynomial:: a numeric algorithm runs in pseudo-polynomial time if its running time is polynomial in the numeric value of the input, but is exponential in the length of the input – the number of bits required to represent it.  E.g. <<knapsack>>.
+Pseudo-polynomial:: A numeric algorithm runs in pseudo-polynomial time if its running time is polynomial in the numeric value of the input, but is exponential in the length of the input – the number of bits required to represent it.  E.g. <<knapsack>>, <<ford_fulkerson_algorithm>>.
 
-Set of problems, orderer on a line after hardness:
+Visualization of complexity classes, ordered on a line after hardness:
 
 --------------------------------------------------
               P-complete  NP-complete  EXP-complete    R-complete
 easier <----------|----------|-------------|---------|------> harder
       
 P(incl P-complete)   P-hard (incl P-complete)
-<---------------->|<---------------------------------....
+<-----------------+----------------------------------------->
 
       NP (incl NP-complete)     NP-hard (incl NP-complete)
-<--------------------------->|<---------------------....
-
-           EXP (incl EXP-complete)           EXP (incl EXP-complete)
-<---------------------------------------->|<---------------------....
+<----------------------------+------------------------------>
 --------------------------------------------------
 
-Most people think P≠NP is true, but no one could prove it so far (it's one of the Millenium Prize Problems), so it could be that P=NP is true.  P≠NP translates to ``you can't engineer luck'', or to  ``solving problems is harder than check solutions''.  NP is an awfully powerfull model of computation -- it can use this fairy tale computer which always magically guesses the right path -- so NP `obviously' is more powerfull than P -- except we don't know how to proof it.
+Most people think P≠NP is true, but no one could prove it so far. It's one of the Millenium Prize Problems.  P≠NP translates to ``you can't engineer luck'', or to  ``solving problems is harder than checking solutions''.  NP is an awfully powerfull model of computation.  It can use this fairy tale computer which always magically guesses the right path.  So NP `obviously' is more powerfull than P -- except we don't know how to proof it.
 
 Examples of NP-complete problems:
 
