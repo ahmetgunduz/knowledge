@@ -2228,12 +2228,20 @@ Motivation: Connectivity measures fault tolerance of a network. E.g. how many co
 [[flow_network]]
 === Flow networks
 
-A _flow network_ (aka _transportation network_) is a directed graph where each edge has a _capacity_ and a _flow_ which can not exceed the capacity (_capacity constraint_).  _flow conservation_ dictates the the amount of flow into a node must equal the amount of flow out of it, unless the node is a _source_ or a _sink_.  A __s-t edge cut__ is a partition of the graph's vertices into set S and T, S containing source and T containing sink.  The __edge-cut capacity__ is the sum of the capacities of edges from S to T, thus ignoring edges from T to S. The _net flow_ f(S,T) across the cut (S,T) is the sum of the flows of edges from S to T, minus the sum of the flows of edges from T to S.  The _residual graph_ G~f~ induced by flow f conceptually has two edges for every edge in G. The forward (same direction as in G) edges capacity is c~e~-f~e~, the backward edges capacity is f~e~. However edges in G~f~ with capacity 0 are removed. The residual graph is almost a flow network just like the original graph, with the small difference, that now backward edges are allowed. An _augmenting path_ p is a path in the residual graph vom source to sink. The _residual capacity_ of p is the minimal edge capacity on p. An edge on p is said to be _critical_ if its capacity equals the residual capacity of p.
+A _flow network_ (aka _transportation network_) is a directed connected simple graph with no antiparallel edges.  One vertex is denoted the _source_ and one vertex is denoted the _sink_.  Each edge has a _capacity_ ≥ 0 and a _flow_. The _capacity constraint_ dictates that the flow is ≥ 0 and cannot exceed the capacity.  The _flow conservation constraint_ dictates the the amount of flow into a node must equal the amount of flow out of it, unless the node is the source or the sink.
 
-Lemma: Given a flow in a flow network, the flow equals the net flow of any s-t cut. Figuratively: Any cut partitions the network in two networks, one containing source the ther the sink, the two connected by two pipe bundles. It's intuitive that the flow of these two pipe bundles equals the flow from source to sink.
+The _residual graph_ G~f~ induced by flow f conceptually has two edges for every edge in G. The forward (same direction as in G) edges capacity is c~e~-f~e~, the backward edges capacity is f~e~. However edges in G~f~ with capacity 0 are removed. The residual graph is almost a flow network just like the original graph, with the small difference, that now antiparallel edges are allowed.  An _augmenting path_ p is a path in the residual graph vom source to sink. The _residual capacity_ of such a path p is the minimal edge capacity on p.  An edge on p is said to be _critical_ if its capacity equals the residual capacity of p.
+
+A __s-t edge cut__ is a partition of the graph's vertices into set S and T, S containing source and T containing sink.  The __edge-cut capacity__ is the sum of the capacities of edges from S to T, thus ignoring edges from T to S. The _net flow_ f(S,T) across the cut (S,T) is the sum of the flows of edges from S to T, minus the sum of the flows of edges from T to S.
+
+Lemma: Given a flow in a flow network, the flow equals the net flow of any s-t cut. Figuratively: Any cut partitions the network in two networks, one containing the source, the other the sink.  The two groups are connected by two pipe bundles.  It's intuitive that the flow of these two pipe bundles equals the flow from source to sink.
 
 [[max_flow_min_cut_theorem]]
 __Max-flow min-cut theorem__: The following three are equivalent, given a graph G and a flow f: 1) f is a maximum flow in G 2) The residual network induced by f contains no augmenting path 3) There is a cut such that it's capacity equals the flow f. In other words, the maximum flow equals the capacity of the cut with the minimal capacity. Intuitively that becomes apparent having the previous lemma in mind: Since the capacity of a s-t cut is an upper limit of G's maximum flow, the maximum flow is bounded by the cut with the minimal capacity.
+
+Convertions: A multi-source multi-sink flow network can easily be transformed to a single-source single-sink flow network by adding a consolidated source and a consolidated sink. Given an antiparallel edge pair, replace one of the two edges by figuratively inserting a new vertex in its middle, splitting the edge in two edges.  Given an undirected graph, replace each edge with an antiparallel edge pair, and then replace those as described bevore.
+
+Problems: <<maximum_flow_problem>>
 
 References:
 
@@ -2612,8 +2620,6 @@ Solutions:
 === Maximum Flow Problems
 
 _Maximum flow problems_ involve finding the maximum flow in a <<flow_network>>.  It can be seen as a special case of more complex problems, e.g. the circulation problem.
-
-Note that a multi-source multi-sink flow network can easily be transformed to a single-source single-sink flow network by adding a consolidated source and a consolidated sink.
 
 Solutions of max-flow:
 
