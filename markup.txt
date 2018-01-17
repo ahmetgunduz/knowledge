@@ -1,5 +1,10 @@
+// The markup language of this document is AsciiDoc
+:encoding: UTF-8
+:author: Florian Kaufmann
+:email: sensorflo@gmail.com
+
 = Markup Languages
-Florian Kaufmann <sensorflo@gmail.com>
+
 
 == Existing languages
 
