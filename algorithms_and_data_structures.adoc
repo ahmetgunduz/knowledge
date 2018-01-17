@@ -1,7 +1,7 @@
+// The markup language of this document is AsciiDoc
 :encoding: UTF-8
 :toc:
 :toclevels: 4
-// The markup language of this document is AsciiDoc
 
 = Algorithms and data structures
 
@@ -239,7 +239,12 @@ jmp funAddr        addr = FunEntry              | addr = addrStack.pop()
 
 == Online Algorithms
 
-An online algorithm is _k-competitive_ if there exists a constant k such that its cost is at most k times the cost of an optimal offline algorithm.  The factor k is called the _competitive ratio_.
+An online algorithm is _k-competitive_ if there exists a constant k such that its cost is at most k times the cost of an optimal offline algorithm, ignoring a constant offset.  The factor k is called the _competitive ratio_.  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
+
+
+=== Randomized online algorithms
+
+There are diffrent models of adversaries: The _oblivious adversary_ knows what algorithm I am running, but he sees none of the coin flips.  It's the adversary model commonly used.  The _fully adaptive adversary_ additionally also sees the coin flips. But that is uninteresting from a randomized perspective, because then the algorithm could as well be deterministic. The _adaptive adversary_ is somewhere inbetween. It knows the previous coin flips, but not the future flips. So it's an online algorithm itself.
 
 
 == Algorithm design techniques / paradigms
@@ -275,23 +280,23 @@ Examples: binary search, quickselect.
 
 [[dynamic_programming]]
 === Dynamic programming (DP)
-Basic idea: `carefull brute force'.  Use brute force, i.e. try (aka guess) all possible ways (and in case of optimization problems, take the best one).  However do that `carefully', by dividing the problem recursively into subproblems and use <<memoization>> to solve a particular subproblem only once.  Thus DP is often good for optimizations problems.  The memo is typically an associative array with +O(1)+ insert and lookup time.
+Basic idea: `carefull brute force'.  Use brute force, i.e. try all possible ways (and in case of optimization problems, take the best one).  However do that `carefully', by dividing the problem recursively into subproblems and use <<memoization>> to solve a particular subproblem only once.  Thus DP is often good for optimizations problems.  The memo is typically an associative array with +O(1)+ insert and lookup time.
 
-Example problem referred to below: Consider a steel company cutting steel rods and selling the pieces.  For simplicity lengths are integers.  Given a table of prices which states the price for a rod of length i.  How to cut a rod of length n into multiple smaller rods to maximize revenue.
+The following demonstrates dynamic programing by solving the <<rod_cutting_problem>>: Consider a steel company cutting steel rods and selling the pieces.  For simplicity lengths are integers.  Given a table of prices which states the price for a rod of length i.  How to cut a rod of length n into multiple smaller rods to maximize revenue.
 
 Dynamic programming needs two hallmarks:
 
-1. _Optimal substructure_: An optimal solution to the problem contains within it optimal solutions to subproblems.  I.e. if you have an optimal solutions to each sub problem, you can combine them to form the optimal solution to the original problem.  Example: in the rod cutting problem, is optimally cutting a rod of length +n+ in two pieces.  That gives us two new subproblems: optimally cutting these two pieces.
+1. _Optimal substructure_: An optimal solution to the problem contains within it optimal solutions to subproblems.  I.e. if you have an optimal solutions to each sub problem, you can combine them to form the optimal solution to the original problem.  Example: in the rod cutting problem, if we cut a rod of length +n+ in two pieces,  that gives us two new subproblems, namely optimally cutting these two pieces.
 
 2. _Overlapping subproblems_: A given sub-problem has to be solved/computed many times.  If that's not the case, there's no point in doing memoization.  Example: in the rod cutting problem, the problem of cutting a rod of length 2 has to be solved again and again within the problem of cutting a rod of length greater than 2.  Effectively the sub-problems form a directed graph, where x->y means subproblem x depends on subproblem y (i.e. y must be solved first).
 
-DP in 6 steps:
+Dynamic programming recipe:
 
 1. _Define all subproblems_: I.e. define all vertices in the subproblem DAG. Details: Typically the input is a sequence of n items. For a given problem, it's subproblems are often either suffixes [i:] (Θ(n)) or prefixes [:i] (Θ(n)) or substrings [i:j] (Θ(n*n)).
-2. _Guessing_: (I would say try-all): I.e. for each step (i.e. node / subproblem), think about all the possible paths (i.e. outgoing edges) I must try.
+2. _Guessing_ (I would say try all): For each step (i.e. node / subproblem), think about all the possible paths (i.e. outgoing edges) that have to be tried.
 3. _Recurrence_: Same as step 2, but more formal: Formulate the recursive DP(...) function which returns the min/max/..., which includes defining the base cases.  Check that graph of subproblems is acyclic, i.e. is a DAG.
 4. _Implement algorithm_: Implement DP(...), e.g. using one of the approaches presented below: top-down, bottom-up approach or shortest-path in DAG.
-5. _Solve original problem_: Just call your algorithm with the right arguments.
+5. _Solve original problem_: Just call your algorithm with the right arguments. E.g. in the rod cutting problem, with the original rod lenght as in the problem statement.
 6. _Reconstructing a solution_: Step 5 only gave a the value of the optimal solution (e.g. in case of the <<knapsack>> problem: the maximal value is 42), but you might also want to know which choices led there (e.g. which items to pack into the knapsack).
 +
 Variant 1) Each vertex also stores which choice it made.  Analogous to
@@ -303,7 +308,7 @@ for current DP(a,b,c,...), try again, analogous to step 3, all possible paths
 and take the one which results in the current DP(a,b,c,...), then recurse to
 the choosen subproblem.
 
-Approaches to implement the actual algorithm, see step 5 above:
+Approaches to implement the actual algorithm, see step 4 above:
 
 _top-down approach_: DFS traverse the subproblem DAG from the root via recursion.  At each node, solve a particular problem only once (when it is first encountered) and in this case save its solution in the memo, and when it later is encountered again, look up the solution in the memo.
 
@@ -311,9 +316,9 @@ _bottom-up approach_: Iteratively solve the subproblems, in reverse topological 
 
 _shortest path in DAG_: Often (*to-do*: when exactly / when not?) possible: Solve the <<shortest_path_problem>> (which is has a specialiced, more efficient version for DAGs) in the DAG.
 
-Overall running time: +#subprobs * time/subprob+. #suprobs comes from step 1.  time/subprob comes from step 3; calculate running time of DP, ignoring the recursion.
+Overall running time: +O(#subprobs * time/subprob)+.  Step 1 gives you #subprobs.  Step 3, i.e. the implemenation of DP, gives you time/subprob.  Recall that each subproblem is solved at most once.
 
-Examples of those 5 steps, see <<edit_distance>>, <<knapsack>>.
+Tiny example: An algorithm returning the n-th fibonacci number. For realistic examples, see <<edit_distance>>, <<knapsack>>.
 
 --------------------------------------------------
 # bottup-up                          # top down
@@ -329,7 +334,7 @@ fun fib(n):                          fun fib(n):
 
 Trivia: `Dynamic programming' is a wierd term, just take it for what it is. Still: in british english, `programming' means optimize.  The inventor, bellman, choose it for reasons among `sounds cool to a congress man', `to hide the fact he was doing math research'.
 
-Example algorithms / example problems solvable with dynamic programing: Bellman-Ford, Floyd-Warshall, edit distance, knapsack (rod cutting problem, change-making problem), Dijkstra *to-do* more examples of problems which can be solved using dynamic programming, e.g. from the problems sections. https://en.wikipedia.org/wiki/Dynamic_programming
+Example algorithms or example problems solvable with dynamic programing: Bellman-Ford, Floyd-Warshall, edit distance, <<knapsack>> (<<rod_cutting_problem>>, change-making problem), <<Dijkstra>>. *to-do* more examples of problems which can be solved using dynamic programming, e.g. from the problems sections. https://en.wikipedia.org/wiki/Dynamic_programming
 
 
 [[greedy_technique]]
@@ -339,13 +344,13 @@ A _greedy algorithm_ repeatedly makes locally best choice/decision, ignoring eff
 
 Problems for which a greedy algorithm works well generally have these two properties:
 
-- _optimal substructure_: See also <<dynamic_programing>>.  Rational: The choice we just made (an optimal solution to a (mini) sub problem), plus the optimal solution to the subproblem that remains (which we will solve recursively), yields an optimal solution to the original problem.
+- _Optimal substructure_: See also <<dynamic_programing>>.  Rational: The choice we just made (an optimal solution to a (mini) sub problem), plus the optimal solution to the subproblem that remains (which we will solve recursively), yields an optimal solution to the original problem.
 
 - _Greedy choice property_: Locally optimal choices lead to globally optimal solutions.
 
 In many problems, a greedy strategy does not in general produce an optimal solution, but nonetheless a greedy heuristic may yield locally optimal solutions that approximate a global optimal solution in a reasonable time.  A greedy algorithm never reconsiders its choices; it makes locally best choices. This is the main difference from dynamic programming, which is exhaustive and is guaranteed to find the solution.
 
-Example algorithms: (Greedy) best-first search, A*, Dijkstra, fractional knapsack problem, change-making problem for canonical coin system. *to-do*: more examples.
+Example algorithms: (Greedy) best-first search, A*, <<Dijkstra>>, fractional knapsack problem, change-making problem for canonical coin system. *to-do*: more examples.
 
 
 === Linear programming (LP)
@@ -371,7 +376,7 @@ Such algorithms include local search, tabu search, simulated annealing, and gene
 
 *to-do*
 
-=== Branch and Bound
+=== Branch and bound
 
 *to-do*
 
@@ -652,7 +657,7 @@ In contrast to <<array>> the size is variable, thus allows elements to be added 
 
 [[table_doubling]]
 ==== Table doubling
-When size=capacity upon an insertion, create a new table with double the capacity and copy all elements over -> insertions are +Θ(1)+ amortized.  Upon deletions, when you don't mind slack, never resize the table (as the STL does), or half the capacity when size drops below capacity/4. In that case both insertions and deletions are +Θ(1)+ amortized. (You can't half the capacity when the size reaches half the capacity because in a sequence like inserting/deleting/inserting/deleting, each operation could encompass a table resize which would mean +O(n)+ per operation.)  Of course, other constants than 2 can be used, as long as the factor which is to do shrink is greater than the factor to enlarge.
+When size equals capacity upon an insertion, create a new table with double the capacity and copy all elements over.  Thus insertions are +Θ(1)+ amortized.  Upon deletions, when you don't mind slack, never resize the table (as the STL does), or half the capacity when size drops below capacity/4. In that case both insertions and deletions are +Θ(1)+ amortized. (You can't half the capacity when the size reaches half the capacity because in a sequence like inserting/deleting/inserting/deleting, each operation could encompass a table resize which would mean +O(n)+ per operation.)  Of course, other constants than 2 can be used, as long as the factor which is to do shrink is greater than the factor to enlarge.
 
 One can get +Θ(1)+ by roughly this idea: When you remark that you start to get full, start a new table with a larger capacity, initially empty.  On each insertions operation, copy a constant amount of items from the old table to the new one.  Once the old table is really full, just switch over to the new table.  All in all it's quite complicated, so it's not that often used.
 
@@ -900,7 +905,7 @@ Applications of heaps:
 
 - The heap data structure is one maximally efficient implementation of the <<priority_queue>> ADT.
 - Merge sort
-- Dijkstra's shortest-path algorithm
+- <<Dijkstra>>'s shortest-path algorithm
 - Order statistics
 
 A heap data structure should not be confused with `the heap' which is a common name for the pool of memory from which dynamically allocated memory is allocated.
@@ -1657,7 +1662,7 @@ void traverse(Node* n) {
 
 [[A_star]]
 === A*
-A* is a best-first-search algorithm which solves the single-pair <<shortest_path_problem>>, not allowing negative weights.  A* uses an heuristic, involving the function h, to find the next node to be added to the shortest path tree.  It can also be used to solve the single-source shortest-path problem, but is not intended for it, since h is typically optimized for a specific destination node.  A* is a generalized version of the Dijkstra's algorithm: if h returns always 0 (i.e. is independent of a destination node) then A* equals Dijkstra.
+A* is a best-first-search algorithm which solves the single-pair <<shortest_path_problem>>, not allowing negative weights.  A* uses an heuristic, involving the function h, to find the next node to be added to the shortest path tree.  It can also be used to solve the single-source shortest-path problem, but is not intended for it, since h is typically optimized for a specific destination node.  A* is a generalized version of <<Dijkstra>>'s algorithm: if h returns always 0 (i.e. is independent of a destination node) then A* equals Dijkstra.
 
 How the algorithm works intuitively (use case `monotonic h'):  Construct the shortest path tree (_SPT_) by adding source to the SPT, and then iteratively adding a vertex to the SPT.  The vertex v to be added to the SPT is the one with minimal `estimated shortest path length from source to destination via v'. That is correct due to the monotonic h and the fact that any sub path of a shortest path is itself a shortest path.
 
@@ -1965,7 +1970,7 @@ ford-fulkerson-algorithm(G:flownetwork, source:vertex, sink:vertex)
   return flow
 --------------------------------------------------
 
-Analysis: In the worst case, mind that all capacities are integers, the residual capacity is 1, so there are +O(f)+ iterations. Each iteration takes +O(E)+, so the overall cost is +O(Ef)+, i.e. sudo polynomial. The reason is that the algorithm allows that in each iteration, a silly augmenting path is choosen, while there might be much better augmenting paths.
+Analysis: In the worst case, mind that all capacities are integers, the residual capacity is 1, so there are +O(f)+ iterations. Each iteration takes +O(E)+, so the overall cost is +O(Ef)+, i.e. pseudo-polynomial. The reason is that the algorithm allows that in each iteration, a silly augmenting path is choosen, while there might be much better augmenting paths.
 
 References:
 
@@ -2412,26 +2417,26 @@ Applications:
 so that the total weight is less than or equal to a given limit S (an integer)
 and the total value is maximal.
 
-bounded knapsack problem (BKP):: Removes the restriction that there is only
+Bounded knapsack problem (BKP):: Removes the restriction that there is only
 one of each item, but restricts the number of copies of each item i to c[i].
 
-unbounded knapsack problem (UKP):: Places no upper bound on the number of
+Unbounded knapsack problem (UKP):: Places no upper bound on the number of
 copies of each kind of item.
 
-change-making problem:: how can a given amount of money be made with the least
+Change-making problem:: How can a given amount of money be made with the least
 number of coins of given denominations. Similar to UKP, however capacity of
 knapsack has to be hit exactly. `weight of item' corresponds to `value of
 coin', and `value of item' is always -1.
 
-rod cutting problem:: same as UKP. rod length -> knapsack capacity, length i
+[[rod_cutting_problem]]
+Rod cutting problem:: Same as UKP. rod length -> knapsack capacity, length i
 -> item i having a weight of i, value of length i -> value of item i.
 
-fractional/continuous knapsack problem:: Instead of items we think of
+Fractional/continuous knapsack problem:: Instead of items we think of
 materials.  There is an certain amount (weight) of each material, and we can
 pack any amount less than that per material into the knapsack. Solution: sort
 materials descendinding by value/weight, then greedely take of each material
 as much as possible until the knapsack is full. O(n*lg(n)).
-
 
 
 Solution for the 0-1 knapsack problem using <<dynamic_programming>>:
@@ -2464,23 +2469,23 @@ and whatever remaining capacity: the maximal value is obviously 0.
 Example: n=3 items, capacity S=4:
 +
 ----------------------------------------------------------------------
-c   items
-a   0124 i   outgoing edges of each matrix-cell / DAG-vertex:
-p  4R··③     ☐→① Don't include item i. Edge-weight 0.
-a  3···③      ↘② Include item i, which removes w[i] from capacity X.
-c  2···③         Edge-weight -v[i].
-i  1···③
-t  0···③
-y  X
+c    item
+a    0124     outgoing edges of each matrix-cell / DAG-vertex:
+p   4R··③     ☐→① Don't include item i. Edge-weight 0.
+a   3···③      ↘② Include item i, which removes w[i] from capacity X.
+c   2···③         Edge-weight -v[i].
+i   1···③     
+t   0···③     R means root of the DAG, i.e. the original problem
+y   
 ----------------------------------------------------------------------
 +
-bottom-up approach: Solve subproblems by starting in the bottom right corner
+Bottom-up approach: Solve subproblems by starting in the bottom right corner
 and then going left and/or up: E.g.: ++for i=n⋯0: for X=0⋯S: …++.  Space
 complexity can be improved by only using a sliding window of two columns.
 Note that the top-down approach doesn't need to calculate all n*S vertices; it
 only calculates the ones reachable from DP(0,S).
 +
-time complexity: Θ(1). Overall running time: +Θ(n*S)+,
+time complexity: Θ(1) for one DP call. Thus the overall running time is +Θ(n*S)+,
 i.e. <<pseudo_polynomial>>. It's exponential, since +Θ(n*S)+ is exponential
 relative to the input size which is +O(n*lg S)+ (think how many bits you need
 to represent the input).
@@ -2489,17 +2494,18 @@ to represent the input).
 
 6. The items to be included into the knapsack are (for non-zero weights).
 --------------------------------------------------
-X=S
+X = S
 for i in [0,n)
-  if DP(i,X) = v[i] + DP(i-1, X-w[i]): // i.e. if choice ② was made
-    // the element i is in the knapsack
+  if DP(i, X) = v[i] + DP(i-1, X-w[i]): // i.e. if choice ② was made
+    remember item i as included in knapsack
     X -= w[i]
 --------------------------------------------------
 
 Applications:
 
 *to-do*
-*to-do*: process https://en.wikipedia.org/wiki/List_of_knapsack_problems
+
+*to-do* process https://en.wikipedia.org/wiki/List_of_knapsack_problems
 
 
 [[shortest_path_problem]]
@@ -2688,19 +2694,31 @@ In C / C&plus;&plus;, +CHAR_BIT+ is the number of bits in a byte.
 
 
 == References
+
 - http://ocw.mit.edu/courses/civil-and-environmental-engineering/1-204-computer-algorithms-in-systems-engineering-spring-2010/lecture-notes/
+
 - https://www.quora.com/What-are-the-very-basic-algorithms-that-every-Computer-Science-student-must-be-aware-of
+
 - MIT 6.006: Introduction to Algorithms: https://courses.csail.mit.edu/6.006
   * (fall'11): https://courses.csail.mit.edu/6.006/fall11/notes.shtml, https://www.youtube.com/playlist?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb
   * Newest lecture notes which are freely available spring'14: the newest vidoes seem to be from fall'11.
-- MIT 6.046J / 18.410J: In '15 "Design and Analysis of Algorithms", before "Introduction to Algorithms (SMA 5503)". Aparantly in '15 it's an advanced course between 6.006 and 6.851, before it was a course similar to 6.006.
- * Spring '15: https://www.youtube.com/playlist?list=PLUl4u3cNGP6317WaSNfmCvGym2ucw3oGp
+
+- MIT 6.046J / 18.410J: In 2015 called "Design and Analysis of Algorithms", before "Introduction to Algorithms (SMA 5503)". Aparantly in '15 it's an advanced course between 6.006 and 6.851, before it was a course similar to 6.006.
+ * Spring '15:
+   ** youtube: https://www.youtube.com/playlist?list=PLUl4u3cNGP6317WaSNfmCvGym2ucw3oGp
+   ** ocw: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-design-and-analysis-of-algorithms-spring-2015/lecture-videos/
  * Fall '05:
   ** youtube: https://www.youtube.com/playlist?list=PL81A705FB7F988E7C
   ** OCW, less videos, but title describing content: http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-introduction-to-algorithms-sma-5503-fall-2005/video-lectures/
+
 - MIT 6.851: Advanced Data Structures: https://courses.csail.mit.edu/6.851/
   * spring'12: https://courses.csail.mit.edu/6.851/spring12/lectures/, https://www.youtube.com/playlist?list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf
   * Newest spring'14: The link to the vidoes are the same as those of spring'12.
+
+- MIT 6.854: Advanced Algorithms
+  - Spring 2016: Youtube https://www.youtube.com/playlist?list=PL6ogFv-ieghdoGKGg2Bik3Gl1glBTEu8c
+  - Unknown date: youtube https://www.youtube.com/playlist?list=PLXzW9t1q_fb_3k_KzBfBnw0NXjvq45-bf
+
 - https://www.cs.usfca.edu/~galles/visualization/
 
 // Local Variables:
