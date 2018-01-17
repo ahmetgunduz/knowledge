@@ -1946,6 +1946,10 @@ If graph is undirected, see <<maximum_flow_problem>> for a transformation. If th
 
 Sending flow along the residual graphs backward edges means conceptually `undoing' decisions of previous iterations.
 
+References:
+- See <<flow_network>>
+- Book ``Introduction to algorithms'', subchapter ``The Ford-Fulkerson Method''.
+
 
 [[ford_fulkerson_algorithm]]
 === Ford-Fulkerson algorithm
@@ -1967,6 +1971,10 @@ ford-fulkerson-algorithm(G:flownetwork, source:vertex, sink:vertex)
 
 Analysis: In the worst case, mind that all capacities are integers, the residual capacity is 1, so there are +O(f)+ iterations. Each iteration takes +O(E)+, so the overall cost is +O(Ef)+, i.e. sudo polynomial. The reason is that the algorithm allows that in each iteration, a silly augmenting path is choosen, while there might be much better augmenting paths.
 
+References:
+
+- See <<flow_network>>
+
 
 [[edmonds_karp]]
 === Edmonds-Karp algorithm
@@ -1977,6 +1985,11 @@ Analysis: Each iteration is +O(E)+. It's proofable that the number of iterations
 is +O(VE)+. Thus the overal running time is +O(VE²)+.  The mentioned proof is based upon that once a critical edge is removed from residual network, it proofably can reappear only a certain mount of times. Also, the shortest path distance in the residual network from source to sink proofably increases monotonically after each augmentation / iteration.
 
 Intution in what way we want to improve the ford-fulkerson algorithm: If in the residual graph there is no augmenting path, i.e. source and sink are disconnected, then we found the maximum flow. Thus we strive for increasing the distance (edge weights 1) between the source and the sink.
+
+References:
+
+- See <<flow_network>>
+- CMU, Course 15-451/651 (Algorithms) Fall 2013, Lecture "Network Flows II: Edmonds-Karp 1, Edmonds-Karp 2, and blocking flows": https://www.cs.cmu.edu/~avrim/451f13/lectures/lect1008.pdf[lecture notes]
 
 
 [[push_relabel]]
@@ -2022,7 +2035,9 @@ Compare and contrast the push-relabel approach with the augmenting path approach
 
 References:
 
-- https://www.cs.cmu.edu/~avrim/451f13/lectures/lect1010.pdf
+- See <<flow_network>>
+- CMU, Course 15-451/651 (Algorithms) Fall 2013, Lecture "Network Flows III: Push-relabel flow algorithms, and Min-Cost Max-Flow.": https://www.cs.cmu.edu/~avrim/451f13/lectures/lect1010.pdf[lecture notes]
+- Book ``Introduction to algorithms'', chapters ``Push-relabel algorithms'' and ``The relabel-to-front algorithm''.
 
 
 [[online_algorithms]]
@@ -2219,6 +2234,14 @@ Lemma: Given a flow in a flow network, the flow equals the net flow of any s-t c
 
 [[max_flow_min_cut_theorem]]
 __Max-flow min-cut theorem__: The following three are equivalent, given a graph G and a flow f: 1) f is a maximum flow in G 2) The residual network induced by f contains no augmenting path 3) There is a cut such that it's capacity equals the flow f. In other words, the maximum flow equals the capacity of the cut with the minimal capacity. Intuitively that becomes apparent having the previous lemma in mind: Since the capacity of a s-t cut is an upper limit of G's maximum flow, the maximum flow is bounded by the cut with the minimal capacity.
+
+References:
+
+- MIT course 6.046J, Design and Analysis of Algorithms (Spring 2015), Lecture 13 "Incremental Improvement: Max Flow, Min Cut":  https://www.youtube.com/watch?v=WwMz2fJwUCg&t=603s[video], https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-design-and-analysis-of-algorithms-spring-2015/lecture-notes/MIT6_046JS15_lec13.pdf[lecture notes]
+
+- CMU, Course 15-451/651 (Algorithms) Fall 2013, Lecture "Network Flows and Matchings I": https://www.cs.cmu.edu/~avrim/451f13/lectures/lect1003.pdf[lecture notes]
+
+- Book ``Introduction to algorithms'', chapter ``flow networks''.
 
 
 == Problems
