@@ -1,21 +1,180 @@
 :encoding: UTF-8
 // The markup language of this document is AsciiDoc
 
-== Combinatorics
 
-__Binomial coefficient (n k)__ is the coefficient of the x^n-k^y^k^ term in the
-polynomial expansion of the binomial power (x+y)^n^.  This can be visualized
-by a _Pascal's triangle_,  where in row n (the root being n=0), the k-th
-element (the first being k=0) equals (n k).
+= Mathematics
 
-A _combination_ is a way of selecting members from a grouping, such that
-(unlike permutations) the order of selection does not matter.  There are
-C(n,k) = (n k) = n! / ((n-k)!k!) (say ``n choose k'') ways to choose k elements from a set of n
-elements.
+Mainly mathematics tailored towards the nees of computer science.
 
-The notion of _permutation_ relates to the act of permuting, or rearranging,
-all the members of a set into some ordered sequence.  P(n,k)= C(n,k)*k! =
-n!/(n-k)!.
+
+== Misc basics
+
+A _set_ is an unordered collection of distinct _elements_ (or _objects_, or _components_).
+The notiation {a, b} defines a set consisting of elements a and b.
+The _size_ (or _cardinality_) of a set S is the number of its elements, denoted as |S|.
+A _sequence_ is an ordered collection of possibly duplicate elements,
+The notation (b, a, a) defines a sequence.
+
+The _powerset_ (or _power set_) of a set S is the set of all subsets of S, including the empty set and S itself.
+
+[[permutation]]
+A _permutation_ of a set S is a sequence containing every element of S exactly once.
+The number of permutations of a n-element set is n!.
+
+A (total) _function_ f : X → Y maps all elements of its input set X to elements of its output set Y.
+Note a function is allowed to map multiple elements of X to a given element of Y.
+The input set is called the _domain_.
+The output set is called the _codomain_.
+The set of elements in the codomain that appear in f's mappings is called the _range_ (or _image_).
+A _partial function_ does not map all the elements of its input.
+The term _total function_ is a synonym to function as defined above.
+It is typically only used when a disambiguition to partial function is needed.
+Given a _injective function_, each element of Y is mapped to at most once.
+Given a _bijective function_, each element of Y is mapped to exactly once.
+Given a _surjective function_, each element of Y is mapped to at least once.
+A _k-to-1 function_ maps exactly k elements of X to every element of Y.
+
+A function is bijective if and only if it's injective and bijective.
+
+
+== Counting & Combinatorics
+
+Typically we are good at counting sequences, i.e. determining the size of a set S of sequences.
+Thus when faced with the problem of finding the size of a set T, we often try to find a bijection from T to a set of sequences of S.
+The following rules help to determine the size of a set of sequences.
+
+Given a bijective function f : A → B, |A| = |B|.
+
+_Pigeonhole principle_: If |A| > |B|, then for every total function f : A → B, there exists (at least) two diffrent elements of A that are mapped to the same element of B.
+The _generalized pigeonhole principle_ states that if |A| > k·|B|, then every total function f : A → B maps at least k + 1 different elements of A to the same element of
+B.
+
+_Poduct Rule_: Given the sets A~1~, ..., A~n~.
+Now A~1~ ⨯ ... ⨯ A~n~ denotes the set of all sequences whose first term is drawn from A~1~, second term is drawn from A~2~ and so forth.
+|A~1~ ⨯ ... ⨯ A~n~| = ∏|A~n~|.
+E.g. the number of different 3 digit hex numbers is 16*16*16.
+
+_Sum Rule_: Given disjoint sets A~1~, ..., A~n~, then |⋃A~n~| = ∑|A~n~|.
+
+_Inclusion rule_: |A∪B| = |A| + |B| - |A∩B|.
+Intuition: Just imagine the generic Venn diagram of sets A and B.
+
+_Inclusion-exclusion rule_: Is a generalisation of the inclusion rule.
+For the special case of three sets: |A∪B∪C| = |A| + |B| + |C| - |A∩B| - |A∩C| - |B∩C| + |A∩B∩C|. For the formula of the general case of n sets, the internet is your friend.
+
+_Boole's inequality_: |A∪B| ≤ |A| + |B|. Intuition: Follows from the inclusion rule.
+
+_Union Bound_: |⋃A~n~| ≤ |A~n~|. Intuition: Generalization of Boole's inequality.
+
+_Monocity Rule_: If A ⊆ B, then |A| = |B| ≤ |B|.
+
+_There are 2^n^ subsets of an n-element set_.
+This becomes apparent by setting up a bijection between the subsets and bit-string of length n.
+In other words, an n-digit binary number.
+Each digit determines wether or not the corresponding element is part of the subset.
+From the product rule follows 2^n^.
+
+A _k-combination_ of an n-element set S is a subset of k distinct elements of S.
+The number of possible k-combinations is donoted by _C(n, k)_, pronounced `n choose k'.
+Less concise formulated, it's the number of possible _k-element subsets of an n-element set_.
+C(n, k) = n! / ((n-k)!k!).
+Intuition: First we have n possibilities, then (n-1) and so on until (n-k+1).
+That equals n! / (n-k)!.
+So far we exactly have a k-permutation.
+Since the order of those k elements doesn't matter, we have to devide by the number of permutations, which is k!.
+
+C(n, k) = C(n, n-k)
+
+C(n, 0) = C(n, n) = 1
+
+_binomial theorem_ (aka _binomial expansion_): (x+y)^n^ = ∑~0≤k≤n~(C(n,k)·x^k^·y^n-k^). So C(n, k) is also called the _binomial coefficient_.
+
+A _k-combination with repetitions_ (or _k-multicombination_, or _k-multisubset_) of an n-element set S is a subset of k (possibly identical) elements of S.
+The number of such k-multisubsets is denoted by \((n k)), pronounced `n multichoose k'.
+\((n k)) = C(n+k-1, k).
+Intuition, using the _stars and bars_ graphical aid.
+Imagine the chosen multiset of elements ω~1~ as a group of stars, the chosen multiset of elements ω~2~ as another group of stars and so on.
+More precisely, do it the following way.
+You have a set of k+(n-1) positions.
+Note that its a set, i.e. unordered.
+The following visualizes it in an ordered manner, but conceptually it's unordered.
+k positions are assigned a star, n-1 positions are assigned a bar.
+The bars separate groups of stars.
+For example for k=6 and n=3, a possible outcome is ★★|★★★|★.
+Thus the original multicombination problem reduces to choosing a set of n-1 positions out of k+(n-1) positions in order to assign bars to.
+C(k+(n-1), n-1) = C(k+(n-1), k) = C(n+k-1, k).
+The first transformation is true due to the general rule C(n, k) = C(n, n-k).
+
+A _k-permutation_ (or _variation_ or _partial permutation_) is a k-element sequence consisting of distinct elements out of an n-element set.
+It is denoted by P(n,k) = C(n,k)*k! = n! / (n-k)!.
+Intuition: First we have n possibilities, then (n-1) and so on until (n-k+1).
+That equals n! / (n-k)! = C(n,k)*k!.
+
+[[permutation_with_repetition]]
+A _k-tuple_ (or _permutation with repetition_) is a k-element sequence consisting of (possibly identical) elements out of an n-element set.
+The number of k-tubles of an n-element set is k^n^.
+Intuition: First we have n possibilities, then again n, and so on, k times.
+
+Overview denoting k-element entities and the number of such entities
+given an n-element set:
+
+|=====
+|                         | without repetitions                | with repetitions
+| subset (i.e. unordered) | k-combination, C(n, k)             | k-multicombination, C(n+k-1, k)
+| sequence (i.e. ordered) | k-permutation, P(n, k) = C(n, k)k! | k-tuple, k^n^
+|=====
+
+
+Further typicall problems:
+
+_bookkeeper rule_ (an inofficial term made up by the MIT): Given a k-element set {e~1~, ..., e~n~}, the number of sequences consisting of n~1~ e~1~, ..., n~k~ e~k~ is (∑n~i~)! / ∏(n~i~!).
+Intuition, using the problem of finding the number of ways to rearange the letters in the word `bookkeeper'.
+There are n~1~=1 b's, n~2~=2 o's and so on up to n~6~ r's.
+I.e. k=6, but that is not really important.
+There is a total of ∑n~i~ = 10 letters.
+So there are 10! permutations of these letters.
+However, we can't distinguish the n~2~=2 o's in each sequence, so we have to devide by 2!.
+Likewise, we have to devide analogously for each of {b, o, k, e, p, r}.
+
+
+Corollary to the bookkeeper rule: How many x-bit sequences contain y zeros? By the bookkeeper rule, n~1~ = y, n~2~ = x - y, thus x! / (y!·(x-y)!).
+
+_Number of k-element subsets of an n-element set_:
+
+
+== Probability
+
+A countable _sample space_ S is a nonempty countable set.
+An element ω ∈ S is called an _outcome_.
+A subset of S is called an _event_.
+In other words, an event is a set of outcomes.
+A _probability function_ Pr on a sample space S is a total function Pr : S ⟶ ℝ having the following two properties.
+Pr[ω] ≥ 0 for all ω ∈ S.
+∑~ω∈S~ Pr[ω] = 1.
+A finite probability space S is said to be _uniform_ if Pr[ω] is the same for every outcome ω ∈ S.
+In an uniform probability space, Pr[E] = |E| / |S|.
+A _probability space_ is the tripe (sample space, set of events, probability function).
+
+A _tree diagram_ is a graphic tool.
+The leaves of the tree represent outcomes of the experiment.
+Thus the set of all leaves represents the sample space.
+Each internal vertex, represents an `subevent' (my own term, I couldn't find an official term).
+For each internal vertex, each outward edged is assigned the conditional probability that the subevent incident to the edge occures, given that the subevent represented by the current node has occured.
+Thus for each vertex, the sum of the probabilities of all its outward edges is 1.
+The probability of an outcome is the product of the probabilities on the edges on the path
+from the root to the leaf representing the outcome.
+
+Alternatively to the diagram, imagine the sample space as a square. It is split into all possible first subevents, the areas proportional to the propabilities of the respective subevents. Then recurse, analogous to the tree diagram.
+
+Recipe:
+
+. Find the sample space, i.e. all possible outcomes
+. Define events of interest
+. Determine outcome probabilities. Assign an probability to each each,
+then compute probability of outcome.
+. Compute probability of your events.
+
+
 
 == Misc
 
@@ -23,7 +182,9 @@ n!/(n-k)!.
 
 reccurence relation: F~n~ = F~n-1~ + F~n-2~
 
-closed form expression: F~n~ = (ϕ^n^ - ψ^n^) / √5 = [ϕ^n^ / √5], where ϕ is golden ratio and ψ=1-ϕ, and [x] is the nearest integer function (aka round function).
+closed form expression: F~n~ = (ϕ^n^ - ψ^n^) / √5 = [ϕ^n^ / √5], where
+ϕ is golden ratio and ψ=1-ϕ, and [x] is the nearest integer function
+(aka round function).
 
 Note: lim~n→∞~ F~n~ / F~n-1~ = ϕ
 
@@ -34,13 +195,24 @@ Applications: Fibonacci heap
 
 ϕ = (1+√5)/2 ≈ 1.618…
 
-Two quantities a and b are in the golden ratio ϕ iff a+b / a = a / b = ϕ, i.e. a=ϕb
+Two quantities a and b are in the golden ratio ϕ iff a+b / a = a / b =
+ϕ, i.e. a=ϕb
 
 === Factorial
 
 reccurence relation: x! = x*(x-1) and 0!=1
 
 stirlings approximation: n! ~ √(2πn)*(n/e)^n^
+
+
+
+== References
+
+- MIT course 6.042 "Mathematics for computer science"
+
+  * fall 2010, videos but no lecture notes: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2010/
+
+  * fall 2015, lecture notes but no videos: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2005/
 
 
 == to-do
