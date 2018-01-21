@@ -40,19 +40,52 @@ A function is bijective if and only if it's injective and bijective.
 == Counting & Combinatorics
 
 Typically we are good at counting sequences, i.e. determining the size of a set S of sequences.
-Thus when faced with the problem of finding the size of a set T, we often try to find a bijection from T to a set of sequences of S.
-The following rules help to determine the size of a set of sequences.
+Thus when faced with the problem of finding the size of a set P, we often try to a set S of sequences and a function f : S → P.
+Typically, once we found the set S of sequences, the function f is obvious or implied by the definion of S.
+Say we find a set of sequences S and a bijection function f : S → P, then the product rule gives us |S|, and the bijection property gives us |P| = |S|.
+Likewise, say we find a k-to-1 function f : S → P, the product rule and the division rule give us |P| = |S| / k.
 
-Given a bijective function f : A → B, |A| = |B|.
+For example consider poker.
+In poker a hand is 5 cards out of a deck of 52 cards.
+Each card has a rank and a suit.
+There are 13 ranks and 4 suits.
+
+How many different hands have a four-of-a-kind?
+We try to define a set S of sequences describing the problem, i.e. having a relation to the set P asked for by the problem statement.
+A possible solution is that a sequence of S has the follwing 3 elements.
+1) The first is the rank of the four card; 13 possibilities.
+2) The second is the rank of the extra card; 12 possibilities.
+3) The third is the suit of the extra card; 4 possibilities.
+Due to the product rule, |S| = 13·12·4.
+There's an obvious bijection from |S| to |P|.
+Due to to bijective property, |P| = |S|.
+
+How many diffrent hands have a two pairs; that is, two cards of one rank, two cards of another rank, and one card of a third rank?
+We try to define a set S of sequences describing the problem, i.e. having a relation to the set P asked for by the problem statement.
+A possible solution is that a sequence of S has the follwing 6 elements.
+1) The rank of the first pair; 13 possibilities.
+2) The suits of the first pair; C(4 2) possibilities.
+3) The rank of the second pair; 12 possibilities.
+4) The suits of the second pair; C(4 2) possibilities.
+5) The rank of the extra card; 11 possibilities.
+6) The suits of the extra card; C(4 1) possibilities. 
+Due to the product rule, |S| = 13·C(4 2)·12·C(4 2)·11*C(4 1).
+Since the first pair, i.e. element 1 and 2, and the second pair, element 3 and 4, are indistinguishable, there is a 2-to-1 mapping from |S| to |P|.
+To be precise, it's 2 because there are 2! = 2 ways to permute an 2-element set.
+Due to the 2-to-1 mapping and the division rule, |P| = |S| / 2.
 
 _Pigeonhole principle_: If |A| > |B|, then for every total function f : A → B, there exists (at least) two diffrent elements of A that are mapped to the same element of B.
 The _generalized pigeonhole principle_ states that if |A| > k·|B|, then every total function f : A → B maps at least k + 1 different elements of A to the same element of
 B.
 
-_Poduct Rule_: Given the sets A~1~, ..., A~n~.
-Now A~1~ ⨯ ... ⨯ A~n~ denotes the set of all sequences whose first term is drawn from A~1~, second term is drawn from A~2~ and so forth.
+_Product Rule_: Given the sets A~1~, ..., A~n~.
+Let A~1~ ⨯ ... ⨯ A~n~ denote the set of all sequences whose first term is drawn from A~1~, the second term is drawn from A~2~ and so forth.
 |A~1~ ⨯ ... ⨯ A~n~| = ∏|A~n~|.
-E.g. the number of different 3 digit hex numbers is 16*16*16.
+E.g. the number of different 3 digit hex numbers is 16·16·16.
+
+_Division Rule_: If there is a k-to-1 function f : A → B, then |A|=k·|B|.
+
+As a special case of the division rule: If there is a bijective function f : A → B, then |A| = |B|.
 
 _Sum Rule_: Given disjoint sets A~1~, ..., A~n~, then |⋃A~n~| = ∑|A~n~|.
 
@@ -69,14 +102,13 @@ _Union Bound_: |⋃A~n~| ≤ |A~n~|. Intuition: Generalization of Boole's inequa
 _Monocity Rule_: If A ⊆ B, then |A| = |B| ≤ |B|.
 
 _There are 2^n^ subsets of an n-element set_.
-This becomes apparent by setting up a bijection between the subsets and bit-string of length n.
-In other words, an n-digit binary number.
-Each digit determines wether or not the corresponding element is part of the subset.
-From the product rule follows 2^n^.
+Proof: We define a sequence S from which there is a bijection to the problem set |P|.
+The i-th element of the sequence S tells if element i of the original set is part of the subset or not.
+The product rule gives |S|=2^n^, and the bijecton gives |P|=|S|.
 
 A _k-combination_ of an n-element set S is a subset of k distinct elements of S.
-The number of possible k-combinations is donoted by _C(n, k)_, pronounced `n choose k'.
-Less concise formulated, it's the number of possible _k-element subsets of an n-element set_.
+The number of possible k-combinations is denoted by _C(n, k)_, pronounced `n choose k'.
+Less concise formulated, it's the _number of k-element subsets of an n-element set_.
 C(n, k) = n! / ((n-k)!k!).
 Intuition: First we have n possibilities, then (n-1) and so on until (n-k+1).
 That equals n! / (n-k)!.
@@ -89,7 +121,7 @@ C(n, 0) = C(n, n) = 1
 
 _binomial theorem_ (aka _binomial expansion_): (x+y)^n^ = ∑~0≤k≤n~(C(n,k)·x^k^·y^n-k^). So C(n, k) is also called the _binomial coefficient_.
 
-A _k-combination with repetitions_ (or _k-multicombination_, or _k-multisubset_) of an n-element set S is a subset of k (possibly identical) elements of S.
+A _k-combination with repetitions_ (or _k-multicombination_, or _k-multisubset_) of an n-element set S is a multiset of k (possibly identical) elements of S.
 The number of such k-multisubsets is denoted by \((n k)), pronounced `n multichoose k'.
 \((n k)) = C(n+k-1, k).
 Intuition, using the _stars and bars_ graphical aid.
@@ -106,7 +138,7 @@ C(k+(n-1), n-1) = C(k+(n-1), k) = C(n+k-1, k).
 The first transformation is true due to the general rule C(n, k) = C(n, n-k).
 
 A _k-permutation_ (or _variation_ or _partial permutation_) is a k-element sequence consisting of distinct elements out of an n-element set.
-It is denoted by P(n,k) = C(n,k)*k! = n! / (n-k)!.
+The nuber of possible k-permutations is denoted by _P(n,k)_ = C(n,k)*k! = n! / (n-k)!.
 Intuition: First we have n possibilities, then (n-1) and so on until (n-k+1).
 That equals n! / (n-k)! = C(n,k)*k!.
 
@@ -116,12 +148,12 @@ The number of k-tubles of an n-element set is k^n^.
 Intuition: First we have n possibilities, then again n, and so on, k times.
 
 Overview denoting k-element entities and the number of such entities
-given an n-element set:
+given an n-element set (implies unordered and distinct):
 
 |=====
-|                         | without repetitions                | with repetitions
-| subset (i.e. unordered) | k-combination, C(n, k)             | k-multicombination, C(n+k-1, k)
-| sequence (i.e. ordered) | k-permutation, P(n, k) = C(n, k)k! | k-tuple, k^n^
+|                    | without repetitions                | with repetitions
+| subset (unordered) | k-combination, C(n, k)             | k-multicombination, C(n+k-1, k)
+| sequence (ordered) | k-permutation, P(n, k) = C(n, k)k! | k-tuple, k^n^
 |=====
 
 
@@ -136,10 +168,7 @@ So there are 10! permutations of these letters.
 However, we can't distinguish the n~2~=2 o's in each sequence, so we have to devide by 2!.
 Likewise, we have to devide analogously for each of {b, o, k, e, p, r}.
 
-
 Corollary to the bookkeeper rule: How many x-bit sequences contain y zeros? By the bookkeeper rule, n~1~ = y, n~2~ = x - y, thus x! / (y!·(x-y)!).
-
-_Number of k-element subsets of an n-element set_:
 
 
 == Probability
@@ -149,13 +178,60 @@ An element ω ∈ S is called an _outcome_.
 A subset of S is called an _event_.
 In other words, an event is a set of outcomes.
 A _probability function_ Pr on a sample space S is a total function Pr : S ⟶ ℝ having the following two properties.
-Pr[ω] ≥ 0 for all ω ∈ S.
-∑~ω∈S~ Pr[ω] = 1.
-A finite probability space S is said to be _uniform_ if Pr[ω] is the same for every outcome ω ∈ S.
-In an uniform probability space, Pr[E] = |E| / |S|.
+Pr(ω) ≥ 0 for all ω ∈ S.
+∑~ω∈S~ Pr(ω) = 1.
+A finite probability space S is said to be _uniform_ if Pr(ω) is the same for every outcome ω ∈ S.
+In an uniform probability space, Pr(E) = |E| / |S|.
 A _probability space_ is the tripe (sample space, set of events, probability function).
 
-A _tree diagram_ is a graphic tool.
+A _random variable_ R is a total function whose domain is the sample space.
+The codomain can be anything.
+It typically is a subset of ℝ.
+Notice that the name “random variable” is a misnomer; random variables are actually functions.
+An _indicator random variable_ (or _Bernoulli variable_) is a random variable with codomain {0, 1}.
+Thus an event is naturally associated with an indicator random variable.
+
+_conditional probability_: The probability of event A given event B is known to be true is Pr(A|B) = Pr(A∩B) / Pr(B).
+Note that the order in which A and B occur does not matter.
+Intuition: Imagine the standard Venn diagramm of two sets A and B.
+Saying that B is known to be true means we no longer look at the whole sample space S, but only at B.
+Imagine that all but B becomes dark.
+The only outcomes ∈ A which remain in the area of interest are those of A∩B.
+It becomes visually apparent that Pr(A|B) is the ratio of |A∩B| to |B|.  
+
+_bayes theorem_: Pr(A|B) = Pr(B|A)Pr(A) / Pr(B).
+
+_law of total probability_: Pr(A) = ∑Pr(A∩B~i~) = ∑Pr(A|B~i~)Pr(B~i~), where {B~1~, ...,B~n~} is a partition of the sample space S.
+In other words, a set of pairwise disjoint sets whose union is the sample space.
+
+[[independence]]
+Two events A and B are _independent_ if Pr(A|B) = Pr(A) or if Pr(B) = 0.
+Or equivalently, called the _product rule for independent events_, iff Pr(A∩B) = Pr(A)Pr(B).
+Note that disjoint does _not_ imply independent.
+For example say A and B are disjoint and both are non-empty, then Pr(A|B) = 0 ≠ Pr(A).
+Naturally independence is a symmetric relationship.
+That's why we usually say `A and B are independend' rather than `A is independent of B'.
+The form `Pr(A|B) = Pr(A) or if Pr(B) = 0' shows more clearly the meaning of `the occurence of B does not affect the probability of A'.
+The form `Pr(A∩B) = Pr(A)Pr(B)' shows more clearly the symmetry of indpendence.
+
+Intuition for indpendence: Draw the Venn diagram.
+S is a rectangle.
+Draw a horizontal line across S to separate B from the rest.
+Draw a vertical line across S to separate A from the rest.
+It is apparent that the ratio |A| to |S| equals the ratio |A∩B| to |B|.
+
+To make that example more concrete, consider that blood can have a certain type and a certain rh factor.
+Say the probability Pr(T) for type T is known, and the probability Pr(F) for rh factor F is known..
+The previously described Venn diagram shows that the probability somebody has type T _and_ rh factor F equals Pr(T)Pr(F) _only_ if T and F are independent.
+For independence, the ratio of people having rh factor F among all people (|F| / |S| = Pr(F)) must be equal to the ratio of people having rh factor F among those having also type T (|F∩T| / |T|).
+
+α={A~1~, ..., A~n~} are _mutually independent_ iff Pr(⋂A~i~) = ∏Pr(A~i~) for _any_ subset of α.
+Mutual independence does imply pairwise indpendence, but not vice versa.
+
+α={A~1~, ..., A~n~} are _pairwise independent_ iff for all pairs (A~i~, A~j~) of distinct A (i.e. i ≠ j), A~i~ and A~j~ are independent.
+Pairwise independence does _not_ imply mutual independence.
+
+A _tree diagram_ is a graphic tool for working with outcomes and events of an probability space.
 The leaves of the tree represent outcomes of the experiment.
 Thus the set of all leaves represents the sample space.
 Each internal vertex, represents an `subevent' (my own term, I couldn't find an official term).
@@ -164,15 +240,29 @@ Thus for each vertex, the sum of the probabilities of all its outward edges is 1
 The probability of an outcome is the product of the probabilities on the edges on the path
 from the root to the leaf representing the outcome.
 
-Alternatively to the diagram, imagine the sample space as a square. It is split into all possible first subevents, the areas proportional to the propabilities of the respective subevents. Then recurse, analogous to the tree diagram.
+Alternatively, draw the tree using the treemapping method.
+You start out with a rectangle representing the root vertex of the tree.
+For each child, draw a line to create a subrectangle, the sizes of the subrectangles according to the weight of the edges. All llines mutually parallel.
+Recurse.
+At each level in the recursion, toggle between horizontal and vertical lines.
+The result has resemblance to a Venn diagram, only that here a given event is possibly represented by a set of disconnected areas, as opposed to a single connected area.
 
-Recipe:
 
-. Find the sample space, i.e. all possible outcomes
-. Define events of interest
-. Determine outcome probabilities. Assign an probability to each each,
-then compute probability of outcome.
-. Compute probability of your events.
+Recipe for solving many probability problems:
+
+. Consequently follow the rules.
+Don't try to be fast.
+Often the human intuition is wrong.
+
+. Define the sample space, i.e. all possible outcomes.
+
+. Define events of interest.
+
+. Compute probabilities (of required outcomes). Possibly the following way: Use the tree diagram method.  Assign a probability to each (required) edge.  Calculating the probability of an outcome is then trivial.
+
+. Compute probability of your events, which is trivial, now that you have the probabilities of the outcomes.
+
+
 
 
 
@@ -208,12 +298,11 @@ stirlings approximation: n! ~ √(2πn)*(n/e)^n^
 
 == References
 
-- MIT course 6.042 "Mathematics for computer science"
-
-  * fall 2010, videos but no lecture notes: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2010/
-
-  * fall 2015, lecture notes but no videos: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2005/
-
+- MIT course 6.042 "Mathematics for computer science".
+  * spring 2015, index: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-spring-2015/course-index/
+  * spring 2015, textbook: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-spring-2015/readings/MIT6_042JS15_textbook.pdf
+  * fall 2010, video lectures: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2010/video-lectures/
+  * fall 2010, readings: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2010/readings/
 
 == to-do
 
