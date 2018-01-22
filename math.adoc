@@ -39,9 +39,9 @@ A function is bijective if and only if it's injective and bijective.
 
 == Counting & Combinatorics
 
-Typically we are good at counting sequences, i.e. determining the size of a set S of sequences.
-Thus when faced with the problem of finding the size of a set P, we often try to a set S of sequences and a function f : S → P.
-Typically, once we found the set S of sequences, the function f is obvious or implied by the definion of S.
+Typically we are typically good at determining the size of a set S of sequences.
+Thus when faced with the problem of finding the size of a set P, we often try to define a set S of sequences and a function f : S → P.
+Typically, once we defined the set S of sequences, the function f is obvious or implied by the definion of S.
 Say we find a set of sequences S and a bijection function f : S → P, then the product rule gives us |S|, and the bijection property gives us |P| = |S|.
 Likewise, say we find a k-to-1 function f : S → P, the product rule and the division rule give us |P| = |S| / k.
 
@@ -221,31 +221,37 @@ Draw a vertical line across S to separate A from the rest.
 It is apparent that the ratio |A| to |S| equals the ratio |A∩B| to |B|.
 
 To make that example more concrete, consider that blood can have a certain type and a certain rh factor.
-Say the probability Pr(T) for type T is known, and the probability Pr(F) for rh factor F is known..
+Say the probability Pr(T) for type T is known, and the probability Pr(F) for rh factor F is known.
 The previously described Venn diagram shows that the probability somebody has type T _and_ rh factor F equals Pr(T)Pr(F) _only_ if T and F are independent.
 For independence, the ratio of people having rh factor F among all people (|F| / |S| = Pr(F)) must be equal to the ratio of people having rh factor F among those having also type T (|F∩T| / |T|).
 
-α={A~1~, ..., A~n~} are _mutually independent_ iff Pr(⋂A~i~) = ∏Pr(A~i~) for _any_ subset of α.
+The elements of α={A~1~, ..., A~n~} are _mutually independent_ iff Pr(⋂A~i~) = ∏Pr(A~i~) for _any_ subset of α.
 Mutual independence does imply pairwise indpendence, but not vice versa.
 
-α={A~1~, ..., A~n~} are _pairwise independent_ iff for all pairs (A~i~, A~j~) of distinct A (i.e. i ≠ j), A~i~ and A~j~ are independent.
+The elements of α={A~1~, ..., A~n~} are _pairwise independent_ iff for all unordered pairs {A~i~, A~j~} of distinct elements (i.e. i ≠ j), A~i~ and A~j~ are independent.
 Pairwise independence does _not_ imply mutual independence.
 
-A _tree diagram_ is a graphic tool for working with outcomes and events of an probability space.
-The leaves of the tree represent outcomes of the experiment.
+A _decision tree_ is a graphic tool for working with outcomes and events of an probability space.
+The root is the start and is not directly associated a meaning.
+Given a vertex, each outward edge represents that a given `subevent' occures.
+The definition of an edge's associated subevent includes that the the subevent associated with the edge's source vertex has occured.
+`Subevent' is an inofficial term made up by the author.
+Each vertex thus represents the subevent that all subevents of the edges of the path from the root to that vertex have occured.
+Note that the subevents on the path are not required to happen in the order implied by the path.
+One just has to compute the correct _conditional_ probabilities of the edges.
+Each outward edge of a vertex is assigned the conditional probability that the edge's associated subevent occures, given that the subevent associated with the vertex has occured.
+For each internal vertex, the sum of the probabilities of all its outward edges is 1.
+By the the above definitions, given a path, the subevents associated with the edges are independent, thus they can be multiplied to get the probability of taking that path.
+Each leaf represents an outcome of the experiment.
 Thus the set of all leaves represents the sample space.
-Each internal vertex, represents an `subevent' (my own term, I couldn't find an official term).
-For each internal vertex, each outward edged is assigned the conditional probability that the subevent incident to the edge occures, given that the subevent represented by the current node has occured.
-Thus for each vertex, the sum of the probabilities of all its outward edges is 1.
-The probability of an outcome is the product of the probabilities on the edges on the path
-from the root to the leaf representing the outcome.
+I.e. there is a 1 to 1 relationship between the set of all leaves and and the set of all outcomes.
 
 Alternatively, draw the tree using the treemapping method.
 You start out with a rectangle representing the root vertex of the tree.
 For each child, draw a line to create a subrectangle, the sizes of the subrectangles according to the weight of the edges. All llines mutually parallel.
 Recurse.
-At each level in the recursion, toggle between horizontal and vertical lines.
-The result has resemblance to a Venn diagram, only that here a given event is possibly represented by a set of disconnected areas, as opposed to a single connected area.
+At each new level in the recursion, toggle between horizontal and vertical lines.
+The result has resemblance to a Venn diagram, only that here a given event is represented by a set of possibly disconnected areas, as opposed to a single connected area.
 
 
 Recipe for solving many probability problems:
