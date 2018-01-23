@@ -1356,19 +1356,21 @@ See also <<graph_theory>> and <<graph_adt>>.
 
 An algorithm for traversing or searching a graph in breadth first order in +O(V+E)+ (= +O(b^d+1^)+) time and +O(V)+ space.  Typically used to traverse a connected graph starting from a single source, thus that's what is shown here. Traversing a disconnected graphs, which implies multiple sources, is theoretically also possible, but not shown here. See the outer skeleton of DFS for the general idea how that would be done.
 
-Intuitively the algorithm is: Starting at the source vertex (distance 0, where distance counts number of edges to the root), first nodes with distance 1 are explored, after that nodes with distance 2, and so on.  A Queue helps to add first all of distance 1, only then all of distance 2 and so on. A visited/unvisited attribute per vertex ensures that a node is not visited twice.
+Intuitively the algorithm is: Starting at the source vertex, a spanning tree is built, level by level.  A queue contains the neighbors (not yet part of the spanning tree) of the leaves of the spanning tree.  In other other words, the queue contains the vertices to be added next to the spanning tree, ordered after their level in the spanning tree.  A visited/unvisited attribute per vertex ensures that a node is only added once to the queue.
 
 Overview version:
 --------------------------------------------------
 Breadth-First-Search(Graph, source:vertex):
-  create empty queue Q # Q contains vertexes adjacent to visited notes
-  Q.enqueue(root)
-  while Q is not empty:
-    current = Q.dequeue()
-    for each neighbor node that is adjacent to current:
-      if neighbor is unvisited:
-        remember neighbor as visited
-        Q.enqueue(neighbor)
+  // 'visited' means part of current spanning tree or it's
+  // neighbor vertices. Not needed for trees.
+  source.visited = true            
+  create queue and enqueue root
+  while queue is not empty:
+    current = queue.dequeue()
+    for each neighbor:
+      if !neighbor.visited:
+        neighbor.visited = true
+        queue.enqueue(neighbor)
 --------------------------------------------------
 
 Time complexity +O(V + E)+ (each vertex is enqued/dequed at most once, and each edge is looked at twice (from each of its two sides)). Auxillary space complexity is +O(V)+ (Each vertex needs an attribute to know wheter it was visited. Beside that, in the worst case, the queue contains all vertices).  For graphs which are implicitly defined or very large, time complexity is better given as +(b^d+1^)+, whereas b is the branching factor and d is the distance (weights being 1) up to which we search.
@@ -1449,9 +1451,9 @@ An algorithm for traversing or searching a graph in depth first order.  In +Θ(V
 Basic algorithm for a connected graph:
 --------------------------------------------------
 DFS-visit(graph, source:vertex):
-  mark source as visited
+  mark source as visited    // not needed for tree
   for each neighbor of source:
-    if neighbor is unvisited:
+    if !neighbor.visited:   // not needed for tree
       DFS-visit(graph, source)
 --------------------------------------------------
 
@@ -1459,25 +1461,28 @@ More detailed algorithm for a general graph:
 [[DFS_all_source]]
 --------------------------------------------------
 DFS-all-source(graph):
-  for each vertex in graph, set color=unvisited and parent=NIL
+  for each vertex in graph
+    set color=unvisited and parent=NIL
   for each vertex v in graph:
-    if v.color == univisted:
+    if v.color == unvisited:
       DFS-visit(graph, v)
 
 DFS-single-source(graph, source:vertex):
-  for each vertex in graph, set color=unvisited and parent=NIL
+  for each vertex in graph
+    set color=unvisited and parent=NIL
   DFS-visit(graph, source)
 
 DFS-visit(graph, current:vertex):
   current.color = tentative
   [do auxillary pre-order action with current]
   for each neighbor adjacent to current: // aka explore edges (current,neighbor)
+    [if neighbor.color is tentative: graph_has_cycles = true]
     if neighbor.color is unvisited:
       [neighbor.parent = current]
       DFS-visit(graph, neighbor)
   [do auxillary post-order action with current]
-  [current.color = visited]              // not needed in the two color variants
   [push to front of topo sorted sequence]
+  [current.color = visited]              // not needed in the two color variants
 --------------------------------------------------
 
 Analysis DFS-all-source: Time complexity: +Θ(V+E)+. Rational: Each vertex is visited (is current) once -> +O(V)+.  Each outgoing edge of each current (i.e. each node) is looked at -> +O(E)+. Space complexity: +O(V)+. Rational: Each vertex has at least the color attribute attached. Also in the worst case, when the graph is a list, there are as many recursion calls (stack pushes) as vertices.
@@ -1485,15 +1490,28 @@ Analysis DFS-all-source: Time complexity: +Θ(V+E)+. Rational: Each vertex is vi
 
 ==== Iterative algorithm
 
+Intuitively the algorithm is: Starting at the source vertex, a spanning tree is build, prefering to grow the tree in depth rather than breadth. A stack maintains the neighbors of the vertices already in the spanning tree.  When the current vertex adds a neighbor to the stack he means `I want that neighbor as my spanning tree child'.  Due to the stacks FILO policy, that `takes away' that neighbor from any spanning tree anchestor who also wanted that neighbor as its child.  Thus the stack can contain a vertex multiple times.  Once poped, the top most occurence wins, i.e. is added to the spanning tree.  The other occurences naturally are still in the stack, but now the vertex is already part of the spanning tree.  To avoid adding it to the spanning tree again when popped again, a `visited' vertex attribute is needed.
+
+
 Basic algorithm 1 for a connected graph:
 --------------------------------------------------
 DFS-visit(G:graph, root:vertex):
+  // 'visited' means part of the spanning tree. Not needed for trees.
+  root.visited = false
+  create stack and push root
   while stack is not empty:
     current = stack.pop()
-    if current.color == unvisited:
-      current.color = visited
-      for each neighbor of current:
-        stack.push(neighbor)
+    if !current.visited: // i.e. if not already part of spanning tree
+      // Add current to spanning tree. Note that current might
+      // occur again further below in the stack.
+      current.visited = true
+      for each neighbor:
+        // The if is not required, but it would be silly to omit it.
+        if !neighbor.visited:   
+          // Announce that the current vertex wants neighbor as its spanning tree
+          // child.  That takes 'take away' that neighbor from any anchestor of the
+          // current vertex who also wanted it as its child.
+          stack.push(neighbor)  
 --------------------------------------------------
 
 Basic algorithm 2, which is closer to the detailed that follows, for a connected graph:
