@@ -241,7 +241,7 @@ jmp funAddr        addr = FunEntry              | addr = addrStack.pop()
 
 == Online Algorithms
 
-An online algorithm is _k-competitive_ if there exists a constant k such that its cost is at most k times the cost of an optimal offline algorithm, ignoring a constant offset.  The factor k is called the _competitive ratio_.  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
+An online algorithm is _k-competitive_ if there exists a constant k such that its cost is at most k times the cost of an optimal offline algorithm, ignoring a constant offset.  The factor k is called the _competitive ratio_.  If the constant offset is zero, the algorithm is said to be _strictly competitive_.  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
 
 
 === Randomized online algorithms
