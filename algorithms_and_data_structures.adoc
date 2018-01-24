@@ -2270,6 +2270,87 @@ References:
 - Book ``Introduction to algorithms'', chapter ``flow networks''.
 
 
+== Computational Geometry
+
+A subset S of the plane is called _convex_ iff for any pair of points p,q ∊ S the linesegment pq is completely contained in S.  Given a set S, the _convex hull_ 𝒞ℋ(S) is the smallest convex set that contains S.  Alternatively, the convex hull is the unique convex polygon whose vertices are points from S and that contains all points of S.
+
+__Determining the orientation of an ordered point triple (p1, p2, p3)__: Let o = (p2y-p1y)(p3x-p2x)-(p3y-p2y)(p2x-p1x). Then o>0 → clockwise, o=0 → colinear, o<0 → counterlcokwise. Intuition: If slope(p2, p3) > slope(p1, p3), the orientation is clockwise. Using the formula for slope, Δy/Δx, and simple transformations delivers the given formula.
+
+----------------------------------------------------------------------
+enum Orientation { colinear, clockwise, counterclockwise  }
+orientation(p: point, q: point, r point) : Orientation
+  val = (q.y - p.y) * (r.x - q.x) -
+        (q.x - p.x) * (r.y - q.y);
+  if val==0: return colinear;
+  if val>0 : return clockwise;
+  else     : return counterclockwise;
+----------------------------------------------------------------------
+
+_Order points p2 and p3 around a point p1_: From the viewpoint of point p1, determine wether point p2 is right of point p3.  Or equivalently, from the viewpoint of p1, determine  wether line (p1, p2) is right of line (p1, p3).
+
+----------------------------------------------------------------------
+is2ndRightOf3rd(p1: point, p2: point, p3: point): bool
+  return orientation(p1, p2, p3) == counterclockwise
+----------------------------------------------------------------------
+
+References:
+
+- http://jeffe.cs.illinois.edu/teaching/373/notes/x05-convexhull.pdf
+- Chapter "Convex Hulls" in book "Computation Geometry - Algorithms and Applications". However, there a pretty diffrent version of Graham's scan is presented.
+- http://jeffe.cs.illinois.edu/teaching/373/notes/allnotes.pdf, Non-lecture notes at the end.
+
+
+=== Convex hull
+
+==== Jarvis's algorithm
+
+_Jarvis's algorithm_ (or _Jarvis's march_, or _gift wrapping algorithm_) finds the convex hull of a set of points in O(nh). h is the number of points on the convex hull.
+
+Intuition: Start by finding any point which is known to be on the convex hull, e.g. the leftmost point.  An outer loop keeps adding the proper next point to the hull sequence until the hull cycle is closed.  An inner loop finds this next point the same way one finds the maximum element in a set.  Here, the `maximum' is the point which is furthest to the right from the perspective of the current point, looking at the other points.  Note that Jarvis's march resembles selection sort.  Both repeatedly find the item that goes in the solution's next slot.
+
+Assumptions for simplicity: no three points lie on a common line, rounding error problems ignored, points.size <= 3 ignored.
+
+----------------------------------------------------------------------
+jarvis_march(points, hullpoints[out])
+  leftmost = iteratively search leftmost point in points
+  current = leftmost
+  do
+    hullpoints.append(current)
+    tentativenext = any point but current
+    for each point i in points
+      if is2ndRightOf3rd(current, i, tentativenext)
+        tentativenext = i
+    current = tentativenext
+  until current = leftmost
+----------------------------------------------------------------------
+
+Analysis: O(nh) time, where h is the number of points on the convex hull.  It's thus an output-sensitive algorithm. Proof: The outer iteration makes O(h) iteretions.  The inner loop makes O(n) iterations.
+
+
+References:
+
+- https://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/
+- http://jeffe.cs.illinois.edu/teaching/373/notes/x05-convexhull.pdf
+- https://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/
+
+
+==== Graham's scan
+
+_Graham's scan_ finds the convex hull of a set of points in O(n log n).
+
+Assumptions for simplicity: no three points lie on a common line, rounding error problems ignored, points.size <= 3 ignored.  
+
+Find any point on the convex hull, e.g. the left-most point.  Sort the remaining points in counterclockwise order around that left-most point.  Connect all points in counterclockwise order,  starting at the left-most point,  resulting in a simple polygon with n vertices.
+
+We transform the polygon into the convex hull using the `three-penny algorithm'.  We have three pennies, which sit on three consecutive vertices of the current polygon.  Initially, the first of the three pennies is on the left-most point.  We now iteratively apply the following two rules until a penny is moved forward onto the left-most point:
+
+* If p1 p2 p3 are in counterclockwise order, move the penny on p1 to p3's successor.  Intuitively, we `advance' on the polygon because (p1, p2, p3) have as required an counterclockwise order.
+
+* Else, remove p2 from the polygon, add the edge (p1, p3) to the polygon, and move the penny on p2 to p1's predecessor.  Intuitively, we found a dent in the polygon and remove that dent.
+
+Analysis: O(n log n) time. Proof: The initial sorting takes O(n log n) time.  The three penny algorithm takes O(n) time:  The first rule moves a penny to a vertex that has never seen a penny before, so the first rule is applied at most n-2 times.  The 2nd rule removes a vertex from the polygon, so the 2nd rule is applied exactly n-h times.  h is the number of points on the convex hull.
+
+
 == Problems
 
 === Overview
