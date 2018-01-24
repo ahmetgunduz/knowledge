@@ -18,7 +18,7 @@ With high probability (w.h.p.):: An event E occurs with high probability if Pr[E
 == Asymptotic notations / big O notation
 In computer science, big O notation is used to classify algorithms by how they respond to changes in input size, typically regarding running time space (memory/disk/...).
 
-In the following +n+ is the _input size_, +f(n)+ is the _number of steps_ needed by an algorithm, and  +T(n)+ is its _running time_.
+In the following +n+ is the _input size_, +f(n)+ is the _number of steps_ needed by an algorithm.
 
 Types of asymptotic notations:
 
@@ -44,6 +44,8 @@ _Tight bounds_: An upper bound is said to be a tight upper bound (aka _supremum_
 _Asymptotic efficiency_: Only look at rate of growth.  An algorithm is said to be _asymptotically optimal_ if, roughly speaking, its big-oh is equal to the big-oh of the best possible algorithm.
 
 _amortized time_: `amortized +O(f)+' for operation o: In a sequence of length L of such o operations, the overall time is +O(L*f)+.  I.e. one of those o operations might use a particular large amount of time compared to the average case, but that time is amortized in the large.  A typical example is appending to an array; if the capacity is full, a new array of larger capacity needs to be allocated, and the data has to be copied.
+
+An _output-sensitive algorithm_ is an algorithm whose running time depends on the size of the output, in addition to, or instread of, the size of the input.
 
 Common functions ordered after order of growth: c, log~c~(n), n, n·log~c~(n), n^c^, c^n^, n!, n^n^
 
@@ -534,7 +536,7 @@ Implemented more general ADTs: <<collection>>, <<deque>>
 === Priority Queue
 A min (max) priority queue is similar to a queue, however dequeue extracts the element with the max (min) key.  I.e. each element has a key.  Principal operations for a max-(min-)priority queue: _insert_ (aka _enqueue_), _dequeue_ (aka _extract-max_(__-min__)), _peek_ (aka _max_(_min_)), _increase-key_(_decrease-key_).
 
-Sorting and priority queues: If it is possible to perform integer sorting in time T(n) per key, then the same time bound applies to the time per insertion or deletion operation in a priority queue data structure (Thorup 2007.  It's however a complicated reduction).  *to-do*: elaborate more on relation sorting to priority queues
+Sorting and priority queues: If it is possible to perform integer sorting in O(n) time per key, then the same time bound applies to the time per insertion or deletion operation in a priority queue data structure (Thorup 2007.  It's however a complicated reduction).  *to-do*: elaborate more on relation sorting to priority queues
 
 Common implementations: <<heap>>, self-balancing binary tree
 
@@ -1366,7 +1368,7 @@ Breadth-First-Search(Graph, source:vertex):
   source.visited = true            
   create queue and enqueue root
   while queue is not empty:
-    current = queue.dequeue()
+    current = queue.dequeue() // add current to spanning tree
     for each neighbor:
       if !neighbor.visited:
         neighbor.visited = true
@@ -1490,27 +1492,24 @@ Analysis DFS-all-source: Time complexity: +Θ(V+E)+. Rational: Each vertex is vi
 
 ==== Iterative algorithm
 
-Intuitively the algorithm is: Starting at the source vertex, a spanning tree is build, prefering to grow the tree in depth rather than breadth. A stack maintains the neighbors of the vertices already in the spanning tree.  When the current vertex adds a neighbor to the stack he means `I want that neighbor as my spanning tree child'.  Due to the stacks FILO policy, that `takes away' that neighbor from any spanning tree anchestor who also wanted that neighbor as its child.  Thus the stack can contain a vertex multiple times.  Once poped, the top most occurence wins, i.e. is added to the spanning tree.  The other occurences naturally are still in the stack, but now the vertex is already part of the spanning tree.  To avoid adding it to the spanning tree again when popped again, a `visited' vertex attribute is needed.
+Intuitively the algorithm is: Starting at the source vertex, a spanning tree is build, prefering to grow the tree in depth rather than breadth.  A stack maintains the neighbors of the current nodes' spanning tree anchestors.  Ordered after spanning tree depth, except for those having the `is-in-spanning-tree' flag set; those are semantically not really part of the stack anymore.  When a vertex is popped from the stack, if it is not already part of the spanning tree, it is made the current node and is made part of the spanning tree.  When the current vertex adds a neighbor to the stack he means `I want that neighbor as my spanning tree child'.  Due to the stacks FILO policy, that `takes away' that neighbor from any spanning tree anchestor who also wanted that neighbor as its child.  I.e. the stack can contain a vertex multiple times.  When a given vertex is popped the first time from the stack, his parent wins, and it is added to the spanning tree.  Wannabe parents of further occurences of the same vertex further below in the stack loose.  To prevent adding the vertex again to the tree, each vertex needs an attribute which tells whether or not it's already part of the tree.
 
 
 Basic algorithm 1 for a connected graph:
 --------------------------------------------------
 DFS-visit(G:graph, root:vertex):
-  // 'visited' means part of the spanning tree. Not needed for trees.
-  root.visited = false
+  root.isInSPT = false
   create stack and push root
   while stack is not empty:
     current = stack.pop()
-    if !current.visited: // i.e. if not already part of spanning tree
-      // Add current to spanning tree. Note that current might
-      // occur again further below in the stack.
-      current.visited = true
+    if !current.isInSPT:
+      current.isInSPT = true
       for each neighbor:
-        // The if is not required, but it would be silly to omit it.
-        if !neighbor.visited:   
-          // Announce that the current vertex wants neighbor as its spanning tree
-          // child.  That takes 'take away' that neighbor from any anchestor of the
-          // current vertex who also wanted it as its child.
+        // The if-guard is not required, but it would be silly to omit it.
+        if !neighbor.isInSPT:   
+          // Announce that the current vertex wants neighbor as its spanning
+          // tree child. That takes 'take away' that neighbor from any
+          // anchestor of the current vertex who also wanted it as its child.
           stack.push(neighbor)  
 --------------------------------------------------
 
