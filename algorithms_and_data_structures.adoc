@@ -1358,15 +1358,14 @@ See also <<graph_theory>> and <<graph_adt>>.
 
 An algorithm for traversing or searching a graph in breadth first order in +O(V+E)+ (= +O(b^d+1^)+) time and +O(V)+ space.  Typically used to traverse a connected graph starting from a single source, thus that's what is shown here. Traversing a disconnected graphs, which implies multiple sources, is theoretically also possible, but not shown here. See the outer skeleton of DFS for the general idea how that would be done.
 
-Intuitively the algorithm is: Starting at the source vertex, a spanning tree is built, level by level.  A queue contains the neighbors (not yet part of the spanning tree) of the leaves of the spanning tree.  In other other words, the queue contains the vertices to be added next to the spanning tree, ordered after their level in the spanning tree.  A visited/unvisited attribute per vertex ensures that a node is only added once to the queue.
+Intuitively the algorithm is: Starting at the source vertex, a spanning tree is built, level by level.  A queue contains neighbors (not yet part of the spanning tree) of the spanning tree.  In other other words, the queue contains the vertices to be added next to the spanning tree, ordered after their level in the spanning tree.  A visited/unvisited attribute per vertex ensures that a node is only added once to the queue.
 
 Overview version:
 --------------------------------------------------
 Breadth-First-Search(Graph, source:vertex):
-  // 'visited' means part of current spanning tree or it's
-  // neighbor vertices. Not needed for trees.
+  // 'visited' means 'is in queue or in spanning tree'
   source.visited = true            
-  create queue and enqueue root
+  create queue and enqueue root // queue contains neighbors of spanning tree
   while queue is not empty:
     current = queue.dequeue() // add current to spanning tree
     for each neighbor:
@@ -1453,6 +1452,7 @@ An algorithm for traversing or searching a graph in depth first order.  In +Θ(V
 Basic algorithm for a connected graph:
 --------------------------------------------------
 DFS-visit(graph, source:vertex):
+  // visited ⇔ is part of spanning tree
   mark source as visited    // not needed for tree
   for each neighbor of source:
     if !neighbor.visited:   // not needed for tree
@@ -1498,15 +1498,15 @@ Intuitively the algorithm is: Starting at the source vertex, a spanning tree is 
 Basic algorithm 1 for a connected graph:
 --------------------------------------------------
 DFS-visit(G:graph, root:vertex):
-  root.isInSPT = false
+  root.isInST = false // most authors call the flag 'visited'
   create stack and push root
   while stack is not empty:
     current = stack.pop()
-    if !current.isInSPT:
-      current.isInSPT = true
+    if !current.isInST:
+      current.isInST = true // i.e. visit current vertex
       for each neighbor:
         // The if-guard is not required, but it would be silly to omit it.
-        if !neighbor.isInSPT:   
+        if !neighbor.isInST:   
           // Announce that the current vertex wants neighbor as its spanning
           // tree child. That takes 'take away' that neighbor from any
           // anchestor of the current vertex who also wanted it as its child.
@@ -1762,38 +1762,41 @@ Relation between different common naming schemes. spt_parent and and spwfs are m
 
 [[Dijkstra]]
 === Dijkstra's algorithm
+
 A greedy (can also be seen as dynamic programming) algorithm which solves the single-source <<shortest_path_problem>>, not allowing negative weights, in +O(E+V*lg(V))+ time and +O(V)+ space, assuming Fibonacci heaps are used. That notably includes directed or undirected graphs and graphs with cycles.
 
 Terms and abbreviations: ubspwfs = upper bound on shortest path weight from source (in literature often called distance or simply d), SPT = shortest path tree. See also <<A_star>>.
 
-Basic algorithm in pseudo code:
+Intuition: A spanning tree is built, more specifically a SPT (see terms).  Vertices are added in order of how close to the SPT they are.  Each vertex is assigned an ubspwfs (see terms) attribute.  Out of the vertices not yet in the SPT, iteratively greedely choose the vertex with the smallest ubspwfs.  I.e. the vertex which is closest to the SPT.  Typically a min priority queue with ubspwfs as key is used to find that vertex.  Add the found vertex to the SPT and update the ubspwfs for all it's neighbors.
+
 ----------------------------------------------------------------------
 Dijkstra(graph, source:vertex)
-  create empty min priority queue outsideSptQ with ubspwfs as key
+  create empty min priority queue sptNeighborsQ with ubspwfs as key
   for each vertex v in graph:
     v.ubspwfs = (v==source ? 0 : INFINITE)
-    outsideSptQ.enque(v)
-  while outsideSptQ not empty:
-    current = outsideSptQ.deque() // greedely choose vertex and add it to SPT
+    sptNeighborsQ.enque(v)
+  while sptNeighborsQ not empty:
+    // greedely choose vertex nearest to SPT and add it to SPT
+    current = sptNeighborsQ.deque()
     for each neighbor of current:
       relax(current, neighbor)
 ----------------------------------------------------------------------
 
-Basic algorithm in prose: Out of the vertices not yet in the SPT, iteratively greedely choose vertex with the smallest ubspwfs (i.e. which is closest to the so-far SPT) and add it to the SPT, then update the ubspwfs for all it's neighbors.
+Detailed description: Each node has an attribute ubspwfs. It is initially infinite, and each relaxation step potentially makes it smaller, i.e. potentially tightens the upper bound, until it reaches its final, true smallest value. It can be proven that the smallest ubspwfs in sptNeighborsQ, i.e. the one that the next dequeue call will return, has arrived at its true final spwfs value, and will never change again. Thus by choosing the vertex with the smallest ubspwfs, the algorithm always adds a vertex to the SPT which is not only closest, but in fact for which the spfws is known. Since the relaxation sets the spt_parent always to the current vertex, i.e. a node which already is in the SPT, when a vertex is dequed, its spt_parent is in the SPT, and thus it is implicitely added to the SPT.
 
-Detailed algorithm:
 ----------------------------------------------------------------------
 Dijkstra(graph, source:vertex [,dest:vertex])
-  create empty min priority queue outsideSptQ with ubspwfs as key
+  create empty min priority queue sptNeighborsQ with ubspwfs as key
   for each vertex v in graph:
     [v.spt_parent = NIL]
     v.ubspwfs   = (v==source ? 0 : INFINITE)
-    outsideSptQ.enqueue(v)
-  while outsideSptQ not empty:
-    current = outsideSptQ.deque() // greedely choose vertex and add it to SPT
+    sptNeighborsQ.enqueue(v)
+  while sptNeighborsQ not empty:
+    // greedely choose vertex nearest to SPT and add it to SPT
+    current = sptNeighborsQ.deque()
     [if current==dest return]
     for each neighbor of current:
-      relax(current, neighbor, outsideSptQ)
+      relax(current, neighbor, sptNeighborsQ)
 
 relax(u:vertex, v:vertex, Q:MinPriorityQueue)
   alternate_ubspwfs_for_v = u.ubspwfs + weight(u,v)
@@ -1802,9 +1805,7 @@ relax(u:vertex, v:vertex, Q:MinPriorityQueue)
     [v.spt_parent = u]
 ----------------------------------------------------------------------
 
-More details in prose: Each node has an attribute ubspwfs. It is initially infinite, and each relaxation step potentially makes it smaller, i.e. potentially tightens the upper bound, until it reaches its final, true smallest value. It can be proven that the smallest ubspwfs in outsideSptQ, i.e. the one that the next dequeue call will return, has arrived at its true final spwfs value, and will never change again. Thus by choosing the vertex with the smallest ubspwfs, the algorithm always adds a vertex to the SPT which is not only closest, but in fact for which the spfws is known. Since the relaxation sets the spt_parent always to the current vertex, i.e. a node which already is in the SPT, when a vertex is dequed, its spt_parent is in the SPT, and thus it is implicitely added to the SPT.
-
-Proof: Note that the shortest path problem has optimal substructere, see <<shortest_path_problem>>. *to-do*: Understand proof that the (upper bound) spwfs of the front vertex of outsideSptQ has arrived at it's true final value.
+Proof: Note that the shortest path problem has optimal substructere, see <<shortest_path_problem>>. *to-do*: Understand proof that the (upper bound) spwfs of the front vertex ofs sptNeighborsQ has arrived at it's true final value.
 
 Notes:
 
@@ -2293,14 +2294,39 @@ is2ndRightOf3rd(p1: point, p2: point, p3: point): bool
   return orientation(p1, p2, p3) == counterclockwise
 ----------------------------------------------------------------------
 
+_Determine whether two line segments intersect_: Assumption for simplicity: no three point lie on a common line.  The general case is not significantly more complex.  Two line segments (p1, p2) and (q1, q2) intersect iff p1 and p2 are on opposite sides of line (not segment) (q1, q2) and q1 and q2 are on opposite sides of the line (p1, p2). p1 and p2 are on opposite sides of the line (q1, q2) iff exactly one of the two triples (p1, q1, q2) and (p2, q1, q2) is in counterclockwise order.
+
+----------------------------------------------------------------------
+// returns true if segment (p1, p2) and (q1, q2) intersect
+intersect(p1: point, p2: point, q1: point, q2: point): bool
+  if orientation(p1, q1, q2) == orientation(p2, q1, q2): return false
+  if orientation(q1, p1, p2) == orientation(q2, p1, p2): return false
+ return true
+----------------------------------------------------------------------
+
+In _sweeping_, an imaginary vertical sweep line pases through the given set of geometric objects, usually from left to right.  We treat the spatial dimension that the sweep line moves across, in this case the x-dimension, as a dimension of time.  Sweeping provides a method for ordering geometric objects.
+
 References:
 
-- http://jeffe.cs.illinois.edu/teaching/373/notes/x05-convexhull.pdf
-- Chapter "Convex Hulls" in book "Computation Geometry - Algorithms and Applications". However, there a pretty diffrent version of Graham's scan is presented.
+- Book "Computational Geometry - Algorithms and Applications"
+
+- Book "Introduction to algorithms", chapter "Computational Geometry".
+
+- MIT course 2.158J / 1.128J / 16.940J "computational geometry"
+
+  * spring 2003: https://ocw.mit.edu/courses/mechanical-engineering/2-158j-computational-geometry-spring-2003/
+
+- MIT 6.838 "Geometric Computation"
+
+  * fall 2003: https://people.csail.mit.edu/indyk/6.838/
+
 - http://jeffe.cs.illinois.edu/teaching/373/notes/allnotes.pdf, Non-lecture notes at the end.
 
 
 === Convex hull
+
+The convex hull problem asks for the set of points forming the convex hull, given a set of points.  Often the algorithms return the convex hull not only as a set of points, but as a sequence of points constituting the convex hull polygon.
+
 
 ==== Jarvis's algorithm
 
@@ -2330,7 +2356,9 @@ Analysis: O(nh) time, where h is the number of points on the convex hull.  It's 
 References:
 
 - https://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/
+
 - http://jeffe.cs.illinois.edu/teaching/373/notes/x05-convexhull.pdf
+
 - https://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/
 
 
@@ -2340,15 +2368,88 @@ _Graham's scan_ finds the convex hull of a set of points in O(n log n).
 
 Assumptions for simplicity: no three points lie on a common line, rounding error problems ignored, points.size <= 3 ignored.  
 
-Find any point on the convex hull, e.g. the left-most point.  Sort the remaining points in counterclockwise order around that left-most point.  Connect all points in counterclockwise order,  starting at the left-most point,  resulting in a simple polygon with n vertices.
+Find any point on the convex hull, e.g. the left-most point.  Sort the remaining points in counterclockwise order around that left-most point.  Connect all points in counterclockwise order, starting at the left-most point, resulting in a simple polygon with n vertices.
 
 We transform the polygon into the convex hull using the `three-penny algorithm'.  We have three pennies, which sit on three consecutive vertices of the current polygon.  Initially, the first of the three pennies is on the left-most point.  We now iteratively apply the following two rules until a penny is moved forward onto the left-most point:
 
-* If p1 p2 p3 are in counterclockwise order, move the penny on p1 to p3's successor.  Intuitively, we `advance' on the polygon because (p1, p2, p3) have as required an counterclockwise order.
+* If p1 p2 p3 are in counterclockwise order, move the penny on p1 to p3's successor.  Intuitively, we `advance' on the polygon because (p1, p2, p3) could be part of the convex hull because they are in counter clockwise order.
 
 * Else, remove p2 from the polygon, add the edge (p1, p3) to the polygon, and move the penny on p2 to p1's predecessor.  Intuitively, we found a dent in the polygon and remove that dent.
 
 Analysis: O(n log n) time. Proof: The initial sorting takes O(n log n) time.  The three penny algorithm takes O(n) time:  The first rule moves a penny to a vertex that has never seen a penny before, so the first rule is applied at most n-2 times.  The 2nd rule removes a vertex from the polygon, so the 2nd rule is applied exactly n-h times.  h is the number of points on the convex hull.
+
+References:
+
+- http://jeffe.cs.illinois.edu/teaching/373/notes/x05-convexhull.pdf
+
+- Chapter "Convex Hulls" in book "Computation Geometry - Algorithms and Applications". However, there a pretty diffrent version of Graham's scan is presented.
+
+
+=== Determining whether any pair of segments intersects
+
+Given a set of line segments, determine whether any pair of segments intersects.
+
+==== Sweep line
+
+Assumptions for simplicity: No input segment is vertical.  No three input segments intersect at a single point.
+
+The general idea is to only test those segments for intersection which are `close'.  The sweep line paradigm, moving it horizontally, ensures avoiding checking segments which don't overlap in x-direction.  Segments currently intersecting the sweep line are ordered after their intersection points with the sweep line, top to bottom.  Obviously those segments do overlapp in x-direction.  Among these x-overlapping segments, we only check those segment pairs for actual intersection, which are adjacent on the sweep line, i.e. which are adjacent in y-direction.
+
+Create an _event point schedule_, which is a sequence of points, called _event points_. Here, the endpoints of the segments constitute the event points.  The ordering is from left to right, breaking ties left endpoint before right endpoint, breaking further ties top to bottom.
+
+Process the event point schedule.  Imagine sweeping a vertical line from left to right, stoping at each event point.  We maintain a top-to-bottom ordered sequence of those line segments which currently intersect the sweep line.  That sequence is called _sweep-line status_.  The sequence can only change when the sweep line encounters and endpoint or an segment intersection.  When the sweep line encounters an left endpoint, the associated segment is inserted into the sequence.  We test whether the new segment intersects with any of its two neighbors.  When the sweep line encounters an right endpoint, remove its associated segment from the sequence.  We test whether the two new neighbors intersect.  Of course, whenever an intersection is found, we can terminate the algorithm.
+
+--------------------------------------------------
+any-intersections(points): bool
+  eventschedule = points sorted from left to right
+  // sweep line status, using isBelow (defined below) as comperator.
+  sls = ∅
+  for each point current_point in eventschedule:
+    current_segment = segmentof(current_point)
+    // for simplicity, successor / predecessor returning NIL is ignored
+    if current_point is left endpoint:
+      insert(sls, current_segment)
+      if intersect(current_segment, successor(swt, current_segment)) or
+         intersect(current_segment, predecessor(swt, current_segment)):
+        return true
+    else
+      if intersect(successor(swt, current_segment), predecessor(swt, current_segment)):
+        return true;
+      remove(sls, current_segment)  
+  return false
+--------------------------------------------------
+
+*to-do*: isBelow is only valid for a specific x-position of the sweep line, no? How can it then be used as comperator for the sweep line status datastructure? I believe it only works if left(s2).x <= left(s1).x <= right(s2).x.  Thus maybe first sort s1 s2 after left().x, and only then do the core comparision?
+
+--------------------------------------------------
+// returns true if leftendpoint(s1).x is below s2 at x-coordinate leftendpoint(s1).x
+// precondition: leftendpoint(s2).x <= leftendpoint(s1).x <= rightendpoint(s2).x
+isBelow(s1: segment, s2: segment)
+  return orientation(leftendpoint(s2), rightendpoint(s2), leftendpoint(s1)) == clockwise
+--------------------------------------------------
+
+The data structure for the sweep line status should support the following operations in O(log n) time: insertion, deletion, find successor / precessor.  For example some sort of binary search tree.
+
+Analysis: The running time is O(n log n).  The initial sorting takes O(n log n).  The sweep line stops at most at 2n endpoints, thus there are O(n) iterations.  Each operation on the sequence on the sequence requires O(log n). So the loop as a whole needs O(n log n), and the algorithm as a whole also O(n log n).
+
+References:
+
+- Book "Introducion to algorithms", subchapter "3.2 Determining whether any pair of segments intersects"
+
+- http://jeffe.cs.illinois.edu/teaching/373/notes/x06-sweepline.pdf
+ 
+
+=== Find all segment intersections
+
+References:
+
+- Book "Computational Geometry - Algorithms and Applications", chapter "line segment intersection"
+
+- http://courses.csail.mit.edu/6.006/spring11/lectures/lec24.pdf
+
+- https://people.csail.mit.edu/indyk/6.838/handouts/lec2.pdf
+
+- https://www.youtube.com/watch?v=dePDHVovJlE for the case of orthogonal line segments
 
 
 == Problems
