@@ -586,8 +586,9 @@ Implementations: See those of <<graph_adt>>,  and the methods for storing a <<bi
 
 
 [[binary_search_tree]]
-=== Binary Search Tree (aka BST, ordered/sorted binary tree)
-Is a specialized <<binary_tree>> where 1) each node has a comparable key 2) for each node: the key of the left child, if child present, is smaller-or-equal than the node's key, and the key of the right child, if present, is larger-or-equal than the node's key.  Be +n+ the number of elements.  +h≥lg n+ the height of the tree.  The expected height is +h=lg n+ for a randomly built binary tree.
+=== Binary Search Tree (BST)
+
+Is a specialized <<binary_tree>> where 1) each node has a comparable key 2) for each node: the key of the left child, if child present, is smaller-or-equal than the node's key, and the key of the right child, if present, is larger-or-equal than the node's key.  Be +n+ the number of elements.  +h≥lg n+ the height of the tree.  The expected height is +h=lg n+ for a randomly built binary tree.  Some implementations store data only in the leaves.
 
 _binary search tree property:_ If node +y+ is in the left subtree of node +x+, then +y.key<=x.key+, if +y+ is in +x+'s right subtree, then +y.key>=x.key+.
 
@@ -610,7 +611,7 @@ _Min_/_Max_: +O(h)+. Follow left/right subtree until the leaf is reached.
 
 _Successor_/_Predecessor_: +O(h)+. **To-do**
 
-Implementations: <<AVL>> trees, red-black trees
+Implementations: <<avl_tree>>, <<red_black_tree>>
 
 Implements these more general ADTs: <<associative_array>>
 
@@ -745,6 +746,7 @@ See <<order_statistics>>
 
 [[binary_tree]]
 === Binary tree
+
 A <<tree>> data structure in which each node has at most two children.  Note that a <<binary_search_tree>> is something else with more restrictions.
 
 Properties:
@@ -764,19 +766,25 @@ Methods of storing:
 
 [[naive_BST]]
 === (Naive) binary search tree (data structure)
+
 A data structure implementing the binary search tree ADT. When inserting, the elements are always inserted as leaves, whithout changing previous nodes.
+
+Optionally, store data in leaves only.  Each non-leaf node stores the min and max of the leaves in its subtrees; alternatively, we can store the max value in the left subtree if we want to store just one value per node.  See for example <<1d_orthogonal_range_searching>>.
 
 
 [[random_binary_tree]]
 === Randomized binary search tree
-Randomly permute the input before building the <<naive_BST>>. 
+
+Randomly permute the input before building the <<naive_BST>>.
 
 *to-do*: 
 
 Expected height E[height]=O(lg(n))
 
-[[avl]]
+
+[[avl_tree]]
 === AVL Tree
+
 A data structure implementing the binary search tree ADT.  Is a <<balanced>> binary search tree; balance is ensured by the following invariant: For each node n: |height(n.left) - heigh(n.right)| ≤ 1.  From that (indirectly) follows: tree height ≈ 1.44 lg(|V|).
 
 Time complexity: O(log n) average and worst case for all basic operations (search, insert, delete).
@@ -788,19 +796,23 @@ Each node stores its _balance factor_, which is the difference in height of the 
 Rough description of how insertion/deletion work:
 
 1. First do a normal BST insertion or deletetion (which honor the BST property)
+
 2. For each node on the path from the newly inserted node up to the root: if balance factor is not in range [-1,1], fix it by only _rotation_ operations.
 
 See also <<search_tree_comparison>>
 
 
-[[red_black]]
-=== Red-Black
+[[red_black_tree]]
+=== Red-Black tree
+
 A data structure implementing the binary search tree ADT.  Is a <<balanced>> binary search tree; Balance is preserved by attributing each node with one of two colors (typically called `red' and `black') in a way that satisfies red-black properties (see below).  Tree height ≈ 2*lg(|V|).
 
 red-black properties:
 
 - Roots and NILs are black (typically NILs are called the leaves and all other `poper' nodes are called internal nodes).
+
 - Every red node has a black parent (i.e. never two consequtive red nodes on a simple path)
+
 - For each descendant of a node n, the number of black nodes on the simple path from n to descendant is the same
 
 Time and space complexity: save as <<AVL>> tree.
@@ -831,6 +843,7 @@ Is a tree data structure implementing the ordered <<associative_array>> ADT with
 
 [[cartesian_tree]]
 === Cartesian tree
+
 A binary tree having the heap property and having the additional porperty that its in-order traversal delivers a given sequence S. Can be built in O(n) time from S and vice versa.
 
 Example:
@@ -848,37 +861,77 @@ T =      2
 
 Building cartesian tree T from a sequence S, which assumes parent pointers: To process each new value x, start at the node representing the value prior to x in the sequence and follow the path from this node to the root of the tree until finding a value y smaller than x. This node y is the parent of x, and the previous right child of y becomes the new left child of x. 
 
-Building sequence S from cartesian tree T: If T's nodes are not labeled with values as above, which is likely, label each node with it's depth. Do an inorder traversal, resulting in an array of node labels.  LCA on T is still the same as RMQ on S.
+Building sequence S from cartesian tree T: If T's nodes are not labeled with values as above, which is the case in many applications, label each node with it's depth. Do an inorder traversal, resulting in an array of node labels.  LCA on T is still the same as RMQ on S.
 
 Applications:
 
 - <<RMQ>> in S corresponds to <<LCA_problem,LCA>> in T.
-- Range searching *to-do*
 
+- <<rectangular_range_query>>
 
-=== Skip list
-Is a data structure implementing the ordered <<associative_array>> ADT. Search, insert, delete in +O(lg n)+ time with high probability (opposed to `only' on average)
+- A <<treap>> is a specialization of a cartesian tree
+
+References:
+
+- https://www.geeksforgeeks.org/cartesian-tree/
+
 
 
 === Treap (aka priority search tree)
-A balanced (with high probability) binary search tree. The idea is to use randomization and the heap property to maintain balance with heigh probability, i.e. balancedness is not guaranteed. Search, insert, delete in O(log n) time with high probability, but O(n) worst case.
+
+A _treap_ is a <<cartesian_tree>> in which each key is given a (randomly chosen) numeric priority.  In other words, it's a balanced (with high probability) binary search tree. The idea is to use randomization and the heap property to maintain balance with heigh probability, i.e. balancedness is not guaranteed. Search, insert, delete in O(log n) time with high probability, but O(n) worst case.
 
 Each node in the this BST additionally has a priority, which is assigned a random value upon insertion. Upon insertion/deletion, both the BST invariant regarding the key and the heap property regarding the priority have to be fullfulled. This is done by a normal BST insert using the key, and then do rotations until the heap property is fullfulled regarding the priorities.
 
 Trivia: The name is a portmenteau of tree and heap.
 
+
+=== Skip list
+
+Is a data structure implementing the ordered <<associative_array>> ADT. Search, insert, delete in +O(lg n)+ time with high probability (opposed to `only' on average)
+
+
+[[kd_tree]]
 === kd tree
-A binary search tree ... *to-do*
+
+*to-do*
+
+Applications:
+
+- <<rectangular_range_query>>
+
+References:
+
+- http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf
+
+- Book "Computational Geometry - Algorithms and Applications", subchapter "kd-trees"
+
+
+[[range_tree]]
+=== range tree
+
+*to-do*.
+
+Applications:
+
+- <<rectangular_range_query>>
+
+References:
+
+- https://courses.csail.mit.edu/6.851/spring12/scribe/lec3.pdf
+
+- Book "Computational Geometry - Algorithms and Applications", subchapter "Range Trees"
 
 
 === splay tree
+
 *to-do*
 
 
 [[search_tree_comparison]]
 === Search tree comparison
 
-<<AVL>> tree vs <<red_black>> tree: theoretically equivalent since time and space complexity are identical.  AVL trees are more rigidly balanced (≈ 1.44 lg(|V|)) than red-black trees (≈ 2 lg(|V|)), whereas the number of rotations when inserting or deleting is O(lg n) for AVL and O(1) for red-black.  Followingly prefer AVL when number of lookup operations dominate sum of insert/delete operations, and red-black oth erwise.
+<<avl_tree>> vs <<red_black_tree>>: theoretically equivalent since time and space complexity are identical.  AVL trees are more rigidly balanced (≈ 1.44 lg(|V|)) than red-black trees (≈ 2 lg(|V|)), whereas the number of rotations when inserting or deleting is O(lg n) for AVL and O(1) for red-black.  Followingly prefer AVL when number of lookup operations dominate sum of insert/delete operations, and red-black oth erwise.
 
 *to-do*: B-trees for 2ndary memory
 
@@ -2781,27 +2834,56 @@ The __<<hamiltonian_path>> problem__ and the __<<hamiltonian_cycle>> problem__ a
 See <<DAG>> for the definition of LCA.
 
 Solutions:
+
 - With O(n^2^) space, O(1) time is trivial: An O(1) time lookup table stores the answer for all input pair vertices.
+
 - Tarjan's off-line LCA: After preprocessing the DAG, solvable in O(1) time and O(n) space.
+
 - If DAG is a cartesian tree: reduce to array, see <<cartesian_tree>>, and solve <<RMQ>> there. *to-do*: how exactly, there we're rediricted to LCA
 
 
 [[LA_query]]
 === Level ancestor problem / query
+
 Given a rooted tree and a node v, LA(v,d) delivers the ancestor node of v which is at depth d, or equalently, delivers the kth ancestor (where parent is the 1st ancestor), k=height(node)-d.
 
 When n is the number of nodes, after preprocessing which takes O(n) time and O(n) space, solvable in O(1) time.
 
 
-=== Range/interval search
+[[rectangular_range_query]]
+=== Orthogonal (rectangular) range (interval) searching (query)
 
-Given a set of values/points (k-Dim), find the ones being in a (k-Dim) range.
+Given a set of points in k-dimensional space, find the ones being in a k-dimensional range.  E.g. when doing a database query, we want to find the persons with age in [20,40] and height in [150, 200] and weight in [50,100].
 
-Given a set of ranges/geomteric objects (k-Dim), find the ones overlapping/intersection.
+Given a set of k-dimensional geomteric objects (aka ranges), find the ones which intersect (aka overlap).
 
-See also <<rmq>>
+Data structes / Algorithms:
 
-*to-do*
+- <<kd_tree>>
+
+- <<range_tree>>
+
+References:
+
+- Book "Computational Geometry - Algorithms and Applications", chapter "Orthogonal range searching"
+
+- http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf
+
+
+[[1d_orthogonal_range_searching]]
+==== 1d orthogonal range searching using a BST
+
+Take a balanced binary search tree which stores it's values in it's leaves. Regarding storing data in leaves only, see <<naive_BST>>.  This is especially convenient for higher dimensions, see <<range_tree>>.
+
+
+
+
+References:
+
+- Book "Computational Geometry - Algorithms and Applications", subchapter "5.1 1-Dimensional Range Searching"
+
+- https://courses.csail.mit.edu/6.851/spring12/scribe/lec3.pdf, first part of section "range trees"
+
 
 [[RMQ]]
 === Range minimim query (RMQ)
