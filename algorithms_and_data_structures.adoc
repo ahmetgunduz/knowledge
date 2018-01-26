@@ -275,6 +275,7 @@ Examples: Quick sort
 
 [[decrease_and_conquer]]
 === Decrease and conquer (aka prune and search)
+
 In each step the problem is turned into one single sub problem of smaller size, where as the rest ist pruned.  The algorithm stops when the base case is reached.  My thoughts: The size of a subproblem is typically by a constant factor (on average) smaller than one of the parent problem -- if the size would only decrease by a constant amount, in the worst case 1, it would just be the naive brute force solution.  See also See also <<relation_between_techniques>>.
 
 Examples: binary search, quickselect.
@@ -736,6 +737,7 @@ Is an implementation of the ADT <<associative_array>>.
 
 
 === Selection problem
+
 See <<order_statistics>>
 
 
@@ -894,6 +896,25 @@ Is a data structure implementing the ordered <<associative_array>> ADT. Search, 
 [[kd_tree]]
 === kd tree
 
+Assumptions for simplicity: No two points have same x coordinate, and no two points have same y coordinate.
+
+A _k-dimensional kd tree_ is a non-balanced binary search tree storing k-dimensional points.  They are often used for k-dimensional <<rectangular_range_query>>.  Informal description for the 2D case: Each subtree represents an rectangular area,  possibly unbounded, i.e. adges can be at infinity.  The root represents the whole plane.  As normal in BSTs, each node stores a value, here a point.  Each node splits its associated area in two halfes by an imaginary line through its point.  Nodes at even tree levels split vertically, nodes at odd tree levels horizontally.  Each of its subtrees is then associated with one of the halfes.  Thus the plane is recursively diveded into smaller and smaller rectangles.
+
+Algorithm to build tree:  Partion the set points in x-direction in two equal halfes by finding the median point in x direction, see <<order_statistics>>.  That point becomes the root.  For each of the two partitions recurse.  Only that now, on depth 1 of the recursion, we partition in y-direction.  In general, in a k-dimensianal tree, partatition after (depth%k+1)-th dimension.  Efficient order statistics algorithm are O(n), but these beasts are rather complicated,  so one is often left with an O(n log n) algorithm.  To build a kd-tree, one approach is to pass the set of points as two arrays of pointers, the 2st represents the points ordered in x direction, the 2nd represents the points ordered in y direction.  Before calling the generic build algorithm for the root, we presort those two arrays.  For the generic build algorithm its now easy to find the median and to do the partitioning.
+
+--------------------------------------------------
+build-2dimensional-kd-tree(points, depth): node
+  if points.size=1: return new leaf node having value points[0]
+  if depth is even: splitdirection = in x
+  else            : splitdirection = in y
+  find median of points in splitdirection -> median, smallerpoints, greaterpoints
+  node = new node
+  node.value = median
+  node.right = build-2dimensional-kd-tree(smallerpoints, depth+1)
+  node.left = build-2dimensional-kd-tree(greaterpoints, depth+1)
+  return node
+--------------------------------------------------
+
 *to-do*
 
 Applications:
@@ -904,7 +925,10 @@ References:
 
 - http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf
 
+- https://www.cs.cmu.edu/~ckingsf/bioinfo-lectures/kdtrees.pdf
+
 - Book "Computational Geometry - Algorithms and Applications", subchapter "kd-trees"
+
 
 
 [[range_tree]]
@@ -1258,7 +1282,6 @@ algorithm works will leave it at the k-th position. Sort the elements [0,k).
 
 
 [[order_statistics]]
-[[Selection]]
 == Order statistics / medians / selection problem
 
 _Selection problem_: Find the i-th order statistic, i.e. find the i-th smallest element out of an, typically unsorted, set of elements.
@@ -1273,31 +1296,37 @@ Overview:
 |quick select / random             | O(n) almost certain    | O(n^2)
 |quick select / median of 3        | O(n)                   | O(n^2)
 |quick select / median of medians  | O(n) high const factor | O(n) high const factor
-|Introselect                       | O(n)                   | O(n)
+|Introselect                       | O(n)                   | O(n) high const factor
 |Floyd–Rivest algorithm            | O(n)                   | ? *to-do*
 |======
 
 === Trivial algorithms
+
 Finding the minimum, i.e. i=1, element can be trivially solved in +O(n)+ time and +O(1)+ auxillary space by iteratively searching through the array for the smallest element respectively.
 
 If the input is preprocessed sorting it first, then we can just access the i-th element in the sorted collection in +O(1)+. Recalling sorting algorithms, the cost of the preprocessing is typically +O(n log n)+, but can be +O(n)+ for certain input. Obviously this might be a good strategy if the collection is static and thus has to be preprocessed only once, and there are more than +O(log n)+ queries (assuming +O(n log n)+ sorting and +O(n)+ for the competing selection algorithm).
 
+
 === Quick select
 
-A <<decrease_and_conquer>> algorithm: In each recursion step, choose a pivot and partition the input (of the current recursion step) into a part smaller than the pivot and larger than the pivot respectively.  That delivers the position / index of the pivot.  Then recurse into the left/right part depending on whether i is smaller/larger than the pivot's index.  The base case is either if i is equal the pivot after partitioning, or when the input size is 1.
+A <<decrease_and_conquer>> algorithm: In each recursion step, choose a pivot and partition the input (of the current recursion step) into a part smaller than the pivot and larger than the pivot respectively.  That delivers the position / index of the pivot, i.e. if all the values were sorted, the pivot would be at the same position.  Then recurse into the left/right part depending on whether i is smaller/larger than the pivot's index.  The base case is either if i is equal the pivot after partitioning, or when the input size is 1.
 
 The best possible pivot is the median (apart from the i-th element, which would directly deliver the solution), since it halves the input.  Like quicksort, the quickselect has good average performance, but is sensitive to the pivot that is chosen.  See the next chapters on strategies how to choose the pivot.
 
+
 ==== Quick select / variant random pivot random
+
 See the previous `common core' chapter. The pivot is chosen randomly.
 
 
 ==== Quick select / variant median of 3
+
 The pivot is the median of the first, middle and last element. Also sort these three elements.
 
 
 [[median_of_medians]]
 ==== Quick select / variant median of medians (aka BFPRT)
+
 See the previous `quick select core' chapter. The chosen pivot is an approximate median (remember that the real median would be optimal). It is guaranteed being between 30th and 70th percentiles.
 
 Algorithm to find pivot in array A: Make groups of five elements and find median in each of those (e.g. via insertion sort and taking 3rd element). Then recursively find median of those medians.
@@ -1306,7 +1335,9 @@ Trivia: BFPRT stands for the name of its inventors Blum-Floyd-Pratt-Rivest-Tarja
 
 *to-do*: Time, auxillary space?
 
+
 === Introselect
+
 The idea is to start out with an decrease and conquer selection algorithm that has very good average performance but bad worst case performance, and if it on the fly remarks that it is making bad progress (i.e. steers towards the worst case), switch to choosing a selection algorithm that has optimal worst case perforamnce.
 
 Concretely, starts out with the quick select variant which uses a random pivot, and potentially switches to the median of medians quick select variant.
@@ -2328,13 +2359,13 @@ References:
 
 A subset S of the plane is called _convex_ iff for any pair of points p,q ∊ S the linesegment pq is completely contained in S.  Given a set S, the _convex hull_ 𝒞ℋ(S) is the smallest convex set that contains S.  Alternatively, the convex hull is the unique convex polygon whose vertices are points from S and that contains all points of S.
 
-__Determining the orientation of an ordered point triple (p1, p2, p3)__: Let o = (p2y-p1y)(p3x-p2x)-(p3y-p2y)(p2x-p1x). Then o>0 → clockwise, o=0 → colinear, o<0 → counterlcokwise. Intuition: If slope(p2, p3) > slope(p1, p3), the orientation is clockwise. Using the formula for slope, Δy/Δx, and simple transformations delivers the given formula.
+__Determining the orientation of an ordered point triple (p1, p2, p3)__: Intuition: If slope(p2, p3) > slope(p1, p3), the orientation is clockwise. Using the formula for slope, Δy/Δx, and simple transformations delivers the formula used in the pseudo code below. Alternatively, one can look at `cross product' (when defined as just the determinant, rather than a vector) of (p1-p2) ⨯ (p3-p1).
 
 ----------------------------------------------------------------------
 enum Orientation { colinear, clockwise, counterclockwise  }
-orientation(p: point, q: point, r point) : Orientation
-  val = (q.y - p.y) * (r.x - q.x) -
-        (q.x - p.x) * (r.y - q.y);
+orientation(p1: point, p2: point, p3: point): Orientation
+  val = (p2.y - p1.y) * (p3.x - p2.x) -
+        (p2.x - p1.x) * (p3.y - p2.y);
   if val==0: return colinear;
   if val>0 : return clockwise;
   else     : return counterclockwise;
@@ -2429,6 +2460,16 @@ We transform the polygon into the convex hull using the `three-penny algorithm'.
 
 * Else, remove p2 from the polygon, add the edge (p1, p3) to the polygon, and move the penny on p2 to p1's predecessor.  Intuitively, we found a dent in the polygon and remove that dent.
 
+--------------------------------------------------
+three-penny(p: polygon)
+  create a steack, push p[0], p[1], p[3]
+  for i = 3 to p.size-1
+    while orientation(stack.nextToTop(), stack.top(), p[i])==clockwise
+      stack.pop()
+    stack.push(p[i])  
+  return stack
+--------------------------------------------------
+
 Analysis: O(n log n) time. Proof: The initial sorting takes O(n log n) time.  The three penny algorithm takes O(n) time:  The first rule moves a penny to a vertex that has never seen a penny before, so the first rule is applied at most n-2 times.  The 2nd rule removes a vertex from the polygon, so the 2nd rule is applied exactly n-h times.  h is the number of points on the convex hull.
 
 References:
@@ -2436,6 +2477,8 @@ References:
 - http://jeffe.cs.illinois.edu/teaching/373/notes/x05-convexhull.pdf
 
 - Chapter "Convex Hulls" in book "Computation Geometry - Algorithms and Applications". However, there a pretty diffrent version of Graham's scan is presented.
+
+- Chapter "33.3 Finding the convex hull" in book "Introduction to Algorithms"
 
 
 === Determining whether any pair of segments intersects
@@ -2873,9 +2916,13 @@ References:
 [[1d_orthogonal_range_searching]]
 ==== 1d orthogonal range searching using a BST
 
-Take a balanced binary search tree which stores it's values in it's leaves. Regarding storing data in leaves only, see <<naive_BST>>.  This is especially convenient for higher dimensions, see <<range_tree>>.
+Given a set P of points, find the points in range [f, t] (f=from, t=to).
 
+Put the points in a a balanced binary search tree. Often it's one which stores its values in its leaves, see e.g. <<naive_BST>>.   This is especially convenient for higher dimensions, see <<range_tree>>.
 
+Search f and t in the tree. There is one search path until a node, often called the split node, where the search splits in two paths.  Let nf and nt be the two leaf nodes where the two searches end. The leafes of all the subtrees `enclosed' by the two paths (splitnode, nf) and (splitnode, nt) are the result.  In text book examples, typically these subtrees are reported on the fly while descenting from the split node.  On the left search path, the right subtree when descending left, and nothing when descending right.  Analogously for the right search path.
+
+Analysis: O(n log n) for building the binary search tree, and O(k + log n) for reporting, where k is the number of reported points.  Informal proof: Reporting a subtree is O(kʹ), where kʹ is the number of leavs in that subtree.  Searching f and t in the tree is O(log n).
 
 
 References:
@@ -2883,6 +2930,8 @@ References:
 - Book "Computational Geometry - Algorithms and Applications", subchapter "5.1 1-Dimensional Range Searching"
 
 - https://courses.csail.mit.edu/6.851/spring12/scribe/lec3.pdf, first part of section "range trees"
+
+- http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf, chapter "1 - Dimensional Range Searching"
 
 
 [[RMQ]]
