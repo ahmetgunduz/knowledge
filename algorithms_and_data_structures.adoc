@@ -736,16 +736,6 @@ Is an implementation of the ADT <<associative_array>>.
 *to-do*
 
 
-=== Selection problem
-
-See <<order_statistics>>
-
-
-=== Nearest neighbor search (NNN)
-
-*to-do*:
-
-
 [[binary_tree]]
 === Binary tree
 
@@ -898,7 +888,7 @@ Is a data structure implementing the ordered <<associative_array>> ADT. Search, 
 
 Assumptions for simplicity: No two points have same x coordinate, and no two points have same y coordinate.
 
-A _k-dimensional kd tree_ is a non-balanced binary search tree storing k-dimensional points.  They are often used for k-dimensional <<rectangular_range_query>>.  Informal description for the 2D case: Each subtree represents an rectangular area,  possibly unbounded, i.e. adges can be at infinity.  The root represents the whole plane.  As normal in BSTs, each node stores a value, here a point.  Each node splits its associated area in two halfes by an imaginary line through its point.  Nodes at even tree levels split vertically, nodes at odd tree levels horizontally.  Each of its subtrees is then associated with one of the halfes.  Thus the plane is recursively diveded into smaller and smaller rectangles.
+A _k-dimensional kd tree_ is a non-balanced binary search tree storing k-dimensional points.  They are often used for k-dimensional <<rectangular_range_query>>.  Informal description for the 2D case: Each subtree represents an rectangular area,  possibly unbounded, i.e. rectangle edges can be at infinity.  The root represents the whole plane.  As normal in BSTs, each node stores a value, here a point.  Each node splits its associated area in two halfes by an imaginary line through its point.  Nodes at even tree levels split vertically, nodes at odd tree levels horizontally.  Each of its subtrees is then associated with one of the halfes.  Thus the plane is recursively diveded into smaller and smaller rectangles.
 
 Algorithm to build tree:  Partion the set points in x-direction in two equal halfes by finding the median point in x direction, see <<order_statistics>>.  That point becomes the root.  For each of the two partitions recurse.  Only that now, on depth 1 of the recursion, we partition in y-direction.  In general, in a k-dimensianal tree, partatition after (depth%k+1)-th dimension.  Efficient order statistics algorithm are O(n), but these beasts are rather complicated,  so one is often left with an O(n log n) algorithm.  To build a kd-tree, one approach is to pass the set of points as two arrays of pointers, the 2st represents the points ordered in x direction, the 2nd represents the points ordered in y direction.  Before calling the generic build algorithm for the root, we presort those two arrays.  For the generic build algorithm its now easy to find the median and to do the partitioning.
 
@@ -1124,6 +1114,7 @@ Is an implementation of the ADT <<associative_array>>.
 
 [[disjoint_set_linked_list]]
 === Disjoint-set linked list
+
 A data structure implementing the <<disjoint_set>> ADT, using a linked list for each set. The element at the head of each list is chosen as its representative.
 
 *to-do*
@@ -1131,9 +1122,15 @@ A data structure implementing the <<disjoint_set>> ADT, using a linked list for 
 
 [[disjoint_set_forest]]
 === Disjoint-set forest
-A data structure implementing the <<disjoint_set>> ADT using a forest. Each element gets two attributes: A reference to parent element/vertex and its rank (see the weighted tree optimization). Imagine the elements to be organized as a forest. Each tree represents a set. find-set(v) means now finding the root of the tree v is in, which is done by chasing parent pointers. merge-sets(u,v) is implemented by attaching the root of the tree of u to the tree of v, or vice verca.
 
-Optimizations: To avoid high trees which would make find-set (i.e. chasing lots of parent pointers up to the root) expensive, two optimizations are made: 1) union by rank: merge-sets always attaches the smaller to the larger tree. In that case the resulting tree only gets higher (by one) if both original trees had the same height. For that, we need to maintain the height of each tree. Due to path compression, the next optimization, we use an approximation of the height which we call rank. 2) Path compression: find-set(v) shortens the path from v to its root by, after finding the root, making the root the parent of v. That might change the height of the tree, but not our rank.
+A data structure implementing the <<disjoint_set>> ADT using a forest.  Each set is represented by a tree, each element is represented by a tree vertex.  The set representative is the root vertex.  Vertices have parent pointers.
+
++find_set(v)+ follows the parent pointers until the root, and then returns the root, which is the set representative.  +merge_sets(u,v)+ adds the root of one tree as a new child to the root of the other tree.
+
+A common optimization is _path-compression_: When following the path from a vertex to the root, make all visited nodes direct children of the root. This helps to make the tree rather shallow.
+
+Another common optimization is _union by rank_: Each vertex is assigned a rank, which is an upper bound on the height of the subtree rooted at the given vertex.  +make-set(v)+ sets it to zero, i.e. to the true height.  +merge_sets+ attaches the smaller tree to the larger tree, according to the ranks of the two roots.  The rank of the receiving root is increased by one.  Path compression does not change the rank of any vertex.  Path compression only reduces the height of a tree, so the rank, being an upper bound on the height, is still valid.  Note that it would not be trivial for path compression to maintain the true height of the tree.  Anyway, an upper bound is good enough.
+
 
 --------------------------------------------------
 insert(v):
@@ -1157,6 +1154,11 @@ merge-sets(u,v):
     else                           : parent[rootOfV] = rootOfU
     if rank[rootOfU]==rank[rootOfV]: rank[rootOfV] += 1
 --------------------------------------------------
+
+
+References:
+
+- https://web.stanford.edu/class/cs166/lectures/16/Small16.pdf
 
 
 == Augmenting data structures
@@ -1982,52 +1984,77 @@ the set {v~1~, ..., v~k~}. It's value is the min of:
 
 [[Kruskal]]
 === Kruskal's algorithm
-A greedy algorithm solving the <<MST_problem>> for a possibly disconnected graph in O(sort(E)+(E+V)α(V)) time, assuming an asymptotically optimal disjoint-set data structure is used internally, and where α is the very slowly growing inverse function of the Ackermann function. Rember that despite the name, it is actually a minimum spanning forest, not tree.
 
-Basic algorithm in words: Start out with the MST being the empty list of edges; in other words, a forest where each vertex is one tree. Then iteratively add the smallest weighted edge to the MST iff that does not produce a cycle in the MST, since a by definition a tree is not allowed to have cycles.
+A greedy algorithm solving the <<MST_problem>> for a connected weighted graph in O(sort(E)+(E+V)α(V)) time, assuming an asymptotically optimal disjoint-set data structure is used internally, and where α is the very slowly growing inverse function of the Ackermann function.
 
-Basic algorithm in pseudo code; see also <<disjoint_set>>:
+Intuition: Start out with each vertex being its own tree.  They represent the tentative, yet disconnected, `MST'.  Then iteratively add the smallest weighted edge to the `MST' iff that does not produce a cycle in the `MST', since a by definition a tree is not allowed to have cycles.  Typically that cycle detection is done via the help of a <<disjoint_set>> data structure.  There would be a new cycle if the start and the end vertex of a given edge are in the same tree, i.e. in the same set.
+
 --------------------------------------------------
 KRUSKAL(G):
-  foreach vertex v: MAKE-SET(v)
+  foreach vertex v:
+    MAKE-SET(v)
+    v.MSTParent = NIL
   order edges by weight, increasing
   foreach edge (u, v) in that ordered edge sequence:
     if FIND-SET(u) ≠ FIND-SET(v):
       add edge to MST, e.g. u.MSTparent = v
       MERGE-SETS(u, v)
+  starting at any vertex, follow MSTparent pointers to find MST's root
 --------------------------------------------------
 
-Note that the running time depends heavily on the used sort algorithm used to sort the edge weights.  So if the weights are integers, a non-comparative sorting algorithm such as radix sort can be used.
+Proof: It's not trivial to see why this greedy algorithm is optimal, see http://tandy.cs.illinois.edu/Kruskal-analysis.pdf.
+
+Analysis: O(sort(E)+(E+V)α(V)) time.  Note that the running time depends heavily on the used sort algorithm used to sort the edge weights.  So if the weights are integers, a non-comparative sorting algorithm such as radix sort can be used.
+
+References:
+
+-  http://tandy.cs.illinois.edu/Kruskal-analysis.pdf
 
 
 [[Prim]]
 === Prim's algorithm
+
 A greedy algorithm solving the <<MST_problem>> for a connected graph in O(E + V log V) time (i.e. the same as Dijkstra's algorithm), assuming a Fibonacci heap is used.
+
+Intuition: Start with any vertex as being the root of the MST.  There's a cut between the nodes in the (so far) MST and the rest of the nodes.  Iteratively greedely add a light edge.
+
+To be able to do that, each vertex as an attribute distanceToMst.  It is the distance to the MST using only one edge, initialy infinite.  Vertices in the MST have distanceToMst set to zero.  Thus distanceToMst is larger than zero and less than infinite iff the vertex has an edge crossing the cut.  Thanks to a min piority queue having distanceToMst as key, we always know a light edge.
 
 Basic algorithm. Note that it's quite similar to Dijkstra's shortest path algorithm.
 --------------------------------------------------
 MST-Prim(G:graph):
-  for each vertex v: v.key = infinit, v.parent = NIL, v.inMST = false
-  choose any vertex as root, and set root.key = 0
-  create min priority queue outsideMstQ out of all vertexes, v.key being key  
+  for each vertex v:
+    v.distanceToMst = infinit
+    v.parent = NIL
+  choose any vertex as root
+  root.distanceToMst = 0
+  create min priority queue outsideMstQ out of all vertexes, distanceToMst being key  
   while outsideMstQ not empty:
     current = outsideMstQ.deque() // greedely add vertex to MST
-    current.inMST = true
+    current.distanceToMst = 0
     for each neighbor of current:
       prim-relax(current, neighbor, outsideMstQ)
 
 prim-relax(u:vertex, v:vertex, Q):
-  if not current.inMST and weight(u,v)<neighbor.key
-    Q.decreaseKey(neighbor, weight(u,v))
-    neighbor.parent = current
+  if weight(u,v)<v.distanceToMst
+    Q.decreaseKey(v, weight(u,v))
+    v.parent = u
 --------------------------------------------------
 
 Analysis:
 
 - Initialization loop is done V times, and costs O(V) overall
+
 - Overall prim-relax is called twice for each edge, i.e. O(E) times. prim-relax costs O(decrease-key), which is O(1) for a Fibonacci heap, so its O(E) overall.
+
 - Outer loop is over all vertices, i.e V times. O(dequeue) is O(log V), so overall its O(V log V).
+
 - All together its thus O(E + V log V)
+
+
+References:
+
+- Book ``Introduction to algorithms'', subchapter ``Prim's algorithm''.
 
 
 [[ford_fulkerson_method]]
@@ -2319,7 +2346,7 @@ Trivia: Was first discussed by Leonhard Euler while solving the famous _Seven Br
 
 === Connectivity
 
-Two vertices v and u are called _connected_ if there is a path from v to u, otherwise they are called _disconnected_.  A _connected graph_ is one where every pair of vertices is connected.  A directed graph is considered a connected graph if for every pair of vertices there is a path in either direction.  A _weakly connected_ graph is a directed graph which would be a connected graph if the edges were taken to be undirected.  A directed graph is _strongly connected_, if for every pair there's a path in both directions.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.  If each strongly connected component is contracted to a single vertex, the resulting graph is a directed acyclic graph, the _condensation_ of G.  A _cut_ (aka _vertex cut_, or _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  An _articulation point_ (aka _cut point_, _separating vertex_ or _cut vertex_) is a vertex in a connected (sub)graph whose removal would disconnect the (sub)graph.  A _bridge_ is an edge in a connected (sub)graph whose removal would disconnect the (sub)graph.  An edge can only be a bridge if it is not contained in an cycle.  The _connectivity_ (or _vertex connectivity_) κ(G) is the size of a minimal vertex cut, or in other words, the minimum number of nodes to be removed to disconnect the graph.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater, or in other words, if it remains connected whenever fewever than k vertices are removed.  2-connectivity is also called _biconnectivity_, and 3-connectivity is also called _triconnectivity_.
+Two vertices v and u are called _connected_ if there is a path from v to u, otherwise they are called _disconnected_.  A _connected graph_ is one where every pair of vertices is connected.  A directed graph is considered a connected graph if for every pair of vertices there is a path in either direction.  A _weakly connected_ graph is a directed graph which would be a connected graph if the edges were taken to be undirected.  A directed graph is _strongly connected_, if for every pair there's a path in both directions.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.  If each strongly connected component is contracted to a single vertex, the resulting graph is a directed acyclic graph, the _condensation_ of G.  A _cut_ is a partition of V.  A _vertex cut_ (aka _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  An _articulation point_ (aka _cut point_, _separating vertex_ or _cut vertex_) is a vertex in a connected (sub)graph whose removal would disconnect the (sub)graph.  A _bridge_ is an edge in a connected (sub)graph whose removal would disconnect the (sub)graph.  An edge can only be a bridge if it is not contained in an cycle.  A set of edges _respects_ a cut if no edge in that set croses the cut.  An edge is a _light edge_ crossing a cut if its weight is the minimum of any edge crossing the cut.  The _connectivity_ (or _vertex connectivity_) κ(G) is the size of a minimal vertex cut, or in other words, the minimum number of nodes to be removed to disconnect the graph.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater, or in other words, if it remains connected whenever fewever than k vertices are removed.  2-connectivity is also called _biconnectivity_, and 3-connectivity is also called _triconnectivity_.
 
 A _complete graph_ with n vertices, denoted K~n~, is a simple undirected graph in which every pair of distinct vertices is connected by a unique edge.  A _tournament_ is a directed graph obtained by assigning a direction for each edge in an complete graph.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.  A _biconnected graph_ is a connected graph that has no articulation points.  A _biconnected component_ (aka _block_ or _2-connected component_) is a maximal (*to-do*: what does maximal mean here?) biconnected subgraph.  Note a biconnected component, unlike connected components, can be connected to other parts of the supergraph.  A _block graph_ (aka _clique tree_) is an undirected graph in which every biconnected component (aka block) is a clique.
 
@@ -2602,12 +2629,19 @@ Applications: *to-do*
 
 [[MST_problem]]
 === Minimum spanning tree problem
+
 The problem of finding the <<MST>>, actually minimum spanning forest, in an undirected weighted possibly disconnected graph.
 
 Algorithms:
+
 - <<Kruskal>>'s algorithm
+
 - <<Prim>>'s algorithm (restricted to connected graphs)
-- *to-do* more
+
+References:
+
+- Book ``Introduction to algorithms'', chapter ``Minimum Spanning Trees''.
+
 
 
 [[edit_distance]]
@@ -2932,6 +2966,112 @@ References:
 - https://courses.csail.mit.edu/6.851/spring12/scribe/lec3.pdf, first part of section "range trees"
 
 - http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf, chapter "1 - Dimensional Range Searching"
+
+
+=== Nearest neighbor search (NNN)
+
+*to-do*:
+
+
+[[closet_pair_of_points]]
+=== Closest pair of points
+
+Solutions:
+
+- Deleauny triangulation O(n)
+
+- Voronoi diagram O(n)
+
+- O(n log^2^ n) algorithm
+
+
+==== Divide and conquer with presorting only in x
+
+References:
+
+- https://www.geeksforgeeks.org/closest-pair-of-points/
+
+- http://cse.unl.edu/~ylu/raik283/notes/ClosestPair.ppt
+
+
+==== Divide and conquer with presorting both in x and y
+
+Preparation: Sort set of input points by x coordinates → PointsXS. In another container also sort them by y coordinates → PointsYS. The recursive divide and conquer function gets both PointsXS and PointsYS as input parameters.
+
+Base case: n≤3 points. Solve with brute force, i.e. compare all pairs and choose the pair with the smaller distance.
+
+Divide: Partition PointsXS into two equal sized still x-sorted subsets around an imaginary vertical line.  Note that multiple points can lie on that line, and both partitions can contain points on that line.  This is trivial since PointsXS is already sorted in x direction.  Distribute PointsYS into two still y-sorted subsets PointsYSLeft and PointsYSRight.  Points being in PointsXSLeft go to PointsYSLeft, the others to PointsYSRight.
+
+Conquer: Make two recursive calls, one with (PointsXSLeft, PointsYSLeft) as arguments, one with (PointsXSRight, PointsYSRight) as arguments. This delivers min_left and min_right.
+
+Combine: Choose the smaller of min_left, min_right delivering min.  Now it's possible that there's a pair with a distance smaller than min in the vertical strip ±min around the vertical line from the devide step above.  One point of the pair being in the left half of the strip, the other in the right half.  Recall that points on the line can be in either partition.  From PointsYS extract those points being in the strip while keeping them y sorted, resulting in StripPointsYS.  For each point in StripPointsYS, compare it with all points further ahead in StripPointsYS which are at most min away in y direction.  It can be proven that there are at most 7 such points ahead.
+
+--------------------------------------------------
+closest_dist(points)
+  sort points in x direction
+  PointsYS = an y-sorted array of pointers to into points
+  return closest_dist_core(points, 0, points.length-1, PointsYS)
+
+closest_dist_core(AllPointsXS: points, from:int, to:int, PointsYS: point_pointers)
+  if to-from+1 <= 3
+    return closest_dist_brute_force(PointsYS)
+  middle_index = (from + to) / 2
+  PointsYSLeft, PointsYRLeft = ypartition(AllPointsXS, middle_index, PointsYS)
+  min_left  = core(AllPointsXS, from, middle_index, PointsYSLeft)
+  min_right = core(AllPointsXS, middle_index+1, to, PointsYSRight)
+  min = min(min_left, min_right)
+  return closest_dist_strip(min, AllPointsXS, middle_index, PointsYS)  
+
+ypartition(AllPointsXS: points, middle_index:int, PointsYS: point_pointers)
+  create two new arrays PointsYSLeft, PointsYSRight
+  for each point p in PointsYS
+    index = p - AllPointsXS // pointer arithmetic
+    if index<=middle_index: PointsYSLeft.append(*p)
+    else                  : PointsYSRight.append(*p)
+  return PointsYSLeft, PointsYSRight
+
+closest_dist_strip(min, AllPointsXS: points, middle_index:int, PointsYS: point_pointers)
+  // Find points being in strip.
+  // Note that since PointsYS is sorted, so is StripPointsYS
+  xmiddle = AllPointsXS[middle_index].x
+  StripPointsYS = new array of point-pointers
+  for each point-pointer p in PointsYS
+    if abs(p->x - xmiddle) < min
+      StripPointsYS.append(*p)  
+
+  for i=0 upto StripPointsYS.length-1
+    j=i+1
+    // Inner loop proofably makes at most 7 iterations. Note that we
+    // also compare points being on the same strip side, which is needless,
+    // but its not worth to make a special case.
+    while (j<StripPointsYS.length) and (StripPointsYS[j]->y < StripPointsYS[i]->y+min)
+      min = min(min, distance(*StripPointsYS[i], *StripPointsYS[j]))
+      j++
+
+  return min
+--------------------------------------------------
+
+Informal proof that closest_dist_strip's inner loop needs to check at most 7 points ahead: In the worst case, i.e. where the points are packed as dense as possible, the situation looks like in the following diagram. ❍ is the currently checked point as determined by the outer loop, ➊ is the point one ahead, ➌ is three ahead and so on.  Recall that the points are sorted in y.  In this worst case scenario, the 1st and 2nd point coincide; 1st being part of the left partition, 2nd being part of the right partition.  Likewise for 5th and 6th.  We don't need to consider points further ahead, because their y distance to ❍ would be larger than min.  Thus at most 7 points are ahead with a y distance smaller than min.  Personal note:  As far as I understand it, 7 is an upper bound, but maybe not tight.  With more complicated math, we might be able to prove that there are even less considerable points ahead.  But it's really only about proving that it is a constant number of points we have to consider at most.  That results in O(n) for closest_dist_strip.  If we didn't had this proof, it would be O(n²), since we had to assume having to compare every point in the strip with every other in the worst case.
+
+--------------------------------------------------
+     vertical
+      line
+       ‖
+  ❍----➊----➌    Each horizontal / vertical
+       ‖          neighboring pair is min appart
+       ‖
+       ‖
+       ‖
+  ➍----➎----➐
+       ‖
+--------------------------------------------------
+
+
+References:
+
+- https://www.geeksforgeeks.org/closest-pair-of-points-onlogn-implementation/
+
+- Book ``Introduction to algorithms'', subchapter ``Finding the closest pair of points''.
 
 
 [[RMQ]]
