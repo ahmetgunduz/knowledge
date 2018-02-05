@@ -52,8 +52,10 @@ Common functions ordered after order of growth: c, log~c~(n), n, n·log~c~(n), n
 
 See also:
 
-- http://bigocheatsheet.com/
+- https://www.hackerearth.com/practice/notes/big-o-cheatsheet-series-data-structures-and-algorithms-with-thier-complexities-1/
+
 - http://stackoverflow.com/questions/1364444/difference-between-big-o-and-little-o-notation
+
 - http://stackoverflow.com/questions/2986074/algorithm-analysis-orders-of-growth-question
 
 
@@ -335,7 +337,7 @@ fun fib(n):                          fun fib(n):
                                        return f
 --------------------------------------------------
 
-Trivia: `Dynamic programming' is a wierd term, just take it for what it is. Still: in british english, `programming' means optimize.  The inventor, bellman, choose it for reasons among `sounds cool to a congress man', `to hide the fact he was doing math research'.
+Trivia: `Dynamic programming' is a wierd term, just take it for what it is. Still: in british english, `programming' means optimize.  The inventor, Bellman, choose it for reasons among `sounds cool to a congress man', `to hide the fact he was doing math research'.
 
 Example algorithms or example problems solvable with dynamic programing: Bellman-Ford, Floyd-Warshall, edit distance, <<knapsack>> (<<rod_cutting_problem>>, change-making problem), <<Dijkstra>>. *to-do* more examples of problems which can be solved using dynamic programming, e.g. from the problems sections. https://en.wikipedia.org/wiki/Dynamic_programming
 
@@ -612,7 +614,7 @@ _Min_/_Max_: +O(h)+. Follow left/right subtree until the leaf is reached.
 
 _Successor_/_Predecessor_: +O(h)+. **To-do**
 
-Implementations: <<avl_tree>>, <<red_black_tree>>
+Implementations: <<naive_BST>>, <<avl_tree>>, <<red_black_tree>>
 
 Implements these more general ADTs: <<associative_array>>
 
@@ -890,7 +892,7 @@ Assumptions for simplicity: No two points have same x coordinate, and no two poi
 
 A _k-dimensional kd tree_ is a non-balanced binary search tree storing k-dimensional points.  They are often used for k-dimensional <<rectangular_range_query>>.  Informal description for the 2D case: Each subtree represents an rectangular area,  possibly unbounded, i.e. rectangle edges can be at infinity.  The root represents the whole plane.  As normal in BSTs, each node stores a value, here a point.  Each node splits its associated area in two halfes by an imaginary line through its point.  Nodes at even tree levels split vertically, nodes at odd tree levels horizontally.  Each of its subtrees is then associated with one of the halfes.  Thus the plane is recursively diveded into smaller and smaller rectangles.
 
-Algorithm to build tree:  Partion the set points in x-direction in two equal halfes by finding the median point in x direction, see <<order_statistics>>.  That point becomes the root.  For each of the two partitions recurse.  Only that now, on depth 1 of the recursion, we partition in y-direction.  In general, in a k-dimensianal tree, partatition after (depth%k+1)-th dimension.  Efficient order statistics algorithm are O(n), but these beasts are rather complicated,  so one is often left with an O(n log n) algorithm.  To build a kd-tree, one approach is to pass the set of points as two arrays of pointers, the 2st represents the points ordered in x direction, the 2nd represents the points ordered in y direction.  Before calling the generic build algorithm for the root, we presort those two arrays.  For the generic build algorithm its now easy to find the median and to do the partitioning.
+Algorithm to build tree:  Partion the of set points in x-direction in two equal halfes by finding the median point in x direction, see <<order_statistics>>.  That point becomes the root.  For each of the two partitions recurse.  Only that now, on depth 1 of the recursion, we partition in y-direction.  In general, in a k-dimensianal tree, we partition after the (depth%k+1)-th dimension.
 
 --------------------------------------------------
 build-2dimensional-kd-tree(points, depth): node
@@ -905,7 +907,7 @@ build-2dimensional-kd-tree(points, depth): node
   return node
 --------------------------------------------------
 
-*to-do*
+Optimisation:  For each dimension, have a presorted sequence of all points.  The recursively called core function gets the current sequence of points for each dimenssion.  Partitioning is now trivially possible in O(kn).
 
 Applications:
 
@@ -952,6 +954,7 @@ References:
 
 [[heap]]
 === Heap
+
 A _heap_ is a specialized tree-based data structure that satisfies the _heap property_: If node A is a parent node of B, then the key of node A is ordered with respect to the key of node B with the same ordering applying across the heap.  In a _max heap_ the parent node key is greater than or equal to those of the children, in a _min heap_ it's smaller than or equal.  Thus the element with the largest (max heap) / lowest (min heap) key is always stored at the root.  Note that there is no implied ordering between siblings or cousins.
 
 Time complexities for binary, binomial, Fibonacci, pairing, Brodal, rank pairing, strict Fibonacci:
@@ -970,6 +973,10 @@ Modification::
 - insert: +Θ(lg(n))+ binary, +Θ(1)+ others
 - decrease-(increase-)key: +Θ(lg(n))+ binary & binomial & pairing,  +O(1)+ others
 
+Binary heap vs BBST (balanced binary search tree), mainly from a priority queue perspective:  The killer feature of heaps is insertion in O(1) average, opposed to O(log n) for BBST.  Worst case is O(log n) for both.  Creating a binary tree from n elements is O(n), whereas it's O(n log n) for a BBST.  Altough most operations are of same time complexity, constants in binary heap are smaller and thus better.  Binary heaps have better locality of reference since they are array based, all elements are consequtive in the array.  Similarly, BBSTs waste more space for pointers.  Note that a BBST can be easily augmented such that it also supports find-min in O(1).  The killer feature of BBSTs over heaps is their O(log n) search time, opposed to heaps' O(n). https://stackoverflow.com/questions/6147242/heap-vs-binary-search-tree-bst, https://www.geeksforgeeks.org/why-is-binary-heap-preferred-over-bst-for-priority-queue/
+
+Practical use of advanced heaps like Fibonacci or Brodal: ``To the best of my knowledge, there are no major applications that actually use Fibonacci heaps or Brodal queues. [...]  the data structures were not developed to meet practical needs, but rather to push forward our theoretical understanding of the limits of algorithmic efficiency. [...] the constant factors hidden in a Fibonacci heap or Brodal queue are very high. [...] If you're working on huge graphs, it's more common to use other techniques to improve efficiency, such as using approximation algorithms for the problem at hand, better heuristics, or algorithms that use specific properties of the underlying data.'' https://stackoverflow.com/questions/30782636/are-fibonacci-heaps-or-brodal-queues-used-in-practice-anywhere
+
 Applications of heaps:
 
 - The heap data structure is one maximally efficient implementation of the <<priority_queue>> ADT.
@@ -982,6 +989,7 @@ A heap data structure should not be confused with `the heap' which is a common n
 
 [[binary_heap]]
 ==== Binary heap
+
 In a _binary heap_ the tree is a complete <<binary_tree>>. *to-do*: study implementation of the basic operations.
 
 --------------------------------------------------
@@ -989,19 +997,15 @@ In a _binary heap_ the tree is a complete <<binary_tree>>. *to-do*: study implem
     1       2
   3   4    5  6      0123456789 array index
  7 8 9               01-2---3-- tree level
---------------------------------------------------
 
 parent(i) = floor((i-1)/2)
 right-child(i) = (i+1)*2 - 1
 left-child(i) = (i+1)*2
-
+--------------------------------------------------
 
 - +heapify(i)+.  Assumes that children of node +i+ are max heaps, but +i+ might violate the heap property.  Time: +O(lg(nst))+, where nst are the number of nodes in the sub tree rooted at i.
+
 - +build_heap()+:  Converts an array into a heap.  Common implementation: in a bottom-up manner, for each node, starting at one-before-leaf-height height, call +heapify+.  Time: +O(n)+.
-
-
-==== Fibonacci heap
-*to-do*:
 
 
 [[tries_comparision]]
@@ -1159,6 +1163,18 @@ merge-sets(u,v):
 References:
 
 - https://web.stanford.edu/class/cs166/lectures/16/Small16.pdf
+
+
+[[dcel]]
+=== Doubly-Connected Edge List (DCEL)
+
+Often used representation for planar subdivionis such as <<voronoi_diagram>>s.
+
+References:
+
+- http://www.cs.sfu.ca/~binay/813.2011/DCEL.pdf
+
+- https://www.ti.inf.ethz.ch/ew/lehre/CG12/lecture/Chapter%205.pdf 
 
 
 == Augmenting data structures
@@ -1985,9 +2001,9 @@ the set {v~1~, ..., v~k~}. It's value is the min of:
 [[Kruskal]]
 === Kruskal's algorithm
 
-A greedy algorithm solving the <<MST_problem>> for a connected weighted graph in O(sort(E)+(E+V)α(V)) time, assuming an asymptotically optimal disjoint-set data structure is used internally, and where α is the very slowly growing inverse function of the Ackermann function.
+A greedy algorithm solving the <<MST_problem>> for a connected weighted graph in O(E log E) time.
 
-Intuition: Start out with each vertex being its own tree.  They represent the tentative, yet disconnected, `MST'.  Then iteratively add the smallest weighted edge to the `MST' iff that does not produce a cycle in the `MST', since a by definition a tree is not allowed to have cycles.  Typically that cycle detection is done via the help of a <<disjoint_set>> data structure.  There would be a new cycle if the start and the end vertex of a given edge are in the same tree, i.e. in the same set.
+Intuition: Start out with each vertex being its own tree.  They represent the partial yet disconnected MST.  Then iteratively add the smallest weighted edge to the partial MST iff that does not produce a cycle in the partial MST, since a by definition a tree is not allowed to have cycles.  Typically that cycle detection is done via the help of a <<disjoint_set>> data structure.  There would be a new cycle if the start and the end vertex of a given edge are in the same tree, i.e. in the same set.
 
 --------------------------------------------------
 KRUSKAL(G):
@@ -2004,7 +2020,7 @@ KRUSKAL(G):
 
 Proof: It's not trivial to see why this greedy algorithm is optimal, see http://tandy.cs.illinois.edu/Kruskal-analysis.pdf.
 
-Analysis: O(sort(E)+(E+V)α(V)) time.  Note that the running time depends heavily on the used sort algorithm used to sort the edge weights.  So if the weights are integers, a non-comparative sorting algorithm such as radix sort can be used.
+Analysis: O(sort(E) + (E+V)α(V)) time, assuming an asymptotically optimal disjoint-set data structure is used internally, and where α is the very slowly growing inverse function of the Ackermann function.  Note that the running time depends heavily on the used sort algorithm used to sort the edge weights.  So if the weights are integers, a non-comparative sorting algorithm such as radix sort can be used.
 
 References:
 
@@ -2014,13 +2030,14 @@ References:
 [[Prim]]
 === Prim's algorithm
 
-A greedy algorithm solving the <<MST_problem>> for a connected graph in O(E + V log V) time (i.e. the same as Dijkstra's algorithm), assuming a Fibonacci heap is used.
+A greedy algorithm solving the <<MST_problem>> for a connected graph in O(E log V) time when a binary heap is used.
 
-Intuition: Start with any vertex as being the root of the MST.  There's a cut between the nodes in the (so far) MST and the rest of the nodes.  Iteratively greedely add a light edge.
+Intuition: Start with any vertex as being the root of the MST.  There's a cut between the nodes in the partial MST and the rest of the nodes.  Iteratively greedely add a light edge.
 
-To be able to do that, each vertex as an attribute distanceToMst.  It is the distance to the MST using only one edge, initialy infinite.  Vertices in the MST have distanceToMst set to zero.  Thus distanceToMst is larger than zero and less than infinite iff the vertex has an edge crossing the cut.  Thanks to a min piority queue having distanceToMst as key, we always know a light edge.
+To be able to do that, each vertex as an attribute distanceToMst.  It is the distance to the partial MST using only one edge, initialy infinite.  Vertices in the partial MST have distanceToMst set to zero.  Thus distanceToMst is larger than zero and less than infinite iff the vertex has an edge crossing the cut.  Thanks to a min piority queue having distanceToMst as key, we always know a light edge.
 
-Basic algorithm. Note that it's quite similar to Dijkstra's shortest path algorithm.
+Prim's algorithm and <<Dijkstra>> are highly related. The difference is that Prim builds an minimum spanning tree by choosing a vertex with a light edge, and Dijkstra builds a shortest path tree by choosing the vertex with the smallest path weight from source.
+
 --------------------------------------------------
 MST-Prim(G:graph):
   for each vertex v:
@@ -2034,6 +2051,7 @@ MST-Prim(G:graph):
     current.distanceToMst = 0
     for each neighbor of current:
       prim-relax(current, neighbor, outsideMstQ)
+  return root
 
 prim-relax(u:vertex, v:vertex, Q):
   if weight(u,v)<v.distanceToMst
@@ -2043,13 +2061,13 @@ prim-relax(u:vertex, v:vertex, Q):
 
 Analysis:
 
-- Initialization loop is done V times, and costs O(V) overall
+- Initialization loop is done V times, and costs O(V) overall.
 
-- Overall prim-relax is called twice for each edge, i.e. O(E) times. prim-relax costs O(decrease-key), which is O(1) for a Fibonacci heap, so its O(E) overall.
+- Overall prim-relax is called twice for each edge, i.e. O(E) times. prim-relax costs O(decrease-key), which is O(log V) for a binary heap, so its O(E log V) overall.
 
-- Outer loop is over all vertices, i.e V times. O(dequeue) is O(log V), so overall its O(V log V).
+- Outer loop is over all vertices, i.e V times. dequeue costs O(log V), so overall its O(V log V).
 
-- All together its thus O(E + V log V)
+- All together its thus O((V+E) log V) = O(E log V).
 
 
 References:
@@ -2419,7 +2437,7 @@ In _sweeping_, an imaginary vertical sweep line pases through the given set of g
 
 References:
 
-- Book "Computational Geometry - Algorithms and Applications"
+- Book "Computational Geometry - Algorithms and Applications", aka 4M.
 
 - Book "Introduction to algorithms", chapter "Computational Geometry".
 
@@ -2431,6 +2449,8 @@ References:
 
   * fall 2003: https://people.csail.mit.edu/indyk/6.838/
 
+- UMD course CMSC 754 "Computational Geometry",  https://www.cs.umd.edu/class/spring2012/cmsc754/Lects/cmsc754-lects.pdf
+
 - http://jeffe.cs.illinois.edu/teaching/373/notes/allnotes.pdf, Non-lecture notes at the end.
 
 
@@ -2438,10 +2458,19 @@ References:
 
 The convex hull problem asks for the set of points forming the convex hull, given a set of points.  Often the algorithms return the convex hull not only as a set of points, but as a sequence of points constituting the convex hull polygon.
 
+Algorithm's which find the convex hull, h being number of points on the convex hull:
 
-==== Jarvis's algorithm
+- <<jarvis_march>> in O(nh)
 
-_Jarvis's algorithm_ (or _Jarvis's march_, or _gift wrapping algorithm_) finds the convex hull of a set of points in O(nh). h is the number of points on the convex hull.
+- <<grahams_scan>> in O(n log n)
+
+- Given an voronoi digram in O(h). The points on the convex hull are the sites which have the site at infinity as a nearest neighbor.  Equivalently, a site is on the convex hull iff its face is unbounded.
+
+
+[[jarvis_march]]
+==== Jarvis's march
+
+_Jarvis's march_ (or _Jarvis's algorithm_, or _gift wrapping algorithm_) finds the <<convex_hull>> of a set of points in O(nh). h is the number of points on the convex hull.
 
 Intuition: Start by finding any point which is known to be on the convex hull, e.g. the leftmost point.  An outer loop keeps adding the proper next point to the hull sequence until the hull cycle is closed.  An inner loop finds this next point the same way one finds the maximum element in a set.  Here, the `maximum' is the point which is furthest to the right from the perspective of the current point, looking at the other points.  Note that Jarvis's march resembles selection sort.  Both repeatedly find the item that goes in the solution's next slot.
 
@@ -2473,9 +2502,10 @@ References:
 - https://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/
 
 
+[[grahams_scan]]
 ==== Graham's scan
 
-_Graham's scan_ finds the convex hull of a set of points in O(n log n).
+_Graham's scan_ finds the <<convex_hull>> of a set of points in O(n log n).
 
 Assumptions for simplicity: no three points lie on a common line, rounding error problems ignored, points.size <= 3 ignored.  
 
@@ -2562,7 +2592,7 @@ References:
 - http://jeffe.cs.illinois.edu/teaching/373/notes/x06-sweepline.pdf
  
 
-=== Find all segment intersections
+=== Line segment intersection
 
 References:
 
@@ -2573,6 +2603,26 @@ References:
 - https://people.csail.mit.edu/indyk/6.838/handouts/lec2.pdf
 
 - https://www.youtube.com/watch?v=dePDHVovJlE for the case of orthogonal line segments
+
+
+[[voronoi_diagram]]
+=== Voronoi diagram
+
+References:
+
+- Book ``Computational Geometry - Algorithms and Applications'', chapter ``Voronoi Diagrams''
+
+
+[[fortunes_algorithm]]
+====  Fortune's algorithm
+
+References:
+
+- Book ``Computational Geometry - Algorithms and Applications'', chapter ``Computing the Voronoi Diagram''
+
+- http://people.math.gatech.edu/~randall/Algs07/mount.pdf
+
+- http://www.cs.sfu.ca/~binay/813.2011/Fortune.pdf
 
 
 == Problems
@@ -2982,18 +3032,10 @@ Solutions:
 
 - Voronoi diagram O(n)
 
-- O(n log^2^ n) algorithm
+- <<closest_pair_of_pionts_divide_and_conquer>>
 
 
-==== Divide and conquer with presorting only in x
-
-References:
-
-- https://www.geeksforgeeks.org/closest-pair-of-points/
-
-- http://cse.unl.edu/~ylu/raik283/notes/ClosestPair.ppt
-
-
+[[closest_pair_of_pionts_divide_and_conquer]]
 ==== Divide and conquer with presorting both in x and y
 
 Preparation: Sort set of input points by x coordinates → PointsXS. In another container also sort them by y coordinates → PointsYS. The recursive divide and conquer function gets both PointsXS and PointsYS as input parameters.
@@ -3072,6 +3114,18 @@ References:
 - https://www.geeksforgeeks.org/closest-pair-of-points-onlogn-implementation/
 
 - Book ``Introduction to algorithms'', subchapter ``Finding the closest pair of points''.
+
+
+==== Divide and conquer with presorting only in x
+
+A simpler variant of <<closest_pair_of_pionts_divide_and_conquer>>
+
+References:
+
+- https://www.geeksforgeeks.org/closest-pair-of-points/
+
+- http://cse.unl.edu/~ylu/raik283/notes/ClosestPair.ppt
+
 
 
 [[RMQ]]
