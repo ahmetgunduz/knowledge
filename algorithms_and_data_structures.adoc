@@ -2186,6 +2186,45 @@ void traverse(Node* n) {
 *to-do*:
 
 
+[[toposort]]
+=== Topological sort
+A _topological sort_ (aka _topsort_, _toposort_, _topological ordering_) of a directed acyclic graph (DAG) is a linear ordering of its vertices such that for every directed edge (u,v) from vertex u to vertex v, u comes before v in the ordering.  Toposort is possible only for DAGs; see <<cycle_dedection>> for how to check.
+
+Algorithm: Augment the <<DFS_all_source,DFS-all-source>> algorithm: when an vertex v is finished, insert it onto the front of the output sequence.  Time complexity +Θ(V+E)+.
+
+
+[[cycle_detection]]
+=== Cycle detection
+
+Algorithms:
+- <<DFS>> finds a <<DFS_edge_classification,back edge>>.
+- Rocha–Thatte, a distributed algorithm.
+
+Applications:
+- Dedect cycles (i.e. problems) in a dependency graph
+
+
+[[LCA_problem]]
+=== Lowest common ancestor (LCA) problem
+See <<DAG>> for the definition of LCA.
+
+Solutions:
+
+- With O(n^2^) space, O(1) time is trivial: An O(1) time lookup table stores the answer for all input pair vertices.
+
+- Tarjan's off-line LCA: After preprocessing the DAG, solvable in O(1) time and O(n) space.
+
+- If DAG is a cartesian tree: reduce to array, see <<cartesian_tree>>, and solve <<RMQ>> there. *to-do*: how exactly, there we're rediricted to LCA
+
+
+[[LA_query]]
+=== Level ancestor problem / query
+
+Given a rooted tree and a node v, LA(v,d) delivers the ancestor node of v which is at depth d, or equalently, delivers the kth ancestor (where parent is the 1st ancestor), k=height(node)-d.
+
+When n is the number of nodes, after preprocessing which takes O(n) time and O(n) space, solvable in O(1) time.
+
+
 [[shortest_path_problem]]
 === Shortest path problems
 The problem of finding a <<shortest_ path>> (there might be multiple shortest paths) in a graph. Recall that the shortest path is undefined, or it's weight is -INFINIT, if it contains negative-weight cycles, because one can always make an allegedly `shortest path' shorter by walking through the cycle one more time.
@@ -2440,6 +2479,10 @@ the set {v~1~, ..., v~k~}. It's value is the min of:
 *to-do* cycle dedection
 
 
+=== Longest path problem
+*to-do*
+
+
 [[hamiltonian_cycle]]
 [[hamiltonian_path]]
 === Hamiltonian path / cycle
@@ -2610,6 +2653,11 @@ _Menger's Theorem_: Vertex connectivity: k-connected vertices are connected by k
 Motivation: Connectivity measures fault tolerance of a network. E.g. how many connections can fail without cutting off communications.
 
 
+=== Graph coloring
+*to-do*
+Relation to four color problem?
+
+
 [[flow_network]]
 === Flow networks
 
@@ -2719,7 +2767,8 @@ References:
 
 Is an algorithm which solves the <<maximum_flow_problem>>. Is considered one of the most efficient maximum flow algorithms. The generic algorithm has +O(V²E)+, the variant based on the highest label node selection rule has +O(V²√E)+.
 
-Concepts: A _preflow_ is like a flow, only that the flow conservation constraint is relaxed: The flow into a vertex may exceed the flow out of a vertex.  The _excess flow_ of a vertex is the difference between flow in and flow out. Note that in most physical analogies, the capacity is a quantity per time, and so is excess. An excess of 3 thus means that 3 units accumulate per unit of time in the given vertex.  Most authors describe that figuratively, each vertex has a reservoir of infinite size.  Alternatively figuratively an excess flow means that a vertex is leaking.  In a regular flow all excess flows are 0.  In a preflow they are ≥ 0. An vertex other than source or think is said to be _overflowing_ (aka _active_) if its excess flow is > 0.  Each vertex as a _height_, which is an integer. The source has always height |V|. The sink has always height 0.  All other vertices start at height 0 and potentially raise over time.  They never decrease.  In the residual graph, edges can go downhill by at most 1. They can be flat an go uphill.  An edge in the residual graph is _admissible_ if it's downhill. Since edges in the residual graph can go downhill only by at most one (see above definition of height), admissible edges go downhill exactly by one. Recall that in the residual graph, all capacities are > 0.  To _push (excess) flow_ means decreasing the excess flow of a vertex by sending flow through an outgoing unsaturated downhill edge in the residual network.  That increases the excess flow in the receiving vertex by the same amount.  To _relabel_ a vertex means to increase its height to one unit more than the lowest of its direct successors to which there's an unsaturated pipe.
+Concepts: A _preflow_ is like a flow, only that the flow conservation constraint is relaxed: The flow into a vertex may exceed the flow out of a vertex.  The _excess flow_ of a vertex is the difference between flow in and flow out. Note that in most physical analogies, the capacity is a quantity per time, and so is excess. An excess of 3 thus means that 3 units accumulate per unit of time in the given vertex.  Most authors describe that figuratively, each vertex has a reservoir of infinite size.  Alternatively figuratively an excess flow means that a vertex is leaking.  In a regular flow all excess flows are 0.  In a preflow they are ≥ 0. An vertex other than source or think is said to be _overflowing_ (aka _active_) if its excess flow is > 0.  Each vertex as a _height_, which is an integer. The source has always height |V|. The sink has always height 0.  All other vertices start at height 0 and potentially raise over time.  They never decrease.  In the residual graph, edges can go downhill by at most 1. They can be flat an go uphill.  An edge in the residual graph is _admissible_ if it's downhill. Since edges in the residual graph can go downhill
+only by at most one (see above definition of height), admissible edges go downhill exactly by one. Recall that in the residual graph, all capacities are > 0.  To _push (excess) flow_ means decreasing the excess flow of a vertex by sending flow through an outgoing unsaturated downhill edge in the residual network.  That increases the excess flow in the receiving vertex by the same amount.  To _relabel_ a vertex means to increase its height to one unit more than the lowest of its direct successors to which there's an unsaturated pipe.
 
 Intuition: The algorithm starts by setting height of source to |V|, and all other vertices to 0, flooding all out edges of the source to their capacity. The residual graph now is almost identical to the original graph, only that source's edges are reversed. All direct successors of the source are overflowing. We iteratively try to turn all remaining overflowing vertices into non-overflowing vertices, in which case the preflow proofably is the maximum flow. We do that by moving (part of) the excess flow to an direct successor vertex. More concretely by pushing flow downhill through an admissible edge in the residual graph. And if that is not possible because the overflowing vertex has no admissible outgoing edges, by relabeling it.  Ultimatively all excess flow is pushed either to the sink or to the source,  which by definition have no excess flow.  In other words, the algorithm tries to turn the initial preflow into a flow (no more overflowing vertices), which proofably will then be a maximum flow.
 
@@ -3268,54 +3317,6 @@ Applications:
 *to-do*
 
 *to-do* process https://en.wikipedia.org/wiki/List_of_knapsack_problems
-
-
-=== Longest path problem
-*to-do*
-
-
-=== Graph coloring
-*to-do*
-Relation to four color problem?
-
-
-[[toposort]]
-=== Topological sort
-A _topological sort_ (aka _topsort_, _toposort_, _topological ordering_) of a directed acyclic graph (DAG) is a linear ordering of its vertices such that for every directed edge (u,v) from vertex u to vertex v, u comes before v in the ordering.  Toposort is possible only for DAGs; see <<cycle_dedection>> for how to check.
-
-Algorithm: Augment the <<DFS_all_source,DFS-all-source>> algorithm: when an vertex v is finished, insert it onto the front of the output sequence.  Time complexity +Θ(V+E)+.
-
-
-[[cycle_detection]]
-=== Cycle detection
-
-Algorithms:
-- <<DFS>> finds a <<DFS_edge_classification,back edge>>.
-- Rocha–Thatte, a distributed algorithm.
-
-Applications:
-- Dedect cycles (i.e. problems) in a dependency graph
-
-
-[[LCA_problem]]
-=== Lowest common ancestor (LCA) problem
-See <<DAG>> for the definition of LCA.
-
-Solutions:
-
-- With O(n^2^) space, O(1) time is trivial: An O(1) time lookup table stores the answer for all input pair vertices.
-
-- Tarjan's off-line LCA: After preprocessing the DAG, solvable in O(1) time and O(n) space.
-
-- If DAG is a cartesian tree: reduce to array, see <<cartesian_tree>>, and solve <<RMQ>> there. *to-do*: how exactly, there we're rediricted to LCA
-
-
-[[LA_query]]
-=== Level ancestor problem / query
-
-Given a rooted tree and a node v, LA(v,d) delivers the ancestor node of v which is at depth d, or equalently, delivers the kth ancestor (where parent is the 1st ancestor), k=height(node)-d.
-
-When n is the number of nodes, after preprocessing which takes O(n) time and O(n) space, solvable in O(1) time.
 
 
 [[rectangular_range_query]]
