@@ -1017,6 +1017,27 @@ References:
 - Book "Computational Geometry - Algorithms and Applications", subchapter "Range Trees"
 
 
+[[interval_tree]]
+=== Interval tree / interval search tree
+
+Augments a binary search tree to store a set of intervals.  In case a BBST is augmented, each operation can be done in O(log n) time.
+
+The value stored in each node is a pair representing the interval [low, high] and max, which is the maximum high value stored in this subtree.  The low value of the pair is used as key to maintain order in the BST.
+
+insertion(low, high): First do a regular insertion.  Recall, low is key.  After insertion, for all nodes on the way from the new node to the root, update max.
+
+search(low, high):  Searches any one interval in the tree that intersects the given interval. If interval in node intersects given interval, return node.  Else if there's no left subtree or max endpoint in root of left subtree is less than low, descend right.  Else descend left.
+
+
+Applications: <<rectangle_intersection>>
+
+References:
+
+- https://www.youtube.com/watch?v=E-9b8k7JK6I&index=4&list=PLe-ggMe31CTdBsRIw0hXln0hilRs-DqAx
+
+- https://www.geeksforgeeks.org/interval-tree/
+
+
 === splay tree
 
 *to-do*
