@@ -669,11 +669,15 @@ Fixed size, +Θ(1)+ time for indexing, with a very low constant factor.  ++O(0)+
 === Dynamic array (aka array list, dynamic table, resizeable array)
 In contrast to <<array>> the size is variable, thus allows elements to be added / removed.  _Capacity_ is the number of elements the container could currently hold, and the _size_ is the number of elements it actually currently contains.
 
+
 [[table_doubling]]
 ==== Table doubling
+
 When size equals capacity upon an insertion, create a new table with double the capacity and copy all elements over.  Thus insertions are +Θ(1)+ amortized.  Upon deletions, when you don't mind slack, never resize the table (as the STL does), or half the capacity when size drops below capacity/4. In that case both insertions and deletions are +Θ(1)+ amortized. (You can't half the capacity when the size reaches half the capacity because in a sequence like inserting/deleting/inserting/deleting, each operation could encompass a table resize which would mean +O(n)+ per operation.)  Of course, other constants than 2 can be used, as long as the factor which is to do shrink is greater than the factor to enlarge.
 
 One can get +Θ(1)+ by roughly this idea: When you remark that you start to get full, start a new table with a larger capacity, initially empty.  On each insertions operation, copy a constant amount of items from the old table to the new one.  Once the old table is really full, just switch over to the new table.  All in all it's quite complicated, so it's not that often used.
+
+Applications: Used in <<hash_table>> to keep load factor small enough.
 
 
 [[linked_list]]
@@ -701,43 +705,78 @@ Difficulties:
 - Depending on the exact implementation, distinguish the case that the buffer is empty and that it is full is not possible, because in both cases start and end point to the same element.
 
 
+[[direct_address_table]]
 === Direct-address table
-Implements the <<associative_array>> ADT.  An array of size |U|, where U is the universe, i.e. the set of possible keys.  A key's value is the index into the array where the data corresponding to the key is stored.
+
+Implements the <<associative_array>> ADT.  An array of size |U|, where U is the universe of keys, i.e. the set of possible keys.  A key's value is the index into the array where the data corresponding to the key is stored.  In other words, it's a special case of a hash table.  As with any hash table variant, each slot needs to store wheter it's occupied, e.g. by setting its key to NIL or by having a flag.
+
+Obviously direct-address tables only make sense when |U| is small enough. If it's not, we might not even have enough memory available.  Also the number of actually stored keys |K| should not be significantely smaller than |U|, otherwise we waste too much sapce.
 
 Time: +O(1)+ worst average best case.  Space: +O(|U|)+.
 
 
 [[hash_table]]
-=== Hash tables
-Implements the <<associative_array>> ADT.  Is an array of size m. A <<hash>> function +h(k,m)+ is used to map a key +k+ to [0,m), i.e. to an index into the table. When two keys hash to the same slot that is called a _collision_. The following subchapters describe ways how to deal with collisions. +α=n/m+ is the _load factor_ of the table.
+=== Hash table
 
-In general, the various variants have the following properties: Search/insert/delete time in +O(k)+ for the best and average case, and ++O(k+n)++ worst case. Space is usually +O(n)+.
+Implements the <<associative_array>> ADT.  Is an array of size m.  As usual, the number of elements stored is denoted n.  Is based on an array, called the _hash table_, of size m.  A <<hash_function>> h(k,m) is used to map a key k to [0,m), i.e. to an index into the hash table.  We say that a key k _hashes_ to slot h(k,m).  We also say that h(k, m) is the _hash value_ of key k.  When two keys hash to the same slot that is called a _collision_. The following subchapters describe ways how to deal with collisions.  α = n / m is the _load factor_ of the table.  The set of possible keys is called the _universe_ and denoted U.  The set of actually stored keys is denoted K. |K| = n.
+
+In general, the various hash table variants have the following properties: Search/insert/delete time in +O(k)+ for the best and average case, and ++O(k+n)++ worst case. Space is usually +O(n)+.
+
+See <<table_doubling>> on how to grow / shrink the table in order to keep the load factor small. More concretely, we want loadfactor=Θ(1) or equivalently m=Θ(n), or else we no longer have O(1) for insertion / search / delete.  `Copying' from the old table to the newly allocate table obviously includes rehashing every key, since the hash function is dependend on the table size m.  Despite table doubling, insertions / deletions still have O(1) time complexity, but now its amortized time.
+
+Applications:
+
+- databases (which typically either use hash tables or search trees)
+
+- compilers & interpeters
+
+- network router
+
+References:
+
+- MIT Course 6.006 Introduction to Algorithms, Lectures 8-10: https://www.youtube.com/playlist?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb
+
+- Book "Introduction to algorithms", chapter "Hash functions"
+
+
+[[direct_addressing]]
+==== Direct addressing
+
+Make collisions impossible by making the `hash table' large enough for the whole universe of keys.  The key then directly is the index into the array.  See <<direct_address_table>>. Contrast direct addressing with <<perfect_hashing>>.
+
 
 ==== Collision resolution with (separate) chaining
+
 Each table slot has associated a sequence of items, typically a singly linked list. The expected chain length is the table's load factor.
 
-Insert/delete/find: +Θ(1)+ (Actually +Θ(1+loadfactor)+, but when loadfactor=O(1) (i.e. m=Ω(n)), it becomes +Θ(1)+). Rational: Paying O(n) to find table slot, then O(loadfactor) to walk the list.
+Insert/delete/find: Θ(1) average and Θ(n) worst-case, assuming simple uniform hashing, and O(1) to compute the hash, i.e. ignoring prehashing.  Actually the average case is Θ(1+loadfactor), but when the loadfactor is O(1), i.e. m = Ω(n), it becomes Θ(1).  Rational: Paying O(1) to find table slot, then O(loadfactor) to walk the list.
 
-Loadfactor should be +Θ(1)+ (i.e. m should be +Θ(n)+). If +m+ is too small, the loadfactor is too high, in the worst case not +Θ(1)+ anymore.  That would lead to hash table operations not being +Θ(1)+ anymore.  If +m+ is too large, we waste space.
+Loadfactor should be Θ(1), i.e. m should be Θ(n).  If m is too small, the loadfactor is too high, in the worst case not Θ(1) anymore.  That would lead to hash table operations not being Θ(1) anymore.  On the other side if m is too large, we waste space.
+
 
 ==== Collision resolution with open addressing
-Each slot can really only take one key, and has an attribute whether it's free. If a hash maps a given key to an non-free slot, a probe sequence is used iteratively to ultimatively find a free slot. Typically delition and table resize are possible but complicated, since *to-do*.  Unlike with chaining, if all slots are used, the table must be enlarged, see also <<table_doubling>>.
 
-Probe sequences. +h(k,m,i)+ is the same as +h(k,m)+, with the aditional parameter i, denothin the i-th probe. If h(k,m,0) returns a used slot, you try h(k,m,1) and so on.
+Each slot can really only take one key, and has an attribute whether it's free. If a hash function maps a given key to an non-free slot, a probe sequence is used iteratively to ultimatively find a free slot. Typically delition and table resize are possible but complicated.  Unlike with chaining, if all slots are used, the table must be enlarged, see also <<table_doubling>>.  Since at most one element occupies one slot, obviously the load factor is one or less.
 
-Linear probing:: ++h(k,m,i) = (h(k,m)+i) mod m++. Good locality, but most sensitive to primary clustering.
+A _probe sequence_ is a permutation of all possible slots.  Obviously there are m! different probe sequences.  The hash function is generalized to take a further parameter: h(k,m,i) is the same as h(k,m), with the aditional parameter i, denothing the i-th probe. If h(k,m,0) returns a used slot, you try h(k,m,1) and so on.  An ideal such hash function satisfies <<uniform_hashing>> (as opposed to just simple uniform hashing).  The definitions below make use of an _auxiliary hash function_ hʹ which is some `normal' hash function producing a single hash value.  _Primary clustering_ means that if there is a cluster of occupied slots and the initial position of a probe falls anywhere in the cluster, then the cluster size increases.  _Secondary clustiring_ is less severe, two probe sequences only have the same collision chain if their initial position is the same.
 
-Quadratic probing:: Try m1=m0+1, m2=m1+2=m0+3, m3=m2+3=m0+6. Properties between linear probing and double hashing
+We use probing to find a free slot instead linked lists which use only slots of the table as list elements in order to avoid pointers.  The extra memory freed by not storing pointers gives us more slots for the same amount of memory, thus a smaller load factor, thus fewer collisions, thus faster retrieval.
 
-Double hashing:: ++h(k,m,i) = (h(k,m)+i*h2(k,m)) mod m++. Interval is computed by another hashfuncion. Bad locality, but exhibits virtualy no clustering. m is typically a power of two. If m is even, h2 should deliver an odd number, else every 2nd slot will never be probed.
+Linear probing:: ++h(k,m,i) = (hʹ(k,m)+i) mod m++. Good locality, but most sensitive to primary clustering.
+
+Quadratic probing:: Try m1=m0+1, m2=m1+2=m0+3, m3=m2+3=m0+6. Properties between linear probing and double hashing. Suffers from secondary clustering.
+
+Double hashing:: ++h(k,m,i) = (hʹ(k,m)+i*h2ʹ(k,m)) mod m++. Interval is computed by another hashfuncion. Bad locality, but exhibits virtualy no clustering. m is typically a power of two. If m is even, h2 should deliver an odd number, else every 2nd slot will never be probed.  Double hashing approximates uniform hashing and is thus one of the best methods available for open addressing.
+
+Analysis: Assumes uniform hashing, as opposed to just simple uniform hashing. However none of the presented schemes actually fulfills the assumption of uniform hashing, because none of them is capable of generating more than m² different probe sequences, instead of the m! required.
 
 
-==== Perfect hashing (FKS)
-*to-do*
-
-
+[[cockoo_hashing]]
 ==== Cuckoo hashing
-*to-do*
+
+We maintain two hash tables, each having m slots.  We choose two hash functions h1 and h2 from a universal familiy of hash functions.  Any key k will be either at h1(k) in table one, or h2(k) in table two.  To insert a key, if slot h1(k) in table one is free, place it there.  Otherwise, replace the old key with the new key.  Now we have that old key in our hand, and the process repeats, now trying to insert that old key into table two.  We bounce between the two tables until all elements stabilize, or until we run into a cycle.  In the later case, we rehash by choosing a new h1 and h2.  Multiple rehashes might be required.
+
+Analysis: Lookup and deletions in O(1) worst case. Insertions are O(1) amortized.
 
 
 === Association list
@@ -1434,6 +1473,7 @@ Comparision *to-do*: Small/big T, small/big P, small/big Σ, repeatedly searchin
 -
 
 
+[[rabin_karp]]
 === Rabin-Karp
 Time: +Θ(m)+ pre-processing, +Θ((n-m+1)m)+ worst case running time,  +O(n+m)+ expected running time.  *to-do*: I don't see why the naive approach should have a worse expected running time, or a worse constant factor if equal
 
@@ -2267,34 +2307,93 @@ double polynomial(double x, const vector<double>& coefficients) {
 --------------------------------------------------
 
 
-[[hash]]
-=== Hashes
-A hash function +h(k,m)+ maps a key +k+ to an integer in the range [0,m), +m+ being an integer, and +U+ is the universe of possible keys. Typically k is an integer of the size of a CPU word. Thus prehashing is used to map any originial key of any size to [0,k).  
+[[hash_function]]
+=== Hash function (aka hash)
+
+A _hash function_ h(k, m) maps a key k to an integer in the range [0, m).  m is an integer m ≤ k.  In the case of a hash table, m is the size of the underlying array.  U is the universe of possible keys.  K is the set of keys actually used.  In the case of an hash table, contrast this with the keys currently stored in the table; K then is the set of keys ever stored in the table during it's life time.  Typically k is an integer of the size of a CPU word.  _Prehashing_ is used to map any originial key of any size to [0,k).
+
+A _good hash function_:
+
+- Satisfies or at least approximates the <<simple_uniform_hashing_assumption>>. In practice, we often can only approximate.
+
+- Does not hash `similar' keys to the same slot.  Especially in the case of a hash table using linear probing.
+
+Applications:
+
+- <<hash_table>>
+
+- String searching, e.g. <<rabin_karp>>
+
+- Cryptography
+
 
 References:
 
-- https://courses.csail.mit.edu/6.851/spring12/lectures/L10.html
-
-====  Totally random hash(table) (aka simple uniform hashing, SUHA)
-An ideal hash is _totally random_ (aka assumption of _simple uniform hashing_, _SUHA_): Every k from U has the probability 1/m to be mapped to slot s, for every slot s in [0,m). But that requires Θ(U log m) space (a table of U entries, each storing the hash functions's output, i.e. each entry needs Θ(log m)space), which is in general too much.
-
-A _totally random hash table_ T is the lookup table implementing a totally random hash function, i.e. h(x)=T[x].
+- See those of <<hash_table>>
 
 
-==== Universal familiy
-A family of hash functions H is _universal_ if for every h∈H, and for all x≠y ∈ U, Pr~h~{h(x) = h(y)} = O(1/m).
+==== Division method
 
-Examples:
+A heuristic method. +h(k,m)=k mod m+. In practice not so bad if m is prime and not close to a power of two or power of then. Still pretty `hackish'; Work's a lot of the time in practice, but not always.  We can't proove much.
+
+Rational for m being prime: When all (or most) keys are d appart (k~i~ = a+id), and d is a factor of m, then many slots or not used. E.g. when the keys are 3 appart like e.g. {1, 4, 7, 10, 13, ...}, m is 6=3*2, then the resulting hashes are {1, 4, 1, 4, 1, ...}. I.e. out of the slots {0, 2, 3, 5} are not used at all, and thus the slots {1, 4} have much more collisions than with a totally random hash.
+
+Rational for m not being close to power of two or power of then:  In real world problems, powers of two or then are common.  *to-do* I still don't entirerly understand itd.  When m is exactly a power of two or then, then this case is already ruled out by the case that m should be prime.
+
+
+==== Multiplication method
+
+A heuristic method. ++h(k,m,a,w) =((ak) mod 2^w^) >> (w-r)++, where as m=2^r^, i.e. +r=lg(m)+, and the machine stores integers in words of size w bits. a should be odd and not close to a power of two, between 2^r-1^ and 2^r^.  Works quite well in practice, altough we can't proove much.
+
+Intuitively: The multiplication mixes up the bits of k.  Looking at the product, especially in the area from bit (w-r) to w, so we extract that area.  +% 2^w^+ cuts away the part left of bit w, the shift right cuts way the bits right of bit (w-r).
+
+
+[[simple_uniform_hashing_assumption]]
+====  Simple uniform hashing assumption (SUHA)
+
+An ideal hash function is _totally random_. In other words, it satisfies the _simple uniform hashing assumption_ (_SUHA_):  Each key is equally likely to to be hashed to any slot in [0, m), independent of where other keys hashing.  In other words, given k~1~,k~2~ ∈ U, k~1~≠k~2~, Pr[h(k~1~)=h(k~2~)] = 1/m.
+
+However an implementation would require Θ(U log m) space: A table of |U| entries, each entry storing the hash value.  Each entry then needs Θ(log m) space.  In general this space requirement is far too large.  Such a table is called a _totally random hash table_.
+
+In practice it's not possible to check SUHA, since we rarely know the probability distribution of the keys.  In practice, we often employ heuristic techniques to create a hash function that approximates simple uniform hashing.
+
+
+[[uniform_hashing]]
+==== Uniform hashing
+
+Generalizes the notion of simple uniform hashing to a hash function that produces not just a single hash value, but a whole probe sequence of hash values.  Each produced probe sequence of hash values is equally likely to be any of the m! possible permutations.  In other words, each possible sequence of hash values must be equaly likely.
+
+True uniform hashing is difficult to implement, however, and in practice suitable approximations (e.g. double hashing) are used.
+
+
+==== Universal hashing and universal family
+
+Motivation: Any fixed hash function maps multiple keys to the same slot.  Thus given a fixed hash function, a malicious adversary can always choose n keys that map to the same slot, yielding an average retrieval time of Θ(n).
+
+In _universal hashing_, at the creation of a given hash table, we select a hash function at random and independent from the keys that are actually going to be stored from a carefully designed set of hash functions.  This guarantees that no single input will always evoke worst-case behaviour.  A family H of hash functions is called a _universal familiy_ (or just _universal_) if for every h∈H, and for all k~1~,k~2~ ∈ U, k~1~≠k~2~, Pr~h∈H~[h(k~1~) = h(k~2~)] ≤ 1/m.
+
+Examples of universal families:
 
 - ++h(x) = [(ax) mod p] mod m++ for 0<a<p, wheras p is a prime. p should be larger than m, else the higher slots are unused. ax can also be vector dot product. Note that this is not exactly the same as the division method.
 
-- ++h(x) = (a · x) >> (lg u − lg m)++. Use lg m high order bits of product ax.
+- ++h(x) = (a · x) >> (lg u − lg m)++.  I.e. use lg m high order bits of product ax.
 
-==== Strong universal family
-A famility H of hash functions is _strong universal_ if for all x,y ∈ U, x≠y, Pr~h~{h(x) = h(y)} ≤ 1/m.
+
+[[perfect_hashing]]
+==== Perfect hashing / perfect hash function
+
+A _perfect hash function_ maps the set of actual keys (as opposed to U) to a set of integers with no collisions, i.e. it is an injective function.  It may be used to to implement a hash table with O(1) worst-case access time.
+
+Note that <<direct_addressing>> maps U to [0, m), which is a stricter form of perfect hashing.  To implement it, you need a table mapping each key of K to [0, m), which is not trivial.  You then might as well use a <<trie>>, also <<trie_vs_hash_table>>.
+
+A possible perfect hashing scheme for a hash table:  We use two levels of hash tables.  The first level is a hash table of size m=n using a hash function randomly chosen from a universal class of hash functions.  This will map n~j~ keys to the j-th slot.  Each slot is then a hash table of size m~j~ = n~j~², constituting the second level.  Recall that the set of actual keys K is static and known.  For each secondary hash table, we try at random a hash function from a universal class of hash functions until we find one which doesn't produce any collision in that secondary hash table.  It can be prooven that given this setup, only a few tries are required.  It can also be proven that the overall space requirement is O(n).
+
+Applications: Efficient lookup (O(1) worst-case) for a set of keys which is known in advance.
+
 
 [[k_wise_independent]]
 ==== k-Wise Independent family
+
 A family H of hash functions is k-wise independent if for every h ∈ H, and for all
 distinct x~1~, ..., x~k~ ∈ U, Pr{h(x~1~)=t~1~ and ... h(x~k~)=t~k~} = O(1/m^k^).
 
@@ -2302,19 +2401,12 @@ Example pair-wise independent (k=2):
 
 ++h(x) = [(ax + b) mod p] mod m++ for 0<a<p and for 0≤b<p. Here, again, p is a prime greater than |U|.
 
+
 ==== Simple tabulation hashing
+
 View key x as vector of characters x~1~, ..., x~c~. We create a totally random hash table T~i~ on each character. ++h(x)=T~1~(x~1~) xor ... xor T~c~(x~c~)++
 
 Is <<k_wise_independent,3-wise independent>>.
-
-==== Division method
-+h(k,m)=k mod m+. In practice not so bad if m is prime and not close to a power of two. Still pretty `hackish'.  Rational for m being prime: When m has common factors with k, the effectively used table size gets divided by the product of those factors: ++k=k%m=(a*f1*f2)%(b*f1*f2)=a%b)++
-
-
-==== Multiplication method
-++h(k,m,a,w) =((ak) % 2^w^) >> (w-r)++, where as m=2^r^, i.e. +r=lg(m)+, and the machine stores integers in words of size w bits. a should be odd and not close to a power of two, between 2^r-1^ and 2^r^.
-
-Intuitively: The multiplication mixes up bits, especially in the area from bit (w-r) to w, so we take that area: +% 2^w^+ cuts away the part left of bit w, the shift right cuts way the bits right of bit (w-r).
 
 
 [[graph_theory]]
