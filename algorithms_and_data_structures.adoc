@@ -377,7 +377,7 @@ Such algorithms include local search, tabu search, simulated annealing, and gene
 
 
 [[ADT]]
-== Abstract data types (ADT)
+== Misc. abstract data types (ADT)
 An abstract data type is defined only by the operations that may be performed on it and by mathematical pre-conditions and constraints on the effects (and possibly cost) of those operations.  In OO lingo, it is an interface.  See also <<data structures>>,  which in OO are (non-abstract) classes.
 
 === Summary
@@ -645,7 +645,7 @@ Trivia: Was invented specifically to make Kruskal's algorithm more efficient
 
 
 [[data_structures]]
-== Data structures
+== Misc. Data structures
 A concrete particular way of organizing data in memory.  In OO lingo, its is a (non-abstract) class.  See also <<ADT>>, which is in OO lingo an interface.
 
 
@@ -1693,7 +1693,7 @@ Applications:
 - Cachings at all levels of the memory hierarchy
 
 
-== Misc algorithms
+== Misc. algorithms
 
 === Horner's method / Horner's scheme
 
@@ -3205,7 +3205,7 @@ References:
 - http://cse.unl.edu/~ylu/raik283/notes/ClosestPair.ppt
 
 
-== Problems
+== Misc. problems
 
 === Overview
 
