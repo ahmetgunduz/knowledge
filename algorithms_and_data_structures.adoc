@@ -965,7 +965,7 @@ Is a data structure implementing the ordered <<associative_array>> ADT. Search, 
 
 
 [[kd_tree]]
-=== kd tree
+=== k-d tree
 
 Assumptions for simplicity: No two points have same x coordinate, and no two points have same y coordinate.
 
@@ -1004,7 +1004,7 @@ References:
 
 
 [[range_tree]]
-=== range tree
+=== Range tree
 
 *to-do*.
 
@@ -1042,7 +1042,7 @@ References:
 - https://www.geeksforgeeks.org/interval-tree/
 
 
-=== splay tree
+=== Splay tree
 
 *to-do*
 
@@ -1720,7 +1720,7 @@ Applications: Efficient lookup (O(1) worst-case) for a set of keys which is know
 
 
 [[k_wise_independent]]
-==== k-Wise Independent family
+==== K-wise independent family
 
 A family H of hash functions is k-wise independent if for every h ∈ H, and for all
 distinct x~1~, ..., x~k~ ∈ U, Pr{h(x~1~)=t~1~ and ... h(x~k~)=t~k~} = O(1/m^k^).
@@ -3062,7 +3062,7 @@ References:
 
 
 [[push_relabel]]
-==== push-relabel algorithms
+==== Push-relabel algorithms
 
 Is an algorithm which solves the <<maximum_flow_problem>>. Is considered one of the most efficient maximum flow algorithms. The generic algorithm has +O(V²E)+, the variant based on the highest label node selection rule has +O(V²√E)+.
 
