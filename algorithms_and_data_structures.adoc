@@ -1297,18 +1297,6 @@ References:
 - https://web.stanford.edu/class/cs166/lectures/16/Small16.pdf
 
 
-[[dcel]]
-=== Doubly-Connected Edge List (DCEL)
-
-Often used representation for planar subdivionis such as <<voronoi_diagram>>s.
-
-References:
-
-- http://www.cs.sfu.ca/~binay/813.2011/DCEL.pdf
-
-- https://www.ti.inf.ethz.ch/ew/lehre/CG12/lecture/Chapter%205.pdf 
-
-
 == Augmenting data structures
 
 1. Choose an underlying data structure DS.
@@ -3045,6 +3033,18 @@ References:
 - https://www.youtube.com/watch?v=LQ-vRetWnu4&list=PLe-ggMe31CTdBsRIw0hXln0hilRs-DqAx&index=5
 
 - https://algo.kaust.edu.sa/documents/cs372l07.pdf
+
+
+[[dcel]]
+=== Doubly-Connected Edge List (DCEL)
+
+Often used representation for planar subdivionis such as <<voronoi_diagram>>s.
+
+References:
+
+- http://www.cs.sfu.ca/~binay/813.2011/DCEL.pdf
+
+- https://www.ti.inf.ethz.ch/ew/lehre/CG12/lecture/Chapter%205.pdf 
 
 
 [[voronoi_diagram]]
