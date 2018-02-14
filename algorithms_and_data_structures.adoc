@@ -1304,25 +1304,37 @@ Let +f+ be an attribute that augments a red-black tree +T+, and suppose that the
 
 
 == Sorting algorithms
+
 Properties of sorting algorithms.  See also properties of algorithms in general.  Comparison-based sorting algorithm are asymptotically optimal when they run in +O(n lg(n))+ time.
 
-Stable:: Stable sorting algorithms maintain the relative order of records with equal keys
-Adaptability:: Whether or not the presortedness of the input affects the running time.
-internal/external sorting:: Internal: all the data fits into main memory. External: the input data does not fit into main memory, and parts of it must reside on secondary storage.
+Stable::
+Stable sorting algorithms maintain the relative order of records with equal keys
+
+Adaptability::
+Whether or not the presortedness of the input affects the running time.
+
+internal/external sorting::
+Internal: all the data fits into main memory. External: the input data does not fit into main memory, and parts of it must reside on secondary storage.
+
 
 === Overview
 
 To sort arrays:
 
 * Bubble sort, Insertion Sort and Selection Sort, having +O(n^2^)+, are bad. However insertion sort is online, stable, adaptive and has a small constant factor (also due to being CPU cache friendly), so it's often used for the base case of the recursive +O(n log n)+ algorithms. Bubble sort has tiny code size.
+
 * Quick sort is great when it works, but unreliable (+O(n^2^)+ worst case), not stable, +O(log n)+ space for stack. Time complexity has a relatively small constant factor since it's CPU cache friendly.
-* Merge sort is reliably good, stable, highly parallelizable, but requires +O(n)+ auxiliary space;
-* Heap sort is reliably good, but unstable, and also about a factor of 4 slower than quick sort's best case.
-* Introsort (hyprid of quick sort and heap sort) almost same as quicksort, now having the good +O(n log n)+ worst case, but constant factor is between quick sort and heap sort, i.e. worse than quick sort's average case.
+
+* Merge sort is reliably good (+O(n log n)+ worst case), stable, highly parallelizable, but requires +O(n)+ auxiliary space;
+
+* Heap sort is reliably good (+O(n log n)+ worst case), but unstable, and also about a factor of 4 slower than quick sort's best case.
+
+* Introsort (hyprid of quick sort and heap sort) almost same as quicksort, but is now relyably good (+O(n log n)+ worst case), however the constant factor is between quick sort and heap sort.  I.e. on average introsort is worse than quick sort.
 
 To sort linked lists:
 
 * Copy it to an temporary array, sort that, copy the array back to the linked list.  Main reason: array has much better locality than a linked list where the nodes are scattered within memory.
+
 * Variant of merge sort
 
 To sort strings:
@@ -1330,46 +1342,107 @@ To sort strings:
 * *to-do*
 
 To sort integers:
+
 * *to-do* see e.g. at 6:40 https://www.youtube.com/watch?v=pOKy3RZbSws&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&index=14
 
 
 References:
 
 - https://en.wikipedia.org/wiki/Sorting_algorithm#Comparison_of_algorithms
+
 - Non comparison sorts with integers: http://en.wikipedia.org/wiki/Integer_sorting
 
 
 === Insertion sort / sort by insertion
-Time: +O(n^2^)+ worst case & average case, +O(n)+ best case.  Auxiliary space: +O(1)+.  Adaptive.  Stable.  In-place.  Online.  Brief: In each outer iteration, the next element from the yet unsorted part is inserted into its correct position in the sorted part. More detailed: The input is logically divided into a sorted part at the left, initially empty, and an unsorted part at the right, initially the complete input.  In each outer iteration, insertion sort removes (see following swap) the leftmost element from the unsorted part.  In an inner iteration it drags the element to the location the elements belongs to within the sorted part by searching to the left and swapping elements on the way.  Often used for small arrays (since time complexity has a small constant factor).
+
+Properties:   Adaptive.  Stable.  In-place.  Online.
+
+Algorithm brief: In each outer iteration, the next element from the yet unsorted part is inserted into its correct position in the sorted part.
+
+Algorithm detailed: The input is logically divided into a sorted part at the left, initially empty, and an unsorted part at the right, initially the complete input.  In each outer iteration, insertion sort removes (see following swap) the leftmost element from the unsorted part.  In an inner iteration it drags the element to the location the elements belongs to within the sorted part by searching to the left and swapping elements on the way.
+
+Time: O(n^2^) worst case & average case, O(n) best case.  It has a small constant factor since its CPU cache friendly, thuse its often used for small arrays, e.g. as the base case for O(n log n) algorithms.
+
+Space: O(1).
 
 
 === Selection sort / sort by selection
-Time: +O(n^2^)+ worst case & average case & best case.  Auxiliary space: +O(1)+.  Brief: In each outher iteration, select the min element from the yet unsorted part and append it to the sorted part. Detailed: Divide the input logically into a sorted part (initially empty) followed by an unsorted part (initially the whole input).  In each iteration search the smallest element in the unsorted part, swap it with the leftmost element of the unsorted part, then increment the pointer dividing the sorted / unsorted sub lists.
+
+Algorithm brief: In each outher iteration, select the min element from the yet unsorted part and append it to the sorted part.
+
+Algorithm detailed: Divide the input logically into a sorted part (initially empty) followed by an unsorted part (initially the whole input).  In each iteration search the smallest element in the unsorted part, swap it with the leftmost element of the unsorted part, then increment the pointer dividing the sorted / unsorted sub lists.
+
+Time: O(n^2^) worst case & average case & best case.
+
+Space: O(1).
 
 
 === Bubble sort / sort by exchange
-The input is devided logically into an unsorted part to the left, initially the whole input, followed by an sorted part, initially empty.  In each inner iteration, a sliding window of length two elements traverses the unsorted list from left to right, advancing in one element steps.  At each step, the two elements in the sliding window are swapped if needed to ensure the right element is larger than the left element.  The result of one inner iteration is that the sorted part gets one element added to its left side.  The process is repeated until all is sorted. As an optimisation, if an inner loop makes no swaps, it means the `unsorted' part is actually sorted and we can terminate early.
+
+Algorithm: The input is devided logically into an unsorted part to the left, initially the whole input, followed by an sorted part, initially empty.  In each inner iteration, a sliding window of length two elements traverses the unsorted list from left to right, advancing in one element steps.  At each step, the two elements in the sliding window are swapped if needed to ensure the right element is larger than the left element.  The result of one inner iteration is that the sorted part gets one element added to its left side.  The process is repeated until all is sorted. As an optimisation, if an inner loop makes no swaps, it means the `unsorted' part is actually sorted and we can terminate early.
 
 
 [[quick_sort]]
 === Quick sort
-Time: +O(n^2^)+ worst case, +O(n lg(n))+ average case, best case: (simple partition: +O(n lg(n))+, 3way partition and equal keys: +O(n)+).  Auxillary space: worst case: (naive: +O(n)+, Sedgewick +O(log n)+).  Not stable in naive implementation.  Hidden factor in time complexity in practice quite small.  The +O(n^2^)+ worst case running time might be a problem when input size is large and used in an real-time system or system concerned with security (because malicious user potentially can trigger worst case behaviour).
+
+Not stable in naive implementation.  Hidden factor in time complexity in practice quite small.  The +O(n^2^)+ worst case running time might be a problem when input size is large and used in an real-time system or system concerned with security (because malicious user potentially can trigger worst case behaviour).
+
+Time: +O(n^2^)+ worst case, +O(n lg(n))+ average case, best case: (simple partition: +O(n lg(n))+, 3way partition and equal keys: +O(n)+).
+
+Space: worst case: (naive: +O(n)+, Sedgewick +O(log n)+).
 
 
+[[merge_sort]]
 === Merge sort
-Time: +O(n lg(n))+ worst case & average case & best case.  Space: +O(n)+ auxiliary memory.  Stable.  Good locality of reference.  Parallelizes well.  External sorting possible.  1) Divide the sequence into two equal length subsequences 2) sort the two sequences using recursion, recursion stops at a sequence of one element 3) merge the two sequences (see below).  Discussion: Good for sequentially accessible data.  Highly parallelizable (+O(log n)+).  Variant: _natural merge sort_:  Time: +O(n)+ best case, the rest remains equal.  Exploits any naturally occurring runs in the input.  Variant: _external merge sort_: Motivation: input data does not fit into memory.  Divide the input data into N blocks, each block fitting into memory.  Sort each block with any sorting algorithm and write the result to disk (N files).  Then with ``externally merge sorted sequences'' merge the blocks/files.  Variant _merge sort for linked lists_: *to-do*
+
+Properties:  Stable.  Good locality of reference.  Parallelizes very well.  External sorting possible. Good for sequentially accessible data.
+
+Algorithm: 1) Divide the sequence into two equal length subsequences 2) sort the two sequences using recursion, recursion stops at a sequence of one element 3) merge the two sequences, see <<merge_sorted_sequences>>.
+
+Time: O(n lg(n)) worst case & average case & best case.
+
+Space: O(n).
+
+Variant _natural merge sort_:  Time: +O(n)+ best case, the rest remains equal.  Exploits any naturally occurring runs in the input.
+
+Variant _external merge sort_: Motivation: input data does not fit into memory.  Divide the input data into N blocks, each block fitting into memory.  Sort each block with any sorting algorithm and write the result to disk (N files).  Then with ``externally merge sorted sequences'' merge the blocks/files.
+
+Variant _merge sort for linked lists_: *to-do*
 
 
+[[heap_sort]]
 === Heap sort
-Time: +O(n lg(n))+ worst case & average case & best case.  Auxillary Space: +O(1)+.  In-place.  Not stable.  In practice often somewhat slower that quick sort, however it has a better worst case run time.  Brief: As selection sort, however the min element is found via an binary min heap. Detailed: The input is logically divided into an unsorted part, initially the whole input, followed by a sorted part, initially empty.  The unsorted part is heapified into a max heap.  In each iteration, the first (i.e. max) element is swapped with the last,  thus appending a new element to the left side of the sorted part, and thus also shrinking the heap / unsorted part by one.  Using the heap's sift down operation (or just heapify again the unsorted part), the heap property is re-established.
+
+Properties: Not stable.  In-place.
+
+Algorithm brief: As selection sort, however the min element is found via an heap.
+
+Algorithm detailed: The input is logically divided into an unsorted part, initially the whole input, followed by a sorted part, initially empty.  The unsorted part is heapified into a max heap.  In each iteration, the first (i.e. max) element is swapped with the last,  thus appending a new element to the left side of the sorted part, and thus also shrinking the heap / unsorted part by one.  Using the heap's sift down operation (or just heapify again the unsorted part), the heap property is re-established.
+
+Time: O(n lg(n)) worst case & average case & best case.  In practice often somewhat slower that quick sort, however it has a better worst case run time.
+
+Auxillary Space: O(1). In-place.
 
 
+[[bucket_sort]]
 === Bucket sort
-Time: +O(n^2^)+ worst case, +O(n+k)+ average-case and best case.  Auxiliary space: +O(n+k)+.  Stable.  Not comparison-based; it assumes that the elements' values are uniformly distributed, for simplicity, without loss of generality, assume in [0,1).  Make an array of k `buckets', where each bucket is a sequence of elements, initially empty.  For each element in the input, insert it into the bucket having the array index k*elementvalue.  Then sort each of the buckets with another sort.  Then produce the final output by concatenating the buckets.  Note: the time complexity gets worse if the data is not uniformly distributed as assumed, since certain bucket sequences get much longer than other.
+
+Properties: Stable. Not comparison-based.
+
+Restrictions: Assumes that the elements' values are uniformily distributed.  For simplicity, without loss of generality, we here assume within the range [0,1).  The time complexity gets worse if the data is not uniformly distributed as assumed, since certain bucket sequences get much longer than other.
+
+Algorithm: Make an array of k `buckets', where each bucket is a sequence of elements, initially empty.  For each element in the input, insert it into the bucket having the array index k*elementvalue.  Then sort each of the buckets with another sort.  Then produce the final output by concatenating the buckets.
+
+Time: O(n^2^) worst case, O(n+k) average-case and best case.
+
+Auxiliary space: O(n+k).
 
 
 === Counting sort (aka histogram sort)
-+Θ(k+n)+ time complexity, +Θ(k+n)+ or +Θ(k)+ space complexity, depending on whether the _required_ output array (sorting in-place only with the input array is not possible) is taken into account or not.  Not comparison-based; it assumes that each element is an integer in the range +0--k+, where +k=O(n)+ (If you start off with non-integers, you might be able to map to integers).  Stable sort.  Algorithm: With an array a of size k, for each input element x, increment a[x]. Then for each item (index i) in the array, print the number i a[i] times. 
+
+Properties: Not comparison-based.  It assumes that each element is an integer in the range +0--k+, where +k=O(n)+ (If you start off with non-integers, you might be able to map to integers).  Stable sort.
+
+Algorithm: With an array a of size k, for each input element x, increment a[x]. Then for each item (index i) in the array, print the number i a[i] times.
 
 --------------------------------------------------
 k=5, input={3,4,2,2,4}
@@ -1378,16 +1451,34 @@ a           { 0,  2,  1,  2,  0 }
 output      {     2,2,3,  4,4   }
 --------------------------------------------------
 
+Time: Θ(k+n).
+
+Space: Θ(k+n) or Θ(k), depending on whether the _required_ output array (sorting in-place only with the input array is not possible) is taken into account or not.
+
 
 === Radix sort
-Not comparison-based.  Stable sort.  Given n d-digit numbers/strings, each digit can take up to k possible values.  Time: +Θ(d(n+k))+ (provided the internally used stable sort has +Θ(n+k)+), however the hidden constant factor is in practice quite large relative to other sort algorithms.  First sort/group after least significant digit, then after second least, .... The inner sort must be a stable sort, typically counting sort or bucket sort.
+
+Sorts n d-digit numbers/strings, where each digit can take up to k possible values.
+
+Properties: Not comparison-based. Stable sort.
+
+First sort/group after least significant digit, then after second least, and so on. The inner sort must be a stable sort, typically counting sort or bucket sort.
+
+Time: Θ(d(n+k)), provided the internally used stable sort has +Θ(n+k)+.  However the hidden constant factor is in practice quite large relative to other sort algorithms.
 
 
+[[merge_sorted_sequences]]
 === Merge sorted sequences
-Time: +Θ(n)+.  Space: +O(n)+. Imagine n cards within m sorted piles of cards face up.  Take the smallest card yous see and put it on the sorted pile.
+
+Algorithm intuition: Imagine n cards within m sorted piles of cards face up.  Take the smallest card yous see and put it on the sorted pile.
+
+Time: Θ(n)
+
+Space: O(n)
 
 
 === Externally merge sorted sequences
+
 Given N sorted sequences on disk which do not fit all together into memory.
 
 For each, make a buffered (in memory) input stream.  Make an (buffered) output stream for the result.  Now there are N input streams and 1 output stream and the algorithm works as described in ``merge sorted sequences''.  You might want the I/O to be in separate threads, so the actual algorithm can run while there is IO filling parts of in input stream with new data, or flushing part of the output stream. However, if there are only B blocks/pages of memory available but there are more than B-1 input streams, multiple passes have to be made.
@@ -1395,6 +1486,7 @@ For each, make a buffered (in memory) input stream.  Make an (buffered) output s
 
 [[BST_sort]]
 === BST sort
+
 Take an implementation of the BST ADT, insert all elements of the input, then do an in-order walk.
 
 When the <<naive_BST>> is used, BST sort does same comparisons as <<quick_sort>>, but in a different order. (where quick sort uses first element as pivot, and then does stable partitioning). When the input is randomly permuted before building the BST, _randomized BST sort_ does again the same comparisons as randomized quick sort choosing its pivot randomly.
