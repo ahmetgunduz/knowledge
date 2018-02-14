@@ -1307,6 +1307,317 @@ References:
 Let +f+ be an attribute that augments a red-black tree +T+, and suppose that the value +x.f+ for each node +x+ only depends on only the information in the nodes +x+, +x.left+ and +x.right+. Then we can maintain +f+ in all nodes of +T+ during insertion and deletion without affecting the +O(lg n)+ performance of these operations.
 
 
+== Misc. problems
+
+=== Overview
+
+--------------------------------------------------
+Knapsack
+  unbounded knapsack problem (UKP) | DP: time O(n*S) | approx: greedy algo: O(n)
+    rod cutting problem: is the same problem
+  bounded knapsack problem (BKP) | can be reduced to 0-1 knapsack
+  0-1 knapsack problem | DP: time O(n*S)
+  continuous/fractional knapsack problem | greedy algo: time: O(n*lg(n))
+  coin change problem | greedy (optimal only for canonical coin systems): O(n*lg(n))
+
+Longest common subsequence
+TSP. Travelling purchaser problem
+edit distance
+longest path
+shortest path
+minimum spanning tree. directed and undirected version
+cycle dedection
+topo sort
+sort
+cutting stock problem
+bin packing problem
+assignment problem
+bipartite matching
+
+--------------------------------------------------
+
+
+[[edit_distance]]
+=== Edit distance
+Given two strings x and y, the edit distance is the minimum cost series of
+edit operations that transform x into y.  There are cost tables:
+cost-deletete[c] is cost to delete char c from x, cost-insert[c] is cost to
+insert char c into x, cost-replace[c1, c2] is cost to replace char c1 by
+c2. Doing nothing modeled by cost-replace[c,c].
+
+<<dynamic_programming>>:
+
+1. suproblems: All possible suffixes of x and y.  I.e. edit distance on x[i:]
+   and y[i:] for all i∊[0,|x|) and j∊[0,|y|).
+
+2. guess: In each step, there are three choices: ① replace x[i] by y[j] (do
+   nothing is modeled by replacing c by c) or ② insert (prepend) y[j] to x or
+   ③ delete x[i].  The general idea is to consume the first character of x
+   and/or y in order to 1) make first char of x and y equal and to 2) be left
+   with a subproblem (to make progress at least one char needs to be
+   consumed).
+
+3. recurrence: 
++
+-----
+DP(i,j) =
+  if i=|x| and j=|y|: ④ 0
+  else: min(
+  ① cost-replace[x[i],y[j]] + DP(i+1, j+1)  if i+1≤|x| and j+1≤|y|,
+  ② cost-insert[y[j]]       + DP(i  , j+1)  if             j+1≤|y|,
+  ③ cost-delete[x[i]]       + DP(i+1, j  )  if i+1≤|x|            )
+-----
++
+④ is the base case (aka smallest subproblem), which is the edit distance to
+   transform the empty string to the empty string, which obviously is 0.
+
+4. Description of subproblem DAG: Imagine a matrix, each cell represents a
+   vertex in the DAG and thus also represents DP(i,j). It has |x| rows indexed
+   by i, and |y| columns, indexed by j. Thus the top left cell/vertex is the
+   original problem (edit distance to transform x into y), and bottom-right
+   cell/vertex is the base case ④.  The weight of the edges are the respective
+   cost-x[…] term in the DP formula of step 3.  Optionally each cell/vertex
+   can have a value attribute which then is DP(i,j).
++
+Example: x=FLO and y=FOO:
++
+-----
+             outgoing edges of each matrix-cell / DAG-vertex
+   FOOε      the cells in the left-most column and bottom-most row
+   0123 j    naturally don't have edges leaving the matrix
+F 0R···      ☐→① insert
+L 1····      ↓ ↘③ replace
+O 2····      ② delete  
+ε 3···④      
+  i          R means root of the DAG, i.e. the original problem
+-----
++
+bottom-up approach: Solve the subproblems by starting in the bottom
+right corner and then going left and/or up.  E.g: ++for i=|x|⋯0: for
+j=|y|⋯0: …++.
++
+time complexity: #subprobs=Θ(|x|⋅|y|) (number of cells). time/subproblem = Θ(1). Overall running time =
+  #subprobs⋅time/subproblem = Θ(|x|⋅|y|).
++
+Space complexity: Θ(|x|⋅|y|) (number of cells) for a trivial implementation.
+If only a sliding window of one row or column, which ever of |x| or |y| is
+smaller, is kept, the space complexity becomes Θ(min(|x|,|y|)).
+
+5. The original problem is DP(0,0).
+
+
+*to-do*:
+
+- Most sources on the net seem to solve it in terms of making the subproblems
+  prefixes, opposed to suffixes as above.  So my matrix above doesn't match
+  moste of the pictures / drawings found on the net.
+- Backtracing / make the operations needed available to the caller
+
+Applications:
+
+- computational biology: quantify similarity of DNA sequences
+- correction of spelling mistakes, i.e. which correct word is the most likely
+
+
+=== Longest common subsequence (LCS)
+Given a set of sequences, typically two, what is (are) the longest common subsequence(s) -- The solution might not be unique, i.e. multiple subsequences of same lenght will qualify as having the longest lenght.  Note that unlike substrings, subsequences are not required to occupy consecutive positions.
+
+In general: NP-hard.
+
+For two sequences: Equals the <<edit_distance>> problem, with cost of insert and delete being 1 and replace being 0 for c→cʹ and ∞ otherwhise.
+
+Applications:
+- file comparison, e.g. the diff utility
+- bio informatics: as a measure how similar DNA sequences are (the longer the LCS the more similar),
+
+
+[[knapsack]]
+=== Knapsack
+
+0-1 knapsack problem:: Given a set of n items, each item i with a weight w[i]
+(an integer) and a value v[i], determine the items to include in a collection
+so that the total weight is less than or equal to a given limit S (an integer)
+and the total value is maximal.
+
+Bounded knapsack problem (BKP):: Removes the restriction that there is only
+one of each item, but restricts the number of copies of each item i to c[i].
+
+Unbounded knapsack problem (UKP):: Places no upper bound on the number of
+copies of each kind of item.
+
+Change-making problem:: How can a given amount of money be made with the least
+number of coins of given denominations. Similar to UKP, however capacity of
+knapsack has to be hit exactly. `weight of item' corresponds to `value of
+coin', and `value of item' is always -1.
+
+[[rod_cutting_problem]]
+Rod cutting problem:: Same as UKP. rod length -> knapsack capacity, length i
+-> item i having a weight of i, value of length i -> value of item i.
+
+Fractional/continuous knapsack problem:: Instead of items we think of
+materials.  There is an certain amount (weight) of each material, and we can
+pack any amount less than that per material into the knapsack. Solution: sort
+materials descendinding by value/weight, then greedely take of each material
+as much as possible until the knapsack is full. O(n*lg(n)).
+
+
+Solution for the 0-1 knapsack problem using <<dynamic_programming>>:
+
+Put the items in some sequence.
+
+1. Suproblems: All possible suffixes of the item sequence (items[i:]) × all possible remaining capacities X≤S.
+
+2. Guessing: In each step, there are two choices: ① shall I include item i (aka current/front item) or ② shall I not?  
+
+3. Recurence:
++
+--------------------------------------------------
+DP(i,X) =
+  if i=n: ③ 0
+  else: max(
+  ①        DP(i+1, X)       if i+1≤n            ,
+  ② v[i] + DP(i+1, X-w[i])  if i+1≤n and w[i]≤X )
+------------------------------------------------------------
++
+③ is the base case, which is the knapsack problem for an empty set of items
+and whatever remaining capacity: the maximal value is obviously 0.
+
+4. Description of the subproblem DAG: Imagine a matrix, each cell represinting
+   a vertex in the DAG and thus also represents DP(i,X).  It has n+1 columns
+   indexed by i, and S+1 rows, indexed by X.  Thus the top left cell/vertex is
+   the original problem (knapsack for all items and capacity S).  The right
+   column are the base cases.
++
+Example: n=3 items, capacity S=4:
++
+----------------------------------------------------------------------
+c    item
+a    0124     outgoing edges of each matrix-cell / DAG-vertex:
+p   4R··③     ☐→① Don't include item i. Edge-weight 0.
+a   3···③      ↘② Include item i, which removes w[i] from capacity X.
+c   2···③         Edge-weight -v[i].
+i   1···③     
+t   0···③     R means root of the DAG, i.e. the original problem
+y   
+----------------------------------------------------------------------
++
+Bottom-up approach: Solve subproblems by starting in the bottom right corner
+and then going left and/or up: E.g.: ++for i=n⋯0: for X=0⋯S: …++.  Space
+complexity can be improved by only using a sliding window of two columns.
+Note that the top-down approach doesn't need to calculate all n*S vertices; it
+only calculates the ones reachable from DP(0,S).
++
+time complexity: Θ(1) for one DP call. Thus the overall running time is +Θ(n*S)+,
+i.e. <<pseudo_polynomial>>. It's exponential, since +Θ(n*S)+ is exponential
+relative to the input size which is +O(n*lg S)+ (think how many bits you need
+to represent the input).
+
+5. The original problem is DP(0,S).
+
+6. The items to be included into the knapsack are (for non-zero weights).
+--------------------------------------------------
+X = S
+for i in [0,n)
+  if DP(i, X) = v[i] + DP(i-1, X-w[i]): // i.e. if choice ② was made
+    remember item i as included in knapsack
+    X -= w[i]
+--------------------------------------------------
+
+Applications:
+
+*to-do*
+
+*to-do* process https://en.wikipedia.org/wiki/List_of_knapsack_problems
+
+
+[[rectangular_range_query]]
+=== Orthogonal (rectangular) range (interval) searching (query)
+
+Given a set of points in k-dimensional space, find the ones being in a k-dimensional range.  E.g. when doing a database query, we want to find the persons with age in [20,40] and height in [150, 200] and weight in [50,100].
+
+Given a set of k-dimensional geomteric objects (aka ranges), find the ones which intersect (aka overlap).
+
+Data structes / Algorithms:
+
+- <<kd_tree>>
+
+- <<range_tree>>
+
+References:
+
+- Book "Computational Geometry - Algorithms and Applications", chapter "Orthogonal range searching"
+
+- http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf
+
+
+[[1d_orthogonal_range_searching]]
+==== 1d orthogonal range searching using a BST
+
+Given a set P of points, find the points in range [f, t] (f=from, t=to).
+
+Put the points in a a balanced binary search tree. Often it's one which stores its values in its leaves, see e.g. <<naive_BST>>.   This is especially convenient for higher dimensions, see <<range_tree>>.
+
+Search f and t in the tree. There is one search path until a node, often called the split node, where the search splits in two paths.  Let nf and nt be the two leaf nodes where the two searches end. The leafes of all the subtrees `enclosed' by the two paths (splitnode, nf) and (splitnode, nt) are the result.  In text book examples, typically these subtrees are reported on the fly while descenting from the split node.  On the left search path, the right subtree when descending left, and nothing when descending right.  Analogously for the right search path.
+
+Analysis: O(n log n) for building the binary search tree, and O(k + log n) for reporting, where k is the number of reported points.  Informal proof: Reporting a subtree is O(kʹ), where kʹ is the number of leavs in that subtree.  Searching f and t in the tree is O(log n).
+
+
+References:
+
+- Book "Computational Geometry - Algorithms and Applications", subchapter "5.1 1-Dimensional Range Searching"
+
+- https://courses.csail.mit.edu/6.851/spring12/scribe/lec3.pdf, first part of section "range trees"
+
+- http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf, chapter "1 - Dimensional Range Searching"
+
+
+[[RMQ]]
+=== Range minimim query (RMQ)
+
+Given an array A, find index (here named k) of minimum element in range [i,j].
+
+++k=RMQ(i,j)=(arg)min{A[n]|i≤n≤j}++
+
+(arg)min says that we're interested in the index, not the value of the minimum element.
+
+Solutions:
+
+- Convert A to a <<cartesian_tree>>, see there, and in that tree, solve the <<LCA_problem>>, see there.
+
+
+=== Consumer producer
+
+Solution using semaphores.  Allows for multiple producers and consumers.
+
+----------------------------------------------------------------------
+Semaphore emptyCount
+Semaphore fullCount
+Semaphore useQueue
+
+produce:
+  wait(emptyCount)
+  wait(useQueue)
+  putItemIntoQueue(item)
+  signal(useQueue)
+  signal(fullCount)
+
+consume:
+  wait(fullCount)
+  wait(useQueue)
+  item ← getItemFromQueue()
+  signal(useQueue)
+  signal(emptyCount)
+----------------------------------------------------------------------
+
+*to-do*:
+- Solution with monitors
+- Question: why isn't it in the above solution good enough to only guard the one critical section with a single binary semaphore?
+
+
+=== Dining philosophers
+*to-do*
+
+
 == Sorting algorithms
 
 Properties of sorting algorithms.  See also properties of algorithms in general.  Comparison-based sorting algorithm are asymptotically optimal when they run in +O(n lg(n))+ time.
@@ -3203,317 +3514,6 @@ References:
 - https://www.geeksforgeeks.org/closest-pair-of-points/
 
 - http://cse.unl.edu/~ylu/raik283/notes/ClosestPair.ppt
-
-
-== Misc. problems
-
-=== Overview
-
---------------------------------------------------
-Knapsack
-  unbounded knapsack problem (UKP) | DP: time O(n*S) | approx: greedy algo: O(n)
-    rod cutting problem: is the same problem
-  bounded knapsack problem (BKP) | can be reduced to 0-1 knapsack
-  0-1 knapsack problem | DP: time O(n*S)
-  continuous/fractional knapsack problem | greedy algo: time: O(n*lg(n))
-  coin change problem | greedy (optimal only for canonical coin systems): O(n*lg(n))
-
-Longest common subsequence
-TSP. Travelling purchaser problem
-edit distance
-longest path
-shortest path
-minimum spanning tree. directed and undirected version
-cycle dedection
-topo sort
-sort
-cutting stock problem
-bin packing problem
-assignment problem
-bipartite matching
-
---------------------------------------------------
-
-
-[[edit_distance]]
-=== Edit distance
-Given two strings x and y, the edit distance is the minimum cost series of
-edit operations that transform x into y.  There are cost tables:
-cost-deletete[c] is cost to delete char c from x, cost-insert[c] is cost to
-insert char c into x, cost-replace[c1, c2] is cost to replace char c1 by
-c2. Doing nothing modeled by cost-replace[c,c].
-
-<<dynamic_programming>>:
-
-1. suproblems: All possible suffixes of x and y.  I.e. edit distance on x[i:]
-   and y[i:] for all i∊[0,|x|) and j∊[0,|y|).
-
-2. guess: In each step, there are three choices: ① replace x[i] by y[j] (do
-   nothing is modeled by replacing c by c) or ② insert (prepend) y[j] to x or
-   ③ delete x[i].  The general idea is to consume the first character of x
-   and/or y in order to 1) make first char of x and y equal and to 2) be left
-   with a subproblem (to make progress at least one char needs to be
-   consumed).
-
-3. recurrence: 
-+
------
-DP(i,j) =
-  if i=|x| and j=|y|: ④ 0
-  else: min(
-  ① cost-replace[x[i],y[j]] + DP(i+1, j+1)  if i+1≤|x| and j+1≤|y|,
-  ② cost-insert[y[j]]       + DP(i  , j+1)  if             j+1≤|y|,
-  ③ cost-delete[x[i]]       + DP(i+1, j  )  if i+1≤|x|            )
------
-+
-④ is the base case (aka smallest subproblem), which is the edit distance to
-   transform the empty string to the empty string, which obviously is 0.
-
-4. Description of subproblem DAG: Imagine a matrix, each cell represents a
-   vertex in the DAG and thus also represents DP(i,j). It has |x| rows indexed
-   by i, and |y| columns, indexed by j. Thus the top left cell/vertex is the
-   original problem (edit distance to transform x into y), and bottom-right
-   cell/vertex is the base case ④.  The weight of the edges are the respective
-   cost-x[…] term in the DP formula of step 3.  Optionally each cell/vertex
-   can have a value attribute which then is DP(i,j).
-+
-Example: x=FLO and y=FOO:
-+
------
-             outgoing edges of each matrix-cell / DAG-vertex
-   FOOε      the cells in the left-most column and bottom-most row
-   0123 j    naturally don't have edges leaving the matrix
-F 0R···      ☐→① insert
-L 1····      ↓ ↘③ replace
-O 2····      ② delete  
-ε 3···④      
-  i          R means root of the DAG, i.e. the original problem
------
-+
-bottom-up approach: Solve the subproblems by starting in the bottom
-right corner and then going left and/or up.  E.g: ++for i=|x|⋯0: for
-j=|y|⋯0: …++.
-+
-time complexity: #subprobs=Θ(|x|⋅|y|) (number of cells). time/subproblem = Θ(1). Overall running time =
-  #subprobs⋅time/subproblem = Θ(|x|⋅|y|).
-+
-Space complexity: Θ(|x|⋅|y|) (number of cells) for a trivial implementation.
-If only a sliding window of one row or column, which ever of |x| or |y| is
-smaller, is kept, the space complexity becomes Θ(min(|x|,|y|)).
-
-5. The original problem is DP(0,0).
-
-
-*to-do*:
-
-- Most sources on the net seem to solve it in terms of making the subproblems
-  prefixes, opposed to suffixes as above.  So my matrix above doesn't match
-  moste of the pictures / drawings found on the net.
-- Backtracing / make the operations needed available to the caller
-
-Applications:
-
-- computational biology: quantify similarity of DNA sequences
-- correction of spelling mistakes, i.e. which correct word is the most likely
-
-
-=== Longest common subsequence (LCS)
-Given a set of sequences, typically two, what is (are) the longest common subsequence(s) -- The solution might not be unique, i.e. multiple subsequences of same lenght will qualify as having the longest lenght.  Note that unlike substrings, subsequences are not required to occupy consecutive positions.
-
-In general: NP-hard.
-
-For two sequences: Equals the <<edit_distance>> problem, with cost of insert and delete being 1 and replace being 0 for c→cʹ and ∞ otherwhise.
-
-Applications:
-- file comparison, e.g. the diff utility
-- bio informatics: as a measure how similar DNA sequences are (the longer the LCS the more similar),
-
-
-[[knapsack]]
-=== Knapsack
-
-0-1 knapsack problem:: Given a set of n items, each item i with a weight w[i]
-(an integer) and a value v[i], determine the items to include in a collection
-so that the total weight is less than or equal to a given limit S (an integer)
-and the total value is maximal.
-
-Bounded knapsack problem (BKP):: Removes the restriction that there is only
-one of each item, but restricts the number of copies of each item i to c[i].
-
-Unbounded knapsack problem (UKP):: Places no upper bound on the number of
-copies of each kind of item.
-
-Change-making problem:: How can a given amount of money be made with the least
-number of coins of given denominations. Similar to UKP, however capacity of
-knapsack has to be hit exactly. `weight of item' corresponds to `value of
-coin', and `value of item' is always -1.
-
-[[rod_cutting_problem]]
-Rod cutting problem:: Same as UKP. rod length -> knapsack capacity, length i
--> item i having a weight of i, value of length i -> value of item i.
-
-Fractional/continuous knapsack problem:: Instead of items we think of
-materials.  There is an certain amount (weight) of each material, and we can
-pack any amount less than that per material into the knapsack. Solution: sort
-materials descendinding by value/weight, then greedely take of each material
-as much as possible until the knapsack is full. O(n*lg(n)).
-
-
-Solution for the 0-1 knapsack problem using <<dynamic_programming>>:
-
-Put the items in some sequence.
-
-1. Suproblems: All possible suffixes of the item sequence (items[i:]) × all possible remaining capacities X≤S.
-
-2. Guessing: In each step, there are two choices: ① shall I include item i (aka current/front item) or ② shall I not?  
-
-3. Recurence:
-+
---------------------------------------------------
-DP(i,X) =
-  if i=n: ③ 0
-  else: max(
-  ①        DP(i+1, X)       if i+1≤n            ,
-  ② v[i] + DP(i+1, X-w[i])  if i+1≤n and w[i]≤X )
-------------------------------------------------------------
-+
-③ is the base case, which is the knapsack problem for an empty set of items
-and whatever remaining capacity: the maximal value is obviously 0.
-
-4. Description of the subproblem DAG: Imagine a matrix, each cell represinting
-   a vertex in the DAG and thus also represents DP(i,X).  It has n+1 columns
-   indexed by i, and S+1 rows, indexed by X.  Thus the top left cell/vertex is
-   the original problem (knapsack for all items and capacity S).  The right
-   column are the base cases.
-+
-Example: n=3 items, capacity S=4:
-+
-----------------------------------------------------------------------
-c    item
-a    0124     outgoing edges of each matrix-cell / DAG-vertex:
-p   4R··③     ☐→① Don't include item i. Edge-weight 0.
-a   3···③      ↘② Include item i, which removes w[i] from capacity X.
-c   2···③         Edge-weight -v[i].
-i   1···③     
-t   0···③     R means root of the DAG, i.e. the original problem
-y   
-----------------------------------------------------------------------
-+
-Bottom-up approach: Solve subproblems by starting in the bottom right corner
-and then going left and/or up: E.g.: ++for i=n⋯0: for X=0⋯S: …++.  Space
-complexity can be improved by only using a sliding window of two columns.
-Note that the top-down approach doesn't need to calculate all n*S vertices; it
-only calculates the ones reachable from DP(0,S).
-+
-time complexity: Θ(1) for one DP call. Thus the overall running time is +Θ(n*S)+,
-i.e. <<pseudo_polynomial>>. It's exponential, since +Θ(n*S)+ is exponential
-relative to the input size which is +O(n*lg S)+ (think how many bits you need
-to represent the input).
-
-5. The original problem is DP(0,S).
-
-6. The items to be included into the knapsack are (for non-zero weights).
---------------------------------------------------
-X = S
-for i in [0,n)
-  if DP(i, X) = v[i] + DP(i-1, X-w[i]): // i.e. if choice ② was made
-    remember item i as included in knapsack
-    X -= w[i]
---------------------------------------------------
-
-Applications:
-
-*to-do*
-
-*to-do* process https://en.wikipedia.org/wiki/List_of_knapsack_problems
-
-
-[[rectangular_range_query]]
-=== Orthogonal (rectangular) range (interval) searching (query)
-
-Given a set of points in k-dimensional space, find the ones being in a k-dimensional range.  E.g. when doing a database query, we want to find the persons with age in [20,40] and height in [150, 200] and weight in [50,100].
-
-Given a set of k-dimensional geomteric objects (aka ranges), find the ones which intersect (aka overlap).
-
-Data structes / Algorithms:
-
-- <<kd_tree>>
-
-- <<range_tree>>
-
-References:
-
-- Book "Computational Geometry - Algorithms and Applications", chapter "Orthogonal range searching"
-
-- http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf
-
-
-[[1d_orthogonal_range_searching]]
-==== 1d orthogonal range searching using a BST
-
-Given a set P of points, find the points in range [f, t] (f=from, t=to).
-
-Put the points in a a balanced binary search tree. Often it's one which stores its values in its leaves, see e.g. <<naive_BST>>.   This is especially convenient for higher dimensions, see <<range_tree>>.
-
-Search f and t in the tree. There is one search path until a node, often called the split node, where the search splits in two paths.  Let nf and nt be the two leaf nodes where the two searches end. The leafes of all the subtrees `enclosed' by the two paths (splitnode, nf) and (splitnode, nt) are the result.  In text book examples, typically these subtrees are reported on the fly while descenting from the split node.  On the left search path, the right subtree when descending left, and nothing when descending right.  Analogously for the right search path.
-
-Analysis: O(n log n) for building the binary search tree, and O(k + log n) for reporting, where k is the number of reported points.  Informal proof: Reporting a subtree is O(kʹ), where kʹ is the number of leavs in that subtree.  Searching f and t in the tree is O(log n).
-
-
-References:
-
-- Book "Computational Geometry - Algorithms and Applications", subchapter "5.1 1-Dimensional Range Searching"
-
-- https://courses.csail.mit.edu/6.851/spring12/scribe/lec3.pdf, first part of section "range trees"
-
-- http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf, chapter "1 - Dimensional Range Searching"
-
-
-[[RMQ]]
-=== Range minimim query (RMQ)
-
-Given an array A, find index (here named k) of minimum element in range [i,j].
-
-++k=RMQ(i,j)=(arg)min{A[n]|i≤n≤j}++
-
-(arg)min says that we're interested in the index, not the value of the minimum element.
-
-Solutions:
-
-- Convert A to a <<cartesian_tree>>, see there, and in that tree, solve the <<LCA_problem>>, see there.
-
-
-=== Consumer producer
-
-Solution using semaphores.  Allows for multiple producers and consumers.
-
-----------------------------------------------------------------------
-Semaphore emptyCount
-Semaphore fullCount
-Semaphore useQueue
-
-produce:
-  wait(emptyCount)
-  wait(useQueue)
-  putItemIntoQueue(item)
-  signal(useQueue)
-  signal(fullCount)
-
-consume:
-  wait(fullCount)
-  wait(useQueue)
-  item ← getItemFromQueue()
-  signal(useQueue)
-  signal(emptyCount)
-----------------------------------------------------------------------
-
-*to-do*:
-- Solution with monitors
-- Question: why isn't it in the above solution good enough to only guard the one critical section with a single binary semaphore?
-
-
-=== Dining philosophers
-*to-do*
 
 
 == Misc. related computer science
