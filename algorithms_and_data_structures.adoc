@@ -1618,6 +1618,125 @@ consume:
 *to-do*
 
 
+== Misc. algorithms
+
+=== Horner's method / Horner's scheme
+
+Task: Evaluate a polynomial P(x)=a~0~ + a~1~x + ... + a~n~x^n^ at x=x~0~.  Solution: Since the polynomial can be rewritten as a~0~ + x (a~1~ + x(a~2~+...+x(a~n~)...)) we can solve it beginning at the deepest level and iteratively go outward: b~n~=a~n~, b~n-1~=a~n-1~+x~0~b~n~, ..., b~0~=a~0~+x~0~b~1~ with b~0~ being the solution.  In code, with b~i~ stored in ++acc++umulator:
+
+--------------------------------------------------
+double polynomial(double x, const vector<double>& coefficients) {
+    double acc = 0;
+    for (int i=coefficients.size()-1; i>=0; --i) {
+        acc = coefficients[i] + x * acc;
+    }
+    return acc;
+}
+--------------------------------------------------
+
+
+[[hash_function]]
+=== Hash function (aka hash)
+
+A _hash function_ h(k, m) maps a key k to an integer in the range [0, m).  m is an integer m ≤ k.  In the case of a hash table, m is the size of the underlying array.  U is the universe of possible keys.  K is the set of keys actually used.  In the case of an hash table, contrast this with the keys currently stored in the table; K then is the set of keys ever stored in the table during it's life time.  Typically k is an integer of the size of a CPU word.  _Prehashing_ is used to map any originial key of any size to [0,k).
+
+A _good hash function_:
+
+- Satisfies or at least approximates the <<simple_uniform_hashing_assumption>>. In practice, we often can only approximate.
+
+- Does not hash `similar' keys to the same slot.  Especially in the case of a hash table using linear probing.
+
+Applications:
+
+- <<hash_table>>
+
+- String searching, e.g. <<rabin_karp>>
+
+- Cryptography
+
+
+References:
+
+- See those of <<hash_table>>
+
+
+==== Division method
+
+A heuristic method. +h(k,m)=k mod m+. In practice not so bad if m is prime and not close to a power of two or power of then. Still pretty `hackish'; Work's a lot of the time in practice, but not always.  We can't proove much.
+
+Rational for m being prime: When all (or most) keys are d appart (k~i~ = a+id), and d is a factor of m, then many slots or not used. E.g. when the keys are 3 appart like e.g. {1, 4, 7, 10, 13, ...}, m is 6=3*2, then the resulting hashes are {1, 4, 1, 4, 1, ...}. I.e. out of the slots {0, 2, 3, 5} are not used at all, and thus the slots {1, 4} have much more collisions than with a totally random hash.
+
+Rational for m not being close to power of two or power of then:  In real world problems, powers of two or then are common.  *to-do* I still don't entirerly understand itd.  When m is exactly a power of two or then, then this case is already ruled out by the case that m should be prime.
+
+
+==== Multiplication method
+
+A heuristic method. ++h(k,m,a,w) =((ak) mod 2^w^) >> (w-r)++, where as m=2^r^, i.e. +r=lg(m)+, and the machine stores integers in words of size w bits. a should be odd and not close to a power of two, between 2^r-1^ and 2^r^.  Works quite well in practice, altough we can't proove much.
+
+Intuitively: The multiplication mixes up the bits of k.  Looking at the product, especially in the area from bit (w-r) to w, so we extract that area.  +% 2^w^+ cuts away the part left of bit w, the shift right cuts way the bits right of bit (w-r).
+
+
+[[simple_uniform_hashing_assumption]]
+====  Simple uniform hashing assumption (SUHA)
+
+An ideal hash function is _totally random_. In other words, it satisfies the _simple uniform hashing assumption_ (_SUHA_):  Each key is equally likely to to be hashed to any slot in [0, m), independent of where other keys hashing.  In other words, given k~1~,k~2~ ∈ U, k~1~≠k~2~, Pr[h(k~1~)=h(k~2~)] = 1/m.
+
+However an implementation would require Θ(U log m) space: A table of |U| entries, each entry storing the hash value.  Each entry then needs Θ(log m) space.  In general this space requirement is far too large.  Such a table is called a _totally random hash table_.
+
+In practice it's not possible to check SUHA, since we rarely know the probability distribution of the keys.  In practice, we often employ heuristic techniques to create a hash function that approximates simple uniform hashing.
+
+
+[[uniform_hashing]]
+==== Uniform hashing
+
+Generalizes the notion of simple uniform hashing to a hash function that produces not just a single hash value, but a whole probe sequence of hash values.  Each produced probe sequence of hash values is equally likely to be any of the m! possible permutations.  In other words, each possible sequence of hash values must be equaly likely.
+
+True uniform hashing is difficult to implement, however, and in practice suitable approximations (e.g. double hashing) are used.
+
+
+==== Universal hashing and universal family
+
+Motivation: Any fixed hash function maps multiple keys to the same slot.  Thus given a fixed hash function, a malicious adversary can always choose n keys that map to the same slot, yielding an average retrieval time of Θ(n).
+
+In _universal hashing_, at the creation of a given hash table, we select a hash function at random and independent from the keys that are actually going to be stored from a carefully designed set of hash functions.  This guarantees that no single input will always evoke worst-case behaviour.  A family H of hash functions is called a _universal familiy_ (or just _universal_) if for every h∈H, and for all k~1~,k~2~ ∈ U, k~1~≠k~2~, Pr~h∈H~[h(k~1~) = h(k~2~)] ≤ 1/m.
+
+Examples of universal families:
+
+- ++h(x) = [(ax) mod p] mod m++ for 0<a<p, wheras p is a prime. p should be larger than m, else the higher slots are unused. ax can also be vector dot product. Note that this is not exactly the same as the division method.
+
+- ++h(x) = (a · x) >> (lg u − lg m)++.  I.e. use lg m high order bits of product ax.
+
+
+[[perfect_hashing]]
+==== Perfect hashing / perfect hash function
+
+A _perfect hash function_ maps the set of actual keys (as opposed to U) to a set of integers with no collisions, i.e. it is an injective function.  It may be used to to implement a hash table with O(1) worst-case access time.
+
+Note that <<direct_addressing>> maps U to [0, m), which is a stricter form of perfect hashing.  To implement it, you need a table mapping each key of K to [0, m), which is not trivial.  You then might as well use a <<trie>>, also <<trie_vs_hash_table>>.
+
+A possible perfect hashing scheme for a hash table:  We use two levels of hash tables.  The first level is a hash table of size m=n using a hash function randomly chosen from a universal class of hash functions.  This will map n~j~ keys to the j-th slot.  Each slot is then a hash table of size m~j~ = n~j~², constituting the second level.  Recall that the set of actual keys K is static and known.  For each secondary hash table, we try at random a hash function from a universal class of hash functions until we find one which doesn't produce any collision in that secondary hash table.  It can be prooven that given this setup, only a few tries are required.  It can also be proven that the overall space requirement is O(n).
+
+Applications: Efficient lookup (O(1) worst-case) for a set of keys which is known in advance.
+
+
+[[k_wise_independent]]
+==== k-Wise Independent family
+
+A family H of hash functions is k-wise independent if for every h ∈ H, and for all
+distinct x~1~, ..., x~k~ ∈ U, Pr{h(x~1~)=t~1~ and ... h(x~k~)=t~k~} = O(1/m^k^).
+
+Example pair-wise independent (k=2):
+
+++h(x) = [(ax + b) mod p] mod m++ for 0<a<p and for 0≤b<p. Here, again, p is a prime greater than |U|.
+
+
+==== Simple tabulation hashing
+
+View key x as vector of characters x~1~, ..., x~c~. We create a totally random hash table T~i~ on each character. ++h(x)=T~1~(x~1~) xor ... xor T~c~(x~c~)++
+
+Is <<k_wise_independent,3-wise independent>>.
+
+
 == Sorting algorithms
 
 Properties of sorting algorithms.  See also properties of algorithms in general.  Comparison-based sorting algorithm are asymptotically optimal when they run in +O(n lg(n))+ time.
@@ -2002,125 +2121,6 @@ Page replacement strategies:
 Applications:
 
 - Cachings at all levels of the memory hierarchy
-
-
-== Misc. algorithms
-
-=== Horner's method / Horner's scheme
-
-Task: Evaluate a polynomial P(x)=a~0~ + a~1~x + ... + a~n~x^n^ at x=x~0~.  Solution: Since the polynomial can be rewritten as a~0~ + x (a~1~ + x(a~2~+...+x(a~n~)...)) we can solve it beginning at the deepest level and iteratively go outward: b~n~=a~n~, b~n-1~=a~n-1~+x~0~b~n~, ..., b~0~=a~0~+x~0~b~1~ with b~0~ being the solution.  In code, with b~i~ stored in ++acc++umulator:
-
---------------------------------------------------
-double polynomial(double x, const vector<double>& coefficients) {
-    double acc = 0;
-    for (int i=coefficients.size()-1; i>=0; --i) {
-        acc = coefficients[i] + x * acc;
-    }
-    return acc;
-}
---------------------------------------------------
-
-
-[[hash_function]]
-=== Hash function (aka hash)
-
-A _hash function_ h(k, m) maps a key k to an integer in the range [0, m).  m is an integer m ≤ k.  In the case of a hash table, m is the size of the underlying array.  U is the universe of possible keys.  K is the set of keys actually used.  In the case of an hash table, contrast this with the keys currently stored in the table; K then is the set of keys ever stored in the table during it's life time.  Typically k is an integer of the size of a CPU word.  _Prehashing_ is used to map any originial key of any size to [0,k).
-
-A _good hash function_:
-
-- Satisfies or at least approximates the <<simple_uniform_hashing_assumption>>. In practice, we often can only approximate.
-
-- Does not hash `similar' keys to the same slot.  Especially in the case of a hash table using linear probing.
-
-Applications:
-
-- <<hash_table>>
-
-- String searching, e.g. <<rabin_karp>>
-
-- Cryptography
-
-
-References:
-
-- See those of <<hash_table>>
-
-
-==== Division method
-
-A heuristic method. +h(k,m)=k mod m+. In practice not so bad if m is prime and not close to a power of two or power of then. Still pretty `hackish'; Work's a lot of the time in practice, but not always.  We can't proove much.
-
-Rational for m being prime: When all (or most) keys are d appart (k~i~ = a+id), and d is a factor of m, then many slots or not used. E.g. when the keys are 3 appart like e.g. {1, 4, 7, 10, 13, ...}, m is 6=3*2, then the resulting hashes are {1, 4, 1, 4, 1, ...}. I.e. out of the slots {0, 2, 3, 5} are not used at all, and thus the slots {1, 4} have much more collisions than with a totally random hash.
-
-Rational for m not being close to power of two or power of then:  In real world problems, powers of two or then are common.  *to-do* I still don't entirerly understand itd.  When m is exactly a power of two or then, then this case is already ruled out by the case that m should be prime.
-
-
-==== Multiplication method
-
-A heuristic method. ++h(k,m,a,w) =((ak) mod 2^w^) >> (w-r)++, where as m=2^r^, i.e. +r=lg(m)+, and the machine stores integers in words of size w bits. a should be odd and not close to a power of two, between 2^r-1^ and 2^r^.  Works quite well in practice, altough we can't proove much.
-
-Intuitively: The multiplication mixes up the bits of k.  Looking at the product, especially in the area from bit (w-r) to w, so we extract that area.  +% 2^w^+ cuts away the part left of bit w, the shift right cuts way the bits right of bit (w-r).
-
-
-[[simple_uniform_hashing_assumption]]
-====  Simple uniform hashing assumption (SUHA)
-
-An ideal hash function is _totally random_. In other words, it satisfies the _simple uniform hashing assumption_ (_SUHA_):  Each key is equally likely to to be hashed to any slot in [0, m), independent of where other keys hashing.  In other words, given k~1~,k~2~ ∈ U, k~1~≠k~2~, Pr[h(k~1~)=h(k~2~)] = 1/m.
-
-However an implementation would require Θ(U log m) space: A table of |U| entries, each entry storing the hash value.  Each entry then needs Θ(log m) space.  In general this space requirement is far too large.  Such a table is called a _totally random hash table_.
-
-In practice it's not possible to check SUHA, since we rarely know the probability distribution of the keys.  In practice, we often employ heuristic techniques to create a hash function that approximates simple uniform hashing.
-
-
-[[uniform_hashing]]
-==== Uniform hashing
-
-Generalizes the notion of simple uniform hashing to a hash function that produces not just a single hash value, but a whole probe sequence of hash values.  Each produced probe sequence of hash values is equally likely to be any of the m! possible permutations.  In other words, each possible sequence of hash values must be equaly likely.
-
-True uniform hashing is difficult to implement, however, and in practice suitable approximations (e.g. double hashing) are used.
-
-
-==== Universal hashing and universal family
-
-Motivation: Any fixed hash function maps multiple keys to the same slot.  Thus given a fixed hash function, a malicious adversary can always choose n keys that map to the same slot, yielding an average retrieval time of Θ(n).
-
-In _universal hashing_, at the creation of a given hash table, we select a hash function at random and independent from the keys that are actually going to be stored from a carefully designed set of hash functions.  This guarantees that no single input will always evoke worst-case behaviour.  A family H of hash functions is called a _universal familiy_ (or just _universal_) if for every h∈H, and for all k~1~,k~2~ ∈ U, k~1~≠k~2~, Pr~h∈H~[h(k~1~) = h(k~2~)] ≤ 1/m.
-
-Examples of universal families:
-
-- ++h(x) = [(ax) mod p] mod m++ for 0<a<p, wheras p is a prime. p should be larger than m, else the higher slots are unused. ax can also be vector dot product. Note that this is not exactly the same as the division method.
-
-- ++h(x) = (a · x) >> (lg u − lg m)++.  I.e. use lg m high order bits of product ax.
-
-
-[[perfect_hashing]]
-==== Perfect hashing / perfect hash function
-
-A _perfect hash function_ maps the set of actual keys (as opposed to U) to a set of integers with no collisions, i.e. it is an injective function.  It may be used to to implement a hash table with O(1) worst-case access time.
-
-Note that <<direct_addressing>> maps U to [0, m), which is a stricter form of perfect hashing.  To implement it, you need a table mapping each key of K to [0, m), which is not trivial.  You then might as well use a <<trie>>, also <<trie_vs_hash_table>>.
-
-A possible perfect hashing scheme for a hash table:  We use two levels of hash tables.  The first level is a hash table of size m=n using a hash function randomly chosen from a universal class of hash functions.  This will map n~j~ keys to the j-th slot.  Each slot is then a hash table of size m~j~ = n~j~², constituting the second level.  Recall that the set of actual keys K is static and known.  For each secondary hash table, we try at random a hash function from a universal class of hash functions until we find one which doesn't produce any collision in that secondary hash table.  It can be prooven that given this setup, only a few tries are required.  It can also be proven that the overall space requirement is O(n).
-
-Applications: Efficient lookup (O(1) worst-case) for a set of keys which is known in advance.
-
-
-[[k_wise_independent]]
-==== k-Wise Independent family
-
-A family H of hash functions is k-wise independent if for every h ∈ H, and for all
-distinct x~1~, ..., x~k~ ∈ U, Pr{h(x~1~)=t~1~ and ... h(x~k~)=t~k~} = O(1/m^k^).
-
-Example pair-wise independent (k=2):
-
-++h(x) = [(ax + b) mod p] mod m++ for 0<a<p and for 0≤b<p. Here, again, p is a prime greater than |U|.
-
-
-==== Simple tabulation hashing
-
-View key x as vector of characters x~1~, ..., x~c~. We create a totally random hash table T~i~ on each character. ++h(x)=T~1~(x~1~) xor ... xor T~c~(x~c~)++
-
-Is <<k_wise_independent,3-wise independent>>.
 
 
 [[graph_theory]]
