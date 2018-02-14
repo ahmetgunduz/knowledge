@@ -589,32 +589,40 @@ Implementations: See those of <<graph_adt>>,  and the methods for storing a <<bi
 
 
 [[binary_search_tree]]
-=== Binary Search Tree (BST)
+=== Binary Search Tree (BST) / Search Tree
 
-Is a specialized <<binary_tree>> where 1) each node has a comparable key 2) for each node: the key of the left child, if child present, is smaller-or-equal than the node's key, and the key of the right child, if present, is larger-or-equal than the node's key.  Be +n+ the number of elements.  +h≥lg n+ the height of the tree.  The expected height is +h=lg n+ for a randomly built binary tree.  Some implementations store data only in the leaves.
+A _search tree_ is a tree data structure used store a set of compareable keys or key-value pairs. Often used to implement the more general <<associative_array>> ADT.
 
-_binary search tree property:_ If node +y+ is in the left subtree of node +x+, then +y.key<=x.key+, if +y+ is in +x+'s right subtree, then +y.key>=x.key+.
+A _binary search tree_ is a specialized <<binary_tree>> where each node satisfies the _binary-search-tree property_: Each node has a comparable key, and the key of the left child, if child present, is smaller than the node's key, and the key of the right child, if child present, is larger than the node's key.  Be n the number of stored elements.  The height h of the tree is h >= log n.  The expected height is h = log n for a randomly built binary tree.
 
-_Search_ key +k+: +O(h)+. Recursively or iteratively, for current node +x+, if +k<x.key+ continue with left subtree, else right subtree.
+Some implementations store data only in the leaves.  An advantage is that keys are closer together, i.e. there are less page misses.  An advantage of storing values also in internal nodes is that often accessed keys are found in less hops.
 
-[[rotation]]_Left/right rotation_: +O(1)+. Preserves the order of elements of an in-order traversal. Note that thus, in case of an BST, also preserves the binary-search-tree property.
-+
-The following visualizes left/rifght rotation. x/y/r are nodes, A/B/C are subtrees.  The middle subtree B changes the parent from x/y to y/x, and x/y swap parent/child relation which includes that the new parent's parent must be changed to r.
-+
+On _duplicates_: 1) disallow them 2) Adapt the binary search tree property such that either the left or the right subtree includes equal keys. 3) Each node can store a collection of elements with that key, or store the number of times the key occures.
+
+_search_ key k: Say x is the current node. If x.key = k then the node is found and returned, else if k < x.key then continue with left subtree, else with right subtree.  Stop when reaching a null pointer and return null. O(h) time.
+
+_insert_: Assumes key does not already exist.  Use the search algorithm to arrive at a null child ptr, replace that with a ptr to the new element.  If the tree was empty before, make the new element the root. O(h) time.
+
+_delete_: *to-do*
+
+_min_/_max_: Follow left/right subtree until the leaf is reached. O(1) time.
+
+_successor_: The successor is the next node in inorder traversl.  Thus if there's a right child, return min of the right subtree.  Otherwise, travel up the tree following the parent pointers until coming up from a left child. O(h) time.
+
+_predecessor_: Symmetric to Successor.
+
+[[rotation]]_left/right rotation_: Swaps the heights of the subtrees while preserving the order of elements of an in-order traversal.  Note that thus, in case of an BST, also the binary-search-tree property is preserved.  O(1) time.  The following visualizes left/rifght rotation. x/y are nodes, A/B/C are subtrees.
+
 ----------------------------------------------------------------------
-   r                 r
-   x      left       y  
+   x      left       y
 A     y     →     x    C
      B C    ←    A B
           right    
-A  x ByC         AxB y C
 ----------------------------------------------------------------------
 
-_Min_/_Max_: +O(h)+. Follow left/right subtree until the leaf is reached.
+Implementations of binary search trees: <<avl_tree>>, <<red_black_tree>>
 
-_Successor_/_Predecessor_: +O(h)+. **To-do**
-
-Implementations: <<naive_BST>>, <<avl_tree>>, <<red_black_tree>>
+Implementations of search trees in general: <<2_3_tree>>, <<2_3_4_tree>>, <<b_tree>>
 
 Implements these more general ADTs: <<associative_array>>
 
@@ -809,30 +817,60 @@ red-black properties:
 
 - For each descendant of a node n, the number of black nodes on the simple path from n to descendant is the same
 
-Time and space complexity: save as <<AVL>> tree.
+Time and space complexity: same as <<AVL>> tree.
 
-See also <<search_tree_comparison>>
+See also <<search_tree_comparison>>.
 
+References:
 
-=== 2-3 tree
-*to-do*
-
-
-=== 2-3-4 tree
-*to-do*
+- MIT 6.046J, Lecture 10 Red-black Trees, Rotations, Insertions, Deletions: https://www.youtube.com/watch?v=O3hI9FdxFOM&t=158s
 
 
+[[b_tree]]
 === B-tree
-*to-do*
+
+B-trees are balanced search trees designed to work well on secondary storage devices such as disks.  B-trees are similiar to red-black trees, but thet are better at minimizing disk I/O operations.  In a typical B-tree application the amount of data fits not into main memory and thus most data must reside on disk.  B-trees generalize binary search trees in a natural manner.  Each node can have many children, not just two.  The number of childrens is called the branching factor.
+
+In our model, when accessing an object pointed to by pointer x, we first have to read it from disk into a page in main memory.  When the object is modified, we need to write it back.  We don't care about pages no longer in use by leaving that to the system.  We want to minimize the disk read / write operations.  We often see branching factors between 50 and 2000.
+
+Etymology: What the B stands for is not clearly known.  One of the co-inventors hinted that Rudolf Bayer was the senior in the team, and that they worked for Boeing.
+
+References:
+
+- MIT Course 6.046J Design and Analysis of Algorithms, Spring 2015, Recitation 2 2-3 Trees and B-Trees: https://www.youtube.com/watch?v=TOb1tuEZ2X4&list=PLUl4u3cNGP6317WaSNfmCvGym2ucw3oGp&index=5
+
+- Book ``Introduction to algorithms'', chapter ``B-Trees''.
 
 
-=== B+ tree
-See data_base_systems.txt
+[[2_3_tree]]
+==== 2-3 tree
+
+A <<b_tree>> of order three.  Each internal node has one key and two children or two keys and three children.
+
+References:
+
+- MIT Course 6.046J Design and Analysis of Algorithms, Spring 2015, Recitation 2 2-3 Trees and B-Trees: https://www.youtube.com/watch?v=TOb1tuEZ2X4&list=PLUl4u3cNGP6317WaSNfmCvGym2ucw3oGp&index=5
+
+
+[[2_3_4_tree]]
+==== 2-3-4 tree
+
+A <<b_tree>> of order four.
+
+
+==== B+ tree
+
+A variant of a B tree which stores all values in the leave nodes, never in internal nodes.  See data_base_systems.txt
 
 
 [[vEB_tree]]
 === Van Emde Boas tree (aka vEB tree)
+
 Is a tree data structure implementing the ordered <<associative_array>> ADT with m-bit integer keys. It performs all operations in O(lg m) time. The vEB tree has good space efficiency when it contains a large number of elements
+
+References:
+
+- MIT Course 6.046J Design and Analysis of Algorithms, Spring 2015, Lecture 4 Divide & Conquer: van Emde Boas Trees: https://www.youtube.com/watch?v=hmReJCupbNU&list=PLUl4u3cNGP6317WaSNfmCvGym2ucw3oGp&index=6
 
 
 [[cartesian_tree]]
@@ -871,6 +909,7 @@ References:
 
 
 
+[[treap]]
 === Treap (aka priority search tree)
 
 A _treap_ is a <<cartesian_tree>> in which each key is given a (randomly chosen) numeric priority.  In other words, it's a balanced (with high probability) binary search tree. The idea is to use randomization and the heap property to maintain balance with heigh probability, i.e. balancedness is not guaranteed. Search, insert, delete in O(log n) time with high probability, but O(n) worst case.
