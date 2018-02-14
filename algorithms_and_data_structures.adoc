@@ -1676,9 +1676,191 @@ O(n+m) worst case
 - _FSA_ / _DFA_: *to-do*
 
 
-== Graph (incl. tree) algorithms
+[[online_algorithms]]
+== Online algorithms
 
-See also <<graph_theory>> and <<graph_adt>>.
+An online algorithm is _k-competitive_ if there exists a constant k such that its cost is at most k times the cost of an optimal offline algorithm, ignoring a constant offset.  The factor k is called the _competitive ratio_.  If the constant offset is zero, the algorithm is said to be _strictly competitive_.  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
+
+
+=== Randomized online algorithms
+
+There are diffrent models of adversaries: The _oblivious adversary_ knows what algorithm I am running, but he sees none of the coin flips.  It's the adversary model commonly used.  The _fully adaptive adversary_ additionally also sees the coin flips. But that is uninteresting from a randomized perspective, because then the algorithm could as well be deterministic. The _adaptive adversary_ is somewhere inbetween. It knows the previous coin flips, but not the future flips. So it's an online algorithm itself.
+
+
+=== Page replacement algorithms
+
+There's (slow) data, k faster-than-data pages. A cache _miss_ is when a requested page is not in the cache. Updating cache from data is called _evicting_ (kicking out a page from the cache) and _fetching_ data into the now free page.
+
+No deterministic algorithm is k-competitive.
+
+Page replacement strategies:
+
+- LRU (least recently used): Evict least recently used. Is an conservative algorithm.
+- FIFO (first in first out): Evict oldest-loaded page. Is an conservative algorithm.
+- LFU (least frequently used): Evict the page that has been requested least frequently.
+- MIN or OPT (offline optimal): Evict page to be used farthest in the future. A greedy algorithm. Proofably optimal. Cost +O(n/k)+ (n accesses, k pages). Proof: Only very k accesses there's an evict.
+
+Applications:
+
+- Cachings at all levels of the memory hierarchy
+
+
+== Misc algorithms
+
+=== Horner's method / Horner's scheme
+
+Task: Evaluate a polynomial P(x)=a~0~ + a~1~x + ... + a~n~x^n^ at x=x~0~.  Solution: Since the polynomial can be rewritten as a~0~ + x (a~1~ + x(a~2~+...+x(a~n~)...)) we can solve it beginning at the deepest level and iteratively go outward: b~n~=a~n~, b~n-1~=a~n-1~+x~0~b~n~, ..., b~0~=a~0~+x~0~b~1~ with b~0~ being the solution.  In code, with b~i~ stored in ++acc++umulator:
+
+--------------------------------------------------
+double polynomial(double x, const vector<double>& coefficients) {
+    double acc = 0;
+    for (int i=coefficients.size()-1; i>=0; --i) {
+        acc = coefficients[i] + x * acc;
+    }
+    return acc;
+}
+--------------------------------------------------
+
+
+[[hash_function]]
+=== Hash function (aka hash)
+
+A _hash function_ h(k, m) maps a key k to an integer in the range [0, m).  m is an integer m ≤ k.  In the case of a hash table, m is the size of the underlying array.  U is the universe of possible keys.  K is the set of keys actually used.  In the case of an hash table, contrast this with the keys currently stored in the table; K then is the set of keys ever stored in the table during it's life time.  Typically k is an integer of the size of a CPU word.  _Prehashing_ is used to map any originial key of any size to [0,k).
+
+A _good hash function_:
+
+- Satisfies or at least approximates the <<simple_uniform_hashing_assumption>>. In practice, we often can only approximate.
+
+- Does not hash `similar' keys to the same slot.  Especially in the case of a hash table using linear probing.
+
+Applications:
+
+- <<hash_table>>
+
+- String searching, e.g. <<rabin_karp>>
+
+- Cryptography
+
+
+References:
+
+- See those of <<hash_table>>
+
+
+==== Division method
+
+A heuristic method. +h(k,m)=k mod m+. In practice not so bad if m is prime and not close to a power of two or power of then. Still pretty `hackish'; Work's a lot of the time in practice, but not always.  We can't proove much.
+
+Rational for m being prime: When all (or most) keys are d appart (k~i~ = a+id), and d is a factor of m, then many slots or not used. E.g. when the keys are 3 appart like e.g. {1, 4, 7, 10, 13, ...}, m is 6=3*2, then the resulting hashes are {1, 4, 1, 4, 1, ...}. I.e. out of the slots {0, 2, 3, 5} are not used at all, and thus the slots {1, 4} have much more collisions than with a totally random hash.
+
+Rational for m not being close to power of two or power of then:  In real world problems, powers of two or then are common.  *to-do* I still don't entirerly understand itd.  When m is exactly a power of two or then, then this case is already ruled out by the case that m should be prime.
+
+
+==== Multiplication method
+
+A heuristic method. ++h(k,m,a,w) =((ak) mod 2^w^) >> (w-r)++, where as m=2^r^, i.e. +r=lg(m)+, and the machine stores integers in words of size w bits. a should be odd and not close to a power of two, between 2^r-1^ and 2^r^.  Works quite well in practice, altough we can't proove much.
+
+Intuitively: The multiplication mixes up the bits of k.  Looking at the product, especially in the area from bit (w-r) to w, so we extract that area.  +% 2^w^+ cuts away the part left of bit w, the shift right cuts way the bits right of bit (w-r).
+
+
+[[simple_uniform_hashing_assumption]]
+====  Simple uniform hashing assumption (SUHA)
+
+An ideal hash function is _totally random_. In other words, it satisfies the _simple uniform hashing assumption_ (_SUHA_):  Each key is equally likely to to be hashed to any slot in [0, m), independent of where other keys hashing.  In other words, given k~1~,k~2~ ∈ U, k~1~≠k~2~, Pr[h(k~1~)=h(k~2~)] = 1/m.
+
+However an implementation would require Θ(U log m) space: A table of |U| entries, each entry storing the hash value.  Each entry then needs Θ(log m) space.  In general this space requirement is far too large.  Such a table is called a _totally random hash table_.
+
+In practice it's not possible to check SUHA, since we rarely know the probability distribution of the keys.  In practice, we often employ heuristic techniques to create a hash function that approximates simple uniform hashing.
+
+
+[[uniform_hashing]]
+==== Uniform hashing
+
+Generalizes the notion of simple uniform hashing to a hash function that produces not just a single hash value, but a whole probe sequence of hash values.  Each produced probe sequence of hash values is equally likely to be any of the m! possible permutations.  In other words, each possible sequence of hash values must be equaly likely.
+
+True uniform hashing is difficult to implement, however, and in practice suitable approximations (e.g. double hashing) are used.
+
+
+==== Universal hashing and universal family
+
+Motivation: Any fixed hash function maps multiple keys to the same slot.  Thus given a fixed hash function, a malicious adversary can always choose n keys that map to the same slot, yielding an average retrieval time of Θ(n).
+
+In _universal hashing_, at the creation of a given hash table, we select a hash function at random and independent from the keys that are actually going to be stored from a carefully designed set of hash functions.  This guarantees that no single input will always evoke worst-case behaviour.  A family H of hash functions is called a _universal familiy_ (or just _universal_) if for every h∈H, and for all k~1~,k~2~ ∈ U, k~1~≠k~2~, Pr~h∈H~[h(k~1~) = h(k~2~)] ≤ 1/m.
+
+Examples of universal families:
+
+- ++h(x) = [(ax) mod p] mod m++ for 0<a<p, wheras p is a prime. p should be larger than m, else the higher slots are unused. ax can also be vector dot product. Note that this is not exactly the same as the division method.
+
+- ++h(x) = (a · x) >> (lg u − lg m)++.  I.e. use lg m high order bits of product ax.
+
+
+[[perfect_hashing]]
+==== Perfect hashing / perfect hash function
+
+A _perfect hash function_ maps the set of actual keys (as opposed to U) to a set of integers with no collisions, i.e. it is an injective function.  It may be used to to implement a hash table with O(1) worst-case access time.
+
+Note that <<direct_addressing>> maps U to [0, m), which is a stricter form of perfect hashing.  To implement it, you need a table mapping each key of K to [0, m), which is not trivial.  You then might as well use a <<trie>>, also <<trie_vs_hash_table>>.
+
+A possible perfect hashing scheme for a hash table:  We use two levels of hash tables.  The first level is a hash table of size m=n using a hash function randomly chosen from a universal class of hash functions.  This will map n~j~ keys to the j-th slot.  Each slot is then a hash table of size m~j~ = n~j~², constituting the second level.  Recall that the set of actual keys K is static and known.  For each secondary hash table, we try at random a hash function from a universal class of hash functions until we find one which doesn't produce any collision in that secondary hash table.  It can be prooven that given this setup, only a few tries are required.  It can also be proven that the overall space requirement is O(n).
+
+Applications: Efficient lookup (O(1) worst-case) for a set of keys which is known in advance.
+
+
+[[k_wise_independent]]
+==== k-Wise Independent family
+
+A family H of hash functions is k-wise independent if for every h ∈ H, and for all
+distinct x~1~, ..., x~k~ ∈ U, Pr{h(x~1~)=t~1~ and ... h(x~k~)=t~k~} = O(1/m^k^).
+
+Example pair-wise independent (k=2):
+
+++h(x) = [(ax + b) mod p] mod m++ for 0<a<p and for 0≤b<p. Here, again, p is a prime greater than |U|.
+
+
+==== Simple tabulation hashing
+
+View key x as vector of characters x~1~, ..., x~c~. We create a totally random hash table T~i~ on each character. ++h(x)=T~1~(x~1~) xor ... xor T~c~(x~c~)++
+
+Is <<k_wise_independent,3-wise independent>>.
+
+
+[[graph_theory]]
+== Graph theory
+This chapter explains graphs as a mathematical concept. For the corresponding abstract data type, see <<graph_adt>>
+
+A _graph_ G=(V,E) is given by a set of _vertices_ V (aka _nodes_ or _points_) and a set of _edges_ E (aka _lines_), each edge being an pair of elements from V.  The _order_ of a graph G, denoted by |G| is the number of its vertices, i.e. |V|.  The _size_ of a graph G, denoted by ‖G‖, is the number of its edges, i.e. |E|.
+
+An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++.  An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs.  Such an directed edge is also called _arc_, _directed edge_ or _arrow_.  An _outgoing edge_ (_incoming edge_) of vertex v is a directed edge starting (ending) at v. A _successor_ (_predecessor_) is vertex that comes after (before) a given vertex in a directed graph. A _direct successor_ (_direct predecessor_) is an adjacent successor (predecessor).  A _loop_ is an edge which starts and ends on the same vertex.  A _link_ is an edge with two different ends.  _parallel edges_ (aka _multiple edges_ or a _multi-edge_) share the same pair of vertices, and in case of directed graphs, point in the same direction.  _antiparallel edges_ share the same pair of vertices and point in opposite directions.  In an undirected graph the two vertices of an edge are said to be _adjacent_ (or _neihbors_) to each other; in an directed graph only the destination vertex of an edge is adjacent to the source vertex.  Two edges are called _incident_ (or _adjacent_) if they share a vertex.  Pairwise non-adjacent vertices or edges are called _independent_.
+
+The _degree_ (aka _valency_) d~G~(v)=d(v) of a vertex v in an undirected graph is the number |E(v)| of edges incident with v, with loops counted twice. In directed graphs, _out degree_ (_in degree_) is the number of outgoing (incoming) edges. A vertex of degree 0 is called _isolated_ (or _disconnected_), a vertex of degree 1 is called an _end-vertex_.  The number δ(G) := min { d(v) | v ∈ V } is the minimum degree of G, the number Δ(G) := max { d(v) | v ∈ V } its maximum degree. If all the vertices of G have the same degree k, then G is _k-regular_, or simply _regular_.  The _average degree_ d(G) of G is the average degree of G's vertices.
+
+A _simple graph_ is an undirected graph that has no loops (mind: a loop is not a cycle) and no parallel edges.  A _trivial graph_ is a graph of order 0 or 1.  A _multigraph_ is one where +E+ is a multiset (as opposed to just a set).  Alternatively: a multigraph is allowed to have parallel edges.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.  A _null graph_ is one with no edges. The _empty graph_ ∅=(∅,∅) has no vertices and no edges.
+
+A _vertex cover_ is a set of vertices such that each edge of the graph is incident to at least one vertex of the set.  An _independent set_ (aka _stable set_) is a set of vertices, no two of which are adjacent.  Given a simple Graph G, it's _complement_ graph has the same vertices, but only an edge between any two vertices iff they are not adjacent in G.
+
+A _walk_ is a set of consecutive edges.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a walk with distinct edges.  A _circuit_ is a closed trail.  A _path_ is a walk with distinct vertices (which implies distinct edges), except possibly the first and the last.  Some authors call that a _simple path_, and use the term path as a synonym to walk.  Given a subgraph H of graph G, we call a path P an _H-path_ if it meets H only exactly at its two end vertices, i.e. no other common vertices, and no common edges.  A _cycle_ is a path in which the first and last vertices are identical.  An _open path_ is a path in which the first and last vertices are distinct.  Two paths are _vertex-independent_ (aka _vertex-disjoint_) if they do not have any vertices in common (*to-do* some sources are clear that they only mean inner vertices, other sources seem to include also end vertices).  Two paths are _edge-independent_ (aka _edge disjoint_) if they do not have any edges in common.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The [[shortest_path]]_shortest path_ from vertex u to v is any path with minimal path weight.  See also <<shortest_path_problem>>.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path, and often defined as -infinite it contains a negative-weight cycle.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
+
+Given a graph G, a _subgraph_ of G is a graph, each of whose vertices and edges belong to G.  Given a graph G, an _induced subgraph_ is a subgraph of G, whose edge set consists of all G's edges that have both endpoints in the subgraph.  A graph is _edge-maximal_ with a given graph property if G has the property, but no Graph resulting from adding an (non-parallel) edge does.
+
+[[DAG]]
+A _directed acyclic graph_ (_DAG_) is a graph with no directed cycles.  Given a directed edge C->P, C is the _child_ and P the _parent_. Nodes reachable from C are C's _ancestors_, nodes which can reach P are P's _descendants_.  Whether or not a node is it's own ancestor/descendant is not defined across literature. CLRS say yes.  The _lowest common ancestor_ (_LCA_, aka, less accurately, _least common anchestor_) of two nodes x and y is the first common ancestor in topo order.
+
+[[tree_graph_theory]]
+See also <<tree_ADT>>. A _tree_ is an undirected graph in which any two vertices are connected by exactly one path (which then naturally is a simple path).  Alternatively: an undirected connected acyclic graph.  Alternativly:  An undirected connected graph where every edge is a bridge.  Thus it's always undirected, acylic, connected and bipartite.  Note that an arborescence is not a connected graph (consider a root with two childs; the two childs are not connected).  In informatic context, the term tree is often used for what we call here an directed rooted tree.  A _rooted tree_ is a tree in which one vertex has been designated the root.  An _arborescence_ (aka _directed rooted tree_ or _out-tree_) is a directed rooted tree in which all edges point away from the root.  An _anti-arborescence_ (aka _in-tree_) is an arborescence where all edge directions are reversed.  A _forest_ is a disjoint union of trees.  Alternatively: an acyclic undirected graph.  An _ordered tree_ (aka _plane tree_) is a rooted tree in which an ordering is specified for the children of each vertex.  A _poly tree_ is a directed acyclic graph which would be a tree if it's edges were undirected.  A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the vertices of G.  A [[MST]]_minimum spanning tree_ (aka _MST_) of is a spanning tree of G with the minimal total weighting for its edges.  See also the <<MST_problem>>.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
+
+Common graph problems:
+
+- _single-pair shortest path_ problem (from single source to a single destination)
+- _single-source shortest path_ problem (from a single source to all others)
+- _single-destination shortest path_ problem (from all others to a destination)
+- _all-pairs shortest path_ problem (from all to all)
+- <<maximum_flow_problem>>
+- The chapter <<NP_complete>> also lists some graph problems.
+
+References:
+
+- http://en.wikipedia.org/wiki/Glossary_of_graph_theory
+
 
 [[BFS]]
 === Breadth-first search (BFS) / traversal
@@ -2002,192 +2184,6 @@ void traverse(Node* n) {
 
 === (Greedy) best-first search
 *to-do*:
-
-
-[[online_algorithms]]
-== Online algorithms
-
-An online algorithm is _k-competitive_ if there exists a constant k such that its cost is at most k times the cost of an optimal offline algorithm, ignoring a constant offset.  The factor k is called the _competitive ratio_.  If the constant offset is zero, the algorithm is said to be _strictly competitive_.  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
-
-
-=== Randomized online algorithms
-
-There are diffrent models of adversaries: The _oblivious adversary_ knows what algorithm I am running, but he sees none of the coin flips.  It's the adversary model commonly used.  The _fully adaptive adversary_ additionally also sees the coin flips. But that is uninteresting from a randomized perspective, because then the algorithm could as well be deterministic. The _adaptive adversary_ is somewhere inbetween. It knows the previous coin flips, but not the future flips. So it's an online algorithm itself.
-
-
-=== Page replacement algorithms
-
-There's (slow) data, k faster-than-data pages. A cache _miss_ is when a requested page is not in the cache. Updating cache from data is called _evicting_ (kicking out a page from the cache) and _fetching_ data into the now free page.
-
-No deterministic algorithm is k-competitive.
-
-Page replacement strategies:
-
-- LRU (least recently used): Evict least recently used. Is an conservative algorithm.
-- FIFO (first in first out): Evict oldest-loaded page. Is an conservative algorithm.
-- LFU (least frequently used): Evict the page that has been requested least frequently.
-- MIN or OPT (offline optimal): Evict page to be used farthest in the future. A greedy algorithm. Proofably optimal. Cost +O(n/k)+ (n accesses, k pages). Proof: Only very k accesses there's an evict.
-
-Applications:
-
-- Cachings at all levels of the memory hierarchy
-
-
-== Misc algorithms
-
-=== Horner's method / Horner's scheme
-
-Task: Evaluate a polynomial P(x)=a~0~ + a~1~x + ... + a~n~x^n^ at x=x~0~.  Solution: Since the polynomial can be rewritten as a~0~ + x (a~1~ + x(a~2~+...+x(a~n~)...)) we can solve it beginning at the deepest level and iteratively go outward: b~n~=a~n~, b~n-1~=a~n-1~+x~0~b~n~, ..., b~0~=a~0~+x~0~b~1~ with b~0~ being the solution.  In code, with b~i~ stored in ++acc++umulator:
-
---------------------------------------------------
-double polynomial(double x, const vector<double>& coefficients) {
-    double acc = 0;
-    for (int i=coefficients.size()-1; i>=0; --i) {
-        acc = coefficients[i] + x * acc;
-    }
-    return acc;
-}
---------------------------------------------------
-
-
-[[hash_function]]
-=== Hash function (aka hash)
-
-A _hash function_ h(k, m) maps a key k to an integer in the range [0, m).  m is an integer m ≤ k.  In the case of a hash table, m is the size of the underlying array.  U is the universe of possible keys.  K is the set of keys actually used.  In the case of an hash table, contrast this with the keys currently stored in the table; K then is the set of keys ever stored in the table during it's life time.  Typically k is an integer of the size of a CPU word.  _Prehashing_ is used to map any originial key of any size to [0,k).
-
-A _good hash function_:
-
-- Satisfies or at least approximates the <<simple_uniform_hashing_assumption>>. In practice, we often can only approximate.
-
-- Does not hash `similar' keys to the same slot.  Especially in the case of a hash table using linear probing.
-
-Applications:
-
-- <<hash_table>>
-
-- String searching, e.g. <<rabin_karp>>
-
-- Cryptography
-
-
-References:
-
-- See those of <<hash_table>>
-
-
-==== Division method
-
-A heuristic method. +h(k,m)=k mod m+. In practice not so bad if m is prime and not close to a power of two or power of then. Still pretty `hackish'; Work's a lot of the time in practice, but not always.  We can't proove much.
-
-Rational for m being prime: When all (or most) keys are d appart (k~i~ = a+id), and d is a factor of m, then many slots or not used. E.g. when the keys are 3 appart like e.g. {1, 4, 7, 10, 13, ...}, m is 6=3*2, then the resulting hashes are {1, 4, 1, 4, 1, ...}. I.e. out of the slots {0, 2, 3, 5} are not used at all, and thus the slots {1, 4} have much more collisions than with a totally random hash.
-
-Rational for m not being close to power of two or power of then:  In real world problems, powers of two or then are common.  *to-do* I still don't entirerly understand itd.  When m is exactly a power of two or then, then this case is already ruled out by the case that m should be prime.
-
-
-==== Multiplication method
-
-A heuristic method. ++h(k,m,a,w) =((ak) mod 2^w^) >> (w-r)++, where as m=2^r^, i.e. +r=lg(m)+, and the machine stores integers in words of size w bits. a should be odd and not close to a power of two, between 2^r-1^ and 2^r^.  Works quite well in practice, altough we can't proove much.
-
-Intuitively: The multiplication mixes up the bits of k.  Looking at the product, especially in the area from bit (w-r) to w, so we extract that area.  +% 2^w^+ cuts away the part left of bit w, the shift right cuts way the bits right of bit (w-r).
-
-
-[[simple_uniform_hashing_assumption]]
-====  Simple uniform hashing assumption (SUHA)
-
-An ideal hash function is _totally random_. In other words, it satisfies the _simple uniform hashing assumption_ (_SUHA_):  Each key is equally likely to to be hashed to any slot in [0, m), independent of where other keys hashing.  In other words, given k~1~,k~2~ ∈ U, k~1~≠k~2~, Pr[h(k~1~)=h(k~2~)] = 1/m.
-
-However an implementation would require Θ(U log m) space: A table of |U| entries, each entry storing the hash value.  Each entry then needs Θ(log m) space.  In general this space requirement is far too large.  Such a table is called a _totally random hash table_.
-
-In practice it's not possible to check SUHA, since we rarely know the probability distribution of the keys.  In practice, we often employ heuristic techniques to create a hash function that approximates simple uniform hashing.
-
-
-[[uniform_hashing]]
-==== Uniform hashing
-
-Generalizes the notion of simple uniform hashing to a hash function that produces not just a single hash value, but a whole probe sequence of hash values.  Each produced probe sequence of hash values is equally likely to be any of the m! possible permutations.  In other words, each possible sequence of hash values must be equaly likely.
-
-True uniform hashing is difficult to implement, however, and in practice suitable approximations (e.g. double hashing) are used.
-
-
-==== Universal hashing and universal family
-
-Motivation: Any fixed hash function maps multiple keys to the same slot.  Thus given a fixed hash function, a malicious adversary can always choose n keys that map to the same slot, yielding an average retrieval time of Θ(n).
-
-In _universal hashing_, at the creation of a given hash table, we select a hash function at random and independent from the keys that are actually going to be stored from a carefully designed set of hash functions.  This guarantees that no single input will always evoke worst-case behaviour.  A family H of hash functions is called a _universal familiy_ (or just _universal_) if for every h∈H, and for all k~1~,k~2~ ∈ U, k~1~≠k~2~, Pr~h∈H~[h(k~1~) = h(k~2~)] ≤ 1/m.
-
-Examples of universal families:
-
-- ++h(x) = [(ax) mod p] mod m++ for 0<a<p, wheras p is a prime. p should be larger than m, else the higher slots are unused. ax can also be vector dot product. Note that this is not exactly the same as the division method.
-
-- ++h(x) = (a · x) >> (lg u − lg m)++.  I.e. use lg m high order bits of product ax.
-
-
-[[perfect_hashing]]
-==== Perfect hashing / perfect hash function
-
-A _perfect hash function_ maps the set of actual keys (as opposed to U) to a set of integers with no collisions, i.e. it is an injective function.  It may be used to to implement a hash table with O(1) worst-case access time.
-
-Note that <<direct_addressing>> maps U to [0, m), which is a stricter form of perfect hashing.  To implement it, you need a table mapping each key of K to [0, m), which is not trivial.  You then might as well use a <<trie>>, also <<trie_vs_hash_table>>.
-
-A possible perfect hashing scheme for a hash table:  We use two levels of hash tables.  The first level is a hash table of size m=n using a hash function randomly chosen from a universal class of hash functions.  This will map n~j~ keys to the j-th slot.  Each slot is then a hash table of size m~j~ = n~j~², constituting the second level.  Recall that the set of actual keys K is static and known.  For each secondary hash table, we try at random a hash function from a universal class of hash functions until we find one which doesn't produce any collision in that secondary hash table.  It can be prooven that given this setup, only a few tries are required.  It can also be proven that the overall space requirement is O(n).
-
-Applications: Efficient lookup (O(1) worst-case) for a set of keys which is known in advance.
-
-
-[[k_wise_independent]]
-==== k-Wise Independent family
-
-A family H of hash functions is k-wise independent if for every h ∈ H, and for all
-distinct x~1~, ..., x~k~ ∈ U, Pr{h(x~1~)=t~1~ and ... h(x~k~)=t~k~} = O(1/m^k^).
-
-Example pair-wise independent (k=2):
-
-++h(x) = [(ax + b) mod p] mod m++ for 0<a<p and for 0≤b<p. Here, again, p is a prime greater than |U|.
-
-
-==== Simple tabulation hashing
-
-View key x as vector of characters x~1~, ..., x~c~. We create a totally random hash table T~i~ on each character. ++h(x)=T~1~(x~1~) xor ... xor T~c~(x~c~)++
-
-Is <<k_wise_independent,3-wise independent>>.
-
-
-[[graph_theory]]
-== Graph theory
-This chapter explains graphs as a mathematical concept. For the corresponding abstract data type, see <<graph_adt>>
-
-A _graph_ G=(V,E) is given by a set of _vertices_ V (aka _nodes_ or _points_) and a set of _edges_ E (aka _lines_), each edge being an pair of elements from V.  The _order_ of a graph G, denoted by |G| is the number of its vertices, i.e. |V|.  The _size_ of a graph G, denoted by ‖G‖, is the number of its edges, i.e. |E|.
-
-An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++.  An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs.  Such an directed edge is also called _arc_, _directed edge_ or _arrow_.  An _outgoing edge_ (_incoming edge_) of vertex v is a directed edge starting (ending) at v. A _successor_ (_predecessor_) is vertex that comes after (before) a given vertex in a directed graph. A _direct successor_ (_direct predecessor_) is an adjacent successor (predecessor).  A _loop_ is an edge which starts and ends on the same vertex.  A _link_ is an edge with two different ends.  _parallel edges_ (aka _multiple edges_ or a _multi-edge_) share the same pair of vertices, and in case of directed graphs, point in the same direction.  _antiparallel edges_ share the same pair of vertices and point in opposite directions.  In an undirected graph the two vertices of an edge are said to be _adjacent_ (or _neihbors_) to each other; in an directed graph only the destination vertex of an edge is adjacent to the source vertex.  Two edges are called _incident_ (or _adjacent_) if they share a vertex.  Pairwise non-adjacent vertices or edges are called _independent_.
-
-The _degree_ (aka _valency_) d~G~(v)=d(v) of a vertex v in an undirected graph is the number |E(v)| of edges incident with v, with loops counted twice. In directed graphs, _out degree_ (_in degree_) is the number of outgoing (incoming) edges. A vertex of degree 0 is called _isolated_ (or _disconnected_), a vertex of degree 1 is called an _end-vertex_.  The number δ(G) := min { d(v) | v ∈ V } is the minimum degree of G, the number Δ(G) := max { d(v) | v ∈ V } its maximum degree. If all the vertices of G have the same degree k, then G is _k-regular_, or simply _regular_.  The _average degree_ d(G) of G is the average degree of G's vertices.
-
-A _simple graph_ is an undirected graph that has no loops (mind: a loop is not a cycle) and no parallel edges.  A _trivial graph_ is a graph of order 0 or 1.  A _multigraph_ is one where +E+ is a multiset (as opposed to just a set).  Alternatively: a multigraph is allowed to have parallel edges.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.  A _null graph_ is one with no edges. The _empty graph_ ∅=(∅,∅) has no vertices and no edges.
-
-A _vertex cover_ is a set of vertices such that each edge of the graph is incident to at least one vertex of the set.  An _independent set_ (aka _stable set_) is a set of vertices, no two of which are adjacent.  Given a simple Graph G, it's _complement_ graph has the same vertices, but only an edge between any two vertices iff they are not adjacent in G.
-
-A _walk_ is a set of consecutive edges.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a walk with distinct edges.  A _circuit_ is a closed trail.  A _path_ is a walk with distinct vertices (which implies distinct edges), except possibly the first and the last.  Some authors call that a _simple path_, and use the term path as a synonym to walk.  Given a subgraph H of graph G, we call a path P an _H-path_ if it meets H only exactly at its two end vertices, i.e. no other common vertices, and no common edges.  A _cycle_ is a path in which the first and last vertices are identical.  An _open path_ is a path in which the first and last vertices are distinct.  Two paths are _vertex-independent_ (aka _vertex-disjoint_) if they do not have any vertices in common (*to-do* some sources are clear that they only mean inner vertices, other sources seem to include also end vertices).  Two paths are _edge-independent_ (aka _edge disjoint_) if they do not have any edges in common.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The [[shortest_path]]_shortest path_ from vertex u to v is any path with minimal path weight.  See also <<shortest_path_problem>>.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path, and often defined as -infinite it contains a negative-weight cycle.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
-
-Given a graph G, a _subgraph_ of G is a graph, each of whose vertices and edges belong to G.  Given a graph G, an _induced subgraph_ is a subgraph of G, whose edge set consists of all G's edges that have both endpoints in the subgraph.  A graph is _edge-maximal_ with a given graph property if G has the property, but no Graph resulting from adding an (non-parallel) edge does.
-
-[[DAG]]
-A _directed acyclic graph_ (_DAG_) is a graph with no directed cycles.  Given a directed edge C->P, C is the _child_ and P the _parent_. Nodes reachable from C are C's _ancestors_, nodes which can reach P are P's _descendants_.  Whether or not a node is it's own ancestor/descendant is not defined across literature. CLRS say yes.  The _lowest common ancestor_ (_LCA_, aka, less accurately, _least common anchestor_) of two nodes x and y is the first common ancestor in topo order.
-
-[[tree_graph_theory]]
-See also <<tree_ADT>>. A _tree_ is an undirected graph in which any two vertices are connected by exactly one path (which then naturally is a simple path).  Alternatively: an undirected connected acyclic graph.  Alternativly:  An undirected connected graph where every edge is a bridge.  Thus it's always undirected, acylic, connected and bipartite.  Note that an arborescence is not a connected graph (consider a root with two childs; the two childs are not connected).  In informatic context, the term tree is often used for what we call here an directed rooted tree.  A _rooted tree_ is a tree in which one vertex has been designated the root.  An _arborescence_ (aka _directed rooted tree_ or _out-tree_) is a directed rooted tree in which all edges point away from the root.  An _anti-arborescence_ (aka _in-tree_) is an arborescence where all edge directions are reversed.  A _forest_ is a disjoint union of trees.  Alternatively: an acyclic undirected graph.  An _ordered tree_ (aka _plane tree_) is a rooted tree in which an ordering is specified for the children of each vertex.  A _poly tree_ is a directed acyclic graph which would be a tree if it's edges were undirected.  A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the vertices of G.  A [[MST]]_minimum spanning tree_ (aka _MST_) of is a spanning tree of G with the minimal total weighting for its edges.  See also the <<MST_problem>>.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
-
-Common graph problems:
-
-- _single-pair shortest path_ problem (from single source to a single destination)
-- _single-source shortest path_ problem (from a single source to all others)
-- _single-destination shortest path_ problem (from all others to a destination)
-- _all-pairs shortest path_ problem (from all to all)
-- <<maximum_flow_problem>>
-- The chapter <<NP_complete>> also lists some graph problems.
-
-References:
-
-- http://en.wikipedia.org/wiki/Glossary_of_graph_theory
 
 
 [[shortest_path_problem]]
