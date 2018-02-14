@@ -2444,15 +2444,13 @@ the set {v~1~, ..., v~k~}. It's value is the min of:
 [[hamiltonian_path]]
 === Hamiltonian path / cycle
 
-An _Hamiltonian path_ (aka _traceable path_) is a path in an undirected or directed graph that visits each vertex exactly once.  A _Hamiltonian cycle_ (aka _Hamiltonian circuit_, _vertex tour_ or _graph cycle_) is a Hamiltonian path that is a cycle.  A graph that contains a Hamiltonian path is called a _traceable graph_.  A graph is _Hamiltonian-connected_ if for every pair of vertices there is a Hamiltonian path between the two vertices. A graph that contains a Hamiltonian cycle is called a _Hamiltonian graph_.
+An _Hamiltonian path_ (aka _traceable path_) is a path in an undirected or directed graph that visits each vertex exactly once.  A _Hamiltonian cycle_ (aka _Hamiltonian circuit_, _vertex tour_ or _graph cycle_) is a Hamiltonian path that is a cycle.  A graph that contains a Hamiltonian path is called a _traceable graph_.  A graph is _Hamiltonian-connected_ if for every pair of vertices there is a Hamiltonian path between the two vertices. A graph that contains a Hamiltonian cycle is called a _Hamiltonian graph_.  The _Hamiltonian path problem_ and the _Hamiltonian cycle problem_ are problems of determining whether a Hamiltonian path or a Hamiltonian cycle exists in a given graph (whether directed or undirected).  Both problems are NP-complete.
 
 Properties:
 
 All Hamiltonian graphs are biconnected, but a biconnected graph need not be Hamiltonian.
 
 A tournament (with more than two vertices) is Hamiltonian iff it is strongly connected.
-
-Common problems: <<hamiltonian_path_problem>>, <<hamiltonian_cycle_problem>>, both NP-complete.
 
 
 [[eulerian_circuit]]
@@ -3297,13 +3295,6 @@ Algorithms:
 
 Applications:
 - Dedect cycles (i.e. problems) in a dependency graph
-
-
-[[hamiltonian_path_problem]]
-[[hamiltonian_cycle_problem]]
-=== Hamiltonian path / cycle problem
-
-The __<<hamiltonian_path>> problem__ and the __<<hamiltonian_cycle>> problem__ are problems of determining whether a Hamiltonian path or a Hamiltonian cycle exists in a given graph (whether directed or undirected).  Both problems are NP-complete.
 
 
 [[LCA_problem]]
