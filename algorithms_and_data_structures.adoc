@@ -3096,6 +3096,117 @@ References:
 - Chapter "Lecture 17: Delaunay triangulation" in http://www.cs.umd.edu/~mount/754/Lects/754lects.pdf
 
 
+=== Nearest neighbor search (NNN)
+
+*to-do*:
+
+
+[[closet_pair_of_points]]
+=== Closest pair of points
+
+Solutions:
+
+- Deleauny triangulation O(n)
+
+- Voronoi diagram O(n)
+
+- <<closest_pair_of_points_divide_and_conquer>>
+
+
+[[closest_pair_of_points_divide_and_conquer]]
+==== Divide and conquer with presorting both in x and y
+
+Solves the <<closet_pair_of_points>> problem in O(n log n).
+
+Preparation: Sort set of input points by x coordinates → PointsXS. In another container also sort them by y coordinates → PointsYS. The recursive divide and conquer function gets both PointsXS and PointsYS as input parameters.
+
+Base case: n≤3 points. Solve with brute force, i.e. compare all pairs and choose the pair with the smaller distance.
+
+Divide: Partition PointsXS into two equal sized still x-sorted subsets around an imaginary vertical line.  Note that multiple points can lie on that line, and both partitions can contain points on that line.  This is trivial since PointsXS is already sorted in x direction.  Distribute PointsYS into two still y-sorted subsets PointsYSLeft and PointsYSRight.  Points being in PointsXSLeft go to PointsYSLeft, the others to PointsYSRight.
+
+Conquer: Make two recursive calls, one with (PointsXSLeft, PointsYSLeft) as arguments, one with (PointsXSRight, PointsYSRight) as arguments. This delivers min_left and min_right.
+
+Combine: Choose the smaller of min_left, min_right delivering min.  Now it's possible that there's a pair with a distance smaller than min in the vertical strip ±min around the vertical line from the devide step above.  One point of the pair being in the left half of the strip, the other in the right half.  Recall that points on the line can be in either partition.  From PointsYS extract those points being in the strip while keeping them y sorted, resulting in StripPointsYS.  For each point in StripPointsYS, compare it with all points further ahead in StripPointsYS which are at most min away in y direction.  It can be proven that there are at most 7 such points ahead.
+
+--------------------------------------------------
+closest_dist(points)
+  sort points in x direction
+  PointsYS = an y-sorted array of pointers to into points
+  return closest_dist_core(points, 0, points.length-1, PointsYS)
+
+closest_dist_core(AllPointsXS: points, from:int, to:int, PointsYS: point_pointers)
+  if to-from+1 <= 3
+    return closest_dist_brute_force(PointsYS)
+  middle_index = (from + to) / 2
+  PointsYSLeft, PointsYRLeft = ypartition(AllPointsXS, middle_index, PointsYS)
+  min_left  = core(AllPointsXS, from, middle_index, PointsYSLeft)
+  min_right = core(AllPointsXS, middle_index+1, to, PointsYSRight)
+  min = min(min_left, min_right)
+  return closest_dist_strip(min, AllPointsXS, middle_index, PointsYS)  
+
+ypartition(AllPointsXS: points, middle_index:int, PointsYS: point_pointers)
+  create two new arrays PointsYSLeft, PointsYSRight
+  for each point p in PointsYS
+    index = p - AllPointsXS // pointer arithmetic
+    if index<=middle_index: PointsYSLeft.append(*p)
+    else                  : PointsYSRight.append(*p)
+  return PointsYSLeft, PointsYSRight
+
+closest_dist_strip(min, AllPointsXS: points, middle_index:int, PointsYS: point_pointers)
+  // Find points being in strip.
+  // Note that since PointsYS is sorted, so is StripPointsYS
+  xmiddle = AllPointsXS[middle_index].x
+  StripPointsYS = new array of point-pointers
+  for each point-pointer p in PointsYS
+    if abs(p->x - xmiddle) < min
+      StripPointsYS.append(*p)  
+
+  for i=0 upto StripPointsYS.length-1
+    j=i+1
+    // Inner loop proofably makes at most 7 iterations. Note that we
+    // also compare points being on the same strip side, which is needless,
+    // but its not worth to make a special case.
+    while (j<StripPointsYS.length) and (StripPointsYS[j]->y < StripPointsYS[i]->y+min)
+      min = min(min, distance(*StripPointsYS[i], *StripPointsYS[j]))
+      j++
+
+  return min
+--------------------------------------------------
+
+Informal proof that closest_dist_strip's inner loop needs to check at most 7 points ahead: In the worst case, i.e. where the points are packed as dense as possible, the situation looks like in the following diagram. ❍ is the currently checked point as determined by the outer loop, ➊ is the point one ahead, ➌ is three ahead and so on.  Recall that the points are sorted in y.  In this worst case scenario, the 1st and 2nd point coincide; 1st being part of the left partition, 2nd being part of the right partition.  Likewise for 5th and 6th.  We don't need to consider points further ahead, because their y distance to ❍ would be larger than min.  Thus at most 7 points are ahead with a y distance smaller than min.  Personal note:  As far as I understand it, 7 is an upper bound, but maybe not tight.  With more complicated math, we might be able to prove that there are even less considerable points ahead.  But it's really only about proving that it is a constant number of points we have to consider at most.  That results in O(n) for closest_dist_strip.  If we didn't had this proof, it would be O(n²), since we had to assume having to compare every point in the strip with every other in the worst case.
+
+--------------------------------------------------
+     vertical
+      line
+       ‖
+  ❍----➊----➌    Each horizontal / vertical
+       ‖          neighboring pair is min appart
+       ‖
+       ‖
+       ‖
+  ➍----➎----➐
+       ‖
+--------------------------------------------------
+
+
+References:
+
+- https://www.geeksforgeeks.org/closest-pair-of-points-onlogn-implementation/
+
+- Book ``Introduction to algorithms'', subchapter ``Finding the closest pair of points''.
+
+
+==== Divide and conquer with presorting only in x
+
+Solves the <<closest_pair_of_points>> problem in O(n log² n).  Is the simpler version of the previous algorithm.  The points are not presorted in y.  Thus also we don't need to maintain a sequence of y sorted points in closest_dist_core.  However now closest_dist_strip needs to y-sort the points within the strip.
+
+References:
+
+- https://www.geeksforgeeks.org/closest-pair-of-points/
+
+- http://cse.unl.edu/~ylu/raik283/notes/ClosestPair.ppt
+
+
 == Problems
 
 === Overview
@@ -3358,117 +3469,6 @@ References:
 - https://courses.csail.mit.edu/6.851/spring12/scribe/lec3.pdf, first part of section "range trees"
 
 - http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf, chapter "1 - Dimensional Range Searching"
-
-
-=== Nearest neighbor search (NNN)
-
-*to-do*:
-
-
-[[closet_pair_of_points]]
-=== Closest pair of points
-
-Solutions:
-
-- Deleauny triangulation O(n)
-
-- Voronoi diagram O(n)
-
-- <<closest_pair_of_points_divide_and_conquer>>
-
-
-[[closest_pair_of_points_divide_and_conquer]]
-==== Divide and conquer with presorting both in x and y
-
-Solves the <<closet_pair_of_points>> problem in O(n log n).
-
-Preparation: Sort set of input points by x coordinates → PointsXS. In another container also sort them by y coordinates → PointsYS. The recursive divide and conquer function gets both PointsXS and PointsYS as input parameters.
-
-Base case: n≤3 points. Solve with brute force, i.e. compare all pairs and choose the pair with the smaller distance.
-
-Divide: Partition PointsXS into two equal sized still x-sorted subsets around an imaginary vertical line.  Note that multiple points can lie on that line, and both partitions can contain points on that line.  This is trivial since PointsXS is already sorted in x direction.  Distribute PointsYS into two still y-sorted subsets PointsYSLeft and PointsYSRight.  Points being in PointsXSLeft go to PointsYSLeft, the others to PointsYSRight.
-
-Conquer: Make two recursive calls, one with (PointsXSLeft, PointsYSLeft) as arguments, one with (PointsXSRight, PointsYSRight) as arguments. This delivers min_left and min_right.
-
-Combine: Choose the smaller of min_left, min_right delivering min.  Now it's possible that there's a pair with a distance smaller than min in the vertical strip ±min around the vertical line from the devide step above.  One point of the pair being in the left half of the strip, the other in the right half.  Recall that points on the line can be in either partition.  From PointsYS extract those points being in the strip while keeping them y sorted, resulting in StripPointsYS.  For each point in StripPointsYS, compare it with all points further ahead in StripPointsYS which are at most min away in y direction.  It can be proven that there are at most 7 such points ahead.
-
---------------------------------------------------
-closest_dist(points)
-  sort points in x direction
-  PointsYS = an y-sorted array of pointers to into points
-  return closest_dist_core(points, 0, points.length-1, PointsYS)
-
-closest_dist_core(AllPointsXS: points, from:int, to:int, PointsYS: point_pointers)
-  if to-from+1 <= 3
-    return closest_dist_brute_force(PointsYS)
-  middle_index = (from + to) / 2
-  PointsYSLeft, PointsYRLeft = ypartition(AllPointsXS, middle_index, PointsYS)
-  min_left  = core(AllPointsXS, from, middle_index, PointsYSLeft)
-  min_right = core(AllPointsXS, middle_index+1, to, PointsYSRight)
-  min = min(min_left, min_right)
-  return closest_dist_strip(min, AllPointsXS, middle_index, PointsYS)  
-
-ypartition(AllPointsXS: points, middle_index:int, PointsYS: point_pointers)
-  create two new arrays PointsYSLeft, PointsYSRight
-  for each point p in PointsYS
-    index = p - AllPointsXS // pointer arithmetic
-    if index<=middle_index: PointsYSLeft.append(*p)
-    else                  : PointsYSRight.append(*p)
-  return PointsYSLeft, PointsYSRight
-
-closest_dist_strip(min, AllPointsXS: points, middle_index:int, PointsYS: point_pointers)
-  // Find points being in strip.
-  // Note that since PointsYS is sorted, so is StripPointsYS
-  xmiddle = AllPointsXS[middle_index].x
-  StripPointsYS = new array of point-pointers
-  for each point-pointer p in PointsYS
-    if abs(p->x - xmiddle) < min
-      StripPointsYS.append(*p)  
-
-  for i=0 upto StripPointsYS.length-1
-    j=i+1
-    // Inner loop proofably makes at most 7 iterations. Note that we
-    // also compare points being on the same strip side, which is needless,
-    // but its not worth to make a special case.
-    while (j<StripPointsYS.length) and (StripPointsYS[j]->y < StripPointsYS[i]->y+min)
-      min = min(min, distance(*StripPointsYS[i], *StripPointsYS[j]))
-      j++
-
-  return min
---------------------------------------------------
-
-Informal proof that closest_dist_strip's inner loop needs to check at most 7 points ahead: In the worst case, i.e. where the points are packed as dense as possible, the situation looks like in the following diagram. ❍ is the currently checked point as determined by the outer loop, ➊ is the point one ahead, ➌ is three ahead and so on.  Recall that the points are sorted in y.  In this worst case scenario, the 1st and 2nd point coincide; 1st being part of the left partition, 2nd being part of the right partition.  Likewise for 5th and 6th.  We don't need to consider points further ahead, because their y distance to ❍ would be larger than min.  Thus at most 7 points are ahead with a y distance smaller than min.  Personal note:  As far as I understand it, 7 is an upper bound, but maybe not tight.  With more complicated math, we might be able to prove that there are even less considerable points ahead.  But it's really only about proving that it is a constant number of points we have to consider at most.  That results in O(n) for closest_dist_strip.  If we didn't had this proof, it would be O(n²), since we had to assume having to compare every point in the strip with every other in the worst case.
-
---------------------------------------------------
-     vertical
-      line
-       ‖
-  ❍----➊----➌    Each horizontal / vertical
-       ‖          neighboring pair is min appart
-       ‖
-       ‖
-       ‖
-  ➍----➎----➐
-       ‖
---------------------------------------------------
-
-
-References:
-
-- https://www.geeksforgeeks.org/closest-pair-of-points-onlogn-implementation/
-
-- Book ``Introduction to algorithms'', subchapter ``Finding the closest pair of points''.
-
-
-==== Divide and conquer with presorting only in x
-
-Solves the <<closest_pair_of_points>> problem in O(n log² n).  Is the simpler version of the previous algorithm.  The points are not presorted in y.  Thus also we don't need to maintain a sequence of y sorted points in closest_dist_core.  However now closest_dist_strip needs to y-sort the points within the strip.
-
-References:
-
-- https://www.geeksforgeeks.org/closest-pair-of-points/
-
-- http://cse.unl.edu/~ylu/raik283/notes/ClosestPair.ppt
 
 
 [[RMQ]]
