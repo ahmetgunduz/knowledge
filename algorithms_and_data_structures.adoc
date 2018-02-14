@@ -2004,83 +2004,6 @@ void traverse(Node* n) {
 *to-do*:
 
 
-[[Kruskal]]
-=== Kruskal's algorithm
-
-A greedy algorithm solving the <<MST_problem>> for a connected weighted graph in O(E log E) time.
-
-Intuition: Start out with each vertex being its own tree.  They represent the partial yet disconnected MST.  Then iteratively add the smallest weighted edge to the partial MST iff that does not produce a cycle in the partial MST, since a by definition a tree is not allowed to have cycles.  Typically that cycle detection is done via the help of a <<disjoint_set>> data structure.  There would be a new cycle if the start and the end vertex of a given edge are in the same tree, i.e. in the same set.
-
---------------------------------------------------
-KRUSKAL(G):
-  foreach vertex v:
-    MAKE-SET(v)
-    v.MSTParent = NIL
-  order edges by weight, increasing
-  foreach edge (u, v) in that ordered edge sequence:
-    if FIND-SET(u) ≠ FIND-SET(v):
-      add edge to MST, e.g. u.MSTparent = v
-      MERGE-SETS(u, v)
-  starting at any vertex, follow MSTparent pointers to find MST's root
---------------------------------------------------
-
-Proof: It's not trivial to see why this greedy algorithm is optimal, see http://tandy.cs.illinois.edu/Kruskal-analysis.pdf.
-
-Analysis: O(sort(E) + (E+V)α(V)) time, assuming an asymptotically optimal disjoint-set data structure is used internally, and where α is the very slowly growing inverse function of the Ackermann function.  Note that the running time depends heavily on the used sort algorithm used to sort the edge weights.  So if the weights are integers, a non-comparative sorting algorithm such as radix sort can be used.
-
-References:
-
--  http://tandy.cs.illinois.edu/Kruskal-analysis.pdf
-
-
-[[Prim]]
-=== Prim's algorithm
-
-A greedy algorithm solving the <<MST_problem>> for a connected graph in O(E log V) time when a binary heap is used.
-
-Intuition: Start with any vertex as being the root of the MST.  There's a cut between the nodes in the partial MST and the rest of the nodes.  Iteratively greedely add a light edge.
-
-To be able to do that, each vertex as an attribute distanceToMst.  It is the distance to the partial MST using only one edge, initialy infinite.  Vertices in the partial MST have distanceToMst set to zero.  Thus distanceToMst is larger than zero and less than infinite iff the vertex has an edge crossing the cut.  Thanks to a min piority queue having distanceToMst as key, we always know a light edge.
-
-Prim's algorithm and <<Dijkstra>> are highly related. The difference is that Prim builds an minimum spanning tree by choosing a vertex with a light edge, and Dijkstra builds a shortest path tree by choosing the vertex with the smallest path weight from source.
-
---------------------------------------------------
-MST-Prim(G:graph):
-  for each vertex v:
-    v.distanceToMst = infinit
-    v.parent = NIL
-  choose any vertex as root
-  root.distanceToMst = 0
-  create min priority queue outsideMstQ out of all vertexes, distanceToMst being key  
-  while outsideMstQ not empty:
-    current = outsideMstQ.deque() // greedely add vertex to MST
-    current.distanceToMst = 0
-    for each neighbor of current:
-      prim-relax(current, neighbor, outsideMstQ)
-  return root
-
-prim-relax(u:vertex, v:vertex, Q):
-  if weight(u,v)<v.distanceToMst
-    Q.decreaseKey(v, weight(u,v))
-    v.parent = u
---------------------------------------------------
-
-Analysis:
-
-- Initialization loop is done V times, and costs O(V) overall.
-
-- Overall prim-relax is called twice for each edge, i.e. O(E) times. prim-relax costs O(decrease-key), which is O(log V) for a binary heap, so its O(E log V) overall.
-
-- Outer loop is over all vertices, i.e V times. dequeue costs O(log V), so overall its O(V log V).
-
-- All together its thus O((V+E) log V) = O(E log V).
-
-
-References:
-
-- Book ``Introduction to algorithms'', subchapter ``Prim's algorithm''.
-
-
 [[online_algorithms]]
 == Online algorithms
 
@@ -2565,6 +2488,99 @@ Applications:
 - There are some algorithms for processing trees that rely on an Euler tour of the tree (where each edge is treated as a pair of arcs).
 
 Trivia: Was first discussed by Leonhard Euler while solving the famous _Seven Bridges of Königsberg_ problem in 1736.
+
+
+[[MST_problem]]
+=== Minimum spanning tree problem
+
+The problem of finding the <<MST>>, actually minimum spanning forest, in an undirected weighted possibly disconnected graph.
+
+Algorithms:
+
+- <<Kruskal>>'s algorithm
+
+- <<Prim>>'s algorithm (restricted to connected graphs)
+
+References:
+
+- Book ``Introduction to algorithms'', chapter ``Minimum Spanning Trees''.
+
+
+[[Kruskal]]
+==== Kruskal's algorithm
+
+A greedy algorithm solving the <<MST_problem>> for a connected weighted graph in O(E log E) time.
+
+Intuition: Start out with each vertex being its own tree.  They represent the partial yet disconnected MST.  Then iteratively add the smallest weighted edge to the partial MST iff that does not produce a cycle in the partial MST, since a by definition a tree is not allowed to have cycles.  Typically that cycle detection is done via the help of a <<disjoint_set>> data structure.  There would be a new cycle if the start and the end vertex of a given edge are in the same tree, i.e. in the same set.
+
+--------------------------------------------------
+KRUSKAL(G):
+  foreach vertex v:
+    MAKE-SET(v)
+    v.MSTParent = NIL
+  order edges by weight, increasing
+  foreach edge (u, v) in that ordered edge sequence:
+    if FIND-SET(u) ≠ FIND-SET(v):
+      add edge to MST, e.g. u.MSTparent = v
+      MERGE-SETS(u, v)
+  starting at any vertex, follow MSTparent pointers to find MST's root
+--------------------------------------------------
+
+Proof: It's not trivial to see why this greedy algorithm is optimal, see http://tandy.cs.illinois.edu/Kruskal-analysis.pdf.
+
+Analysis: O(sort(E) + (E+V)α(V)) time, assuming an asymptotically optimal disjoint-set data structure is used internally, and where α is the very slowly growing inverse function of the Ackermann function.  Note that the running time depends heavily on the used sort algorithm used to sort the edge weights.  So if the weights are integers, a non-comparative sorting algorithm such as radix sort can be used.
+
+References:
+
+-  http://tandy.cs.illinois.edu/Kruskal-analysis.pdf
+
+
+[[Prim]]
+==== Prim's algorithm
+
+A greedy algorithm solving the <<MST_problem>> for a connected graph in O(E log V) time when a binary heap is used.
+
+Intuition: Start with any vertex as being the root of the MST.  There's a cut between the nodes in the partial MST and the rest of the nodes.  Iteratively greedely add a light edge.
+
+To be able to do that, each vertex as an attribute distanceToMst.  It is the distance to the partial MST using only one edge, initialy infinite.  Vertices in the partial MST have distanceToMst set to zero.  Thus distanceToMst is larger than zero and less than infinite iff the vertex has an edge crossing the cut.  Thanks to a min piority queue having distanceToMst as key, we always know a light edge.
+
+Prim's algorithm and <<Dijkstra>> are highly related. The difference is that Prim builds an minimum spanning tree by choosing a vertex with a light edge, and Dijkstra builds a shortest path tree by choosing the vertex with the smallest path weight from source.
+
+--------------------------------------------------
+MST-Prim(G:graph):
+  for each vertex v:
+    v.distanceToMst = infinit
+    v.parent = NIL
+  choose any vertex as root
+  root.distanceToMst = 0
+  create min priority queue outsideMstQ out of all vertexes, distanceToMst being key  
+  while outsideMstQ not empty:
+    current = outsideMstQ.deque() // greedely add vertex to MST
+    current.distanceToMst = 0
+    for each neighbor of current:
+      prim-relax(current, neighbor, outsideMstQ)
+  return root
+
+prim-relax(u:vertex, v:vertex, Q):
+  if weight(u,v)<v.distanceToMst
+    Q.decreaseKey(v, weight(u,v))
+    v.parent = u
+--------------------------------------------------
+
+Analysis:
+
+- Initialization loop is done V times, and costs O(V) overall.
+
+- Overall prim-relax is called twice for each edge, i.e. O(E) times. prim-relax costs O(decrease-key), which is O(log V) for a binary heap, so its O(E log V) overall.
+
+- Outer loop is over all vertices, i.e V times. dequeue costs O(log V), so overall its O(V log V).
+
+- All together its thus O((V+E) log V) = O(E log V).
+
+
+References:
+
+- Book ``Introduction to algorithms'', subchapter ``Prim's algorithm''.
 
 
 === Connectivity
@@ -3065,23 +3081,6 @@ Applications: *to-do*
 
 === Travelling purchaser problem
 *to-do*
-
-
-[[MST_problem]]
-=== Minimum spanning tree problem
-
-The problem of finding the <<MST>>, actually minimum spanning forest, in an undirected weighted possibly disconnected graph.
-
-Algorithms:
-
-- <<Kruskal>>'s algorithm
-
-- <<Prim>>'s algorithm (restricted to connected graphs)
-
-References:
-
-- Book ``Introduction to algorithms'', chapter ``Minimum Spanning Trees''.
-
 
 
 [[edit_distance]]
