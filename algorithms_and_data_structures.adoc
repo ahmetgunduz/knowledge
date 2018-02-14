@@ -376,6 +376,16 @@ Such algorithms include local search, tabu search, simulated annealing, and gene
 *to-do*
 
 
+== Augmenting data structures
+
+1. Choose an underlying data structure DS.
+2. Determine additional information AI to maintain in DS.
+3. Verify that we can maintain AI for the basic operations on DS.
+4. Develop new operations.
+
+Let +f+ be an attribute that augments a red-black tree +T+, and suppose that the value +x.f+ for each node +x+ only depends on only the information in the nodes +x+, +x.left+ and +x.right+. Then we can maintain +f+ in all nodes of +T+ during insertion and deletion without affecting the +O(lg n)+ performance of these operations.
+
+
 [[ADT]]
 == Misc. abstract data types (ADT)
 An abstract data type is defined only by the operations that may be performed on it and by mathematical pre-conditions and constraints on the effects (and possibly cost) of those operations.  In OO lingo, it is an interface.  See also <<data structures>>,  which in OO are (non-abstract) classes.
@@ -1295,16 +1305,6 @@ merge-sets(u,v):
 References:
 
 - https://web.stanford.edu/class/cs166/lectures/16/Small16.pdf
-
-
-== Augmenting data structures
-
-1. Choose an underlying data structure DS.
-2. Determine additional information AI to maintain in DS.
-3. Verify that we can maintain AI for the basic operations on DS.
-4. Develop new operations.
-
-Let +f+ be an attribute that augments a red-black tree +T+, and suppose that the value +x.f+ for each node +x+ only depends on only the information in the nodes +x+, +x.left+ and +x.right+. Then we can maintain +f+ in all nodes of +T+ during insertion and deletion without affecting the +O(lg n)+ performance of these operations.
 
 
 == Misc. problems
