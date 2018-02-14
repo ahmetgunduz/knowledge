@@ -2486,6 +2486,28 @@ Applications:
 Trivia: Was first discussed by Leonhard Euler while solving the famous _Seven Bridges of Königsberg_ problem in 1736.
 
 
+[[TSP]]
+=== Travelling salesman problem (TSP)
+In an weighted graph (directed or undirected), the TSP is finding the path with mimimum weight visiting each vertex exactly once and start vertex being the end vertex.
+
+TSP is a special case of the travelling purchaser problem.  
+
+TSP is NP-complete.
+
+Algorithms:
+
+- Exact: Held–Karp, a dynamic programming algorithm.
+- Exact: Various branch-and-bound algorithms
+- Exact: ... linear programming ...
+- Approximations: *to-do*
+
+Applications: *to-do*
+
+
+=== Travelling purchaser problem
+*to-do*
+
+
 [[MST_problem]]
 === Minimum spanning tree problem
 
@@ -3055,28 +3077,6 @@ assignment problem
 bipartite matching
 
 --------------------------------------------------
-
-
-[[TSP]]
-=== Travelling salesman problem (TSP)
-In an weighted graph (directed or undirected), the TSP is finding the path with mimimum weight visiting each vertex exactly once and start vertex being the end vertex.
-
-TSP is a special case of the travelling purchaser problem.  
-
-TSP is NP-complete.
-
-Algorithms:
-
-- Exact: Held–Karp, a dynamic programming algorithm.
-- Exact: Various branch-and-bound algorithms
-- Exact: ... linear programming ...
-- Approximations: *to-do*
-
-Applications: *to-do*
-
-
-=== Travelling purchaser problem
-*to-do*
 
 
 [[edit_distance]]
