@@ -2929,6 +2929,23 @@ References:
 [[fortunes_algorithm]]
 ====  Fortune's algorithm
 
+Fortune's algorithm is a sweep line algorithm for generating a Voronoi diagram from a set of points in a plane using O(n log n) time and O(n) space.
+
+Site events: Static events. Correspond to the Voronoi sites.
+
+Vertex events (or ciricle events): Dynamic events.  The goal is to dedect when the sweep line indirectly encounters a Voronoi vertex again, long after it actually encountered it.
+Consider the three sites associated to three consecutive arcs on the beach line.  Recall the Voronoi vertex associated to these three sites is the center of the circumcircle for these three sites. The actual vertex event is the bottom most point of the circumcircle.
+
+Event queue data: A priority queue with the y-coordinate of events as key.  A vertex event has a pointer to the three site events that generated it.
+
+The partial Voronoi diagram that has been constructed so far is stored in an <<DECL>>.
+
+Sweep line status: Actually conceptually it's more about the beach line.  In an <<dictionary>> we store the Voronoi sites having at last one associated parabolic arc on the beach line.
+
+In other words, the middle arc of the three consecutive arcs on the beach line just has disappeared, the two Voronoi edges it traced out now coincide in a Voronoi vertex.
+
+*to-do*
+
 References:
 
 - Book ``Computational Geometry - Algorithms and Applications'', chapter ``Computing the Voronoi Diagram''
