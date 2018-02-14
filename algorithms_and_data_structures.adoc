@@ -2951,11 +2951,22 @@ References:
 - Chapter "33.3 Finding the convex hull" in book "Introduction to Algorithms"
 
 
-=== Determining whether any pair of segments intersects
+=== Line segment intersection
 
-Given a set of line segments, determine whether any pair of segments intersects.
+References:
+
+- Book "Computational Geometry - Algorithms and Applications", chapter "line segment intersection"
+
+- http://courses.csail.mit.edu/6.006/spring11/lectures/lec24.pdf
+
+- https://people.csail.mit.edu/indyk/6.838/handouts/lec2.pdf
+
+- https://www.youtube.com/watch?v=j6o8k5uM02c&index=2&list=PLe-ggMe31CTdBsRIw0hXln0hilRs-DqAx for the case of orthogonal line segments
+
 
 ==== Sweep line
+
+Given a set of line segments, determine whether any pair of segments intersects, as opposed to report all intersecting line segments.
 
 Assumptions for simplicity: No input segment is vertical.  No three input segments intersect at a single point.
 
@@ -3004,19 +3015,6 @@ References:
 
 - http://jeffe.cs.illinois.edu/teaching/373/notes/x06-sweepline.pdf
  
-
-=== Line segment intersection
-
-References:
-
-- Book "Computational Geometry - Algorithms and Applications", chapter "line segment intersection"
-
-- http://courses.csail.mit.edu/6.006/spring11/lectures/lec24.pdf
-
-- https://people.csail.mit.edu/indyk/6.838/handouts/lec2.pdf
-
-- https://www.youtube.com/watch?v=j6o8k5uM02c&index=2&list=PLe-ggMe31CTdBsRIw0hXln0hilRs-DqAx for the case of orthogonal line segments
-
 
 [[rectangle_intersection]]
 === Orthogonal rectangle intersection search
