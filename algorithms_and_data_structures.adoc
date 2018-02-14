@@ -2887,6 +2887,37 @@ References:
 - https://www.youtube.com/watch?v=dePDHVovJlE for the case of orthogonal line segments
 
 
+[[rectangle_intersection]]
+=== Orthogonal rectangle intersection search
+
+Given a set of n orthogonal rectangles, find all intersections.
+
+
+==== Sweep line paradigm
+
+O(n log n + r log n) time, where r is the number of reported intersections.
+
+Assumptions for simplicity: All x and y coordinates are distinct.
+
+Events: x-coordinates of left and right endpoints.
+
+Sort events after x-coordinates.
+
+Sweep line status: Set of rectangles that intersect the sweep line.  More specifically, use an <<interval_tree>> to store the set of intervalls that result from these intersections.
+
+Left end point event: Report all intervals in sweep line status intersecting the new interval (see <<interval_tree>>).  Add interval to sweep line status.
+
+Right end point event: Remove perishing interval from sweep line status.
+
+Analysis: O(n log n + r log n) time.  O(n log n) for the presorting.  An left end point event needs O(r~i~ log n) for finding all intersecting intervalls (r~i~ being number of reports for i-th event) and O(log n) for insertion.  An right end point needs O(log n) for removal.  So all events together need O(n log n +  r log n).
+
+References:
+
+- https://www.youtube.com/watch?v=LQ-vRetWnu4&list=PLe-ggMe31CTdBsRIw0hXln0hilRs-DqAx&index=5
+
+- https://algo.kaust.edu.sa/documents/cs372l07.pdf
+
+
 [[voronoi_diagram]]
 === Voronoi diagram
 
