@@ -2300,119 +2300,6 @@ References:
 - Book ``Introduction to algorithms'', subchapter ``Prim's algorithm''.
 
 
-[[ford_fulkerson_method]]
-=== Ford-Fulkerson method
-
-The ford-fulkerson method is a greedy method which solves the <<maximum_flow_problem>>.  It's called a method opposed to algorithm since it's a template on which the more concrete algorithms are built.  *to-do*: why is it called a greedy algorithm? a) It does not choose the local best solution, it just picks _a_ solution b) it arguably undoes previous decisions by allowing `removing' already existing flow from an edge.
-
-Overview: Search some path in the residual network, augment the current flow with the found path. Iterate until there is no augmenting path in the residual network.
-
---------------------------------------------------
-ford-fulkerson-method(G:flownetwork, source:vertex, sink:vertex)
-  flow = 0
-  while there exists an augmenting path p in the residual network:
-    augment flow along p
-  return flow
---------------------------------------------------
-
-If graph is undirected, see <<maximum_flow_problem>> for a transformation. If the capacities are rational numbers opposed to integers, transform by appropriately scale all capacities to turn them into integers.
-
-Sending flow along the residual graphs backward edges means conceptually `undoing' decisions of previous iterations.
-
-References:
-- See <<flow_network>>
-- Book ``Introduction to algorithms'', subchapter ``The Ford-Fulkerson Method''.
-
-
-[[ford_fulkerson_algorithm]]
-=== Ford-Fulkerson algorithm
-
-An implementation of the <<ford_fulkerson_method>> which solves the <<maximum_flow_problem>> in +O(Ef)+.
-
---------------------------------------------------
-ford-fulkerson-algorithm(G:flownetwork, source:vertex, sink:vertex)
-  for each edge e in G:
-    e.flow = 0
-  while there exists an augmenting path ap in the residual network:
-    rcp = min capacity of ap's edges // residual capacity of path ap
-    for each edge re in ap:
-      be e the corresponding edge in G
-      if re is an forward edge: e.flow += rcp
-      else (i.e. backward)    : e.flow -= rcp
-  return flow
---------------------------------------------------
-
-Analysis: In the worst case, mind that all capacities are integers, the residual capacity is 1, so there are +O(f)+ iterations. Each iteration takes +O(E)+, so the overall cost is +O(Ef)+, i.e. pseudo-polynomial. The reason is that the algorithm allows that in each iteration, a silly augmenting path is choosen, while there might be much better augmenting paths.
-
-References:
-
-- See <<flow_network>>
-
-
-[[edmonds_karp]]
-=== Edmonds-Karp algorithm
-
-An specialiation of the <<ford_fulkerson_algorithm>> which solves the <<maximum_flow_problem>> in ++O(VE²)++. It is a specialication by specifying that the augmenting path is to be found by a breadth-first-search (O(V+E)=O(E)) (i.e. searching the shortest path where each edge has weight 1).
-
-Analysis: Each iteration is +O(E)+. It's proofable that the number of iterations
-is +O(VE)+. Thus the overal running time is +O(VE²)+.  The mentioned proof is based upon that once a critical edge is removed from residual network, it proofably can reappear only a certain mount of times. Also, the shortest path distance in the residual network from source to sink proofably increases monotonically after each augmentation / iteration.
-
-Intution in what way we want to improve the ford-fulkerson algorithm: If in the residual graph there is no augmenting path, i.e. source and sink are disconnected, then we found the maximum flow. Thus we strive for increasing the distance (edge weights 1) between the source and the sink.
-
-References:
-
-- See <<flow_network>>
-- CMU, Course 15-451/651 (Algorithms) Fall 2013, Lecture "Network Flows II: Edmonds-Karp 1, Edmonds-Karp 2, and blocking flows": https://www.cs.cmu.edu/~avrim/451f13/lectures/lect1008.pdf[lecture notes]
-
-
-[[push_relabel]]
-=== push-relabel algorithms
-
-Is an algorithm which solves the <<maximum_flow_problem>>. Is considered one of the most efficient maximum flow algorithms. The generic algorithm has +O(V²E)+, the variant based on the highest label node selection rule has +O(V²√E)+.
-
-Concepts: A _preflow_ is like a flow, only that the flow conservation constraint is relaxed: The flow into a vertex may exceed the flow out of a vertex.  The _excess flow_ of a vertex is the difference between flow in and flow out. Note that in most physical analogies, the capacity is a quantity per time, and so is excess. An excess of 3 thus means that 3 units accumulate per unit of time in the given vertex.  Most authors describe that figuratively, each vertex has a reservoir of infinite size.  Alternatively figuratively an excess flow means that a vertex is leaking.  In a regular flow all excess flows are 0.  In a preflow they are ≥ 0. An vertex other than source or think is said to be _overflowing_ (aka _active_) if its excess flow is > 0.  Each vertex as a _height_, which is an integer. The source has always height |V|. The sink has always height 0.  All other vertices start at height 0 and potentially raise over time.  They never decrease.  In the residual graph, edges can go downhill by at most 1. They can be flat an go uphill.  An edge in the residual graph is _admissible_ if it's downhill. Since edges in the residual graph can go downhill only by at most one (see above definition of height), admissible edges go downhill exactly by one. Recall that in the residual graph, all capacities are > 0.  To _push (excess) flow_ means decreasing the excess flow of a vertex by sending flow through an outgoing unsaturated downhill edge in the residual network.  That increases the excess flow in the receiving vertex by the same amount.  To _relabel_ a vertex means to increase its height to one unit more than the lowest of its direct successors to which there's an unsaturated pipe.
-
-Intuition: The algorithm starts by setting height of source to |V|, and all other vertices to 0, flooding all out edges of the source to their capacity. The residual graph now is almost identical to the original graph, only that source's edges are reversed. All direct successors of the source are overflowing. We iteratively try to turn all remaining overflowing vertices into non-overflowing vertices, in which case the preflow proofably is the maximum flow. We do that by moving (part of) the excess flow to an direct successor vertex. More concretely by pushing flow downhill through an admissible edge in the residual graph. And if that is not possible because the overflowing vertex has no admissible outgoing edges, by relabeling it.  Ultimatively all excess flow is pushed either to the sink or to the source,  which by definition have no excess flow.  In other words, the algorithm tries to turn the initial preflow into a flow (no more overflowing vertices), which proofably will then be a maximum flow.
-
-*to-do*: why to encode in the description and in the pseudo code that source and think don't have an excess flow?
-
-
---------------------------------------------------
-push-relabel(G:flownetwork)
-  init(G)
-  while there is an overflowing node u
-    If u has an admissible outgoing edge v in the residual graph: push(u, v)
-    else: relabel(u)
-
-// precondition:
-//   u is overflowing
-//   residual edge (u,v) is admissible
-push(u:vertex, v:vertex)
-  oe = edge(u,v) in original graph
-  re = edge(u,v) in residual graph
-  df = min(u.excess, re.capacity)
-  if e is an forward edge: oe.flow += df
-  else                   : oe.flow -= df
-  u.excess -= d
-  v.excess += d
-
-// precondition:
-//   u is overflowing
-//   u has no admissible outgoing edge in the residual graph
-relabel(u:vertex)
-  u.height = 1 + (minimal height among u's direct successors in residual graph)
---------------------------------------------------
-
-Compare and contrast the push-relabel approach with the augmenting path approach: Augmengting path maintains the invariant feasability, i.e. the conservation and the capacity constraints. The goal is to reach a residual graph where the source and the sink are disconnected; i.e. we are trying to get better and better flows. Push-relabel is the exact opposite: The invariant is that in the residual graph source and sink are disconnected. The goal is restoring feasability, or in other words, transform the preflow into a flow. I.e. push-relabel first relaxes feasability, and then tries to restore it.
-
-
-References:
-
-- See <<flow_network>>
-- CMU, Course 15-451/651 (Algorithms) Fall 2013, Lecture "Network Flows III: Push-relabel flow algorithms, and Min-Cost Max-Flow.": https://www.cs.cmu.edu/~avrim/451f13/lectures/lect1010.pdf[lecture notes]
-- Book ``Introduction to algorithms'', chapters ``Push-relabel algorithms'' and ``The relabel-to-front algorithm''.
-
-
 [[online_algorithms]]
 == Online algorithms
 
@@ -2672,8 +2559,6 @@ __Max-flow min-cut theorem__: The following three are equivalent, given a graph 
 
 Convertions: A multi-source multi-sink flow network can easily be transformed to a single-source single-sink flow network by adding a consolidated source and a consolidated sink. Given an antiparallel edge pair, replace one of the two edges by figuratively inserting a new vertex in its middle, splitting the edge in two edges.  Given an undirected graph, replace each edge with an antiparallel edge pair, and then replace those as described bevore.
 
-Problems: <<maximum_flow_problem>>
-
 References:
 
 - MIT course 6.046J, Design and Analysis of Algorithms (Spring 2015), Lecture 13 "Incremental Improvement: Max Flow, Min Cut":  https://www.youtube.com/watch?v=WwMz2fJwUCg&t=603s[video], https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-design-and-analysis-of-algorithms-spring-2015/lecture-notes/MIT6_046JS15_lec13.pdf[lecture notes]
@@ -2681,6 +2566,133 @@ References:
 - CMU, Course 15-451/651 (Algorithms) Fall 2013, Lecture "Network Flows and Matchings I": https://www.cs.cmu.edu/~avrim/451f13/lectures/lect1003.pdf[lecture notes]
 
 - Book ``Introduction to algorithms'', chapter ``flow networks''.
+
+
+[[maximum_flow_problem]]
+==== Maximum Flow Problems
+
+_Maximum flow problems_ involve finding the maximum flow in a <<flow_network>>.  It can be seen as a special case of more complex problems, e.g. the circulation problem.
+
+Solutions of max-flow:
+
+- <<ford_fulkerson_algorithm>> in +O(E*f)+ (whereas f is the maximum flow) for the case where capacities are integers.
+
+- <<edmonds_karp>> algorithm in +O(VE²)+ for the case where capacities are integers.
+
+- An algorithm implementing the <<push_relabel>> approach. The generic version is +O(VE²)+, more specific version get better, the `highest label selection' has +O(V²√E)+
+
+
+[[ford_fulkerson_method]]
+==== Ford-Fulkerson method
+
+The ford-fulkerson method is a greedy method which solves the <<maximum_flow_problem>>.  It's called a method opposed to algorithm since it's a template on which the more concrete algorithms are built.  *to-do*: why is it called a greedy algorithm? a) It does not choose the local best solution, it just picks _a_ solution b) it arguably undoes previous decisions by allowing `removing' already existing flow from an edge.
+
+Overview: Search some path in the residual network, augment the current flow with the found path. Iterate until there is no augmenting path in the residual network.
+
+--------------------------------------------------
+ford-fulkerson-method(G:flownetwork, source:vertex, sink:vertex)
+  flow = 0
+  while there exists an augmenting path p in the residual network:
+    augment flow along p
+  return flow
+--------------------------------------------------
+
+If graph is undirected, see <<maximum_flow_problem>> for a transformation. If the capacities are rational numbers opposed to integers, transform by appropriately scale all capacities to turn them into integers.
+
+Sending flow along the residual graphs backward edges means conceptually `undoing' decisions of previous iterations.
+
+References:
+- See <<flow_network>>
+- Book ``Introduction to algorithms'', subchapter ``The Ford-Fulkerson Method''.
+
+
+[[ford_fulkerson_algorithm]]
+==== Ford-Fulkerson algorithm
+
+An implementation of the <<ford_fulkerson_method>> which solves the <<maximum_flow_problem>> in +O(Ef)+.
+
+--------------------------------------------------
+ford-fulkerson-algorithm(G:flownetwork, source:vertex, sink:vertex)
+  for each edge e in G:
+    e.flow = 0
+  while there exists an augmenting path ap in the residual network:
+    rcp = min capacity of ap's edges // residual capacity of path ap
+    for each edge re in ap:
+      be e the corresponding edge in G
+      if re is an forward edge: e.flow += rcp
+      else (i.e. backward)    : e.flow -= rcp
+  return flow
+--------------------------------------------------
+
+Analysis: In the worst case, mind that all capacities are integers, the residual capacity is 1, so there are +O(f)+ iterations. Each iteration takes +O(E)+, so the overall cost is +O(Ef)+, i.e. pseudo-polynomial. The reason is that the algorithm allows that in each iteration, a silly augmenting path is choosen, while there might be much better augmenting paths.
+
+References:
+
+- See <<flow_network>>
+
+
+[[edmonds_karp]]
+==== Edmonds-Karp algorithm
+
+An specialiation of the <<ford_fulkerson_algorithm>> which solves the <<maximum_flow_problem>> in ++O(VE²)++. It is a specialication by specifying that the augmenting path is to be found by a breadth-first-search (O(V+E)=O(E)) (i.e. searching the shortest path where each edge has weight 1).
+
+Analysis: Each iteration is +O(E)+. It's proofable that the number of iterations
+is +O(VE)+. Thus the overal running time is +O(VE²)+.  The mentioned proof is based upon that once a critical edge is removed from residual network, it proofably can reappear only a certain mount of times. Also, the shortest path distance in the residual network from source to sink proofably increases monotonically after each augmentation / iteration.
+
+Intution in what way we want to improve the ford-fulkerson algorithm: If in the residual graph there is no augmenting path, i.e. source and sink are disconnected, then we found the maximum flow. Thus we strive for increasing the distance (edge weights 1) between the source and the sink.
+
+References:
+
+- See <<flow_network>>
+- CMU, Course 15-451/651 (Algorithms) Fall 2013, Lecture "Network Flows II: Edmonds-Karp 1, Edmonds-Karp 2, and blocking flows": https://www.cs.cmu.edu/~avrim/451f13/lectures/lect1008.pdf[lecture notes]
+
+
+[[push_relabel]]
+==== push-relabel algorithms
+
+Is an algorithm which solves the <<maximum_flow_problem>>. Is considered one of the most efficient maximum flow algorithms. The generic algorithm has +O(V²E)+, the variant based on the highest label node selection rule has +O(V²√E)+.
+
+Concepts: A _preflow_ is like a flow, only that the flow conservation constraint is relaxed: The flow into a vertex may exceed the flow out of a vertex.  The _excess flow_ of a vertex is the difference between flow in and flow out. Note that in most physical analogies, the capacity is a quantity per time, and so is excess. An excess of 3 thus means that 3 units accumulate per unit of time in the given vertex.  Most authors describe that figuratively, each vertex has a reservoir of infinite size.  Alternatively figuratively an excess flow means that a vertex is leaking.  In a regular flow all excess flows are 0.  In a preflow they are ≥ 0. An vertex other than source or think is said to be _overflowing_ (aka _active_) if its excess flow is > 0.  Each vertex as a _height_, which is an integer. The source has always height |V|. The sink has always height 0.  All other vertices start at height 0 and potentially raise over time.  They never decrease.  In the residual graph, edges can go downhill by at most 1. They can be flat an go uphill.  An edge in the residual graph is _admissible_ if it's downhill. Since edges in the residual graph can go downhill only by at most one (see above definition of height), admissible edges go downhill exactly by one. Recall that in the residual graph, all capacities are > 0.  To _push (excess) flow_ means decreasing the excess flow of a vertex by sending flow through an outgoing unsaturated downhill edge in the residual network.  That increases the excess flow in the receiving vertex by the same amount.  To _relabel_ a vertex means to increase its height to one unit more than the lowest of its direct successors to which there's an unsaturated pipe.
+
+Intuition: The algorithm starts by setting height of source to |V|, and all other vertices to 0, flooding all out edges of the source to their capacity. The residual graph now is almost identical to the original graph, only that source's edges are reversed. All direct successors of the source are overflowing. We iteratively try to turn all remaining overflowing vertices into non-overflowing vertices, in which case the preflow proofably is the maximum flow. We do that by moving (part of) the excess flow to an direct successor vertex. More concretely by pushing flow downhill through an admissible edge in the residual graph. And if that is not possible because the overflowing vertex has no admissible outgoing edges, by relabeling it.  Ultimatively all excess flow is pushed either to the sink or to the source,  which by definition have no excess flow.  In other words, the algorithm tries to turn the initial preflow into a flow (no more overflowing vertices), which proofably will then be a maximum flow.
+
+*to-do*: why to encode in the description and in the pseudo code that source and think don't have an excess flow?
+
+
+--------------------------------------------------
+push-relabel(G:flownetwork)
+  init(G)
+  while there is an overflowing node u
+    If u has an admissible outgoing edge v in the residual graph: push(u, v)
+    else: relabel(u)
+
+// precondition:
+//   u is overflowing
+//   residual edge (u,v) is admissible
+push(u:vertex, v:vertex)
+  oe = edge(u,v) in original graph
+  re = edge(u,v) in residual graph
+  df = min(u.excess, re.capacity)
+  if e is an forward edge: oe.flow += df
+  else                   : oe.flow -= df
+  u.excess -= d
+  v.excess += d
+
+// precondition:
+//   u is overflowing
+//   u has no admissible outgoing edge in the residual graph
+relabel(u:vertex)
+  u.height = 1 + (minimal height among u's direct successors in residual graph)
+--------------------------------------------------
+
+Compare and contrast the push-relabel approach with the augmenting path approach: Augmengting path maintains the invariant feasability, i.e. the conservation and the capacity constraints. The goal is to reach a residual graph where the source and the sink are disconnected; i.e. we are trying to get better and better flows. Push-relabel is the exact opposite: The invariant is that in the residual graph source and sink are disconnected. The goal is restoring feasability, or in other words, transform the preflow into a flow. I.e. push-relabel first relaxes feasability, and then tries to restore it.
+
+
+References:
+
+- See <<flow_network>>
+- CMU, Course 15-451/651 (Algorithms) Fall 2013, Lecture "Network Flows III: Push-relabel flow algorithms, and Min-Cost Max-Flow.": https://www.cs.cmu.edu/~avrim/451f13/lectures/lect1010.pdf[lecture notes]
+- Book ``Introduction to algorithms'', chapters ``Push-relabel algorithms'' and ``The relabel-to-front algorithm''.
 
 
 == Computational Geometry
@@ -3484,18 +3496,6 @@ Given an array A, find index (here named k) of minimum element in range [i,j].
 Solutions:
 
 - Convert A to a <<cartesian_tree>>, see there, and in that tree, solve the <<LCA_problem>>, see there.
-
-
-[[maximum_flow_problem]]
-=== Maximum Flow Problems
-
-_Maximum flow problems_ involve finding the maximum flow in a <<flow_network>>.  It can be seen as a special case of more complex problems, e.g. the circulation problem.
-
-Solutions of max-flow:
-
-- <<ford_fulkerson_algorithm>> in +O(E*f)+ (whereas f is the maximum flow) for the case where capacities are integers.
-- <<edmonds_karp>> algorithm in +O(VE²)+ for the case where capacities are integers.
-- An algorithm implementing the <<push_relabel>> approach. The generic version is +O(VE²)+, more specific version get better, the `highest label selection' has +O(V²√E)+
 
 
 === Consumer producer
