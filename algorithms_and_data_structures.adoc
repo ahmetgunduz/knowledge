@@ -1033,7 +1033,9 @@ References:
 [[heap]]
 === Heap
 
-A _heap_ is a specialized tree-based data structure that satisfies the _heap property_: If node A is a parent node of B, then the key of node A is ordered with respect to the key of node B with the same ordering applying across the heap.  In a _max heap_ the parent node key is greater than or equal to those of the children, in a _min heap_ it's smaller than or equal.  Thus the element with the largest (max heap) / lowest (min heap) key is always stored at the root.  Note that there is no implied ordering between siblings or cousins.
+A _heap_ is a specialized tree-based data structure that satisfies the _heap property_: If node A is a parent node of B, then the key of node A is ordered with respect to the key of node B with the same ordering applying across the heap.  In a _max heap_ the parent node key is greater than or equal to those of the children, in a _min heap_ it's smaller than or equal.  Thus the element with the largest (max heap) / lowest (min heap) key is always stored at the root.  Note that it follows that there is no implied ordering between siblings or cousins.
+
+A heap is considered an data structure as opposed to an abstract data type, despite that it has multiple implementations (aka backing data structures).
 
 Time complexities for binary, binomial, Fibonacci, pairing, Brodal, rank pairing, strict Fibonacci:
 
@@ -1058,8 +1060,11 @@ Practical use of advanced heaps like Fibonacci or Brodal: ``To the best of my kn
 Applications of heaps:
 
 - The heap data structure is one maximally efficient implementation of the <<priority_queue>> ADT.
-- Merge sort
+
+- <<heap_sort>>. Commonly a binary heap is used, since then then the algorithm can in-place sort an array.
+
 - <<Dijkstra>>'s shortest-path algorithm
+
 - Order statistics
 
 A heap data structure should not be confused with `the heap' which is a common name for the pool of memory from which dynamically allocated memory is allocated.
@@ -1068,22 +1073,55 @@ A heap data structure should not be confused with `the heap' which is a common n
 [[binary_heap]]
 ==== Binary heap
 
-In a _binary heap_ the tree is a complete <<binary_tree>>. *to-do*: study implementation of the basic operations.
+In a _binary heap_ the tree is a complete <<binary_tree>>.  Keys are not stored in a typical tree data structure where each node has pointers to its childs.  Instead, keys are stored in an array.  The index in the array implies the position in the binary tree and vice versa.
 
+Visualizing element array indexes (1 based) as a tree:
 --------------------------------------------------
-        0
-    1       2
-  3   4    5  6      0123456789 array index
- 7 8 9               01-2---3-- tree level
-
-parent(i) = floor((i-1)/2)
-right-child(i) = (i+1)*2 - 1
-left-child(i) = (i+1)*2
+                   tree level
+        1          0
+    2       3      1 
+  4   5   6   7    2
+ 8 9               3 
 --------------------------------------------------
 
-- +heapify(i)+.  Assumes that children of node +i+ are max heaps, but +i+ might violate the heap property.  Time: +O(lg(nst))+, where nst are the number of nodes in the sub tree rooted at i.
+Visualizing element array indexes (1 based) as an array:
+--------------------------------------------------
+array index  123456789
+tree level   01-2---3-
+--------------------------------------------------
 
-- +build_heap()+:  Converts an array into a heap.  Common implementation: in a bottom-up manner, for each node, starting at one-before-leaf-height height, call +heapify+.  Time: +O(n)+.
+Many authors describe that a binary heap is more about algorithms than about a data structure. Most importantely heap sort.
+
+Terminology: Often heap is used as a synonym for binary heap, altough heap actually is a more general data structure.  Also just `binary heap' as opposed to `binary max/min heap' technically means the above described array based data structure, however where the nodes in the associate tree do not necessarily follow the heap property.
+
+++parent(i)++: return floor(i/2) // i>>2
+
+++left_child(i)++: return 2i // a return value >= heapsize means i is a leaf
+
+++right_child(i)++: return 2i+1 // a return value >= heapsize means i is a leaf
+
+++max_heapify(i)++: Every node in i's subtree except i itself obeys the heap property; restore the heap propery of node i.  Float down the violating node, always swapping the vialoting root with the largest child.  It's the largest child in order that the tripple (root, left, right) obeys the heap property.  Stop once the node arrived at a position where it no longer violates the heap property, which includes the case that it is now a leaf. O(h) = O(log n) time complexity, where n is the number of nodes in tree rootet at i.
+
+++build_heap()++: Converts a given array into a heap.  The leaf nodes are already one-element heaps.  I.e. there is a forest of heaps.  Look at the tree diagram above.  From left to right, from tree level h-1 downto tree level 0, i.e. from index array.size/2 downto 1, add a node to the forest as a new root combining two trees by treating it as a vialoting root of a subtree and call max_heapify on it.  The core loop really just is ++for i=arraysize downto 1: max_heapify(i)++.  Time complexity is O(n), which is the killer feature of an heap vs a BST which has O(n log n) to build.
+
+++max()++: return A[0]
+
+++extract_max()++: Swap the root, i.e. the max, with the right most child, i.e. the last element in the array. Now that last element can be easily removed from the array; typically just by decrementing the array size variable.  Call max_heapify(0) to restore the new root's heap property.  Return the value which was removed from the array before.  O(log n) time.
+
+++increase_key(i, new_value)++: Bubble up the violating node (actually the node making its parent violate the heap property), always swapping the violating node with its parent, until the heap property is no longer violated.
+
+++insert(val)++: Append val to the array, i.e. make it the right most child of the tree. Then use the same algorithm as in increase_key to restore the heap property by bubbling up the new element until it reaches its proper place.
+
+++delete(i)++: Since binary heaps are mostly used to impement priority queues or heap sort, this operation is typically not needed. Swap i with the last array element; then this new last array element can easily be removed (aka popped) from the array. The node i now may violate the heap property. Bubble up or tickle down as in max_heapify or insert respectively.
+
+++decrease_key(i, new_value)++: Since binary heaps are mostly used to impement priority queues or heap sort, this operation is typically not needed.  As in max_heapify, tickle down the node until the heap proprty is restored.
+
+General anlysis: Height is h = Θ(log n) since it's a complete binary tree.
+
+
+==== Fibonacci heap
+
+*to-do*:
 
 
 [[tries_comparision]]
