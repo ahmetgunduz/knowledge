@@ -281,17 +281,22 @@ The following demonstrates dynamic programing by solving the <<rod_cutting_probl
 
 Dynamic programming needs two hallmarks:
 
-1. _Optimal substructure_: An optimal solution to the problem contains within it optimal solutions to subproblems.  I.e. if you have an optimal solutions to each sub problem, you can combine them to form the optimal solution to the original problem.  Example: in the rod cutting problem, if we cut a rod of length +n+ in two pieces,  that gives us two new subproblems, namely optimally cutting these two pieces.
+- _Optimal substructure_: An optimal solution to the problem contains within it optimal solutions to subproblems.  I.e. if you have an optimal solutions to each sub problem, you can combine them to form the optimal solution to the original problem.  Example: in the rod cutting problem, if we cut a rod of length +n+ in two pieces,  that gives us two new subproblems, namely optimally cutting these two pieces.
 
-2. _Overlapping subproblems_: A given sub-problem has to be solved/computed many times.  If that's not the case, there's no point in doing memoization.  Example: in the rod cutting problem, the problem of cutting a rod of length 2 has to be solved again and again within the problem of cutting a rod of length greater than 2.  Effectively the sub-problems form a directed graph, where x->y means subproblem x depends on subproblem y (i.e. y must be solved first).
+- _Overlapping subproblems_: A given sub-problem has to be solved/computed many times.  If that's not the case, there's no point in doing memoization.  Example: in the rod cutting problem, the problem of cutting a rod of length 2 has to be solved again and again within the problem of cutting a rod of length greater than 2.  Effectively the sub-problems form a directed graph, where x->y means subproblem x depends on subproblem y (i.e. y must be solved first).
 
 Dynamic programming recipe:
 
 1. _Define all subproblems_: I.e. define all vertices in the subproblem DAG. Details: Typically the input is a sequence of n items. For a given problem, it's subproblems are often either suffixes [i:] (Θ(n)) or prefixes [:i] (Θ(n)) or substrings [i:j] (Θ(n*n)).
+
 2. _Guessing_ (I would say try all): For each step (i.e. node / subproblem), think about all the possible paths (i.e. outgoing edges) that have to be tried.
+
 3. _Recurrence_: Same as step 2, but more formal: Formulate the recursive DP(...) function which returns the min/max/..., which includes defining the base cases.  Check that graph of subproblems is acyclic, i.e. is a DAG.
+
 4. _Implement algorithm_: Implement DP(...), e.g. using one of the approaches presented below: top-down, bottom-up approach or shortest-path in DAG.
+
 5. _Solve original problem_: Just call your algorithm with the right arguments. E.g. in the rod cutting problem, with the original rod lenght as in the problem statement.
+
 6. _Reconstructing a solution_: Step 5 only gave a the value of the optimal solution (e.g. in case of the <<knapsack>> problem: the maximal value is 42), but you might also want to know which choices led there (e.g. which items to pack into the knapsack).
 +
 Variant 1) Each vertex also stores which choice it made.  Analogous to
@@ -1345,20 +1350,19 @@ cost-deletete[c] is cost to delete char c from x, cost-insert[c] is cost to
 insert char c into x, cost-replace[c1, c2] is cost to replace char c1 by
 c2. Doing nothing modeled by cost-replace[c,c].
 
-<<dynamic_programming>>:
+Solution using <<dynamic_programming>>:
 
-1. suproblems: All possible suffixes of x and y.  I.e. edit distance on x[i:]
-   and y[i:] for all i∊[0,|x|) and j∊[0,|y|).
+_Define suproblems_: All possible suffixes of x and y.  I.e. edit distance on
+x[i:] and y[i:] for all i∊[0,|x|) and j∊[0,|y|).
 
-2. guess: In each step, there are three choices: ① replace x[i] by y[j] (do
-   nothing is modeled by replacing c by c) or ② insert (prepend) y[j] to x or
-   ③ delete x[i].  The general idea is to consume the first character of x
-   and/or y in order to 1) make first char of x and y equal and to 2) be left
-   with a subproblem (to make progress at least one char needs to be
-   consumed).
+_Guessing_: In each step, there are three choices: ① replace x[i] by y[j] (do
+nothing is modeled by replacing c by c) or ② insert (prepend) y[j] to x or ③
+delete x[i].  The general idea is to consume the first character of x and/or y
+in order to 1) make first char of x and y equal and to 2) be left with a
+subproblem (to make progress at least one char needs to be consumed).
 
-3. recurrence: 
-+
+_Recurrence_: DP is defined as following:
+
 -----
 DP(i,j) =
   if i=|x| and j=|y|: ④ 0
@@ -1367,20 +1371,20 @@ DP(i,j) =
   ② cost-insert[y[j]]       + DP(i  , j+1)  if             j+1≤|y|,
   ③ cost-delete[x[i]]       + DP(i+1, j  )  if i+1≤|x|            )
 -----
-+
-④ is the base case (aka smallest subproblem), which is the edit distance to
-   transform the empty string to the empty string, which obviously is 0.
 
-4. Description of subproblem DAG: Imagine a matrix, each cell represents a
-   vertex in the DAG and thus also represents DP(i,j). It has |x| rows indexed
-   by i, and |y| columns, indexed by j. Thus the top left cell/vertex is the
-   original problem (edit distance to transform x into y), and bottom-right
-   cell/vertex is the base case ④.  The weight of the edges are the respective
-   cost-x[…] term in the DP formula of step 3.  Optionally each cell/vertex
-   can have a value attribute which then is DP(i,j).
-+
+④ is the base case (aka smallest subproblem), which is the edit distance to
+transform the empty string to the empty string, which obviously is 0.
+
+_Implement algorithm_: The following describes the subproblem DAG: Imagine a
+matrix, each cell represents a vertex in the DAG and thus also represents
+DP(i,j). It has |x| rows indexed by i, and |y| columns, indexed by j. Thus the
+top left cell/vertex is the original problem (edit distance to transform x into
+y), and bottom-right cell/vertex is the base case ④.  The weight of the edges
+are the respective cost-x[…] term in the DP formula of step 3.  Optionally each
+cell/vertex can have a value attribute which then is DP(i,j).
+
 Example: x=FLO and y=FOO:
-+
+
 -----
              outgoing edges of each matrix-cell / DAG-vertex
    FOOε      the cells in the left-most column and bottom-most row
@@ -1391,19 +1395,19 @@ O 2····      ② delete
 ε 3···④      
   i          R means root of the DAG, i.e. the original problem
 -----
-+
+
 bottom-up approach: Solve the subproblems by starting in the bottom
 right corner and then going left and/or up.  E.g: ++for i=|x|⋯0: for
 j=|y|⋯0: …++.
-+
-time complexity: #subprobs=Θ(|x|⋅|y|) (number of cells). time/subproblem = Θ(1). Overall running time =
-  #subprobs⋅time/subproblem = Θ(|x|⋅|y|).
-+
+
 Space complexity: Θ(|x|⋅|y|) (number of cells) for a trivial implementation.
 If only a sliding window of one row or column, which ever of |x| or |y| is
 smaller, is kept, the space complexity becomes Θ(min(|x|,|y|)).
 
-5. The original problem is DP(0,0).
+_Solve original problem_: The original problem is DP(0,0).
+
+
+Analysis: time complexity: #subprobs=Θ(|x|⋅|y|) (number of cells). time/subproblem = Θ(1). Overall running time = #subprobs⋅time/subproblem = Θ(|x|⋅|y|).
 
 
 *to-do*:
@@ -1465,31 +1469,33 @@ Solution for the 0-1 knapsack problem using <<dynamic_programming>>:
 
 Put the items in some sequence.
 
-1. Suproblems: All possible suffixes of the item sequence (items[i:]) × all possible remaining capacities X≤S.
+_Define suproblems_: All possible suffixes of the item sequence (items[i:]) ×
+all possible remaining capacities X≤S.
 
-2. Guessing: In each step, there are two choices: ① shall I include item i (aka current/front item) or ② shall I not?  
+_Guessing_: In each step, there are two choices: ① shall I include item i (aka
+current/front item) or ② shall I not?
 
-3. Recurence:
-+
---------------------------------------------------
+_Recurence_: DP is defined as following:
+
+-------------------------------------------------------
 DP(i,X) =
   if i=n: ③ 0
   else: max(
   ①        DP(i+1, X)       if i+1≤n            ,
   ② v[i] + DP(i+1, X-w[i])  if i+1≤n and w[i]≤X )
-------------------------------------------------------------
-+
-③ is the base case, which is the knapsack problem for an empty set of items
-and whatever remaining capacity: the maximal value is obviously 0.
+-------------------------------------------------------
 
-4. Description of the subproblem DAG: Imagine a matrix, each cell represinting
-   a vertex in the DAG and thus also represents DP(i,X).  It has n+1 columns
-   indexed by i, and S+1 rows, indexed by X.  Thus the top left cell/vertex is
-   the original problem (knapsack for all items and capacity S).  The right
-   column are the base cases.
-+
+③ is the base case, which is the knapsack problem for an empty set of items and
+whatever remaining capacity: the maximal value is obviously 0.
+
+_Implement algorithm_: The following describes the subproblem DAG. Imagine a
+matrix, each cell represinting a vertex in the DAG and thus also represents
+DP(i,X).  It has n+1 columns indexed by i, and S+1 rows, indexed by X.  Thus the
+top left cell/vertex is the original problem (knapsack for all items and
+capacity S).  The right column are the base cases.
+
 Example: n=3 items, capacity S=4:
-+
+
 ----------------------------------------------------------------------
 c    item
 a    0124     outgoing edges of each matrix-cell / DAG-vertex:
@@ -1500,21 +1506,16 @@ i   1···③
 t   0···③     R means root of the DAG, i.e. the original problem
 y   
 ----------------------------------------------------------------------
-+
+
 Bottom-up approach: Solve subproblems by starting in the bottom right corner
 and then going left and/or up: E.g.: ++for i=n⋯0: for X=0⋯S: …++.  Space
 complexity can be improved by only using a sliding window of two columns.
 Note that the top-down approach doesn't need to calculate all n*S vertices; it
 only calculates the ones reachable from DP(0,S).
-+
-time complexity: Θ(1) for one DP call. Thus the overall running time is +Θ(n*S)+,
-i.e. <<pseudo_polynomial>>. It's exponential, since +Θ(n*S)+ is exponential
-relative to the input size which is +O(n*lg S)+ (think how many bits you need
-to represent the input).
 
-5. The original problem is DP(0,S).
+_Solve original problem_: The original problem is DP(0,S).
 
-6. The items to be included into the knapsack are (for non-zero weights).
+_Reconstruction a solution_: The items to be included into the knapsack are (for non-zero weights).
 --------------------------------------------------
 X = S
 for i in [0,n)
@@ -1522,6 +1523,11 @@ for i in [0,n)
     remember item i as included in knapsack
     X -= w[i]
 --------------------------------------------------
+
+Analysis: Time complexity is Θ(1) for one DP call. Thus the overall running time
+is +Θ(n*S)+, i.e. <<pseudo_polynomial>>. It's exponential, since +Θ(n*S)+ is
+exponential relative to the input size which is +O(n*lg S)+ (think how many bits
+you need to represent the input).
 
 Applications:
 
