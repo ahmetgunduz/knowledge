@@ -2960,7 +2960,7 @@ References:
 
 Two vertices v and u of an undirected graph are _connected_ if they are linked by a path, otherwise they are called _disconnected_.  An undirected graph is _connected_ when every pair of vertices is connected.  Two vertices in an directed graph are _strongly connected_ if they are mutually linked by paths.  A directed graph is _weakly connected_ (or just _connected_) if it would be a connected graph if the edges were taken to be undirected.  A directed graph is _strongly connected_, if for every pair there's a path in both directions.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ (_SCC_, or _strong component_) of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.
 
-Contracting each strongly connected component of a directed graph G to a single vertex is called the _condensation_ of G. The condensation of G is a DAG and also called _kernel DAG_.
+Contracting each strongly connected component of a directed graph G to a single vertex is called the _condensation_ of G. The condensation of G is a DAG and also called _kernel DAG_ or _component graph_.
 
 A _cut_ is a partition of V.  A _vertex cut_ (aka _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  An _articulation point_ (aka _cut point_, _separating vertex_ or _cut vertex_) is a vertex in a connected (sub)graph whose removal would disconnect the (sub)graph.  A _bridge_ is an edge in a connected (sub)graph whose removal would disconnect the (sub)graph.  An edge can only be a bridge if it is not contained in an cycle.  A set of edges _respects_ a cut if no edge in that set croses the cut.  An edge is a _light edge_ crossing a cut if its weight is the minimum of any edge crossing the cut.
 
@@ -2977,6 +2977,8 @@ References:
 - http://www2.nauk.si/files/894/adventes.pdf
 
 - Book Graph Theory, 5th Ed., Reinhard Diestel, chapter "Connectivity"
+
+- Book ``Introduction to algorithms'', chapter ``Strongly connected components''.
 
 - Book Algorithms (4th Edition), Sedgewick & Wayne, subchapter "Strong connectivity in digraphs", p. 584
 
@@ -3005,6 +3007,11 @@ Algorithms:
 - Reachability-based Algorithms, O(n log n) time.  However these algorithms are easier to parallelize than the previous DFS based algorithms. https://en.wikipedia.org/wiki/Strongly_connected_component. *to-do*
 
 
+References:
+
+- https://www.quora.com/Is-there-any-difference-or-advantages-or-disadvantages-between-Kosarajus-algorithm-and-Tarjans-algorithm-for-finding-strongly-connected-component-Which-one-is-most-useful
+
+
 [[kosaraju_sharir_algorithm]]
 ==== Kosaraju-Sharir algorithm
 
@@ -3012,24 +3019,26 @@ Finds the strongly connected components of a directed graph G in O(V+E) time.
 
 The first step is building the reverse of a DFS post order traversal.  Typically this is done by an all source DFS which pushes finished vertices on a stack.  The second step is to transpose the graph, i.e. to reverse the direction of all edges.  In the third step we do again an all source DFS.  The vertices which are tried as roots of the DFS trees are popped from the stack of the first step.  Each resulting DFS tree represents a strongly connected component.
 
-Informal description why the algorithm works: Recall that transposing a graph does not change the strongly connected components.  Let CTG denote the condensation of the tranposed graph.  The first step orders the input graphs vertices such that when then iterating over them and conceptually marking the CTG vertex in which they appear, the CTG vertices are marked in reverse topological sort order, i.e. from CTG sink to CTG source, not skipping over any CTG vertex in the CTG toposort sequence.  Note however that in the process we may encounter input graph vertices lying in any of the already marked CTG vertices.  Since no CTG vertex is skipped over, the second DFS in the algorithm is forced to stay within a CTG vertex.  It cannot discover input graph vertices lying in CTG ancestor vertices because by now they are already discovered.  It cannot discover input graph vertices lying in CTG descendant vertices, because that would be against the edge direction connecting CTG vertices.
+Informal description why the algorithm works: Recall that transposing a graph does not change the strongly connected components.  Let CTG denote the condensation of the tranposed graph.  The first step orders the input graphs vertices such that when then iterating over them and conceptually marking the CTG vertex in which they appear, the CTG vertices are marked in reverse topological sort order, i.e. from CTG sink to CTG source, not skipping over any CTG vertex in the CTG toposort sequence.  Note however that in the process we may encounter input graph vertices lying in any of the already marked CTG vertices.  Since no CTG vertex is skipped over, the second DFS in the algorithm is forced to stay within a CTG vertex.  It cannot discover input graph vertices lying in CTG ancestor vertices because by now they are already discovered.  It cannot discover input graph vertices lying in CTG descendant vertices, because that would be against the edge direction connecting CTG vertices.  Informal rational for why the 2nd DFS can't just use the 1st DFS post order sequence (i.e. not reversed) directly on the input graph (i.e. not transposed):  The input graph vertices at the beginning of the post order sequence (i.e. at the end of the reversed post order sequence) can be in any vertex of the condensed input graph, as opposed to just the sink,  thus the 2nd DFS potentially could leave a vertex of the condensed input graph.
 
 --------------------------------------------------
   graph G              condensation of
                        transposed G
   1-->2-->4-->5-->7    1     4
-  ^   |   ^   |        2 <-- 5 <-- 7
-  |   V   |   V        3     6
-  +---3   +---6
+  ^   |   ^   |   ^    2 <-- 5 <-- 7
+  |   V   |   V   V    3     6     8
+  +---3   +---6   8
 
   Some possible reverse DFS post order traversals of G.
-  1 2 4 5 7 6 3    starting at 1
-  1 2 3 4 5 6 7    starting at 1
-  1 2 3 4 5 6 7    starting at 7, 4, 1
-  2 3 1 6 4 5 7    starting at 7, 6, 2
+  1 2 4 5 7 8 6 3   starting at 1
+  1 2 3 4 5 6 7 8   starting at 1
+  1 2 3 4 5 6 7 8   starting at 7, 4, 1
+  2 3 1 6 4 5 7 8   starting at 7, 6, 2
 --------------------------------------------------
 
 References:
+
+- Book ``Introduction to algorithms'', chapter ``Strongly connected components''.
 
 - https://algointuition.wordpress.com/
 
