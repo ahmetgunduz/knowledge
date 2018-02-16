@@ -145,31 +145,32 @@ can access its params and locals with a constant offsets relative to BP. If
 there was only SP, the offsets of locals and params releative to SP would
 change after each modification of SP. E.g. consider +alloca+.
 
-Using the register BP as entry point and the BP member of each stack frame,
-the stack frames build a singly linked list with the BP register as head ptr.
+This forms a singly linked list, where the register BP is the pointer to the
+head, and the BP member of each stack frame is the pointer to the next stack
+frame.
 
 In this visualization the stack grows upwards:
 
 --------------------------------------------------
-frames     stack                         registers  text
-        addr  description                        
-                                              IP--+  f2:
-f2's    35    local 2 of f2               <-- SP  |   .. ...
-frame   36    local 1 of f2                       |   .. ...
-        37 /--BP of previous stack frame  <-- BP  |   .. ...
-        38 |  IP (IP when f2 was called)------+   +-->.. ...      
-        39 |  param 2 for f2                  |       .. ...
-        3A |  param 1 for f2                  |       
+frames     stack                         registers   text
+        addr  description                            ----------
+----------------------------------------             f2:
+f2's    35    local 2 of f2               <-- SP     .. ...
+frame   36    local 1 of f2                   IP---->.. ...
+        37 /--prev frame / f1's pushed BP <-- BP     .. ...
+        38 |  ret addr / f1's pushed IP ------+      .. ...      
+        39 |  param 2 for f2                  |      .. ...
+        3A |  param 1 for f2                  |      ---------- 
 --------   |                                  |      f1:
-f1's    3B |  local 2 of f1                   |       .. ...
-frame   3C \  local 1 of f1                   +------>.. call (f2's addr)
-        3D  =>BP of prevoius stack frame              .. ...
-        3E /  IP (IP when f1 was called)------+       
-        3F |  param 2 for f1                  |       
-        40 |  param 1 for f1                  |       
---------   |                                  |       .. ...
-...     41 |  ...                             +------>.. call (f1's addr)
-        42 \=>BP                                      .. ...
+f1's    3B |  local 2 of f1                   |      .. ...
+frame   3C \  local 1 of f1                   +----->.. call f2
+        3D  =>prev frame / f0's pushed BP            .. ...
+        3E /  ret addr / f0's pushed IP ------+      .. ...      
+        3F |  param 2 for f1                  |      ----------
+        40 |  param 1 for f1                  |      f0: 
+--------   |                                  |      .. ...
+...     41 |  ...                             +----->.. call f1
+        42 \=>BP ...                                 .. ...
 --------------------------------------------------
 
 A typical sequence of events might look like this:
@@ -192,19 +193,22 @@ References:
 
 === Howto use a stack trace (aka stack backtrace)
 
-1) extract function name from stacktrace
-[01]: 0x00002b162f974735 BOBuchhaltungTaskWorker::adhoc(BOManager*, BOBuchhaltungTaskDataElement*)+0x85 (at 0x00002b162f974735 in /home/xentis/xentis/packages/XENTIS/lib/libAmisBO.so)
-...
+1. extract function name from stacktrace
++
+  [01]: 0x00002b162f974735 BOBuchhaltungTaskWorker::adhoc(BOManager*, BOBuchhaltungTaskDataElement*)+0x85 (at 0x00002b162f974735 in /home/xentis/xentis/packages/XENTIS/lib/libAmisBO.so)
 
-2) get relative address of that function symbol
-$ nm /home/xentis/xentis/packages/XENTIS/lib/libAmisBO.so | c++filt | grep BOBuchhaltungTaskWorker::adhoc
-000000000074f6b0 T BOBuchhaltungTaskWorker::adhoc(BOManager*, BOBuchhaltungTaskDataElement*)
+2. get relative address of that function symbol
++
+  $ nm /home/xentis/xentis/packages/XENTIS/lib/libAmisBO.so | c++filt | grep BOBuchhaltungTaskWorker::adhoc
+  000000000074f6b0 T BOBuchhaltungTaskWorker::adhoc(BOManager*, BOBuchhaltungTaskDataElement*)
 
-3) use gdb to disassemble the function
-gdb /home/xentis/xentis/packages/XENTIS/lib/libAmisBO.so
-disass 0x000000000074f6b0
+3. use gdb to disassemble the function
++
+  gdb /home/xentis/xentis/packages/XENTIS/lib/libAmisBO.so
+  disass 0x000000000074f6b0
 
-4) stacktrace said its the instruction with offest +0x85 (+133 dec), so in the disassembly:
+4. stacktrace said its the instruction with offest +0x85 (+133 dec), so in the disassembly:
++
    0x000000000074f735 <+133>:	mov    (%r12),%rax
 
 
