@@ -1,0 +1,52 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+- How do I choose bitdepth, color space of (graphic card) output? The color
+  space has to match what I configure at the monitor (in OSD's preset modes),
+  right?
+
+- Also, adobe rbg defines whitepoint, brightness. So I shoudn't be able to
+  change temperature, brighntess, controst via OSD on my monitor?
+
+- Why can I modify brightness/contrast on monitor when I already selected an
+  color space? Doesn't the color space _exactly_ define ligthness/a/b (or
+  likewise, RGB, whereas rgb are exactly defined primaries)?
+
+- Why can I select a color space on the monitor? doesn't the source of the
+  signal tell exactly what color space the transmitted information is in?
+
+- How to tell darktable/digikam to restrict colors to srgb? Because while
+  editing I don't want to see colors that are not available in the stored jpeg
+  file.
+
+- The result of characterization is an ICC (international color consortium)
+  profile; that is, an ICC profile characterizes an input or output device.
+  An ICC profile maps from device to the common profile connection space
+  (PCS), which is either CIELAB (L*a*b*) or CIEXYZ. CIE is the International
+  Commission on Illumination. ICC profiles typically have file extenstion .icc
+  or .icm.
+
+- pmjdebruijn:
+ * These days gamma 2.2 is universally accepted as a standard for displays.
+ * For most purposes, a white point of 6500K (this is at least true for both
+   sRGB and AdobeRGB) is good as a standard neutral white.
+ * If your work is color critical, it’s common to calibrate your display to
+   120cd/m2.
+
+- why should I change working color space? That's purely internal to the
+  application, no? The display's color space is whatever it is (that is,
+  whatever the configured icc profile says)
+
+
+
+- https://encrypted.pcode.nl/blog/2012/01/29/color-management-on-linux/
+- http://www.tftcentral.co.uk/articles/icc_profiles.htm#caveats
+- https://www.linux.com/learn/weekend-project-tackle-color-management-linux
+
+edid:
+- https://encrypted.pcode.nl/blog/2013/04/14/display-profiles-generated-from-edid/
+
+calibrate:
+
+- http://www.tftcentral.co.uk/articles/calibrating.htm
+- http://www.lagom.nl/lcd-test/
