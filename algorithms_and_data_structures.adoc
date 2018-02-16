@@ -2945,13 +2945,66 @@ References:
 
 === Connectivity
 
-Two vertices v and u are called _connected_ if there is a path from v to u, otherwise they are called _disconnected_.  A _connected graph_ is one where every pair of vertices is connected.  A directed graph is considered a connected graph if for every pair of vertices there is a path in either direction.  A _weakly connected_ graph is a directed graph which would be a connected graph if the edges were taken to be undirected.  A directed graph is _strongly connected_, if for every pair there's a path in both directions.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.  If each strongly connected component is contracted to a single vertex, the resulting graph is a directed acyclic graph, the _condensation_ of G.  A _cut_ is a partition of V.  A _vertex cut_ (aka _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  An _articulation point_ (aka _cut point_, _separating vertex_ or _cut vertex_) is a vertex in a connected (sub)graph whose removal would disconnect the (sub)graph.  A _bridge_ is an edge in a connected (sub)graph whose removal would disconnect the (sub)graph.  An edge can only be a bridge if it is not contained in an cycle.  A set of edges _respects_ a cut if no edge in that set croses the cut.  An edge is a _light edge_ crossing a cut if its weight is the minimum of any edge crossing the cut.  The _connectivity_ (or _vertex connectivity_) κ(G) is the size of a minimal vertex cut, or in other words, the minimum number of nodes to be removed to disconnect the graph.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater, or in other words, if it remains connected whenever fewever than k vertices are removed.  2-connectivity is also called _biconnectivity_, and 3-connectivity is also called _triconnectivity_.
+Two vertices v and u of an undirected graph are _connected_ if they are linked by a path, otherwise they are called _disconnected_.  An undirected graph is _connected_ when every pair of vertices is connected.  Two vertices in an directed graph are _strongly connected_ if they are mutually linked by paths.  A directed graph is _weakly connected_ (or just _connected_) if it would be a connected graph if the edges were taken to be undirected.  A directed graph is _strongly connected_, if for every pair there's a path in both directions.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ (_SCC_, or _strong component_) of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.
+
+Contracting each strongly connected component of a directed graph G to a single vertex is called the _condensation_ of G. The condensation of G is a DAG and also called _kernel DAG_.
+
+A _cut_ is a partition of V.  A _vertex cut_ (aka _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  An _articulation point_ (aka _cut point_, _separating vertex_ or _cut vertex_) is a vertex in a connected (sub)graph whose removal would disconnect the (sub)graph.  A _bridge_ is an edge in a connected (sub)graph whose removal would disconnect the (sub)graph.  An edge can only be a bridge if it is not contained in an cycle.  A set of edges _respects_ a cut if no edge in that set croses the cut.  An edge is a _light edge_ crossing a cut if its weight is the minimum of any edge crossing the cut.
+
+The _connectivity_ (or _vertex connectivity_) κ(G) is the size of a minimal vertex cut, or in other words, the minimum number of nodes to be removed to disconnect the graph.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater, or in other words, if it remains connected whenever fewever than k vertices are removed.  2-connectivity is also called _biconnectivity_, and 3-connectivity is also called _triconnectivity_.
 
 A _complete graph_ with n vertices, denoted K~n~, is a simple undirected graph in which every pair of distinct vertices is connected by a unique edge.  A _tournament_ is a directed graph obtained by assigning a direction for each edge in an complete graph.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.  A _biconnected graph_ is a connected graph that has no articulation points.  A _biconnected component_ (aka _block_ or _2-connected component_) is a maximal (*to-do*: what does maximal mean here?) biconnected subgraph.  Note a biconnected component, unlike connected components, can be connected to other parts of the supergraph.  A _block graph_ (aka _clique tree_) is an undirected graph in which every biconnected component (aka block) is a clique.
 
 _Menger's Theorem_: Vertex connectivity: k-connected vertices are connected by k internally vertex-disjoint paths.
 
 Motivation: Connectivity measures fault tolerance of a network. E.g. how many connections can fail without cutting off communications.
+
+References:
+
+- http://www2.nauk.si/files/894/adventes.pdf
+
+- Book Graph Theory, 5th Ed., Reinhard Diestel, chapter "Connectivity"
+
+- Book Algorithms (4th Edition), Sedgewick & Wayne, subchapter "Strong connectivity in digraphs", p. 584
+
+
+==== Kosaraju-Sharir algorithm
+
+Finds the strongly connected components of a directed graph G in O(n) time.
+
+The first step is building the reverse of a DFS post order traversal.  Typically this is done by an all source DFS which pushes finished vertices on a stack.  The second step is to transpose the graph, i.e. to reverse the direction of all edges.  In the third step we do again an all source DFS.  The vertices which are tried as roots of the DFS trees are popped from the stack of the first step.  Each resulting DFS tree represents a strongly connected component.
+
+Informal description why the algorithm works: Recall that transposing a graph does not change the strongly connected components.  Let CTG denote the condensation of the tranposed graph.  The first step orders the input graphs vertices such that when then iterating over them and conceptually marking the CTG vertex in which they appear, the CTG vertices are marked in reverse topological sort order, i.e. from CTG sink to CTG source, not skipping over any CTG vertex in the CTG toposort sequence.  Note however that in the process we may encounter input graph vertices lying in any of the already marked CTG vertices.  Since no CTG vertex is skipped over, the second DFS in the algorithm is forced to stay within a CTG vertex.  It cannot discover input graph vertices lying in CTG ancestor vertices because by now they are already discovered.  It cannot discover input graph vertices lying in CTG descendant vertices, because that would be against the edge direction connecting CTG vertices.
+
+--------------------------------------------------
+  graph G              condensation of
+                       transposed G
+  1-->2-->4-->5-->7    1     4
+  ^   |   ^   |        2 <-- 5 <-- 7
+  |   V   |   V        3     6
+  +---3   +---6
+
+  Some possible reverse DFS post order traversals of G.
+  1 2 4 5 7 6 3    starting at 1
+  1 2 3 4 5 6 7    starting at 1
+  1 2 3 4 5 6 7    starting at 7, 4, 1
+  2 3 1 6 4 5 7    starting at 7, 6, 2
+--------------------------------------------------
+
+References:
+
+- https://algointuition.wordpress.com/
+
+- http://www2.nauk.si/files/894/adventes.pdf
+
+- Book Algorithms (4th Edition), Sedgewick & Wayne, subchapter "Kosaraju's algorithm", p. 586
+
+
+==== Tarjan's algorithm
+
+Finds the strongly connected components of a directed graph in O(n) time.
+
+*to-do*
 
 
 === Graph coloring
@@ -3212,8 +3265,6 @@ References:
 - https://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/
 
 - http://jeffe.cs.illinois.edu/teaching/373/notes/x05-convexhull.pdf
-
-- https://www.geeksforgeeks.org/convex-hull-set-1-jarviss-algorithm-or-wrapping/
 
 
 [[grahams_scan]]
@@ -3575,6 +3626,11 @@ In C / C&plus;&plus;, +CHAR_BIT+ is the number of bits in a byte.
   - Unknown date: youtube https://www.youtube.com/playlist?list=PLXzW9t1q_fb_3k_KzBfBnw0NXjvq45-bf
 
 - https://www.cs.usfca.edu/~galles/visualization/
+
+- Princeton, Course Algorithms and Data Structures,
+https://www.youtube.com/playlist?list=PLxc4gS-_A5VDvP_9W8JJ04zk6m1qTolzG
+
+- Book Algorithms (4th Edition), Sedgewick & Wayne: https://algs4.cs.princeton.edu/home/
 
 // Local Variables:
 // eval: (visual-line-mode 1)
