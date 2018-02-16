@@ -455,7 +455,7 @@ The elements form a sequence. Example ADTs: <<list_adt>>, <<stack>>, <<queue>> (
 Given a key, the collection yiels a value. Example ADTs: <<associative_array>> (<<set>> [value being the key] (<<multiset>>))
 
 .Graphs
-Data items have associations with one or data items in the collection. Example ADTs: <<tree_adt>>.
+Data items have associations with one or data items in the collection. Example ADTs: <<tree_ADT>>.
 
 
 Notably usually not considered a collection: fixed-sized arrays
@@ -477,9 +477,7 @@ Sequencial access (no random access)
 Implementations: linked list, doubly linked list, array data structure
 
 
-[[map]]
 [[associative_array]]
-[[dictionary]]
 === Associative array (aka map, symbol table, dictionary)
 <<collection>> of (key, value) _pairs_ (aka _items_), such that each key appears at most once in the collection.  Specialization of <<multimap>>.
 
@@ -490,10 +488,9 @@ Implementations: association list, hash table, binary search tree, radix trees, 
 
 [[multimap]]
 ==== Multimap (aka multihash)
-Is a generalization of a <<map>> (aka associative array) in which more than one value may be associated with a given key.  My words: As with <<multiset>>s, this is used in two distinct senses: either equal values are considered identical, and are simply counted, or equal values are considered equivalent, and are stored as distinct items.
+Is a generalization of a <<associative_array>> (aka associative array) in which more than one value may be associated with a given key.  My words: As with <<multiset>>s, this is used in two distinct senses: either equal values are considered identical, and are simply counted, or equal values are considered equivalent, and are stored as distinct items.
 
 
-[[bag]]
 [[multiset]]
 ==== Multiset (aka bag)
 A specialization of an <<associative_array>> in that the value part of the associative array's (key, value) pairs is absent or a sentinel value (like 1).
@@ -501,14 +498,12 @@ A specialization of an <<associative_array>> in that the value part of the assoc
 A generalization of a <<set>> in that it allows duplicates.  This is used in two distinct senses: either equal values are considered identical, and are simply counted, or equal values are considered equivalent, and are stored as distinct items.
 
 
-[[Set]]
+[[set]]
 ==== Set
 A specialication of a <<multiset>> (which in turn is a specialization of an <<associative_array>>), in that no duplicates are allowed.
 
 
-[[deck]]
 [[dequeue]]
-[[deque]]
 === Double-ended queue (aka dequeue, deque, deck)
 <<linear_collection>> where elements can only be inserted to and removed from either side of the sequence.  Is a generalization of a <<queue>> and a <<stack>> in that elements can be inserted and removed to/from both sides.
 
@@ -529,7 +524,7 @@ See also: - http://www.codeproject.com/Articles/5425/An-In-Depth-Study-of-the-ST
 
 [[queue]]
 === Queue
-<<linear_collection>> where the element removed is prespecified by a first-in-first-out (FIFO) policy.  Is a specialization of a <<deque>> in that insertion is only allowed on one side and removal only on the other side.
+<<linear_collection>> where the element removed is prespecified by a first-in-first-out (FIFO) policy.  Is a specialization of a <<dequeue>> in that insertion is only allowed on one side and removal only on the other side.
 
 Common operations: Elememts can only be added to its _tail_ side (_enqueue_), and only be removed from the other side called _head_ (_dequeue_).  The only element that can be accessed is the one on the head side (_front_ or _peek_).
 
@@ -654,7 +649,7 @@ Implementations: <<disjoint_set_linked_list>>, <<disjoint_set_forest>>
 | merge-sets(u,v)  |             | O(log n)               | O(log* n)
 |============
 
-Applications: <<Kruskal>>'s algorithm, *to-do*
+Applications: <<kruskals_algorithm>>, *to-do*
 
 Trivia: Was invented specifically to make Kruskal's algorithm more efficient
 
@@ -2219,7 +2214,7 @@ BFS_init(graph, source:vertex, queue):
   queue.enqueue(source)
 --------------------------------------------------
 
-About the color attributes, both for DFS and BFS:  If it is known that the graph is acyclic the color attribute is not needed since it's inherently not possible for that algorithm to discover a node twice.  There are multiple common naming schemes for the colors.  The three color schemes have no advantage over the two color schemes other than some people find the algorithm easier to understand.  So the color finished (black) is technically superfluous.  In DFS, distinguishing three colors is required only for certain applications, e.g. edge classification.  In DFS, personally I find the three color scheme unvisited / tentative / visited unfortunate,  since it conflicts with the popular usage of the term `visited' meaning the timepoint when the vertex is added to the spanning tree.  Likewise, in BFS I find the two color scheme unvisited / visited unfortunate for the same reason.
+About the color attributes, both for DFS and BFS:  If it is known that the graph is acyclic the color attribute is not needed since it's inherently not possible for that algorithm to discover a node twice.  There are multiple common naming schemes for the colors.  The three color schemes have no advantage over the two color schemes other than some people find the algorithm easier to understand.  So the color finished (black) is technically superfluous.  In DFS, distinguishing three colors is required for certain applications, e.g. edge classification.  In DFS, personally I find the three color scheme unvisited / tentative / visited unfortunate,  since it conflicts with the popular usage of the term `visited' meaning the timepoint when the vertex is added to the spanning tree.  Likewise, in BFS I find the two color scheme unvisited / visited unfortunate for the same reason.
 
 [options="header"]
 |=====
@@ -2406,9 +2401,8 @@ is as discovered, pushed C _again_, pops C and marks it as discovered, pops C
 *to-do*: symmetry between DFS and BFS: http://stackoverflow.com/questions/5278580/non-recursive-depth-first-search-algorithm
 
 
-[[DFS_forest]]
 [[DFS_edge_classification]]
-==== Edge classification / DFS forest
+==== Edge classification
 
 These edge properties are edge properties of the spanning forest (aka DFS forest) that results from a particular DFS run, not of the graph per se.
 
@@ -2863,16 +2857,16 @@ The problem of finding the <<MST>>, actually minimum spanning forest, in an undi
 
 Algorithms:
 
-- <<Kruskal>>'s algorithm
+- <<kruskals_algorithm>>
 
-- <<Prim>>'s algorithm (restricted to connected graphs)
+- <<prims_algorithm>> (restricted to connected graphs)
 
 References:
 
 - Book ``Introduction to algorithms'', chapter ``Minimum Spanning Trees''.
 
 
-[[Kruskal]]
+[[kruskals_algorithm]]
 ==== Kruskal's algorithm
 
 A greedy algorithm solving the <<MST_problem>> for a connected weighted graph in O(E log E) time.
@@ -3439,7 +3433,7 @@ Event queue data: A priority queue with the y-coordinate of events as key.  A ve
 
 The partial Voronoi diagram that has been constructed so far is stored in an <<DECL>>.
 
-Sweep line status: Actually conceptually it's more about the beach line.  In an <<dictionary>> we store the Voronoi sites having at last one associated parabolic arc on the beach line.
+Sweep line status: Actually conceptually it's more about the beach line.  In an <<associative_array>> we store the Voronoi sites having at last one associated parabolic arc on the beach line.
 
 In other words, the middle arc of the three consecutive arcs on the beach line just has disappeared, the two Voronoi edges it traced out now coincide in a Voronoi vertex.
 
@@ -3607,9 +3601,12 @@ In C / C&plus;&plus;, +CHAR_BIT+ is the number of bits in a byte.
 
 == References
 
-- http://ocw.mit.edu/courses/civil-and-environmental-engineering/1-204-computer-algorithms-in-systems-engineering-spring-2010/lecture-notes/
+- Book "Algorithms" (4th Edition), Sedgewick & Wayne: https://algs4.cs.princeton.edu/home/
 
-- https://www.quora.com/What-are-the-very-basic-algorithms-that-every-Computer-Science-student-must-be-aware-of
+ * Closely related: Princeton university, Course Algorithms and Data Structures,
+https://www.youtube.com/playlist?list=PLxc4gS-_A5VDvP_9W8JJ04zk6m1qTolzG
+
+- Book "Introduction to algorithms" aka CLRS (3rd Edition), Cormen, Leiserson, Rivest, Stein
 
 - MIT 6.006: Introduction to Algorithms: https://courses.csail.mit.edu/6.006
   * (fall'11): https://courses.csail.mit.edu/6.006/fall11/notes.shtml, https://www.youtube.com/playlist?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb
@@ -3628,15 +3625,13 @@ In C / C&plus;&plus;, +CHAR_BIT+ is the number of bits in a byte.
   * Newest spring'14: Same videos as spring '12, link suggested by ETH course Advanced Data Structures: https://www.youtube.com/playlist?list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf
 
 - MIT 6.854: Advanced Algorithms
-  - Spring 2016: Youtube https://www.youtube.com/playlist?list=PL6ogFv-ieghdoGKGg2Bik3Gl1glBTEu8c
-  - Unknown date: youtube https://www.youtube.com/playlist?list=PLXzW9t1q_fb_3k_KzBfBnw0NXjvq45-bf
+  * Spring 2016: Youtube https://www.youtube.com/playlist?list=PL6ogFv-ieghdoGKGg2Bik3Gl1glBTEu8c
+  * Unknown date: youtube https://www.youtube.com/playlist?list=PLXzW9t1q_fb_3k_KzBfBnw0NXjvq45-bf
 
 - https://www.cs.usfca.edu/~galles/visualization/
 
-- Princeton, Course Algorithms and Data Structures,
-https://www.youtube.com/playlist?list=PLxc4gS-_A5VDvP_9W8JJ04zk6m1qTolzG
+- https://www.quora.com/What-are-the-very-basic-algorithms-that-every-Computer-Science-student-must-be-aware-of
 
-- Book Algorithms (4th Edition), Sedgewick & Wayne: https://algs4.cs.princeton.edu/home/
 
 // Local Variables:
 // eval: (visual-line-mode 1)
