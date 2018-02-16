@@ -2968,9 +2968,34 @@ References:
 - Book Algorithms (4th Edition), Sedgewick & Wayne, subchapter "Strong connectivity in digraphs", p. 584
 
 
+==== Tarjan's algorithm for finding articulation points
+
+Finds articulations points in an undirected graph in Θ(E+V) time. Note that there is also an ``Tarjan's algorithm'' which finds strongly connected components.
+
+*to-do*
+
+References:
+
+- https://www.slideshare.net/TraianRebedea/algorithm-design-and-complexity-course-8, beginning at slide 27
+
+
+==== Finding strongly connected components
+
+Algorithms:
+
+- <<kosaraju_sharir_algorithm>> in O(V+E) time.  Two DFS passes.  Simple to implement, rather difficult to understand why it works.
+
+- <<tarjans_algorithm>> in O(V+E) time.  A single DFS pass.  More complex than the Kosaraju-Sharir algorithm.
+
+- path based strong component algorithm. Uses a single DFS pass, like Tarjan's algorithm, but with two stacks.  The first linear time version of this algorithm was published by Dijkstra. *to-do*
+
+- Reachability-based Algorithms, O(n log n) time.  However these algorithms are easier to parallelize than the previous DFS based algorithms. https://en.wikipedia.org/wiki/Strongly_connected_component. *to-do*
+
+
+[[kosaraju_sharir_algorithm]]
 ==== Kosaraju-Sharir algorithm
 
-Finds the strongly connected components of a directed graph G in O(n) time.
+Finds the strongly connected components of a directed graph G in O(V+E) time.
 
 The first step is building the reverse of a DFS post order traversal.  Typically this is done by an all source DFS which pushes finished vertices on a stack.  The second step is to transpose the graph, i.e. to reverse the direction of all edges.  In the third step we do again an all source DFS.  The vertices which are tried as roots of the DFS trees are popped from the stack of the first step.  Each resulting DFS tree represents a strongly connected component.
 
@@ -2999,12 +3024,24 @@ References:
 
 - Book Algorithms (4th Edition), Sedgewick & Wayne, subchapter "Kosaraju's algorithm", p. 586
 
+- https://www.slideshare.net/TraianRebedea/algorithm-design-and-complexity-course-8, starting at slide 11
 
-==== Tarjan's algorithm
 
-Finds the strongly connected components of a directed graph in O(n) time.
+[[tarjans_algorithm]]
+==== Tarjan's algorithm (for finding strongly connected components)
+
+Finds the strongly connected components of a directed graph in O(V+E) time.
 
 *to-do*
+
+
+==== Tarjan's algorithm for finding bridges
+
+*to-do*
+
+References:
+
+- https://www.slideshare.net/TraianRebedea/algorithm-design-and-complexity-course-8, starting at slide 38
 
 
 === Graph coloring
