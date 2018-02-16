@@ -164,7 +164,7 @@ Naturally a good variant if R and S need to be sorted on r_attrib and s_attrib r
 
 For the special case of equi-joins, here R.r_attrib=S.s_attrib
 
-------------------------------------------------------------
+----------------------------------------------------------------------
 using coarse hash function, partitionate R,
   restriction: no partition might be larger than B-2 pages,
                   so it might be as usual a recursive process
