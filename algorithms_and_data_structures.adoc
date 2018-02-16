@@ -2487,11 +2487,24 @@ void traverse(Node* n) {
 *to-do*:
 
 
-[[toposort]]
+[[topological_sort]]
 === Topological sort
-A _topological sort_ (aka _topsort_, _toposort_, _topological ordering_) of a directed acyclic graph (DAG) is a linear ordering of its vertices such that for every directed edge (u,v) from vertex u to vertex v, u comes before v in the ordering.  Toposort is possible only for DAGs; see <<cycle_dedection>> for how to check.
 
-Algorithm: Augment the <<DFS_all_source,DFS-all-source>> algorithm: when an vertex v is finished, insert it onto the front of the output sequence.  In other words, topological sort is equivalent to reverse post order traversal of DFS forest.  Time complexity Θ(V+E).
+A _topological sort_ (aka _topsort_, _toposort_, _topological ordering_) of a directed
+acyclic graph (DAG) is a linear ordering of its vertices such that for every directed edge (u,v) from vertex u to vertex v, u comes before v in the ordering.  Topological sort is possible only for DAGs; see <<cycle_dedection>> for how to check.
+
+Algorithms:
+
+- DFS based: When an vertex v is finished, prepend it to the front of the output sequence.  In other words, a topological sort is equivalent to reverse DFS post order traversal.  Time complexity Θ(V+E).
+
+- Kahn's algorithm. *to-do*
+
+- Parallel algorithms in O(log² n) exist, see https://en.wikipedia.org/wiki/Topological_sorting.
+
+
+References:
+
+- Book ``Introduction to algorithms'', chapter ``Topological sort''.
 
 
 [[cycle_detection]]
@@ -2540,7 +2553,7 @@ general graph: <<Bellman_Ford>> +O(V*E)+
 
 non-negative weights: <<Dijkstra>> +O(E+V*lg(V))+
 
-DAG: <<toposort>>, then for each node, for each neighbor, relax. +Θ(E + V)+
+DAG: <<topological_sort>>, then for each node, for each neighbor, relax. +Θ(E + V)+
 
 unweighted graph: <<BFS>> +O(E+V)+
 
