@@ -16,7 +16,7 @@ With high probability (w.h.p.):: An event E occurs with high probability if Pr[E
 
 
 == Asymptotic notations / big O notation
-In computer science, big O notation is used to classify algorithms by how they respond to changes in input size, typically regarding running time space (memory/disk/...).
+In computer science, big O notation is used to classify algorithms by how they respond to changes in input size, typically regarding running time and space (memory/disk/...).
 
 In the following +n+ is the _input size_, +f(n)+ is the _number of steps_ needed by an algorithm.
 
@@ -537,9 +537,10 @@ Implemented more general ADTs: <<collection>>, <<deque>>
 
 [[priority_queue]]
 === Priority Queue
+
 A min (max) priority queue is similar to a queue, however dequeue extracts the element with the max (min) key.  I.e. each element has a key.  Principal operations for a max-(min-)priority queue: _insert_ (aka _enqueue_), _dequeue_ (aka _extract-max_(__-min__)), _peek_ (aka _max_(_min_)), _increase-key_(_decrease-key_).
 
-Sorting and priority queues: If it is possible to perform integer sorting in O(n) time per key, then the same time bound applies to the time per insertion or deletion operation in a priority queue data structure (Thorup 2007.  It's however a complicated reduction).  *to-do*: elaborate more on relation sorting to priority queues
+Sorting and priority queues: If it is possible to perform integer sorting in O(n) time per key, then the same time bound applies to the time per insertion or deletion operation in a priority queue data structure (Thorup 2007.  It's however a complicated reduction).
 
 Common implementations: <<heap>>, self-balancing binary tree
 
@@ -570,7 +571,7 @@ Common implementations:
 
 
 [[tree_ADT]]
-=== Tree
+=== Tree (ADT)
 Note that there is a distinction between a tree as an abstract data type (what this chapter is about), a data structure (see <<data_structures>>) and a topic in graph theory (see <<tree_graph_theory>>).
 
 Terms (see also those of <<graph_theory>>, in particular <<tree_graph_theory>> and <<DAG>>):
@@ -999,6 +1000,7 @@ References:
 
 - Book "Computational Geometry - Algorithms and Applications", subchapter "kd-trees"
 
+- https://www.youtube.com/watch?v=W94M9D_yXKk&index=3&list=PLe-ggMe31CTdBsRIw0hXln0hilRs-DqAx
 
 
 [[range_tree]]
@@ -1013,6 +1015,8 @@ Applications:
 References:
 
 - https://courses.csail.mit.edu/6.851/spring12/scribe/lec3.pdf
+
+- https://www.youtube.com/watch?v=xVka6z1hu-I, 59:08
 
 - Book "Computational Geometry - Algorithms and Applications", subchapter "Range Trees"
 
@@ -1186,6 +1190,7 @@ Each node has at least two children, so there are less internal nodes than leave
 
 Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
 
+[[trie_vs_hash_table]]
 Compared to a hash table:
 
 - A trie can have (depending on how nodes are represented) predictable look-up time +O(k)+.  A hash table has +O(k+n)+ time complexity worst case:  O(k) is used to generate the key, looking up the key is O(1) average but O(n) worst case.
@@ -2066,7 +2071,7 @@ Properties of the A* algorithm:
 About the heuristic function h aka +estimated_spw_to_dest(from:vertex)+:
 
 - Responsibility: Returns an estimated shortest path weight from the given vertex v to the implicit destination vertex.
-- Should be an admissible (it must not overestimate) heuristic.  If it fails to be admissible, A* is no longer optimal.  However see also <<bounded_relaxation>>.
+- Should be an admissible heuristic.  That is, it must not overestimate.  In other words, the estimation must not be higher than the lowest possible cost.  If it fails to be admissible, A* is no longer optimal, see also <<bounded_relaxation>>.
 - Should be monotone (aka consistent: For every edge (x,y): h(x) ≤ edge_weight(x,y)+h(y)).  A* can be implemented more efficiently by not making a node the current more then once (remember the above algorithm is for monotonic h).  Running such an A* algorithm on graph G is the same as running Dijkstra's algorithm on an alternate graph G' where edge_weight'(x,y) = edge_weight(x,y) + (h(y)-h(x)).
 - *to-do*: must be constant (during the run-time of the algorithm)?
 - Examples how to implement h: euclidean distance.
@@ -2735,6 +2740,8 @@ References:
 
 - http://jeffe.cs.illinois.edu/teaching/373/notes/allnotes.pdf, Non-lecture notes at the end.
 
+- http://www.cs.umd.edu/~mount/754/Lects/754lects.pdf
+
 
 === Convex hull
 
@@ -2789,7 +2796,7 @@ References:
 
 _Graham's scan_ finds the <<convex_hull>> of a set of points in O(n log n).
 
-Assumptions for simplicity: no three points lie on a common line, rounding error problems ignored, points.size <= 3 ignored.  
+Assumptions for simplicity: no three points lie on a common line, rounding error problems ignored, points.size ≤ 3 ignored.
 
 Find any point on the convex hull, e.g. the left-most point.  Sort the remaining points in counterclockwise order around that left-most point.  Connect all points in counterclockwise order, starting at the left-most point, resulting in a simple polygon with n vertices.
 
@@ -2884,7 +2891,7 @@ References:
 
 - https://people.csail.mit.edu/indyk/6.838/handouts/lec2.pdf
 
-- https://www.youtube.com/watch?v=dePDHVovJlE for the case of orthogonal line segments
+- https://www.youtube.com/watch?v=j6o8k5uM02c&index=2&list=PLe-ggMe31CTdBsRIw0hXln0hilRs-DqAx for the case of orthogonal line segments
 
 
 [[rectangle_intersection]]
@@ -2953,6 +2960,16 @@ References:
 - http://people.math.gatech.edu/~randall/Algs07/mount.pdf
 
 - http://www.cs.sfu.ca/~binay/813.2011/Fortune.pdf
+
+
+[[delaunay_triangulation]]
+=== Delaunay triangulation (DT)
+
+References:
+
+- Book "Computational Geometry - Algorithms and Applications", chapter "?????"
+
+- Chapter "Lecture 17: Delaunay triangulation" in http://www.cs.umd.edu/~mount/754/Lects/754lects.pdf
 
 
 == Problems
@@ -3362,11 +3379,13 @@ Solutions:
 
 - Voronoi diagram O(n)
 
-- <<closest_pair_of_pionts_divide_and_conquer>>
+- <<closest_pair_of_points_divide_and_conquer>>
 
 
-[[closest_pair_of_pionts_divide_and_conquer]]
+[[closest_pair_of_points_divide_and_conquer]]
 ==== Divide and conquer with presorting both in x and y
+
+Solves the <<closet_pair_of_points>> problem in O(n log n).
 
 Preparation: Sort set of input points by x coordinates → PointsXS. In another container also sort them by y coordinates → PointsYS. The recursive divide and conquer function gets both PointsXS and PointsYS as input parameters.
 
@@ -3448,14 +3467,13 @@ References:
 
 ==== Divide and conquer with presorting only in x
 
-A simpler variant of <<closest_pair_of_pionts_divide_and_conquer>>
+Solves the <<closest_pair_of_points>> problem in O(n log² n).  Is the simpler version of the previous algorithm.  The points are not presorted in y.  Thus also we don't need to maintain a sequence of y sorted points in closest_dist_core.  However now closest_dist_strip needs to y-sort the points within the strip.
 
 References:
 
 - https://www.geeksforgeeks.org/closest-pair-of-points/
 
 - http://cse.unl.edu/~ylu/raik283/notes/ClosestPair.ppt
-
 
 
 [[RMQ]]
@@ -3567,7 +3585,7 @@ In C / C&plus;&plus;, +CHAR_BIT+ is the number of bits in a byte.
 
 - MIT 6.851: Advanced Data Structures: https://courses.csail.mit.edu/6.851/
   * spring'12: https://courses.csail.mit.edu/6.851/spring12/lectures/, https://www.youtube.com/playlist?list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf
-  * Newest spring'14: The link to the vidoes are the same as those of spring'12.
+  * Newest spring'14: Same videos as spring '12, link suggested by ETH course Advanced Data Structures: https://www.youtube.com/playlist?list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf
 
 - MIT 6.854: Advanced Algorithms
   - Spring 2016: Youtube https://www.youtube.com/playlist?list=PL6ogFv-ieghdoGKGg2Bik3Gl1glBTEu8c
