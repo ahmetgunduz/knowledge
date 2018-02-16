@@ -2129,7 +2129,7 @@ This chapter explains graphs as a mathematical concept. For the corresponding ab
 
 A _graph_ G=(V,E) is given by a set of _vertices_ V (aka _nodes_ or _points_) and a set of _edges_ E (aka _lines_), each edge being an pair of elements from V.  The _order_ of a graph G, denoted by |G| is the number of its vertices, i.e. |V|.  The _size_ of a graph G, denoted by ‖G‖, is the number of its edges, i.e. |E|.
 
-An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++.  An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs.  Such an directed edge is also called _arc_, _directed edge_ or _arrow_.  An _outgoing edge_ (_incoming edge_) of vertex v is a directed edge starting (ending) at v. A _successor_ (_predecessor_) is vertex that comes after (before) a given vertex in a directed graph. A _direct successor_ (_direct predecessor_) is an adjacent successor (predecessor).  A _loop_ is an edge which starts and ends on the same vertex.  A _link_ is an edge with two different ends.  _parallel edges_ (aka _multiple edges_ or a _multi-edge_) share the same pair of vertices, and in case of directed graphs, point in the same direction.  _antiparallel edges_ share the same pair of vertices and point in opposite directions.  In an undirected graph the two vertices of an edge are said to be _adjacent_ (or _neihbors_) to each other; in an directed graph only the destination vertex of an edge is adjacent to the source vertex.  Two edges are called _incident_ (or _adjacent_) if they share a vertex.  Pairwise non-adjacent vertices or edges are called _independent_.
+An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(a,b)++ is identical to the edge ++(b,a)++.  An _directed graph_ (aka _digraph_) is one in which edges are ordered pairs.  Such an directed edge is also called _arc_, _directed edge_ or _arrow_.  An _outgoing edge_ (_incoming edge_) of vertex v is a directed edge starting (ending) at v. A _successor_ (_predecessor_) is vertex that comes after (before) a given vertex in a directed graph. A _direct successor_ (_direct predecessor_) is an adjacent successor (predecessor).  A _loop_ is an edge which starts and ends on the same vertex.  A _link_ is an edge with two different ends.  _parallel edges_ (aka _multiple edges_ or a _multi-edge_) share the same pair of vertices, and in case of directed graphs, point in the same direction.  _antiparallel edges_ share the same pair of vertices and point in opposite directions.  In an undirected graph the two vertices of an edge are said to be _adjacent_ (or _neighbors_) to each other; in an directed graph only the destination vertex of an edge is adjacent to the source vertex.  Two edges are called _incident_ (or _adjacent_) if they share a vertex.  Pairwise non-adjacent vertices or edges are called _independent_.
 
 The _degree_ (aka _valency_) d~G~(v)=d(v) of a vertex v in an undirected graph is the number |E(v)| of edges incident with v, with loops counted twice. In directed graphs, _out degree_ (_in degree_) is the number of outgoing (incoming) edges. A vertex of degree 0 is called _isolated_ (or _disconnected_), a vertex of degree 1 is called an _end-vertex_.  The number δ(G) := min { d(v) | v ∈ V } is the minimum degree of G, the number Δ(G) := max { d(v) | v ∈ V } its maximum degree. If all the vertices of G have the same degree k, then G is _k-regular_, or simply _regular_.  The _average degree_ d(G) of G is the average degree of G's vertices.
 
@@ -2164,86 +2164,85 @@ References:
 [[BFS]]
 === Breadth-first search (BFS) / traversal
 
-An algorithm for traversing or searching a graph in breadth first order in +O(V+E)+ (= +O(b^d+1^)+) time and +O(V)+ space.  Typically used to traverse a connected graph starting from a single source, thus that's what is shown here. Traversing a disconnected graphs, which implies multiple sources, is theoretically also possible, but not shown here. See the outer skeleton of DFS for the general idea how that would be done.
+An algorithm for traversing or searching a graph in breadth first order in O(V+E) (or O(b^d+1^)) time and O(V) space.  Typically used to traverse a connected graph starting from a single source, thus that's what is shown here. Traversing a disconnected graphs, which implies multiple sources, is also possible, but not shown here. See the outer skeleton of DFS for the general idea how that would be done.
 
-Intuitively the algorithm is: Starting at the source vertex, a spanning tree is built, level by level.  A queue contains neighbors (not yet part of the spanning tree) of the spanning tree.  In other other words, the queue contains the vertices to be added next to the spanning tree, ordered after their level in the spanning tree.  A visited/unvisited attribute per vertex ensures that a node is only added once to the queue.
+Intuitively the algorithm is: Starting at the source vertex, a spanning tree is built, adding vertices level by level.  A queue contains the neighbors of the interim spanning tree.  In other other words, the queue contains the vertices to be added next to the spanning tree, ordered after their level in the spanning tree.  A color attribute per vertex ensures that a vertex is only added once ever to the queue, and thus also ensures that the vertex is added only once to the spanning tree.
 
-Overview version:
+Overview version, using two color scheme:
 --------------------------------------------------
 Breadth-First-Search(Graph, source:vertex):
-  // 'visited' means 'is in queue or in spanning tree'
-  source.visited = true            
+  for each vertex v
+    v.color = undiscovered
+  source.color = discovered
   create queue and enqueue root // queue contains neighbors of spanning tree
   while queue is not empty:
-    current = queue.dequeue() // add current to spanning tree
+    current = queue.dequeue() // add current to spanning tree, aka visit it
     for each neighbor:
-      if !neighbor.visited:
-        neighbor.visited = true
+      if neighbor.color == undiscovered:
+        neighbor.color = discovered
         queue.enqueue(neighbor)
 --------------------------------------------------
 
-Time complexity +O(V + E)+ (each vertex is enqued/dequed at most once, and each edge is looked at twice (from each of its two sides)). Auxillary space complexity is +O(V)+ (Each vertex needs an attribute to know wheter it was visited. Beside that, in the worst case, the queue contains all vertices).  For graphs which are implicitly defined or very large, time complexity is better given as +(b^d+1^)+, whereas b is the branching factor and d is the distance (weights being 1) up to which we search.
-
-To be able to know whether a given node (aka vertex) was already visited typically each node gets a `color' attribute and/or a distance attribute attached.  If it is known that the graph is acyclic that color attribute is not needed since it's inherently not possible for that algorithm to visit a node twice.  There are multiple common naming schemes for the colors. The three color schemes have no advantage over the two color schemes other than some people find the algorithm easier to understand / visualize. 
-
-[options="header"]
-|=====
-   |relation to distance      |                       |                      |       |
-   |NIL / infinite            |unvisited/undiscovered | unvisited            | white | not seen at all
-.2+|not NIL / not infinite .2+|visited/discovered     | tentative (neighbor) | gray  | not visited but neighbor of visited; member of Q
-                                                      | visited              | black | visited
-|=====
-
-
-Detailed version:
+Detailed version using three color scheme:
 --------------------------------------------------
-Breadth-First-Search(graph, source:vertex [, dest:vertex]):
-  init(graph, source, Q) # Q contains vertexes adjacent to visited notes
-  while Q is not empty:
-    current = Q.dequeue()
-    [current.color = visited] // not needed in the two-colors schemes
+BFS(graph, source:vertex [, dest:vertex]):
+  create queue  // queue contains neighbors of spanning tree
+  BFS_init(graph, source, queue)
+  while queue is not empty:
+    current = queue.dequeue()  // add current to spanning tree, aka visit it
+    [current.color = finished] // not needed in the two-colors schemes
     [do auxillary visit action with current]
 
     for each neighbor that is adjacent to current:
-      if neighbor.color == unvisited // or: neighbor.distance == NIL
-        neighbor.color = tentative // or: neighbor.distance = current.distance + 1
+      if neighbor.color == undiscovered // or: neighbor.distance == NIL
+        neighbor.color = discovered
+        [neighbor.distance = current.distance + 1]
         [neighbor.parent = current]
         [if source==dest: return] // if its only about finding path source->dest
-        Q.enqueue(neighbor)
+        queue.enqueue(neighbor)
 
-init(graph, source:vertex):
+BFS_init(graph, source:vertex, queue):
   for each vertex v in graph:
-     v.color = undiscovered // or: v.distance = NIL
+    v.color = undiscovered
+    [v.distance = NIL]
     [v.parent = NIL]
 
-  source.color = tentative // or: source.distance = 0
+  source.color = discovered
+  [source.distance = 0]
   create empty queue Q
-  Q.enqueue(source)
+  queue.enqueue(source)
 --------------------------------------------------
+
+About the color attributes, both for DFS and BFS:  If it is known that the graph is acyclic the color attribute is not needed since it's inherently not possible for that algorithm to discover a node twice.  There are multiple common naming schemes for the colors.  The three color schemes have no advantage over the two color schemes other than some people find the algorithm easier to understand.  So the color finished (black) is technically superfluous.  In DFS, distinguishing three colors is required only for certain applications, e.g. edge classification.  In DFS, personally I find the three color scheme unvisited / tentative / visited unfortunate,  since it conflicts with the popular usage of the term `visited' meaning the timepoint when the vertex is added to the spanning tree.  Likewise, in BFS I find the two color scheme unvisited / visited unfortunate for the same reason.
+
+[options="header"]
+|=====
+   |Distance |2 colors  3+|3 colors. 3rd color not required |BFS                               |DFS
+   |∞        |unvisited   |unvisited |undiscovered |white 2+|Not seen at all
+.2+|not ∞ .2+|visited     |tentative |discovered   |gray    |Neighbor of spanning tree ⇔ in Q |In spanning tree, but not yet all descendants
+                          |visited   |finished     |black   |In spanning tree.                 |In spanning tree, incl. all descendants
+|=====
+
+
+Analysis: Time complexity O(V + E).  Each vertex is enqued/dequed at most once, and each edge is looked at twice, from each of its two sides.  Auxillary space complexity is O(V).  Each vertex needs an color attribute.  Beside that, in the worst case, the queue contains all vertices.  For graphs which are implicitly defined or very large, time complexity is better given as (b^d+1^), whereas b is the branching factor and d is the distance, weights being 1, up to which we search.
 
 Applications:
 
 - Solves the single-source <<shortest_path_problem>> where all edge weights are equal / absent, i.e. where for all paths the path weight equals the path distance.
 
 
+==== Level order tree traversal
 
-DFS does not really produce a spanning tree but a spanning forest. The book says `predecessor subgraph'.
-
-
-==== Tree level order traversal: Recursive approach
-
-
-==== Tree level order traversal: Iterative approach
-
-Is basically a BFS, simplified by the fact that a tree is an acyclic graph, and that typically the distance is not something that we want to know, and thus neither the color nor the distance attribute is needed.
+Is basically a BFS, simplified by the fact that a tree is an acyclic graph, and thus no color attribute is needed.
 
 --------------------------------------------------
-Tree-Level-Order-Traversal(root):
+level_order_tree_traversal(root):
   create empty queue Q
   Q.enqueue(root)
 
   while Q is not empty:
     current = Q.dequeue()
+    [do auxillary visit action with current]
     for each child of current:
       Q.enqueue(n)
 --------------------------------------------------
@@ -2252,47 +2251,59 @@ Tree-Level-Order-Traversal(root):
 [[DFS]]
 === Depth-first search (DFS) / traversal
 
-An algorithm for traversing or searching a graph in depth first order.  In +Θ(V+E)+ time and +O(V)+ space.  Typically used to traverse the complete, possibly disconnected graph.  As opposed to search only a connected graph starting from a single source; however that is also possible.
+An algorithm for traversing or searching a graph in depth first order.  In Θ(V+E) time and O(V) space.  Typically used to traverse a complete, possibly disconnected graph,  as opposed to search only a connected graph starting from a single source.
 
 
 ==== Recursive algorithm
 
-Basic algorithm for a connected graph:
+Regarding color attributes, see respective paragraph in chapter <<BFS>>.
+
+Basic algorithm for a connected graph, using two color scheme:
 --------------------------------------------------
-DFS-visit(graph, source:vertex):
-  // visited ⇔ is part of spanning tree
-  mark source as visited    // not needed for tree
-  for each neighbor of source:
-    if !neighbor.visited:   // not needed for tree
-      DFS-visit(graph, source)
+DFS_single_source(graph, source:vertex):
+  for each vertex v in graph
+    v.color = undiscovered
+  DFS_visit(graph, source)
+
+DFS_visit(graph, current:vertex):
+  current.color = discovered // add current to spanning tree, aka visit it
+  for each neighbor of current: // aka explore edges (current, neighbor)
+    if neighbor.color == undiscovered:
+      DFS_visit(graph, neighbor)
 --------------------------------------------------
 
-More detailed algorithm for a general graph:
+More detailed algorithm for a general graph, using three color scheme:
 [[DFS_all_source]]
 --------------------------------------------------
-DFS-all-source(graph):
-  for each vertex in graph
-    set color=unvisited and parent=NIL
+DFS_all_source(graph):
+  DFS_init(graph)
   for each vertex v in graph:
-    if v.color == unvisited:
-      DFS-visit(graph, v)
+    if v.color == undiscovered:
+      DFS_visit(graph, v)
 
-DFS-single-source(graph, source:vertex):
-  for each vertex in graph
-    set color=unvisited and parent=NIL
-  DFS-visit(graph, source)
+DFS_single_source(graph, source:vertex):
+  DFS_init(graph)
+  DFS_visit(graph, source)
 
-DFS-visit(graph, current:vertex):
-  current.color = tentative
-  [do auxillary pre-order action with current]
+DFS_init(graph)
+  time = 0
+  for each vertex v in graph
+    v.color = undiscovered
+    [v.parent = NIL]
+
+DFS_visit(graph, current:vertex):
+  current.color = discovered // add current to spanning tree, aka visit it
+  [current.discovery_time = ++time]
+  [do auxillary pre-order visit action with current]
   for each neighbor adjacent to current: // aka explore edges (current,neighbor)
-    [if neighbor.color is tentative: graph_has_cycles = true]
-    if neighbor.color is unvisited:
+    [if neighbor.color is discovered: graph_has_cycles = true]
+    if neighbor.color is undiscovered:
       [neighbor.parent = current]
-      DFS-visit(graph, neighbor)
-  [do auxillary post-order action with current]
-  [push to front of topo sorted sequence]
-  [current.color = visited]              // not needed in the two color variants
+      DFS_visit(graph, neighbor)
+  [do auxillary post-order visit action with current]
+  [push current to front of topo sorted sequence]
+  [current.color = finished]  // not needed in the two color variants
+  [current.finishing_time = ++time]
 --------------------------------------------------
 
 Analysis DFS-all-source: Time complexity: +Θ(V+E)+. Rational: Each vertex is visited (is current) once -> +O(V)+.  Each outgoing edge of each current (i.e. each node) is looked at -> +O(E)+. Space complexity: +O(V)+. Rational: Each vertex has at least the color attribute attached. Also in the worst case, when the graph is a list, there are as many recursion calls (stack pushes) as vertices.
@@ -2301,7 +2312,6 @@ Analysis DFS-all-source: Time complexity: +Θ(V+E)+. Rational: Each vertex is vi
 ==== Iterative algorithm
 
 Intuitively the algorithm is: Starting at the source vertex, a spanning tree is build, prefering to grow the tree in depth rather than breadth.  A stack maintains the neighbors of the current nodes' spanning tree anchestors.  Ordered after spanning tree depth, except for those having the `is-in-spanning-tree' flag set; those are semantically not really part of the stack anymore.  When a vertex is popped from the stack, if it is not already part of the spanning tree, it is made the current node and is made part of the spanning tree.  When the current vertex adds a neighbor to the stack he means `I want that neighbor as my spanning tree child'.  Due to the stacks FILO policy, that `takes away' that neighbor from any spanning tree anchestor who also wanted that neighbor as its child.  I.e. the stack can contain a vertex multiple times.  When a given vertex is popped the first time from the stack, his parent wins, and it is added to the spanning tree.  Wannabe parents of further occurences of the same vertex further below in the stack loose.  To prevent adding the vertex again to the tree, each vertex needs an attribute which tells whether or not it's already part of the tree.
-
 
 Basic algorithm 1 for a connected graph:
 --------------------------------------------------
@@ -2396,32 +2406,24 @@ is as discovered, pushed C _again_, pops C and marks it as discovered, pops C
 
 These edge properties are edge properties of the spanning forest (aka DFS forest) that results from a particular DFS run, not of the graph per se.
 
-The trees in the DFS forest produced by the algorithm above are in-trees (edges point towards root), i.e. edge direction is reversed relativ to the underlying graph.  When in the following ancestry terms are used, they refer to the edges in the DFS tree, not the edges in the underlying graph.
+_Tree edges_: An edge in the DFS forest. When the destination vertex is undiscovered (white) at the time the edge is explored.
 
---------------------------------------------------
-        A----->B  directed edge in graph
-         <·····   directed edge in DFS forest
-   parent      child  
-  current      neighbor
---------------------------------------------------
+_Back edges_: An edge to an anchestor in the DFS forest.  A self-loop is considered a back edge. When the destination vertex is discovered (gray) at the time the edge is explored.
 
-_Tree edges_: node->child / neighbor is univisited (aka white). I.e. an edge in the DFS forest.
+_Forward edges_: An edge to an non-child descendant in the DFS forest.  When the destination vertex is finished (black) at the time the edge is explored and src.discovery_time < dest.discovery_time.
 
-_Back edges_: node->anchestor / neighbor is exploring (aka gray). A self-loop is considered a back edge.
-
-_Forward edges_: node->descendant(non-child) / neighbor is finished (aka black) and node.starttime<neighbor.starttime.
-
-_Cross edges_: node->neither-anchestor-nor-descendant / neighbor is finished (aka black) and neighbor.starttime<node.starttime. Between two non-ancestor-related sub-trees (i.e. between trees in the depth-first forest or between sub-trees within a given tree).
+_Cross edges_: An edge between two diffrent (sub)trees in the DFS forest.  When the destination vertex is finished (black) at the time the edge is explored and src.discovery_time > dest.discovery_time.
 
 --------------------------------------------------
       ---A<--
      /  / \  \
      | V   V  |
-for  | B   C  |back edge
+for- | B   C  |back edge
 ward | |   |  |
 edge | V   V  |
      \>D<--E-/
-       cross edge
+       cross
+       edge
 --------------------------------------------------
 
 Applications:
@@ -2489,7 +2491,7 @@ void traverse(Node* n) {
 === Topological sort
 A _topological sort_ (aka _topsort_, _toposort_, _topological ordering_) of a directed acyclic graph (DAG) is a linear ordering of its vertices such that for every directed edge (u,v) from vertex u to vertex v, u comes before v in the ordering.  Toposort is possible only for DAGs; see <<cycle_dedection>> for how to check.
 
-Algorithm: Augment the <<DFS_all_source,DFS-all-source>> algorithm: when an vertex v is finished, insert it onto the front of the output sequence.  Time complexity +Θ(V+E)+.
+Algorithm: Augment the <<DFS_all_source,DFS-all-source>> algorithm: when an vertex v is finished, insert it onto the front of the output sequence.  In other words, topological sort is equivalent to reverse post order traversal of DFS forest.  Time complexity Θ(V+E).
 
 
 [[cycle_detection]]
