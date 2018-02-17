@@ -3711,19 +3711,7 @@ References:
 - http://cse.unl.edu/~ylu/raik283/notes/ClosestPair.ppt
 
 
-== Misc. related computer science
-
-
-=== NFA
-*to-do*:
-
-
-=== DFA
-*to-do*:
-
-
-=== DAFSA
-*to-do*:
+== Computer arithmetic
 
 
 === Bit manipulation
@@ -3739,6 +3727,21 @@ test:   x &   y
 In C / C&plus;&plus;, +CHAR_BIT+ is the number of bits in a byte.
 
 - http://graphics.stanford.edu/~seander/bithacks.html
+
+
+== Misc. related computer science
+
+
+=== NFA
+*to-do*:
+
+
+=== DFA
+*to-do*:
+
+
+=== DAFSA
+*to-do*:
 
 
 == References
