@@ -265,6 +265,31 @@ _Divide_ the problem into two or more subproblems that are smaller instances of 
 Examples: Quick sort
 
 
+
+
+[[master_theorem]]
+==== Master theorem for solving recurrences
+
+Is a way of obtaining the asymptotic bounds of the running time T(n) of an algorithm when being given T(n) as a recurence relation.  Say the running time T(n) of an divide and conquer algorithm can be described recursively in the form ``T(n) = aT(n/b) + f(n)'', where a is the number of created subproblems and n/b is the size of each subproblem.  In other words, there are a subproblems which are solved recursively, each in time T(n/b). f(n) is the cost outside the recursive calls which includes dividing the problem and combining the results of the subproblems. In the following, ε is some constant greater than zero, c is a constant smaller than one, and p(n) = n^log~b~ a^.
+
+|=====
+|Case |Asymptotic bounds of T(n) |Condition for f(n) |Informal condition for f(n) |Additional conditions
+|1    |Θ(p(n))                   |O(p(n)·n^-ε^)      |Grows slower than p(n)      |
+|2    |Θ(p(n) · lg n)            |Θ(p(n))            |Same order of growth as p(n)|
+|3    |Θ(f(n))                   |Ω(p(n)·n^ε^)       |Grows faster than p(n)      |af(n/b) ≤ cf(n) for sufficiently large n
+|=====
+
+Note that there is a gap between case and 1 and 2, when f(n) is maller than p(n) but not polynomically smaller.  To be polynomically smaller, it must be smaller by a factor of n^ε^.  Between 2 and 3 there is also a gap for analogous reasons.  Additionally the stated additional condition also contributes to the gap between 2 and 3.  Not all recurrence relations can be solved with the use of the master theorem; its generalizations include the Akra–Bazzi method.
+
+An example of where f(n) grows faster than p(n), but not polynomically faster: T(n) = 2T(n/2) + n log n. We obtain p(n) = n^log~2~2^ = n. f(n) = n log n grows faster than p(n) = n, but not polynomically, since f(n) / p(n) = log n is asymptotically less than n^ε^ for any positive constant ε.
+
+References:
+
+- Book "Introduction to algorithms", subchapter "4.5 The master method for solving recurrences"
+
+- https://www.saylor.org/site/wp-content/uploads/2011/06/Master-theorem.pdf
+
+
 [[decrease_and_conquer]]
 === Decrease and conquer (aka prune and search)
 
