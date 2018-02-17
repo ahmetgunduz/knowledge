@@ -9,10 +9,15 @@
 == Misc. terms
 
 In-place:: An algorithm using +O(1)+ auxiliary memory space.  Often even +O(log n)+ is considered as in place.
+
 Sentinel:: A sentinel is a dummy object that allows us to simplify boundary conditions.
+
 Memoization:: The solution to a given (sub)problem is memoized in a `memo pad' (aka table).  E.g. upfront or when first encountering it.  When later seeing the same (sub)problem again, its solution can be looked up in the memo.  See also <<dynamic_programming>>.
+
 [[whp]]
 With high probability (w.h.p.):: An event E occurs with high probability if Pr[E] ≥ 1−1/n^c^ for any constant c.
+
+Output-sensitive algorithm:: An algorithm whose running time depends on the size of the output, in addition to, or instead of, the size of the input.
 
 
 == Asymptotic notations / big O notation
@@ -45,14 +50,15 @@ _Asymptotic efficiency_: Only look at rate of growth.  An algorithm is said to b
 
 _amortized time_: `amortized +O(f)+' for operation o: In a sequence of length L of such o operations, the overall time is +O(L*f)+.  I.e. one of those o operations might use a particular large amount of time compared to the average case, but that time is amortized in the large.  A typical example is appending to an array; if the capacity is full, a new array of larger capacity needs to be allocated, and the data has to be copied.
 
-An _output-sensitive algorithm_ is an algorithm whose running time depends on the size of the output, in addition to, or instread of, the size of the input.
+Common functions ordered after order of growth: c, log~c~(n), n, n·log~c~(n), n^c^, c^n^, n!, n^n^.
 
-Common functions ordered after order of growth: c, log~c~(n), n, n·log~c~(n), n^c^, c^n^, n!, n^n^
-
-
-See also:
+Big oh cheat sheets:
 
 - https://www.hackerearth.com/practice/notes/big-o-cheatsheet-series-data-structures-and-algorithms-with-thier-complexities-1/
+
+References:
+
+- Book "Introduction to algorithms", subchapter "3.1 Asymptotic notation"
 
 - http://stackoverflow.com/questions/1364444/difference-between-big-o-and-little-o-notation
 
@@ -263,6 +269,10 @@ This is the naive method of trying every possible solution to see which is best.
 _Divide_ the problem into two or more subproblems that are smaller instances of the same problem.  _Conquer_ the subproblems by solving them recursively.  If the size of a subproblem is small enough, stop recursion (we say the recursion _bottoms out_) and solve it (we call that small subproblem a _base case_) in a straightforward manner.  _Combine_ the solutions the subproblems into the solution of the original problem.  See also <<relation_between_techniques>>.
 
 Examples: Quick sort
+
+References:
+
+- Book "Introduction to algorithms", chapter "Divide-and-Conquer"
 
 
 
@@ -779,7 +789,7 @@ Time: +O(1)+ worst average best case.  Space: +O(|U|)+.
 
 Implements the <<associative_array>> ADT.  Is an array of size m.  As usual, the number of elements stored is denoted n.  Is based on an array, called the _hash table_, of size m.  A <<hash_function>> h(k,m) is used to map a key k to [0,m), i.e. to an index into the hash table.  We say that a key k _hashes_ to slot h(k,m).  We also say that h(k, m) is the _hash value_ of key k.  When two keys hash to the same slot that is called a _collision_. The following subchapters describe ways how to deal with collisions.  α = n / m is the _load factor_ of the table.  The set of possible keys is called the _universe_ and denoted U.  The set of actually stored keys is denoted K. |K| = n.
 
-In general, the various hash table variants have the following properties: Search/insert/delete time in +O(k)+ for the best and average case, and ++O(k+n)++ worst case. Space is usually +O(n)+.
+In general, the various hash table variants have the following properties: Search/insert/delete time in O(k) for the best and average case, and O(k+n) worst case, where k is the key length. Space is usually O(n).
 
 See <<table_doubling>> on how to grow / shrink the table in order to keep the load factor small. More concretely, we want loadfactor=Θ(1) or equivalently m=Θ(n), or else we no longer have O(1) for insertion / search / delete.  `Copying' from the old table to the newly allocate table obviously includes rehashing every key, since the hash function is dependend on the table size m.  Despite table doubling, insertions / deletions still have O(1) time complexity, but now its amortized time.
 
@@ -1803,7 +1813,7 @@ Properties of sorting algorithms.  See also properties of algorithms in general.
 Stable::
 Stable sorting algorithms maintain the relative order of records with equal keys
 
-Adaptability::
+Adaptive::
 Whether or not the presortedness of the input affects the running time.
 
 internal/external sorting::
@@ -3740,11 +3750,11 @@ https://www.youtube.com/playlist?list=PLxc4gS-_A5VDvP_9W8JJ04zk6m1qTolzG
 
 - Book "Introduction to algorithms" aka CLRS (3rd Edition), Cormen, Leiserson, Rivest, Stein
 
-- MIT 6.006: Introduction to Algorithms: https://courses.csail.mit.edu/6.006
+- MIT course 6.006 Introduction to Algorithms: https://courses.csail.mit.edu/6.006
   * (fall'11): https://courses.csail.mit.edu/6.006/fall11/notes.shtml, https://www.youtube.com/playlist?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb
   * Newest lecture notes which are freely available spring'14: the newest vidoes seem to be from fall'11.
 
-- MIT 6.046J / 18.410J: In 2015 called "Design and Analysis of Algorithms", before "Introduction to Algorithms (SMA 5503)". Aparantly in '15 it's an advanced course between 6.006 and 6.851, before it was a course similar to 6.006.
+- MIT course 6.046J / 18.410J: In 2015 called "Design and Analysis of Algorithms", before "Introduction to Algorithms (SMA 5503)". Aparantly in '15 it's an advanced course between 6.006 and 6.851, before it was a course similar to 6.006.
  * Spring '15:
    ** youtube: https://www.youtube.com/playlist?list=PLUl4u3cNGP6317WaSNfmCvGym2ucw3oGp
    ** ocw: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-design-and-analysis-of-algorithms-spring-2015/lecture-videos/
@@ -3752,11 +3762,11 @@ https://www.youtube.com/playlist?list=PLxc4gS-_A5VDvP_9W8JJ04zk6m1qTolzG
   ** youtube: https://www.youtube.com/playlist?list=PL81A705FB7F988E7C
   ** OCW, less videos, but title describing content: http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-introduction-to-algorithms-sma-5503-fall-2005/video-lectures/
 
-- MIT 6.851: Advanced Data Structures: https://courses.csail.mit.edu/6.851/
+- MIT course 6.851 Advanced Data Structures: https://courses.csail.mit.edu/6.851/
   * spring'12: https://courses.csail.mit.edu/6.851/spring12/lectures/, https://www.youtube.com/playlist?list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf
   * Newest spring'14: Same videos as spring '12, link suggested by ETH course Advanced Data Structures: https://www.youtube.com/playlist?list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf
 
-- MIT 6.854: Advanced Algorithms
+- MIT course 6.854 Advanced Algorithms
   * Spring 2016: Youtube https://www.youtube.com/playlist?list=PL6ogFv-ieghdoGKGg2Bik3Gl1glBTEu8c
   * Unknown date: youtube https://www.youtube.com/playlist?list=PLXzW9t1q_fb_3k_KzBfBnw0NXjvq45-bf
 
