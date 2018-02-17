@@ -1814,15 +1814,30 @@ Space: O(1).
 
 === Bubble sort / sort by exchange
 
-Algorithm: The input is devided logically into an unsorted part to the left, initially the whole input, followed by an sorted part, initially empty.  In each inner iteration, a sliding window of length two elements traverses the unsorted list from left to right, advancing in one element steps.  At each step, the two elements in the sliding window are swapped if needed to ensure the right element is larger than the left element.  The result of one inner iteration is that the sorted part gets one element added to its left side.  The process is repeated until all is sorted. As an optimisation, if an inner loop makes no swaps, it means the `unsorted' part is actually sorted and we can terminate early.
+Algorithm: The input is devided logically into an unsorted part to the left, initially the whole input, followed by an sorted part, initially empty.  In each inner iteration, a sliding window of length two elements traverses the unsorted list from left to right, advancing in one element steps.  At each step, the two elements in the sliding window are swapped if needed to ensure the right element is larger than the left element.  The result of one inner iteration is that the sorted part gets one element added to its left side, and the unsorted part gets one element smaller.  The process is repeated until all is sorted. As an optimisation, if an inner loop makes no swaps, it means the `unsorted' part is actually sorted and we can terminate early.
+
+
+=== Shell sort
+
+Properties: Adaptive.  Stable.  In-place.
+
+Algorithm: Iterate over a sequence of positive integers denoting gaps.  The sequence is typically statically predefined.  The gaps are in decreasing order.  The last gap must be 1.  For each gap, use insertion sort to sort the subarrays {A[0+0·gap], A[0+1·gap], ...}, {A[1+0·gap], A[1+1·gap], ...}, ..., {A[gap-1+0·gap], A[gap-1+1·gap], ...}.
+
+Can be seen as a generalization of insertion sort.  Tries to take advantage of the fact that insertion sort is adaptive.  Each subarray that is sorted via insertion sort is likely to be partially sorted due to a previous outer iteration.  The question of deciding which gap sequence to use is difficult.  Too few gaps slows down the insertion sorts, and too many gaps produces an overhead by too many outer iterations.
+
+Time: Depends all on the gap sequence. Best known gap sequence results in O(n log² n) worst case.
+
+Space: O(1)
+
+Etymology: Named after Donald Shell.
 
 
 [[quick_sort]]
 === Quick sort
 
-Not stable in naive implementation.  Hidden factor in time complexity in practice quite small.  The +O(n^2^)+ worst case running time might be a problem when input size is large and used in an real-time system or system concerned with security (because malicious user potentially can trigger worst case behaviour).
+Properties: Not stable in naive implementation.  In-place.
 
-Time: +O(n^2^)+ worst case, +O(n lg(n))+ average case, best case: (simple partition: +O(n lg(n))+, 3way partition and equal keys: +O(n)+).
+Time: +O(n^2^)+ worst case, +O(n lg(n))+ average case, best case: (simple partition: +O(n lg(n))+, 3way partition and equal keys: +O(n)+).  Hidden factor in time complexity is in practice quite small.  The +O(n^2^)+ worst case running time might be a problem when input size is large and used in an real-time system or system concerned with security (because malicious user potentially can trigger worst case behaviour).
 
 Space: worst case: (naive: +O(n)+, Sedgewick +O(log n)+).
 
