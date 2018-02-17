@@ -1820,40 +1820,66 @@ internal/external sorting::
 Internal: all the data fits into main memory. External: the input data does not fit into main memory, and parts of it must reside on secondary storage.
 
 
-=== Overview
+=== Comparison of sorting algorithms
 
-To sort arrays:
 
-* Bubble sort, Insertion Sort and Selection Sort, having +O(n^2^)+, are bad. However insertion sort is online, stable, adaptive and has a small constant factor (also due to being CPU cache friendly), so it's often used for the base case of the recursive +O(n log n)+ algorithms. Bubble sort has tiny code size.
+References:
 
-* Quick sort is great when it works, but unreliable (+O(n^2^)+ worst case), not stable, +O(log n)+ space for stack. Time complexity has a relatively small constant factor since it's CPU cache friendly.
+- Book ``Introduction to algorithms'', subchapter ``Introduction / Sorting algorithms'' in chapter ``II Sorting and Order statistics''.
 
-* Merge sort is reliably good (+O(n log n)+ worst case), stable, highly parallelizable, but requires +O(n)+ auxiliary space;
+- https://en.wikipedia.org/wiki/Sorting_algorithm#Comparison_of_algorithms
+
+- Non comparison sorts with integers: http://en.wikipedia.org/wiki/Integer_sorting
+
+* MIT course MIT 6.851 Advanced Data Structures, Spring 2012, Lecture 14 Sorting in Linear Time: https://www.youtube.com/watch?v=pOKy3RZbSws&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&index=14, 6:40
+
+- Book "Algorithms" (4th Edition), Sedgewick & Wayne, chapter "5.1 String Sorts", section "Which string-sorting algorithm should I use", p. 724.
+
+- Book "Algorithms" (4th Edition), Sedgewick & Wayne, chapter "2.5 Applications" (of Sorting). In particular section "Which sorting algorithm should I use?", p. 342.
+
+
+==== Comparison based
+
+* Bubble sort, Insertion Sort and Selection Sort, having +O(n^2^)+, are bad. However insertion sort is online, stable, adaptive and has a small constant factor (also due to being CPU cache friendly), works well for small input sizes,  so it's often used for the base case of the recursive +O(n log n)+ algorithms. Bubble sort has tiny code size.
+
+* Quick sort is great when it works due to tight code and small hidden constant factor, but unreliable (O(n²) worst case), not stable and it needs O(log n) auxillary space (even O(n) in the worst case) for the stack. Time complexity has a relatively small constant factor since it's CPU cache friendly.  Countless implementation support the hypothesis that quick sort is the fastest general purpose sorting algorithm.
+
+* Merge sort is reliably good (+O(n log n)+ worst case), stable, highly parallelizable, allows for external sorting, but requires +O(n)+ auxiliary space;
 
 * Heap sort is reliably good (+O(n log n)+ worst case), but unstable, and also about a factor of 4 slower than quick sort's best case.
 
 * Introsort (hyprid of quick sort and heap sort) almost same as quicksort, but is now relyably good (+O(n log n)+ worst case), however the constant factor is between quick sort and heap sort.  I.e. on average introsort is worse than quick sort.
 
-To sort linked lists:
 
-* Copy it to an temporary array, sort that, copy the array back to the linked list.  Main reason: array has much better locality than a linked list where the nodes are scattered within memory.
+==== Sorting integers (non comparison based)
 
-* Variant of merge sort
+* Counging sort is Θ(k+n) average and worst-case. Stable. The integers must be in range [0,k].
 
-To sort strings:
+* Radix sort is Θ(d(k+n)) average and worst-case; large constant factor. The integers are d-digit numbers with radix k.  Considering the large constant factor, radix sort might be preferable over a comparison based sort with O(n log n) when log n is much larger than d.
 
-* *to-do*
+* Van Emde Boas tree based: Depending on the variant O(n log k) or O(n log(k/log(n))); large constant factor.  k is the radix.
 
-To sort integers:
+* Bucket sort is Θ(n) on average and Θ(n²) in the worst-case.  Stable.  The numbers must be uniformly distributed in a given range.
 
-* *to-do* see e.g. at 6:40 https://www.youtube.com/watch?v=pOKy3RZbSws&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&index=14
+* Signature sort is O(n). *to-do*
 
 
-References:
+==== Sort strings
 
-- https://en.wikipedia.org/wiki/Sorting_algorithm#Comparison_of_algorithms
+- least-significant-digit first (LSD) string sort
 
-- Non comparison sorts with integers: http://en.wikipedia.org/wiki/Integer_sorting
+- most-significant-digit-first (MSD) string sort
+
+- three-way string quicksort
+
+*to-do*
+
+
+==== External sorting
+
+- Merge sort
+
+*to-do*
 
 
 === Insertion sort / sort by insertion
@@ -1904,6 +1930,14 @@ Etymology: Named after Donald Shell.
 === Quick sort
 
 Properties: Not stable in naive implementation.  In-place.
+
+Algorithm: Choose a random element as pivot. Partition in-place into two arrays: elements smaller than pivot element and elements larger than the pivot element.  The pivot element being between the two partitions. Recurse into the two arrays.
+
+Optimization: Insertion sort is great for small arrays, thus during recursion, when n falls below a certain threshold, switch to insertion sort.
+
+Optimization: Median-of-three pivot: Instead of choosing any pivot, choose the median of the first, middle and last element.  Also sort these three elements before partitioning.  This helps when the input is already nearly sorted.  Compared to choosing a random pivot, we're more likely to get a good partition.  Sorting these three elements affects what pivot will be choosen in the next iteration.
+
+Optimization: 3-way partitioning: We partition into three parts opposed to two: smaller than pivot, equal to pivot and greater than pivot.  The benefit of this optimization is that the algorithm performs better when there are duplicate keys, which is common in practice in many applications.
 
 Time: +O(n^2^)+ worst case, +O(n lg(n))+ average case, best case: (simple partition: +O(n lg(n))+, 3way partition and equal keys: +O(n)+).  Hidden factor in time complexity is in practice quite small.  The +O(n^2^)+ worst case running time might be a problem when input size is large and used in an real-time system or system concerned with security (because malicious user potentially can trigger worst case behaviour).
 
