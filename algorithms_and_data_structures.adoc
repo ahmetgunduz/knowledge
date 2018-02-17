@@ -2143,8 +2143,10 @@ Functionally equivalent to quickselect, but runs faster in practice on average.
 *to-do*
 
 
+== Strings
+
 [[string_searching]]
-== String searching / matching algorithms
+=== String searching / matching algorithms
 
 Problem: Find all/some occurences of a pattern P in a given text T.  Let _Σ_ be an alphabet (finite set), _T_ a string of length _n_, _P_ a string of length _m_.  Both the pattern and searched text are vectors of elements of Σ.
 
@@ -2152,11 +2154,10 @@ _naive string search_: iteratively check at each location in the searched-text. 
 
 Comparision *to-do*: Small/big T, small/big P, small/big Σ, repeatedly searching in same T, repeatedly searching same P, ...
 - http://programmers.stackexchange.com/questions/183725/which-string-search-algorithm-is-actually-the-fastest
--
 
 
 [[rabin_karp]]
-=== Rabin-Karp
+==== Rabin-Karp
 Time: +Θ(m)+ pre-processing, +Θ((n-m+1)m)+ worst case running time,  +O(n+m)+ expected running time.  *to-do*: I don't see why the naive approach should have a worse expected running time, or a worse constant factor if equal
 
 Compute a hash of the pattern.  Iteratively move a window over the search text until the left edge of the window hits the end of the search text.  The window has the same length as the pattern.  In each iteration compute a rolling hash of the window.  If the window-hash matches the pattern-hash, do a regular string comparison between the window and the pattern, and if they still match, the pattern is found.
@@ -2194,22 +2195,17 @@ int rollinghash(int hash, char ch_out, char ch_in) {
 --------------------------------------------------
 
 
-=== Knuth-Morris-Pratt
+==== Knuth-Morris-Pratt
 Time O(n+m) worst case [O(m) preprocessing], O(m) auxillary space
 
 *to-do*
 
 
-=== Boyer-Moore
+==== Boyer-Moore
 O(n+m) worst case
 
 *to-do*
 
-
-=== Misc
-
-- <<suffix_tree>>
-- _FSA_ / _DFA_: *to-do*
 
 
 [[online_algorithms]]
