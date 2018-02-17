@@ -3713,6 +3713,51 @@ References:
 
 == Computer arithmetic
 
+Typical assymptotic bounds analysis: It is assumed that one digit operations can be done in constant time.  However in practice, on an for example 32 bit computer architecture, already operations on 32 bit numbers can be done in constant time.  So that is the base case of algorithms dividing the problem in subproblems.
+
+
+=== Arbitrary-precision arithmetic
+
+See also:
+
+- The GNU Multiple Precision Arithmetic Library: https://gmplib.org/
+
+
+=== Arbitrary-precision integer multiplication
+
+The task is to multiply n-digit factors. The radix is typically irrelevant.
+
+Multiplication is an important base case.  E.g. high precission division a / b is typically implemented by multiplying a · 1/b.  Roots are implemented via Newton's method, which then also comes down to multiplication and addition.
+
+Algorithms:
+
+- The standard grad-school multiplication algorithm is O(n²).
+
+- _Karatsuba algorithm_ is O(n^log~2~ 3^) ≈ O(n^1.58^).  Instead of multiplying x · y directly, split the factors in numbers being half the digits large.  The multiplication then becomes (x~1~r^n/2^+x~0~) · (y~1~r^n/2^+y~0~), where r is the radix.  Multiplying out, sorting after r polynomials, results in four multiplications of n/2 digit numbers, and a few additions and subtractions.  A bit of cleverness reuses two multiplications, so one multiplication can be saved, resulting in an overall of three multiplications.  Recurse.  Converges quadratically, i.e. the number of known digits in the result doubles in each step.
+
+- _Toom-Cook algorithm_ is O(n^log~3~ 5^) ≈ O(n^1.46^).  Generalizes Karatsube by splitting a factor in k parts opposed to exactly two.  The given asymptotic bounds are for k=3.
+
+- _Schönhage–Strassen algorithm_, fast fourier transformation based, in O(n log(n) log(log(n))).
+
+References:
+
+- MIT course 6.006 "Introduction to Algorithms", Fall 2011, Lecture 11 Integer Arithmetic, Karatsuba Multiplication: https://www.youtube.com/watch?v=eCaXlAaN2uE.
+
+
+=== Arbitrary-precision integer division
+
+==== Newton–Raphson division
+
+Instead of directly calculating a / b, we calculate a · floor(R/b), where R is a large number, and it is easy to divide by R. E.g. R is a power of two. We calculate R/b via Newton's method: f(x) = 1/x - b/R is zero at R/b.  Newton's method then tells us that the zero can be iteratively calculated by x~i+i~ = 2x~i~ - bx~i~²/R.
+
+Calculating R/b this way converges quadratically, i.e. the number of known digits in the result doubles in each step.
+
+Analysis: Runs in O(n^α^), assuming multiplications can be done in O(n^α^).  I.e. the same asymptotic complexity as multiplication, however with a higher hidden constant factor.  You could think that it runs in O(log n · n^α^), because due to the quadratic convergence, we need log n iterations, and each iteration runs in O(n^α^) since it only consists of multiplactions, divisions, and an easy division.  However observe that the number of digits we need to compute in each iteration, again due to quatdratic convergence, is only {1, 2, 4, ..., n/4, n/2, n}.  That sums up to 2n^α^.
+
+References:
+
+- MIT course 6.006 "Introduction to Algorithms", Fall 2011, Lecture 12. Square Roots, Newton's Method: https://www.youtube.com/watch?v=2YeJ-5UAke8&t=1400s
+
 
 === Bit manipulation
 A _nibble_ is a four bit aggregation (aka _halb-byte_ or quartet).
