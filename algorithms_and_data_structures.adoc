@@ -2749,7 +2749,7 @@ Algorithms:
 
 - DFS based: When an vertex v is finished, prepend it to the front of the output sequence.  In other words, a topological sort is equivalent to reverse DFS post order traversal.  Time complexity Θ(V+E).
 
-- Kahn's algorithm. *to-do*
+- <<kahns_algorithm>> runs in Θ(V+E) time.
 
 - Parallel algorithms in O(log² n) exist, see https://en.wikipedia.org/wiki/Topological_sorting.
 
@@ -2757,6 +2757,57 @@ Algorithms:
 References:
 
 - Book ``Introduction to algorithms'', chapter ``Topological sort''.
+
+
+[[kahns_algorithm]]
+==== Kahn's algorithm
+
+Computes the topological sort of a directed graph in O(V+E); dedects cycles.
+
+Intuitively: While there are vertixes left, pick a source (i.e. a vertex with in-degree 0), append it to output sequence, remove it from graph.  If any vertices are left, the graph contains at least one cycle.
+
+--------------------------------------------------
+kahns_algorithm(graph): list
+  create empty map (key vertex, value int) -> indegree
+  for each vertex v in graph:
+    indegree[v] = 0
+  for each edge e in graph:
+    indegree[e.destination]++
+
+  create empty queue -> sources
+  for each vertex v in graph:
+    if indegree[v] == 0:
+      sources.enqueue(v)
+ 
+  create empty list -> topoorder
+ 
+  while !sources.empty():
+    current = sources.dequeue()
+    topoorder.append(current)
+     
+    // 'remove' current vertex from graph
+    for all neigbors of current:
+      indegree[neighbor]--
+      if indegree[neighbor] == 0:
+        sources.enqueue(neighbor)
+
+  if topoorder.size() != graph.vertex_count()
+    raise error "Graph contains at least one cycle"
+
+  return topoorder
+-------------------------------------------------
+
+Intuitition why the algorithm works: The graph's sources appear consecutively as the first elements in the topoorder sequence.  Removing a source from the graph does not affect the topoorder sequence of the remaining vertices.  Thus we can iteratively remove sources and append them to the topoorder sequence.
+
+*to-do*: Could we also do the same, but with sinks instead sources?
+
+Analysis: Runs in O(V+E)
+
+References:
+
+- https://www.geeksforgeeks.org/topological-sorting-indegree-based-solution/
+
+- http://www.cs.nthu.edu.tw/~wkhon/ds/ds11/lecture/lecture12.pdf, starting at slide 6
 
 
 [[cycle_detection]]
