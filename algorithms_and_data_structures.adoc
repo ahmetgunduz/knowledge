@@ -2751,12 +2751,20 @@ Algorithms:
 
 - <<kahns_algorithm>> runs in Θ(V+E) time.
 
-- Parallel algorithms in O(log² n) exist, see https://en.wikipedia.org/wiki/Topological_sorting.
+- Parallel algorithms in O(log² n) exist, see https://en.wikipedia.org/wiki/Topological_sorting#Parallel_algorithms.
 
+
+Applications:
+
+- Part of an algorithm solving the single source shortest path problem for a DAG, see <<single_source_shortest_path>>.
 
 References:
 
-- Book ``Introduction to algorithms'', chapter ``Topological sort''.
+- Book ``Introduction to algorithms'', chapter ``22.4 Topological sort''.
+
+- https://www.geeksforgeeks.org/topological-sorting/
+
+- http://www.cs.nthu.edu.tw/~wkhon/ds/ds11/lecture/lecture12.pdf
 
 
 [[kahns_algorithm]]
@@ -2863,6 +2871,7 @@ optimal substructure: The shortest path problem has optimal substructure. A subp
 Applications: *to-do*
 
 
+[[single_source_shortest_path]]
 ==== Single source shortest path problem
 general graph: <<Bellman_Ford>> +O(V*E)+
 
