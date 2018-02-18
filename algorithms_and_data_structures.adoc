@@ -693,15 +693,25 @@ Main operations:
 Implementations: <<disjoint_set_linked_list>>, <<disjoint_set_forest>>
 
 |============
-|                  | linked-list | forest / union by rank | forest / union by rank + path compression
-| insert(v)        |             | O(1)                   | O(1)
-| find-set(v)      | *to-do*     | O(log n)               | O(log* n)
-| merge-sets(u,v)  |             | O(log n)               | O(log* n)
+|                  | optimized disjoint set linked list | naive disjoint set forest | optimized disjoint set forest
+| make-set(v)      | O(1)           | O(1)                      | O(1)
+| find-set(v)      | O(1)           | O(n)                      | O(α(n))
+| merge-sets(u,v)  | O(n) *          | O(n)                      | O(α(n))
 |============
 
-Applications: <<kruskals_algorithm>>, *to-do*
+*) However, a sequence of m make-set / find-set / merge-set operations, n of which are make-set, take O(m + n log n) time.  Thus when m ≫ n, informally the running time of merge-set tends towards O(1).
 
-Trivia: Was invented specifically to make Kruskal's algorithm more efficient
+Applications:
+
+- <<kruskals_algorithm>>
+
+- <<cycle_detection>>
+
+- <<finding_connected_components>>
+
+References:
+
+- Book "Introduction to algorithms", chapter "21.1 Disjoint-set operations"
 
 
 [[data_structures]]
@@ -1327,7 +1337,6 @@ A common optimization is _path-compression_: When following the path from a vert
 
 Another common optimization is _union by rank_: Each vertex is assigned a rank, which is an upper bound on the height of the subtree rooted at the given vertex.  +make-set(v)+ sets it to zero, i.e. to the true height.  +merge_sets+ attaches the smaller tree to the larger tree, according to the ranks of the two roots.  The rank of the receiving root is increased by one.  Path compression does not change the rank of any vertex.  Path compression only reduces the height of a tree, so the rank, being an upper bound on the height, is still valid.  Note that it would not be trivial for path compression to maintain the true height of the tree.  Anyway, an upper bound is good enough.
 
-
 --------------------------------------------------
 insert(v):
   parent[v] = v
@@ -1351,10 +1360,13 @@ merge-sets(u,v):
     if rank[rootOfU]==rank[rootOfV]: rank[rootOfV] += 1
 --------------------------------------------------
 
+Trivia: Was invented specifically to make Kruskal's algorithm more efficient.
 
 References:
 
 - https://web.stanford.edu/class/cs166/lectures/16/Small16.pdf
+
+- Book "Introduction to algorithms", subchapter "21.3 Disjoint-set forests"
 
 
 == Misc. problems and algorithms
