@@ -52,6 +52,7 @@ _amortized time_: `amortized +O(f)+' for operation o: In a sequence of length L 
 
 Common functions ordered after order of growth: c, log~c~(n), n, n·log~c~(n), n^c^, c^n^, n!, n^n^.
 
+[[big_oh_cheat_sheets]]
 Big oh cheat sheets:
 
 - https://www.hackerearth.com/practice/notes/big-o-cheatsheet-series-data-structures-and-algorithms-with-thier-complexities-1/
@@ -708,12 +709,50 @@ Trivia: Was invented specifically to make Kruskal's algorithm more efficient
 A concrete particular way of organizing data in memory.  In OO lingo, its is a (non-abstract) class.  See also <<ADT>>, which is in OO lingo an interface.
 
 
-[[search_tree_comparison]]
-=== Search tree comparison
+[[data_structure_comparison]]
+=== Data structures comparison
 
-<<avl_tree>> vs <<red_black_tree>>: theoretically equivalent since time and space complexity are identical.  AVL trees are more rigidly balanced (≈ 1.44 lg(|V|)) than red-black trees (≈ 2 lg(|V|)), whereas the number of rotations when inserting or deleting is O(lg n) for AVL and O(1) for red-black.  Followingly prefer AVL when number of lookup operations dominate sum of insert/delete operations, and red-black oth erwise.
+*to-do*: Intro about why certain applications care about worst-case performance, and compared to an alternative, rather have a worse average case than a much worse worst-case.  E.g. to counter DoS attacks, realtime systems.
 
-<<skip_list>>s just are another variant of a binary search tree. They are easier to implement than AVL trees or red-black trees, especially when considering the respective concurrent data structure variants.  However skip list has worst-case running time O(n), opposed to O(log n) of most BBSTs, however with low probability.  Still this bad worst case running time might be a show stopper for some applications.  Concurrent variants of AVL trees or red black trees often trade concurrency for balancedness, so their worst case guarantees drops, which was one of their main benefits over skip lists.  Skip lists have more pointers per key, thus are less chache friendly.
+Key properties of general data structures:
+
+|=====
+|                        | Pros                             | Cons
+| Array in general       | Cache hierarchy friendly, simple | O(n) insertion/deletion
+| Hash table             | O(1) average                     | O(n) worst case, no ordering
+| Balanced search tree   | Balanced properties              |
+|=====
+
+Key properties of more specialized data structures, in addition to the key properties above:
+
+|=====
+|                        | Pros                                     | Cons
+| Sorted array           | O(1) order stastics                      | 
+| B-tree                 | Optimized for secondary memory           |
+| Skip list              | Simple, especially regarding concurrency | O(n) worst case
+|=====
+
+.Array in general
+
+Even though asymptotically requiring O(n) space as most others, no space is wasted at all for a fixed sized array, since no house keeping data like pointers are needed.  A dynamic array usually has some consecutive unused slots at the end, which doesn't affect cache hierarchies.  An array is highly CPU cache friendly, thus the hidden constant factors are typically very small.  Thus in practice, for many applications an array is a better choice than a more `advanced' data structure, especially when considering sorted arrays.
+
+.Hash table
+
+Hash tables are great on average having O(1) running time, however their worst-case of O(n) is worse than the O(log n) worst-case of most search tree based data structures.  In certain cases you can have perfect hashing, in which case the worst-case is O(1).  Also, opposed to search trees, a hash table has no notion of ordering.
+
+
+.AVL tree and red-black-tree
+
+Theoretically equivalent since time and space complexity are identical.  AVL trees are more rigidly balanced (≈ 1.44 lg(|V|)) than red-black trees (≈ 2 lg(|V|)), whereas the number of rotations when inserting or deleting is O(lg n) for AVL and O(1) for red-black.  Followingly prefer AVL when number of lookup operations dominate sum of insert/delete operations, and red-black otherwise.
+
+.B-tree
+
+Has the same asymptotic complexities as AVL tree and red-black tree, but is optimized for large data structures not fitting into main memory and residing mostly in secondary memory.
+
+
+.Skip List
+
+Is just are another variant of a binary search tree. Is easier to implement than a AVL tree or red-black tree, especially when considering the respective concurrent data structure variants.  However a skip list has a worst-case running time of O(n), opposed to the O(log n) of most BBSTs, however with low probability.  Also the space complexity is O(n log n) in the worst-case, opposed to O(n) worst-case of most other data structures. Concurrent variants of AVL trees or red-black trees often trade concurrency for balancedness, so their worst case guarantees drops, which was one of their main benefits over skip lists.  Skip lists have more pointers per key, thus are less chache friendly.
 
 *to-do*: data strucures optimized for secondary memory, e.g. B-trees.
 
@@ -721,12 +760,20 @@ A concrete particular way of organizing data in memory.  In OO lingo, its is a (
 
 *to-do*: concurrent data structures.  Most AVL tree and red-black tree implementations implement insert and delete in a locking fashion.  Note that these operations in the worst case affect large portions of the tree.  Only recently lock free variants emerged: http://www.cs.umanitoba.ca/~hacamero/Research/RBTreesKim.pdf.  Typically concurrent balanced search trees trade better concurrency for worse guaranteed balancedness.
 
+*to-do*: specialed for integers (e.g van Emde Boas trees), specialized for strings (e.g. all the trie based data structures).
+
 References:
+
+- <<big_oh_cheat_sheets>>
 
 - https://stackoverflow.com/questions/256511/skip-list-vs-binary-tree
 
+- https://www.quora.com/Why-arent-skip-lists-used-more-often-instead-of-balanced-trees
+
 - https://people.cs.clemson.edu/~bcdean/skip_bst.pdf[Exploring the Duality Between Skip Lists and
 Binary Search Trees]
+
+- https://en.wikipedia.org/wiki/Search_data_structure#Asymptotic_amortized_worst-case_analysis
 
 
 [[table]]
@@ -900,7 +947,7 @@ Rough description of how insertion/deletion work:
 
 2. For each node on the path from the newly inserted node up to the root: if balance factor is not in range [-1,1], fix it by only _rotation_ operations.
 
-See also <<search_tree_comparison>>.
+See also <<data_structure_comparison>>.
 
 Etymology: Named after its two inventors Adelson-Velsky and Landis.
 
@@ -920,7 +967,7 @@ red-black properties:
 
 Time and space complexity: same as <<AVL>> tree.
 
-See also <<search_tree_comparison>>.
+See also <<data_structure_comparison>>.
 
 References:
 
@@ -1046,12 +1093,14 @@ _search_: Start at the highest linked list.  When being at any node, when the se
 
 _insert_: Use search to find the correct place in the bottom most linked list to insert.  After insertion, we must decide how high we want to make the node's `tower', i.e. in how many of the upper linked lists we also want to introduce a respective node.  Flip a coin, until tail appears; for each head appearing in the process, make the tower one node higher.  As a consequence, each layer has about half as many elements as its adjacent lower layer.
 
+Note that space complexity is O(n log n) in the worst case, opposed to O(n) worst case for most other data structres.
+
 The randomization is independent of the keys, thus an adversary cannot directly provok worst-case behavior via the set of input keys.
 
 Essentially a skip list is just a variant of a binary search tree:  https://people.cs.clemson.edu/~bcdean/skip_bst.pdf[Exploring the Duality Between Skip Lists and
 Binary Search Trees].
 
-See also <<search_tree_comparison>>.
+See also <<data_structure_comparison>>.
 
 References:
 
