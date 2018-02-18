@@ -1217,115 +1217,6 @@ General anlysis: Height is h = Θ(log n) since it's a complete binary tree.
 *to-do*:
 
 
-[[tries_comparision]]
-=== Tries / suffix tree/arrays comparison
-
-Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
-
-|=======
-|                               | query     | space      | ordering
-| c. trie / array               | O(P)      | O(k·Σ)     | ✓
-| c. trie / BST                 | O(P·lg Σ) | O(k)       | ✓
-| c. trie / weight balanced BST | O(P+lg k) | O(k)       | ✓
-| c. trie / w.b. BST + trimming | O(P+lg Σ) | O(k)       | ✓
-| c. trie / van Emde Boas       | O(P)      | O(k·lglgΣ) | ✓
-| c. trie / hash table          | O(P)      | O(k)       | ✗
-| suffix tray                   | O(P+lg Σ) | O(k)       | ?
-| suffix array                  | ?         | ?          | ?
-|=======
-
-
-[[trie]]
-=== Trie (aka digital tree, radix tree, prefix tree)
-See this as an intro to what a trie is. In practice you will use a <<compressed_trie>>, see there for more details.
-
-Is an implementation of the ordered <<associative_array>> ADT. It stores +k+ items (key/value pairs), the stored keys being strings _T~i~_, i=1,...,k, the strings' letters are from alphabet _Σ_.  Internally, there is also the special letter _$_ which represents the end of a string.  A trie is a rooted tree where each edge is labeled with a letter.  Thus child nodes have an order.  A root-to-leaf path represents a string/key, the so reached leaf node the value associated with that key.  The strings derived from paths root to leaf are called _words_, the strings from other paths are called _prefixes_. |T|=|T~1~|+...+|T~k~| is the max number of nodes stored in the tree. In query/lookop, _P_ is a pattern/query searched in the trie.
-
-Since the child nodes have an ordering, an in-order traversal prints the stored keys in order.
-
-A trie can be seen as a DFA (Deterministic finite automaton) without loops (mind: a loop is not a cycle).  A trie can be compressed into an DAFSA (deterministic acyclic finite state automaton).  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.
-
-Applications: See <<suffix_tree>>
-
-Trivia: The name trie is a pun on re__trie__val.  Originally pronounced it as `tree'.  However, other authors pronounce it as `try', in an attempt to distuinguish it from `tree'.
-
-
-[[compressed_trie]]
-=== Compressed trie (aka radix tree, radix trie, compact prefix tree)
-Based on <<trie>>, see there for terms and symbols. Is an implementation of the ordered <<associative_array>> ADT.  A radix tree is a space-optimized trie, where a node with only one child is removed, merging its two adjacent edges into one, which is then labeled with the concatenation of the labels of the two previous edges.  That is each edge is no longer labeled with a single character but potentially with a string. The [[letter_depth]]_letter depth_ of a node is the lenght of the key/path that leads to it.
-
-Each node has at least two children, so there are less internal nodes than leaves. Recall there are as many leaves as stored strings, i.e. k. Thus there are O(k) nodes in the compressed trie.
-
-Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
-
-[[trie_vs_hash_table]]
-Compared to a hash table:
-
-- A trie can have (depending on how nodes are represented) predictable look-up time +O(k)+.  A hash table has +O(k+n)+ time complexity worst case:  O(k) is used to generate the key, looking up the key is O(1) average but O(n) worst case.
-- A trie does not need a hash function
-- A trie can provide an ordering of the entries by key.  I.e. a trie supports ordered traversal.
-- Locality is worse for a key, since it randomly accesses the nodes.
-- A trie typically uses more space than a hash table, since the graph uses quite a lot pointers.
-
-Compared to a binary tree:
-
-- Binary tree has +O(k * (lg n))+ time complexity for look-up, insertion, deletion.  Mind that comparing a key requires +O(k)+; in many times the worst-case occurs, due to long prefixes towards the leaves.
-
-References:
-
-- https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf
-
-
-[[suffix_tree]]
-=== Suffix tree (aka PAT tree, suffix trie)
-Based on compressed trie, see there for terms and symbols. Given a text T, append $ (see <<trie>>), then store all suffixes of T in a (compressed) <<trie>>. The value associated with a leaf is the starting position of the suffix in T.
-
-When given multiple documents T^i^, i=1, 2, ..., n, append $~1~, $~2~, ... and $~n~ to each T^i^ respectively, and then throw all suffixes of each document into the suffix tree.
-
-The suffix tree contains O(T) nodes, thuse O(T) space needed (using reasonable representations of the trie, see there).
-
-Details: Seeing a letter as a string of size one, all edges in a compressed trie have strings on them. Such a string can be stored in O(1) by storing only the indicies (within T) of its first and last letter.
-
-Applications:
-
-- <<string_searching>>:
-  * Find (all) occcurences of pattern P in text T. Create suffix tree for T. Using P as key delivers subtree whose leaves corresponds to all occurences of P in T.
-  * Find first i occurences of pattern P in text T: Augment the leave nodes so they build a linked list, and augment internal nodes by a pointer to its leftmost descendant leaf.
-  * Find number of occurences of pattern P in T: Augment internal nodes in the suffix tree with the number of leaves. Use P as key, the found node thus delivers number of leaves, which equals number of occurences.
-  * Find longest substring that occures twice in P: Augment internal nodes with their <<letter_depth>>. Then search the internal node with the largest letter depth in O(T) time.
-  * Find longest substring that occures in multiple documents T^i^: Similar to above, but look for the internal nodes with maximum letter depth with greater than one distinct $~x~ below.
-  * Longest common prefix of two substrings in T in O(1) time: Take the two leaves corresponding to the indexes where the substring start, <<LCA_problem,find LCA>> in O(1) time, and the letter depth of the found node is the answer.
-  * Find all occurences of T[i:j]: Instead of, as in a normal search, finding the node from the root in O(j-i) time, find the (j-i)the ancestor of leaf i in O(1) time (via an _LA_query_)
-
-
-=== Suffix array
-*to-do*
-
-References:
-- https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf
-
-
-=== Suffix tray
-
-Is a combination of a suffix tree and a suffix array,
-
-Note that there's this similar idea ....
-
-
-*to-do*
-
-References:
-- https://courses.csail.mit.edu/6.851/spring07/scribe/lec09.pdf
-
-
-=== DAFSA as data structure
-Represents a finite (since it has no cycles) set of strings aka keys.  Single source vertex.  Each edge is labeled by a letter / symbol.  Each vertex has at most one vertex which is labeled with a given letter.  The accepted strings are formed by the letters on paths from the source to any sink / NIL vertex.
-
-Can be seen as an compact form of a trie.  Uses less space than a trie.  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.  A trie can store attributes for each string aka key, whereas a DAFSA cannot.
-
-Is an implementation of the ADT <<associative_array>>.
-
-
 [[disjoint_set_linked_list]]
 === Disjoint-set linked list
 
@@ -2144,6 +2035,115 @@ Functionally equivalent to quickselect, but runs faster in practice on average.
 
 
 == Strings
+
+[[tries_comparision]]
+=== Tries / suffix tree/arrays comparison
+
+Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
+
+|=======
+|                               | query     | space      | ordering
+| c. trie / array               | O(P)      | O(k·Σ)     | ✓
+| c. trie / BST                 | O(P·lg Σ) | O(k)       | ✓
+| c. trie / weight balanced BST | O(P+lg k) | O(k)       | ✓
+| c. trie / w.b. BST + trimming | O(P+lg Σ) | O(k)       | ✓
+| c. trie / van Emde Boas       | O(P)      | O(k·lglgΣ) | ✓
+| c. trie / hash table          | O(P)      | O(k)       | ✗
+| suffix tray                   | O(P+lg Σ) | O(k)       | ?
+| suffix array                  | ?         | ?          | ?
+|=======
+
+
+[[trie]]
+=== Trie (aka digital tree, radix tree, prefix tree)
+See this as an intro to what a trie is. In practice you will use a <<compressed_trie>>, see there for more details.
+
+Is an implementation of the ordered <<associative_array>> ADT. It stores +k+ items (key/value pairs), the stored keys being strings _T~i~_, i=1,...,k, the strings' letters are from alphabet _Σ_.  Internally, there is also the special letter _$_ which represents the end of a string.  A trie is a rooted tree where each edge is labeled with a letter.  Thus child nodes have an order.  A root-to-leaf path represents a string/key, the so reached leaf node the value associated with that key.  The strings derived from paths root to leaf are called _words_, the strings from other paths are called _prefixes_. |T|=|T~1~|+...+|T~k~| is the max number of nodes stored in the tree. In query/lookop, _P_ is a pattern/query searched in the trie.
+
+Since the child nodes have an ordering, an in-order traversal prints the stored keys in order.
+
+A trie can be seen as a DFA (Deterministic finite automaton) without loops (mind: a loop is not a cycle).  A trie can be compressed into an DAFSA (deterministic acyclic finite state automaton).  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.
+
+Applications: See <<suffix_tree>>
+
+Trivia: The name trie is a pun on re__trie__val.  Originally pronounced it as `tree'.  However, other authors pronounce it as `try', in an attempt to distuinguish it from `tree'.
+
+
+[[compressed_trie]]
+=== Compressed trie (aka radix tree, radix trie, compact prefix tree)
+Based on <<trie>>, see there for terms and symbols. Is an implementation of the ordered <<associative_array>> ADT.  A radix tree is a space-optimized trie, where a node with only one child is removed, merging its two adjacent edges into one, which is then labeled with the concatenation of the labels of the two previous edges.  That is each edge is no longer labeled with a single character but potentially with a string. The [[letter_depth]]_letter depth_ of a node is the lenght of the key/path that leads to it.
+
+Each node has at least two children, so there are less internal nodes than leaves. Recall there are as many leaves as stored strings, i.e. k. Thus there are O(k) nodes in the compressed trie.
+
+Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
+
+[[trie_vs_hash_table]]
+Compared to a hash table:
+
+- A trie can have (depending on how nodes are represented) predictable look-up time +O(k)+.  A hash table has +O(k+n)+ time complexity worst case:  O(k) is used to generate the key, looking up the key is O(1) average but O(n) worst case.
+- A trie does not need a hash function
+- A trie can provide an ordering of the entries by key.  I.e. a trie supports ordered traversal.
+- Locality is worse for a key, since it randomly accesses the nodes.
+- A trie typically uses more space than a hash table, since the graph uses quite a lot pointers.
+
+Compared to a binary tree:
+
+- Binary tree has +O(k * (lg n))+ time complexity for look-up, insertion, deletion.  Mind that comparing a key requires +O(k)+; in many times the worst-case occurs, due to long prefixes towards the leaves.
+
+References:
+
+- https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf
+
+
+[[suffix_tree]]
+=== Suffix tree (aka PAT tree, suffix trie)
+Based on compressed trie, see there for terms and symbols. Given a text T, append $ (see <<trie>>), then store all suffixes of T in a (compressed) <<trie>>. The value associated with a leaf is the starting position of the suffix in T.
+
+When given multiple documents T^i^, i=1, 2, ..., n, append $~1~, $~2~, ... and $~n~ to each T^i^ respectively, and then throw all suffixes of each document into the suffix tree.
+
+The suffix tree contains O(T) nodes, thuse O(T) space needed (using reasonable representations of the trie, see there).
+
+Details: Seeing a letter as a string of size one, all edges in a compressed trie have strings on them. Such a string can be stored in O(1) by storing only the indicies (within T) of its first and last letter.
+
+Applications:
+
+- <<string_searching>>:
+  * Find (all) occcurences of pattern P in text T. Create suffix tree for T. Using P as key delivers subtree whose leaves corresponds to all occurences of P in T.
+  * Find first i occurences of pattern P in text T: Augment the leave nodes so they build a linked list, and augment internal nodes by a pointer to its leftmost descendant leaf.
+  * Find number of occurences of pattern P in T: Augment internal nodes in the suffix tree with the number of leaves. Use P as key, the found node thus delivers number of leaves, which equals number of occurences.
+  * Find longest substring that occures twice in P: Augment internal nodes with their <<letter_depth>>. Then search the internal node with the largest letter depth in O(T) time.
+  * Find longest substring that occures in multiple documents T^i^: Similar to above, but look for the internal nodes with maximum letter depth with greater than one distinct $~x~ below.
+  * Longest common prefix of two substrings in T in O(1) time: Take the two leaves corresponding to the indexes where the substring start, <<LCA_problem,find LCA>> in O(1) time, and the letter depth of the found node is the answer.
+  * Find all occurences of T[i:j]: Instead of, as in a normal search, finding the node from the root in O(j-i) time, find the (j-i)the ancestor of leaf i in O(1) time (via an _LA_query_)
+
+
+=== Suffix array
+*to-do*
+
+References:
+- https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf
+
+
+=== Suffix tray
+
+Is a combination of a suffix tree and a suffix array,
+
+Note that there's this similar idea ....
+
+
+*to-do*
+
+References:
+- https://courses.csail.mit.edu/6.851/spring07/scribe/lec09.pdf
+
+
+=== DAFSA as data structure
+Represents a finite (since it has no cycles) set of strings aka keys.  Single source vertex.  Each edge is labeled by a letter / symbol.  Each vertex has at most one vertex which is labeled with a given letter.  The accepted strings are formed by the letters on paths from the source to any sink / NIL vertex.
+
+Can be seen as an compact form of a trie.  Uses less space than a trie.  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.  A trie can store attributes for each string aka key, whereas a DAFSA cannot.
+
+Is an implementation of the ADT <<associative_array>>.
+
 
 [[string_searching]]
 === String searching / matching algorithms
