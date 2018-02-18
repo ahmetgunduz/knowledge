@@ -1254,7 +1254,7 @@ References:
 - https://web.stanford.edu/class/cs166/lectures/16/Small16.pdf
 
 
-== Misc. problems
+== Misc. problems and algorithms
 
 [[edit_distance]]
 === Edit distance
@@ -1537,8 +1537,6 @@ consume:
 === Dining philosophers
 *to-do*
 
-
-== Misc. algorithms
 
 === Horner's method / Horner's scheme
 
