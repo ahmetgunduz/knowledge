@@ -3238,6 +3238,18 @@ References:
 - https://www.slideshare.net/TraianRebedea/algorithm-design-and-complexity-course-8, beginning at slide 27
 
 
+[[finding_connected_components]]
+==== Finding connected components in undirected graphs
+
+Algorithms:
+
+- Using an disjoint-set data structure, put each vertex into its own set. Then iterate over all edges, and join the two sets associated with the two end points.  Each remaining set represents a connected component.  Runs in O(V+E·α(V)) time and needs O(V) auxillary space, assuming an disjoint set forest is used.  α is the very slowly growing inverse function of the Ackermann function.
+
+References:
+
+- Book ``Introduction to algorithms'', subchapter ``21.1 Disjoint-set operations'', section ``An application of disjoint-set data structures'', p. 562.
+
+
 ==== Finding strongly connected components
 
 Algorithms:
