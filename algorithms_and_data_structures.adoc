@@ -713,7 +713,20 @@ A concrete particular way of organizing data in memory.  In OO lingo, its is a (
 
 <<avl_tree>> vs <<red_black_tree>>: theoretically equivalent since time and space complexity are identical.  AVL trees are more rigidly balanced (≈ 1.44 lg(|V|)) than red-black trees (≈ 2 lg(|V|)), whereas the number of rotations when inserting or deleting is O(lg n) for AVL and O(1) for red-black.  Followingly prefer AVL when number of lookup operations dominate sum of insert/delete operations, and red-black oth erwise.
 
-*to-do*: B-trees for 2ndary memory
+<<skip_list>>s just are another variant of a binary search tree. They are easier to implement than AVL trees or red-black trees, especially when considering the respective concurrent data structure variants.  However skip list has worst-case running time O(n), opposed to O(log n) of most BBSTs, however with low probability.  Still this bad worst case running time might be a show stopper for some applications.  Concurrent variants of AVL trees or red black trees often trade concurrency for balancedness, so their worst case guarantees drops, which was one of their main benefits over skip lists.  Skip lists have more pointers per key, thus are less chache friendly.
+
+*to-do*: data strucures optimized for secondary memory, e.g. B-trees.
+
+*to-do*: cache-oblivious data structures
+
+*to-do*: concurrent data structures.  Most AVL tree and red-black tree implementations implement insert and delete in a locking fashion.  Note that these operations in the worst case affect large portions of the tree.  Only recently lock free variants emerged: http://www.cs.umanitoba.ca/~hacamero/Research/RBTreesKim.pdf.  Typically concurrent balanced search trees trade better concurrency for worse guaranteed balancedness.
+
+References:
+
+- https://stackoverflow.com/questions/256511/skip-list-vs-binary-tree
+
+- https://people.cs.clemson.edu/~bcdean/skip_bst.pdf[Exploring the Duality Between Skip Lists and
+Binary Search Trees]
 
 
 [[table]]
@@ -1014,9 +1027,39 @@ Each node in the this BST additionally has a priority, which is assigned a rando
 Trivia: The name is a portmenteau of tree and heap.
 
 
-=== Skip list
+[[skip_list]]
+=== Skip list (aka jump list)
 
-Is a data structure implementing the ordered <<associative_array>> ADT. Search, insert, delete in +O(lg n)+ time with high probability (opposed to `only' on average)
+Is a randomized data structure implementing the ordered <<associative_array>> ADT based on a hierarchy of ordered linked lists. Search, insert, delete take O(lg n) time with high probability.  It consists of layered ordered linked lists.  The bottom linked list contains all keys.  The 2nd acts as an express lane, having about half as many nodes, each node being linked to the respective node in the layer below.  The further layers are built analogously.  Having a −∞ sentinel key makes the implementation easier.
+
+--------------------------------------------------
+−∞------------------------------79
+|                               |
+−∞--------------50--------------79
+|               |               |
+−∞------34------50------66------79------88
+|       |       |       |       |       |
+−∞--23--34--42--50--59--66--72--79--82--88--95
+--------------------------------------------------
+
+_search_: Start at the highest linked list.  When being at any node, when the search key equals the node's key, go straight down to the respective node in the bottom most linked list.  If the search key is less then the next node in the current linked list, go one node down, else go the next node in current linked list.
+
+_insert_: Use search to find the correct place in the bottom most linked list to insert.  After insertion, we must decide how high we want to make the node's `tower', i.e. in how many of the upper linked lists we also want to introduce a respective node.  Flip a coin, until tail appears; for each head appearing in the process, make the tower one node higher.  As a consequence, each layer has about half as many elements as its adjacent lower layer.
+
+The randomization is independent of the keys, thus an adversary cannot directly provok worst-case behavior via the set of input keys.
+
+Essentially a skip list is just a variant of a binary search tree:  https://people.cs.clemson.edu/~bcdean/skip_bst.pdf[Exploring the Duality Between Skip Lists and
+Binary Search Trees].
+
+See also <<search_tree_comparison>>.
+
+References:
+
+- https://www.cs.cmu.edu/~ckingsf/bioinfo-lectures/skiplists.pdf
+
+- MIT 6.046J Design and Analysis of Algorithms, Spring 2015, Lecture 7 Randomization: Skip Lists: https://www.youtube.com/watch?v=2g9OSRKJuzM&list=PLUl4u3cNGP6317WaSNfmCvGym2ucw3oGp&index=10&t=0s[video], https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-design-and-analysis-of-algorithms-spring-2015/lecture-notes/MIT6_046JS15_lec07.pdf[lecture notes]
+
+- http://cglab.ca/~morin/teaching/5408/refs/p90b.pdf
 
 
 [[kd_tree]]
@@ -1024,7 +1067,7 @@ Is a data structure implementing the ordered <<associative_array>> ADT. Search, 
 
 Assumptions for simplicity: No two points have same x coordinate, and no two points have same y coordinate.
 
-A _k-dimensional kd tree_ is a non-balanced binary search tree storing k-dimensional points.  They are often used for k-dimensional <<rectangular_range_query>>.  Informal description for the 2D case: Each subtree represents an rectangular area,  possibly unbounded, i.e. rectangle edges can be at infinity.  The root represents the whole plane.  As normal in BSTs, each node stores a value, here a point.  Each node splits its associated area in two halfes by an imaginary line through its point.  Nodes at even tree levels split vertically, nodes at odd tree levels horizontally.  Each of its subtrees is then associated with one of the halfes.  Thus the plane is recursively diveded into smaller and smaller rectangles.
+A _k-dimensional k-d tree_ is a non-balanced binary search tree storing k-dimensional points.  They are often used for k-dimensional <<rectangular_range_query>>.  Informal description for the 2D case: Each subtree represents an rectangular area,  possibly unbounded, i.e. rectangle edges can be at infinity.  The root represents the whole plane.  As normal in BSTs, each node stores a value, here a point.  Each node splits its associated area in two halfes by an imaginary line through its point.  Nodes at even tree levels split vertically, nodes at odd tree levels horizontally.  Each of its subtrees is then associated with one of the halfes.  Thus the plane is recursively diveded into smaller and smaller rectangles.
 
 Algorithm to build tree:  Partion the of set points in x-direction in two equal halfes by finding the median point in x direction, see <<order_statistics>>.  That point becomes the root.  For each of the two partitions recurse.  Only that now, on depth 1 of the recursion, we partition in y-direction.  In general, in a k-dimensianal tree, we partition after the (depth%k+1)-th dimension.
 
