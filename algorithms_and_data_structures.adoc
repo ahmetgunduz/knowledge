@@ -727,6 +727,14 @@ Trivia: Was invented specifically to make Kruskal's algorithm more efficient
 A concrete particular way of organizing data in memory.  In OO lingo, its is a (non-abstract) class.  See also <<ADT>>, which is in OO lingo an interface.
 
 
+[[search_tree_comparison]]
+=== Search tree comparison
+
+<<avl_tree>> vs <<red_black_tree>>: theoretically equivalent since time and space complexity are identical.  AVL trees are more rigidly balanced (≈ 1.44 lg(|V|)) than red-black trees (≈ 2 lg(|V|)), whereas the number of rotations when inserting or deleting is O(lg n) for AVL and O(1) for red-black.  Followingly prefer AVL when number of lookup operations dominate sum of insert/delete operations, and red-black oth erwise.
+
+*to-do*: B-trees for 2ndary memory
+
+
 [[table]]
 [[array]]
 === Array data structure (aka table)
@@ -1113,14 +1121,6 @@ References:
 === Splay tree
 
 *to-do*
-
-
-[[search_tree_comparison]]
-=== Search tree comparison
-
-<<avl_tree>> vs <<red_black_tree>>: theoretically equivalent since time and space complexity are identical.  AVL trees are more rigidly balanced (≈ 1.44 lg(|V|)) than red-black trees (≈ 2 lg(|V|)), whereas the number of rotations when inserting or deleting is O(lg n) for AVL and O(1) for red-black.  Followingly prefer AVL when number of lookup operations dominate sum of insert/delete operations, and red-black oth erwise.
-
-*to-do*: B-trees for 2ndary memory
 
 
 [[heap]]
