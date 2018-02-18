@@ -1303,9 +1303,17 @@ General anlysis: Height is h = Θ(log n) since it's a complete binary tree.
 [[disjoint_set_linked_list]]
 === Disjoint-set linked list
 
-A data structure implementing the <<disjoint_set>> ADT, using a linked list for each set. The element at the head of each list is chosen as its representative.
+A data structure implementing the <<disjoint_set>> ADT, based on a collection of linked lists.  Each linked list represents a each set, and each set element is stored as an element in one of the linked lists.  The element at the head of each list is chosen as its representative.  Each linked list node has a pointer to the head of its list, i.e. to the set representative.  Each linked list stores its size.
 
-*to-do*
+_make-set(x)_: Create a new linked list with v as its only element. Runs in O(1) time.
+
+_find-set(x)_: Return the set representative which we get by following the `to-head' pointer of v. Runs in O(1) time.
+
+_merge_set(x, y)_: Append the smaller list to the larger list.  Then reseat the `to-head' pointer of the appended list.  Runs in O(n) time.
+
+References:
+
+- Book "Introduction to algorithms", subchapter "21.2 Linked-list representation of disjoint sets"
 
 
 [[disjoint_set_forest]]
