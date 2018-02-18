@@ -2742,11 +2742,23 @@ References:
 [[cycle_detection]]
 === Cycle detection
 
+The task is to determine whether or not a given graph has at least one cycle.
+
 Algorithms:
-- <<DFS>> finds a <<DFS_edge_classification,back edge>>.
-- Rocha–Thatte, a distributed algorithm.
+
+- Undirected graph: When DFS or BFS, discover a vertex which was discovered before, a cycle is found. Runs in O(V+E) time.
+
+- Undirected graph:  Based on the idea <<kruskals_algorithm>> uses internally. Using a <<disjoint_set>>, put each vertex in its on set.  Then iterate over all edges.  If both ends are in the same set, a cycle is found and the algorithm terminates. Otherwise join the two sets.  Run in O(V + E·α(V)) time and needs O(V) auxiallary space, where α is the very slowly growing inverse function of the Ackermann function.  Is better than BFS / DFS for the case when we need to tell after each edge insertion whether that introduced a cycle. In that case, the running time after an edge insertion is O(α(V)).
+
+- Directed graph: When <<DFS>> finds a <<DFS_edge_classification,back edge>>. Runs in O(V+E) time.
+
+- Rocha–Thatte. Is a distributed algorithm in graph theory for detecting cycles on large-scale directed graphs based on the bulk synchronous message passing abstraction. *to-do*.
+
+- Many <<topological_sort>> algorithms detect cycles too, since cycles are an obstacle for topological sort.
+
 
 Applications:
+
 - Dedect cycles (i.e. problems) in a dependency graph
 
 
