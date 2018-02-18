@@ -1256,34 +1256,6 @@ References:
 
 == Misc. problems
 
-=== Overview
-
---------------------------------------------------
-Knapsack
-  unbounded knapsack problem (UKP) | DP: time O(n*S) | approx: greedy algo: O(n)
-    rod cutting problem: is the same problem
-  bounded knapsack problem (BKP) | can be reduced to 0-1 knapsack
-  0-1 knapsack problem | DP: time O(n*S)
-  continuous/fractional knapsack problem | greedy algo: time: O(n*lg(n))
-  coin change problem | greedy (optimal only for canonical coin systems): O(n*lg(n))
-
-Longest common subsequence
-TSP. Travelling purchaser problem
-edit distance
-longest path
-shortest path
-minimum spanning tree. directed and undirected version
-cycle dedection
-topo sort
-sort
-cutting stock problem
-bin packing problem
-assignment problem
-bipartite matching
-
---------------------------------------------------
-
-
 [[edit_distance]]
 === Edit distance
 Given two strings x and y, the edit distance is the minimum cost series of
