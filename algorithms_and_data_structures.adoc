@@ -497,8 +497,8 @@ Data items have associations with one or data items in the collection.
 Notably usually not considered a collection: fixed-sized arrays
 
 
-[[array_data_type]]
-=== Array data type
+[[array_ADT]]
+=== Array (ADT)
 
 Random access, fixed size.
 
@@ -776,13 +776,11 @@ Binary Search Trees]
 - https://en.wikipedia.org/wiki/Search_data_structure#Asymptotic_amortized_worst-case_analysis
 
 
-[[table]]
 [[array]]
 === Array data structure (aka table)
 Fixed size, +Θ(1)+ time for indexing, with a very low constant factor.  ++O(0)++ wasted space.  Due to the fixed size, elements cannot be added / removed.
 
 
-[[dynamic_table]]
 [[dynamic_array]]
 === Dynamic array (aka array list, dynamic table, resizeable array)
 In contrast to <<array>> the size is variable, thus allows elements to be added / removed.  _Capacity_ is the number of elements the container could currently hold, and the _size_ is the number of elements it actually currently contains.
@@ -796,6 +794,11 @@ When size equals capacity upon an insertion, create a new table with double the 
 One can get +Θ(1)+ by roughly this idea: When you remark that you start to get full, start a new table with a larger capacity, initially empty.  On each insertions operation, copy a constant amount of items from the old table to the new one.  Once the old table is really full, just switch over to the new table.  All in all it's quite complicated, so it's not that often used.
 
 Applications: Used in <<hash_table>> to keep load factor small enough.
+
+
+=== Sorted array
+
+Based on an array, and additionally maintain the invariant the the elements are sorted. <<search_in_sorted_array>> presents algorithms which find an element in an sorted array.
 
 
 [[linked_list]]
@@ -1998,6 +2001,69 @@ algorithm works will leave it at the k-th position. Sort the elements [0,k).
 | partial heapsort   | O(n + k log n)
 | quickselsort       | O(n + k log k)
 |=====
+
+
+[[search_in_sorted_array]]
+=== Search in sorted array
+
+==== Linear search
+
+A brute force algorithm which finds the element in O(n) time, average and worst-case, and with O(1) auxillary space.
+
+Examine first element, then the second, and so on until the element is found.
+
+
+==== Binary search
+
+A divide and conquer algorithm which finds the element in O(log n) time, average and worst-case, and with O(1) auxillary space.
+
+Compare the searched key with the middle element.  If it is a match, the search terminates.  If the search key is smaller, recurse in the left half, otherwise recurse in the right half.
+
+
+==== Interpolation search
+
+Assumes that the elements in the sorted array are uniformely distributed.  However even if this assumption is violated, the algorithm still works, however it no longer has an average running time of O(log log n).
+
+A divide and conquer algorithm which finds the element in O(log log n) average time provided uniform distribution, O(n) worst case time, and with O(1) auxillary space.  It is a specialization of binary search.  Instead of examining the middle element, examine the element which results when interpolating the range given by the first and last array element with the searched key.
+
+Similar to introsort, a variant is to start with interpolation search.  But when remarking that progress is not fast enough, switch to binary search.  This reduces the worst-case runtime to O(log n).
+
+
+==== Uniform binary search
+
+*to-do*
+
+
+==== Fractional cascading
+
+*to-do*
+
+
+==== Fibonacci search
+
+*to-do*
+
+
+==== Noisy binary search
+
+*to-do*
+
+
+
+==== Jump search (aka block search)
+
+Finds the element in O(√n) time and O(1) auxillary space.  First check every k'th element, which effectively divides the array in blocks of length k.  k is typcally √n because that delivers the best runtime performance.  If the search key is equal to the current element, then the search terminates.  If the search key is smaller, search in the previous block using linear search.
+
+Jump search is favorable over binary search when jumping backwards is much more expensive than jumping forward, since jump search at most jumps backward once, while binary search jumps backward O(log n) times.
+
+
+==== Exponential search (aka galloping search, doubling searchp)
+
+Intended for unbounded arrays, or when it's expected that the element is near the beginning of the array.
+
+An algorithm for finding an element in an sorted, possibly unbounded array.  It finds the element in O(log i) time, where i is the position of the element in the array, or the position where it would be if it's not in the array.
+
+The algorithm first determines the range in which the search key would reside if it were in the list.  For that, every 2^j^-th element is examined and compared with the search key, where j is the iteration of this loop.  When the search key equals the element, the search terminates.  Otherwise when its smaller, continue the first stage, otherwise use binary search in the found range to find the element.
 
 
 [[order_statistics]]
