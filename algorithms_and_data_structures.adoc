@@ -490,7 +490,7 @@ The elements form a sequence. Example ADTs: <<list_adt>>, <<stack>>, <<queue>> (
 Given a key, the collection yiels a value. Example ADTs: <<associative_array>> (<<set>> [value being the key] (<<multiset>>))
 
 .Graphs
-Data items have associations with one or data items in the collection. Example ADTs: <<tree_ADT>>.
+Data items have associations with one or data items in the collection.
 
 
 Notably usually not considered a collection: fixed-sized arrays
@@ -638,33 +638,14 @@ References:
 - MIT course 6.006 Introduction to Algorithms, lecture 13. Breadth-First Search (BFS), https://www.youtube.com/watch?v=s-CYnVz-uh4&index=13&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=0s, starting 20:23
 
 
-[[tree_ADT]]
-=== Tree (ADT)
-Note that there is a distinction between a tree as an abstract data type (what this chapter is about), a data structure (see <<data_structures>>) and a topic in graph theory (see <<tree_graph_theory>>).
-
-Terms (see also those of <<graph_theory>>, in particular <<tree_graph_theory>> and <<DAG>>):
-
-- _siblings_: nodes with the same parent.
-- _cousins_: nodes with the same grand parent.
-- _internal node_: A node with at least one child.
-- _external node_ (aka _leaf_): A node with no children.
-- _degree_: Number of sub trees of a node
-- _level_: Depth + 1
-- _size_: Number of nodes
-- _height of tree / node_: Informally: Largest distance (see <<graph_theory>>) between root / that node and any leaf. Formally: ++height(node) = max(height(node.left), height(node.right)) + 1++, whereas height of NULL is -1 (equalently: height of leaf node is 0). Height of tree, height of root, depth of deepest leaf are all synonymous.
-- _depth_ of node: Distance from root to that node.
-
-Implementations: See those of <<graph_adt>>,  and the methods for storing a <<binary_tree>>
-
-
 [[binary_search_tree]]
-=== Binary Search Tree (BST) / Search Tree
+=== Search Tree and Binary Search Tree (BST) (ADT)
 
-A _search tree_ is a tree data structure used store a set of compareable keys or key-value pairs. Often used to implement the more general <<associative_array>> ADT.
+A _search tree_ is a specialized tree used store a set of compareable keys or key-value pairs. Often used to implement the more general <<associative_array>> ADT.
 
-A _binary search tree_ is a specialized <<binary_tree>> where each node satisfies the _binary-search-tree property_: Each node has a comparable key, and the key of the left child, if child present, is smaller than the node's key, and the key of the right child, if child present, is larger than the node's key.  Be n the number of stored elements.  The height h of the tree is h >= log n.  The expected height is h = log n for a randomly built binary tree.
+A _binary search tree_ (_BST_) is a specialized search tree based on a binary tree and where each node satisfies the _binary-search-tree property_: Each node has a comparable key, and the key of the left child, if child present, is smaller than the node's key, and the key of the right child, if child present, is larger than the node's key.  Be n the number of stored elements.  The height h of the tree is h >= log n.  The expected height is h = log n for a randomly built binary tree.
 
-Some implementations store data only in the leaves.  An advantage is that keys are closer together, i.e. there are less page misses.  An advantage of storing values also in internal nodes is that often accessed keys are found in less hops.
+Some implementations store data only in the leaves.  Each non-leaf node stores the min and max of the leaves in its subtrees; alternatively, we can store the max value in the left subtree if we want to store just one value per node.  An advantage is that keys are closer together, i.e. there are less page misses.  An advantage of storing values also in internal nodes is that often accessed keys are found in less hops.
 
 On _duplicates_: 1) disallow them 2) Adapt the binary search tree property such that either the left or the right subtree includes equal keys. 3) Each node can store a collection of elements with that key, or store the number of times the key occures.
 
@@ -862,32 +843,12 @@ Is an implementation of the ADT <<associative_array>>.
 *to-do*
 
 
-[[binary_tree]]
-=== Binary tree
-
-A <<tree>> data structure in which each node has at most two children.  Note that a <<binary_search_tree>> is something else with more restrictions.
-
-Properties:
-
-- _full_(aka _proper_): Every node other than the leaves has two children.
-- _perfect_: (aka ambiguously (see next) complete): A full binary tree in which all leaves have the same depth
-- _complete_: Every level, except possibly the last, is completely filled, and all nodes are as far left as possible.
-- [[balanced]]_balanced_: height is +Θ(lg |V|)+
-- [[weight_balanced]]_weight balanced_: The size difference between the left and the right subtree is kept within some constant factor.
-- _degenerated_ (aka _pathological_): Each node has at most one child.  The tree is thus effectively a linked list.
-
-Methods of storing:
-
-- See <<graph_adt>>
-- As an implicit data structure in an array.  Be i the current node's index, 0 the first index, then its parent is at index floor((i-1)/2), its right child at 2i+1 and its left child at 2i+2.  In the case of a complete binary tree, no space is wasted.  See also <<binary_heap>> which commonly uses this scheme.
-
-
 [[naive_BST]]
-=== (Naive) binary search tree (data structure)
+=== Binary search tree (data structure)
 
 A data structure implementing the binary search tree ADT. When inserting, the elements are always inserted as leaves, whithout changing previous nodes.
 
-Optionally, store data in leaves only.  Each non-leaf node stores the min and max of the leaves in its subtrees; alternatively, we can store the max value in the left subtree if we want to store just one value per node.  See for example <<1d_orthogonal_range_searching>>.
+*to-do*
 
 
 [[random_binary_tree]]
@@ -895,15 +856,24 @@ Optionally, store data in leaves only.  Each non-leaf node stores the min and ma
 
 Randomly permute the input before building the <<naive_BST>>.
 
-*to-do*: 
+*to-do*
 
 Expected height E[height]=O(lg(n))
+
+
+=== Treap
+
+A randomized binary search tree.  At the same time a Cartesian tree in which each key is given a randomly chosen numeric priority, the heap property applies to the priority.
+
+*to-do*
+
+Etymology: A portmanteau of tree and heap.
 
 
 [[avl_tree]]
 === AVL Tree
 
-A data structure implementing the binary search tree ADT.  Is a <<balanced>> binary search tree; balance is ensured by the following invariant: For each node n: |height(n.left) - heigh(n.right)| ≤ 1.  From that (indirectly) follows: tree height ≈ 1.44 lg(|V|).
+A data structure implementing the binary search tree ADT.  Is a balanced binary search tree; balance is ensured by the following invariant: For each node n: |height(n.left) - heigh(n.right)| ≤ 1.  From that (indirectly) follows: tree height ≈ 1.44 lg(|V|).
 
 Time complexity: O(log n) average and worst case for all basic operations (search, insert, delete).
 
@@ -917,13 +887,15 @@ Rough description of how insertion/deletion work:
 
 2. For each node on the path from the newly inserted node up to the root: if balance factor is not in range [-1,1], fix it by only _rotation_ operations.
 
-See also <<search_tree_comparison>>
+See also <<search_tree_comparison>>.
+
+Etymology: Named after its two inventors Adelson-Velsky and Landis.
 
 
 [[red_black_tree]]
 === Red-Black tree
 
-A data structure implementing the binary search tree ADT.  Is a <<balanced>> binary search tree; Balance is preserved by attributing each node with one of two colors (typically called `red' and `black') in a way that satisfies red-black properties (see below).  Tree height ≈ 2*lg(|V|).
+A data structure implementing the binary search tree ADT.  Is a balanced binary search tree; Balance is preserved by attributing each node with one of two colors (typically called `red' and `black') in a way that satisfies red-black properties (see below).  Tree height ≈ 2*lg(|V|).
 
 red-black properties:
 
@@ -940,6 +912,13 @@ See also <<search_tree_comparison>>.
 References:
 
 - MIT 6.046J, Lecture 10 Red-black Trees, Rotations, Insertions, Deletions: https://www.youtube.com/watch?v=O3hI9FdxFOM&t=158s
+
+
+=== Weight-balanced tree (WBT)
+
+The size difference between the left and the right subtree is kept within some constant factor.
+
+*to-do*
 
 
 [[b_tree]]
@@ -1119,6 +1098,15 @@ References:
 
 
 === Splay tree
+
+A balanced binary search tree with the additional property that recently accessed elements are quick to access again.
+
+*to-do*
+
+
+=== Scapegoat tree
+
+A self-balancing binary search tree.  Instead of the small incremental rebalancing operations used by most balanced tree algorithms, scapegoat trees rarely but expensively choose a "scapegoat" and completely rebuild the subtree rooted at the scapegoat into a complete binary tree. Thus insert and delete have O(n) worst-case and O(log n) amortized on average.
 
 *to-do*
 
@@ -2255,24 +2243,27 @@ A _walk_ is a set of consecutive edges.  A _closed walk_ is one where the first 
 
 Given a graph G, a _subgraph_ of G is a graph, each of whose vertices and edges belong to G.  Given a graph G, an _induced subgraph_ is a subgraph of G, whose edge set consists of all G's edges that have both endpoints in the subgraph.  A graph is _edge-maximal_ with a given graph property if G has the property, but no Graph resulting from adding an (non-parallel) edge does.
 
+A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the nodes of G.  A [[MST]]_minimum spanning tree_ (aka _MST_) is a spanning tree of a graph G with the minimal total weighting for its edges.  See also the <<MST_problem>>.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
+
 [[DAG]]
 A _directed acyclic graph_ (_DAG_) is a graph with no directed cycles.  Given a directed edge C->P, C is the _child_ and P the _parent_. Nodes reachable from C are C's _ancestors_, nodes which can reach P are P's _descendants_.  Whether or not a node is it's own ancestor/descendant is not defined across literature. CLRS say yes.  The _lowest common ancestor_ (_LCA_, aka, less accurately, _least common anchestor_) of two nodes x and y is the first common ancestor in topo order.
-
-[[tree_graph_theory]]
-See also <<tree_ADT>>. A _tree_ is an undirected graph in which any two vertices are connected by exactly one path (which then naturally is a simple path).  Alternatively: an undirected connected acyclic graph.  Alternativly:  An undirected connected graph where every edge is a bridge.  Thus it's always undirected, acylic, connected and bipartite.  Note that an arborescence is not a connected graph (consider a root with two childs; the two childs are not connected).  In informatic context, the term tree is often used for what we call here an directed rooted tree.  A _rooted tree_ is a tree in which one vertex has been designated the root.  An _arborescence_ (aka _directed rooted tree_ or _out-tree_) is a directed rooted tree in which all edges point away from the root.  An _anti-arborescence_ (aka _in-tree_) is an arborescence where all edge directions are reversed.  A _forest_ is a disjoint union of trees.  Alternatively: an acyclic undirected graph.  An _ordered tree_ (aka _plane tree_) is a rooted tree in which an ordering is specified for the children of each vertex.  A _poly tree_ is a directed acyclic graph which would be a tree if it's edges were undirected.  A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the vertices of G.  A [[MST]]_minimum spanning tree_ (aka _MST_) of is a spanning tree of G with the minimal total weighting for its edges.  See also the <<MST_problem>>.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
-
-Common graph problems:
-
-- _single-pair shortest path_ problem (from single source to a single destination)
-- _single-source shortest path_ problem (from a single source to all others)
-- _single-destination shortest path_ problem (from all others to a destination)
-- _all-pairs shortest path_ problem (from all to all)
-- <<maximum_flow_problem>>
-- The chapter <<NP_complete>> also lists some graph problems.
 
 References:
 
 - http://en.wikipedia.org/wiki/Glossary_of_graph_theory
+
+
+[[tree_graph_theory]]
+=== Tree (graph theory)
+
+A _tree_ is an undirected graph in which any two nodes are connected by exactly one path (which then naturally is a simple path).  Alternatively: an undirected connected acyclic graph.  Alternativly:  An undirected connected graph where every edge is a bridge.  Thus it's always undirected, acylic, connected and bipartite.  Note that an arborescence is not a connected graph (consider a root with two childs; the two childs are not connected).  In informatic context, the term tree is often used for what we call here an directed rooted tree.  A _rooted tree_ is a tree in which one node has been designated the root.  An _arborescence_ (aka _directed rooted tree_ or _out-tree_) is a directed rooted tree in which all edges point away from the root.  An _anti-arborescence_ (aka _in-tree_) is an arborescence where all edge directions are reversed.  A _forest_ is a disjoint union of trees.  Alternatively: an acyclic undirected graph.  An _ordered tree_ (aka _plane tree_) is a rooted tree in which an ordering is specified for the children of each node.  A _poly tree_ is a directed acyclic graph which would be a tree if it's edges were undirected.
+
+_Siblings_ are nodes with the same parent, _cousins_ are nodes with the same grand parent.
+A node with at least one child is called an _internal node_, otherwise it is called an _external node_ (aka _leaf_).  A tree's _size_ is the number of it's nodes.  A node's _depth_ is its distance from the root.  A node's _level_ equals depth plus one.  The _height_ of a tree is the largest distance between root and any leaf. Formally: ++height(node) = max(height(node.left), height(node.right)) + 1++, whereas height of NULL is -1 (equalently: height of leaf node is 0). Height of tree, height of root, depth of deepest leaf are all synonymous.
+
+A _balanced_ tree is one where its height is Θ(log |V|).  A _degenerated_ (aka _pathological_) tree is effectiviely a linked list; each node has at most one child.
+
+A _binary tree_ is a tree where each node has at most two children.  A _full_ (aka _proper_) binary tree is one where every node other than the leaves has exactly two children. A full binary tree in which all leaves have the same depth is called _perfect_ (sometimes also complete, but this conflicts with the next definition).  In a _complete_ binary tree, every level, except possibly the last, is completely filled, and all nodes are as far left as possible.
 
 
 [[BFS]]
