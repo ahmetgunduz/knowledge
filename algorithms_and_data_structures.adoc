@@ -2461,7 +2461,22 @@ O(n+m) worst case
 [[online_algorithms]]
 == Online algorithms
 
-An online algorithm is _k-competitive_ if there exists a constant k such that its cost is at most k times the cost of an optimal offline algorithm, ignoring a constant offset.  The factor k is called the _competitive ratio_.  If the constant offset is zero, the algorithm is said to be _strictly competitive_.  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
+An online algorithm is _k-competitive_ if there exists a constant k such that its cost is at most k times the cost of an optimal offline algorithm, ignoring a constant offset α.  Intuitively it's a measurement of the online algorithm's quality.
+
+--------------------------------------------------
+online minimum problem: cost(ALG(I)) ≤ k·cost(OPT(I)) + α
+online maximum problem: gain(OPT(I)) ≤ k·gain(ALG(I)) + α
+--------------------------------------------------
+
+The factor k is called the _competitive ratio_.  If the constant offset α is zero, the algorithm is said to be _strictly competitive_.  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
+
+When analysing online algorthms, we're almost always only interested in the worst case, almost never in the average case.  We want to provide guarantees.
+
+References:
+
+- Book ``An Introduction to Online Computation: Determinism, Randomization, Advice'', D. Komm.
+
+- Extracts of the above book as lectures notes: http://www.ita.inf.ethz.ch/~dkomm/lectures/online-algorithmen.pdf
 
 
 === Randomized online algorithms
@@ -2478,9 +2493,12 @@ No deterministic algorithm is k-competitive.
 Page replacement strategies:
 
 - LRU (least recently used): Evict least recently used. Is an conservative algorithm.
+
 - FIFO (first in first out): Evict oldest-loaded page. Is an conservative algorithm.
+
 - LFU (least frequently used): Evict the page that has been requested least frequently.
-- MIN or OPT (offline optimal): Evict page to be used farthest in the future. A greedy algorithm. Proofably optimal. Cost +O(n/k)+ (n accesses, k pages). Proof: Only very k accesses there's an evict.
+
+- LFDT (longest forward distance) or OPT (offline optimal) or MIN: Evict page to be used farthest in the future. A greedy algorithm. Proofably optimal. Cost +O(n/k)+ (n accesses, k pages). Proof: Only very k accesses there's an evict.
 
 Applications:
 
