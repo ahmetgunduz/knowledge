@@ -1044,11 +1044,11 @@ References:
 [[cartesian_tree]]
 === Cartesian tree
 
-A binary tree having the heap property and having the additional porperty that its in-order traversal delivers a given sequence S. Can be built in O(n) time from S and vice versa.
+A binary tree T having the min heap property and having the additional porperty that its in-order traversal delivers a given array A.  In other words, each node has the min heap property and the property that when it corresponds to the element A[i], its left subtree is a cartesian tree of A[<i], and its right subtree is a cartesion tree of A[>i].
 
 Example:
 --------------------------------------------------
-S = [8,7,2,8,6,9,4,5]
+A = [8,7,2,8,6,9,4,5]
 
 T =      2
         / \______
@@ -1059,13 +1059,11 @@ T =      2
            8   9
 --------------------------------------------------
 
-Building cartesian tree T from a sequence S, which assumes parent pointers: To process each new value x, start at the node representing the value prior to x in the sequence and follow the path from this node to the root of the tree until finding a value y smaller than x. This node y is the parent of x, and the previous right child of y becomes the new left child of x. 
-
-Building sequence S from cartesian tree T: If T's nodes are not labeled with values as above, which is the case in many applications, label each node with it's depth. Do an inorder traversal, resulting in an array of node labels.  LCA on T is still the same as RMQ on S.
+If there are multiple equal elements in A, break ties arbitrarily, i.e. pick any one of the equal elements as the parent of the other.
 
 Applications:
 
-- <<RMQ>> in S corresponds to <<LCA_problem,LCA>> in T.
+- <<RMQ>> in A corresponds to <<LCA_problem,LCA>> in T.
 
 - <<rectangular_range_query>>
 
@@ -1075,6 +1073,22 @@ References:
 
 - https://www.geeksforgeeks.org/cartesian-tree/
 
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 15 Static trees: https://courses.csail.mit.edu/6.851/spring14/scribe/lec15.pdf[lecture notes], https://www.youtube.com/watch?v=0rCFkuQS968&index=15&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
+
+
+[[RMQ_LCA_equivalence]]
+==== RMQ LCA equivalence
+
+Given a cartesian tree T, a RMQ in A is equivalent to an LCA in T. Only that in RMQ we're talking about array elements identified by their index, and in LCA about tree nodes identified by themselves.
+
+[[reduce_RMQ_to_LCA]]
+_Reduce RMQ to LCA_: Building a cartesian tree T from an array A in O(n), i.e. reduce RMQ to LCA:  This assumes each node has a parent pointer.  Process the array from left to right, inserting the array element in the cartesian tree at the right position.  To insert the next array element into T, start at the node just inserted before. Visualize that in the standard way of drawing a cartesian tree, that node will be the rightmost node, since it corresponds to the last element of A inserted into the tree so far. Follow parent pointers until encountering a node v which is smaller.  Note that we will always take edges going to the left.  Then insert the new node by breaking up the edge (v, v.right), and by making v.right the left child of the new node.  Note the edge case of the new element being smaller than the root; it may help to have a sentinel node with value −∞ pointing to the tree's actual root.
+
+[[reduce_LCA_to_RMQ]]
+_Reduce LCA to RMQ_: Building an array A from a cartesian tree T in O(n).  Do an in-order traversal.  If T's nodes are not already labeled with values as above, which is the case in many applications, label each node with it's depth; with that labeling RMQ on A will be equivalent to LCA on T.
+
+[[reduce_LCA_to_pm1_RMQ]]
+_Reduce LCA to ±1 RMQ_: Perform an Eulerian tour based on the in-order traversal and append every encountered node to A. At each step we either go up or down one level, thus consequtive elements in A differ by exactly either +1 or -1.  Every edge is visited twice, so the resulting array contains a given node up to three times, but that's still O(n).
 
 
 [[treap]]
@@ -1606,18 +1620,113 @@ References:
 - http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf, chapter "1 - Dimensional Range Searching"
 
 
-[[RMQ]]
-=== Range minimim query (RMQ)
+[[range_query]]
+=== Range query (data structures)
 
-Given an array A, find index (here named k) of minimum element in range [i,j].
+A _range query_ consists of preprocessing some input data into a data structure to efficiently answer any number of queries on any subset of the input.  Don't confuse range query with <<orthogonal_range_search>>.
 
-++k=RMQ(i,j)=(arg)min{A[n]|i≤n≤j}++
-
-(arg)min says that we're interested in the index, not the value of the minimum element.
+A q~f~(A, i, j) range query on an array A of n elements, takes two array indices i and j, an implied function f whose domain is a set of array elements, and outputs f(A[i,j]) = f(a~i~, ..., a~j~). E.g. the function f might be the sum over all input arguments.
 
 Solutions:
 
-- Convert A to a <<cartesian_tree>>, see there, and in that tree, solve the <<LCA_problem>>, see there.
+- When the function f has an well defined inverse f^-1^: Have an auxillary array B of size n, B[i] storing the result of f(A[0,i]).  Then q~f~(A, i, j) = f(A[i,j]) = f^-1^(B[j], B[i-1]).  Costs O(n) auxillary space, O(n²) preprocessing time, O(1) query time.
+
+- *to-do* order statistics in a range: https://en.wikipedia.org/wiki/Range_query_(data_structures)#Median
+
+
+[[RMQ]]
+=== Range minimim query (RMQ)
+
+Given an array A, find the index k of the minimum element in a given range [i,j].  It can be shown that the two problems RMQ and <<LCA_problem,LCA>> are equivalent, see <<RMQ_LCA_equivalence>>.
+
+The RMQ LCA equivalence even allows us to do a _universe reduction_ of RMQ problems.  The original RMQ problem may involve numbers of any size, or even any orderable things. By converting the original RMQ to a LCA, and then back to RMQ with node depths as labels, the new RMQ only deals with integers < n.  Of course we can alternatively even reduce to ± 1 RMQ instead, see <<reduce_LCA_to_pm1_RMQ,reduce LCA to ± 1 RMQ>>.
+
+_± 1 RMQ_ is a special case of RMQ where each consecutive element differs by exactly either +1 or -1.  See also <<reduce_LCA_to_pm1_RMQ,reduce LCA to ± 1 RMQ>>.
+
+Solutions:
+
+- Reduce to LCA and solve there, see <<RMQ_LCA_equivalence>>.
+
+- Brute force. O(n) query time.
+
+- Naive loopkuptable storing the answer to all possible queries. O(n²) auxillary space, O(1) query time.
+
+- Powers of two lookuptable.  O(n log n) auxillary space, O(1) query time. See subchapter.
+
+- Indirection and lookuptables.  O(n) auxillary space, O(1) query time.  See subchapter.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 15 Static trees: https://courses.csail.mit.edu/6.851/spring14/scribe/lec15.pdf[lecture notes], https://www.youtube.com/watch?v=0rCFkuQS968&index=15&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
+
+
+==== ① Powers of two lookuptable
+
+Precompute RMQ for all intervals with lengths that are powers of two. O(n log n) auxillary space, O(1) query time. *to-do* brute force preprocessing time is O(n² log n), but can we do better?
+
+There are a total of O(n log n) such intervals, as there are log n different possible interval lengths, with n possible start locations. To solve RMQ in interval [i,j], having a length k = j - i + 1, we fetch two of the precomputed RMQ of length floor(log k).  The one  starting at i and the one ending at j.  Take the min of the two precomputed answers, done.  The two fetched intervals might overlap, but that doesn't change the final RMQ result.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 15 Static trees, chapter "3.3 contant time, n lg n space RMQ" in https://courses.csail.mit.edu/6.851/spring14/scribe/lec15.pdf[lecture notes], or https://www.youtube.com/watch?v=0rCFkuQS968&index=15&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video] at  24:30.
+
+
+==== ② Technique indirection
+
+Intended as building block to be used by a higher level algorithm.  Divide original array into N consecutive subarrays (aka bottom arrays) of length nʹ.  Create a parent array of length N.  Each cell corresponds to a subarray and stores that subarrays' RMQ over the whole subarray, i.e. the subarray's min.
+
+The following is rather verbose, the intention being trying to highlight the more general idea of the technique.  Think of RMQ as being any associative operation.  Instead of RMQ in range [i,j], think x~i~ ∘ x~i+1~ ∘ ... ∘ x~j~.
+
+The parent array intuitively serves as an highway by having whole subarrays precomputed. To answer a RMQ query in range [i, j], we split the request into three consecutive ranges, do a RMQ on each of the ranges, and then do an RMQ on the three results. That only works because RMQ is an associative operation.  Do a RMQ in range [i,∞] in the left subarray, go on the highway and do a RMQ in the enclosed range of the parent array and finaly do a RMQ in range [-∞,j] in right subarray.
+
+Note that the problem of solving RMQ in the parent array has the same structure as the original problem, but now the problem is smaller in size.
+
+--------------------------------------------------
+  |    |     |     |     |     |  parent array cells store precomputed RMQ over
+                                  whole corresponding subarray
+
+  |    |     |     |     |     |  subarrays logically devide original array
+
+  |                            |  original array
+
+    <----------------------->     sample query
+    <-> <---------------> <->
+    i                       j
+--------------------------------------------------
+
+*to-do* I don't fully understand why this technique is called indirection. It has much more to do with precomputing / lookuptables I'd say.  Maybe because the problem of solving RMQ in the parent array has the same structure as the original problem?
+
+
+==== ③ Technique lookuptables for a large set of small arrays
+
+We are given a large amount of arrays of small and similar size n, and need to be able to solve RMQ in any of them.  Intended as building block to be used by a higher level algorithm.
+
+Reduce each array to ± 1 RMQ, via <<reduce_RMQ_to_LCA>> and <<reduce_LCA_to_pm1_RMQ>>, which then can be interpretet as bit string of length n-1, by looking at the difference to the next element, which is either +1 or -1.  For simplicity we think of the string length as n oppose to n-1.  There are 2^n^ possible different arrays aka array types.  In meaningfull applications, there are much more arrays given than there are array types.
+
+For each array type, we store a lookuptable which solves RMQ on that array type in O(1). (*to-do* why exactly uses Demain the naive lookuptable instead the power of two variant?)
+
+Each array stores it's array type. Thus we can answer an RMQ on any array by quering the lookuptable associated with that array.
+
+
+==== Indirection plus lookuptables
+
+Use indirection as described above in ②. Have N = 2n / log n subarrays being of length nʹ = 1/2 log n. RMQ in the parent array can be solved using a ① powers of two lookuptable.  RMQ in a subarray is solved using the technique ③ lookuptables for a large set of small arrays.
+
+Analysis for parent array:  Auxillary space for parent array's lookuptable is O(N log N) = O( (2n / log n) · log(2n / log n) ) = O(n) and query time is O(1).
+
+Analysis for bottom arrays:  According to ③, there are 2^nʹ^ = √n different subarray types.  I.e. there are much less possible subarray types (√n) than there are concrete subarrays (2n / log n).  We can now afford so store a lookuptable for each subarray type.  We have √n subarray types, each lookuptable needs nʹ² enties, each entry needs log nʹ bits.  Space requirement thus is O(√n · log²n · log log n) = o(n) bits, query time is O(1)
+
+Analysis total: O(n) auxillary space and O(1) query time.
+
+The motivation for this algorithm is that we generally liked the properties of the powers of two lookuptable, but wanted to shave off the log n factor in its O(n log n) auxillary space complexity.  The combination of using indirection and the specific chosen subarray got us there for two reasons: 1) Using `power of two lookuptables' now costs only O(n) space instead O(n log n). This is because the lookuptable is now for the smaller parent array, size N = 2n / log n, opposed to the original array of size n. 2) The subarrays are small enough such that there are far less subarray types than actual subarrays, which makes ③ feasible, and thus gives O(n) space also for all the subarrays.
+
+*to-do* Say I din't knew that subarray size should be 1/2 log n. How would I calculate it? Also, similarly, why exactly is the factor 1/2. Erik Demaine says that concerning the space complexity of the parent array nʹ = Θ(log n) is the only thing we need.
+ 
+*to-do* Why exactly don't we recursively divide subarrays. My thoughts are between `we already have O(n) space and O(1) query time, what should we want more' and `would it be recursive, the query time would get worse and become O(log n)', but I am not sure.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 15 Static trees, chapter "3.4 Indirection to remove log factors" in https://courses.csail.mit.edu/6.851/spring14/scribe/lec15.pdf[lecture notes], or https://www.youtube.com/watch?v=0rCFkuQS968&index=15&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video] ay 27:30.
 
 
 === Consumer producer
@@ -2843,15 +2952,20 @@ Applications:
 
 [[LCA_problem]]
 === Lowest common ancestor (LCA) problem
-See <<DAG>> for the definition of LCA.
+
+See <<DAG>> for the definition of lowest common ancestor (LCA).  It can be shown that the two problems <<RMQ>> and LCA are equivalent, see <<RMQ_LCA_equivalence>>.
 
 Solutions:
 
 - With O(n^2^) space, O(1) time is trivial: An O(1) time lookup table stores the answer for all input pair vertices.
 
-- Tarjan's off-line LCA: After preprocessing the DAG, solvable in O(1) time and O(n) space.
+- Tarjan's off-line LCA: After preprocessing the DAG, solvable in O(1) time and O(n) space. *to-do*
 
 - If DAG is a cartesian tree: reduce to array, see <<cartesian_tree>>, and solve <<RMQ>> there. *to-do*: how exactly, there we're rediricted to LCA
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 15 Static trees: https://courses.csail.mit.edu/6.851/spring14/scribe/lec15.pdf[lecture notes], https://www.youtube.com/watch?v=0rCFkuQS968&index=15&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
 
 
 [[LA_query]]
@@ -2860,6 +2974,11 @@ Solutions:
 Given a rooted tree and a node v, LA(v,d) delivers the ancestor node of v which is at depth d, or equalently, delivers the kth ancestor (where parent is the 1st ancestor), k=height(node)-d.
 
 When n is the number of nodes, after preprocessing which takes O(n) time and O(n) space, solvable in O(1) time.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 15 Static trees: https://courses.csail.mit.edu/6.851/spring14/scribe/lec15.pdf[lecture notes], https://www.youtube.com/watch?v=0rCFkuQS968&index=15&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
+
 
 
 [[shortest_path_problem]]
