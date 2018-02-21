@@ -285,9 +285,9 @@ Is a way of obtaining the asymptotic bounds of the running time T(n) of an algor
 
 |=====
 |Case |Asymptotic bounds of T(n) |Condition for f(n) |Informal condition for f(n) |Additional conditions
-|1    |Θ(p(n))                   |O(p(n)·n^-ε^)      |Grows slower than p(n)      |
+|1    |Θ(p(n))                   |O(p(n)·n^-ε^)      |Grows polynomically slower than p(n)      |
 |2    |Θ(p(n) · lg n)            |Θ(p(n))            |Same order of growth as p(n)|
-|3    |Θ(f(n))                   |Ω(p(n)·n^ε^)       |Grows faster than p(n)      |af(n/b) ≤ cf(n) for sufficiently large n
+|3    |Θ(f(n))                   |Ω(p(n)·n^ε^)       |Grows polynomically faster than p(n)      |af(n/b) ≤ cf(n) for sufficiently large n
 |=====
 
 Note that there is a gap between case and 1 and 2, when f(n) is maller than p(n) but not polynomically smaller.  To be polynomically smaller, it must be smaller by a factor of n^ε^.  Between 2 and 3 there is also a gap for analogous reasons.  Additionally the stated additional condition also contributes to the gap between 2 and 3.  Not all recurrence relations can be solved with the use of the master theorem; its generalizations include the Akra–Bazzi method.
@@ -1065,7 +1065,7 @@ Applications:
 
 - <<RMQ>> in A corresponds to <<LCA_problem,LCA>> in T.
 
-- <<rectangular_range_query>>
+- <<orthogonal_range_search>>
 
 - A <<treap>> is a specialization of a cartesian tree
 
@@ -1143,7 +1143,7 @@ References:
 
 Assumptions for simplicity: No two points have same x coordinate, and no two points have same y coordinate.
 
-A _k-dimensional k-d tree_ is a non-balanced binary search tree storing k-dimensional points.  They are often used for k-dimensional <<rectangular_range_query>>.  Informal description for the 2D case: Each subtree represents an rectangular area,  possibly unbounded, i.e. rectangle edges can be at infinity.  The root represents the whole plane.  As normal in BSTs, each node stores a value, here a point.  Each node splits its associated area in two halfes by an imaginary line through its point.  Nodes at even tree levels split vertically, nodes at odd tree levels horizontally.  Each of its subtrees is then associated with one of the halfes.  Thus the plane is recursively diveded into smaller and smaller rectangles.
+A _k-dimensional k-d tree_ is a non-balanced binary search tree storing k-dimensional points.  They are often used for k-dimensional <<orthogonal_range_search>>.  Informal description for the 2D case: Each subtree represents an rectangular area,  possibly unbounded, i.e. rectangle edges can be at infinity.  The root represents the whole plane.  As normal in BSTs, each node stores a value, here a point.  Each node splits its associated area in two halfes by an imaginary line through its point.  Nodes at even tree levels split vertically, nodes at odd tree levels horizontally.  Each of its subtrees is then associated with one of the halfes.  Thus the plane is recursively diveded into smaller and smaller rectangles.
 
 Algorithm to build tree:  Partion the of set points in x-direction in two equal halfes by finding the median point in x direction, see <<order_statistics>>.  That point becomes the root.  For each of the two partitions recurse.  Only that now, on depth 1 of the recursion, we partition in y-direction.  In general, in a k-dimensianal tree, we partition after the (depth%k+1)-th dimension.
 
@@ -1164,7 +1164,7 @@ Optimisation:  For each dimension, have a presorted sequence of all points.  The
 
 Applications:
 
-- <<rectangular_range_query>>
+- <<orthogonal_range_search>>
 
 References:
 
@@ -1184,7 +1184,7 @@ References:
 
 Applications:
 
-- <<rectangular_range_query>>
+- <<orthogonal_range_search>>
 
 References:
 
@@ -1387,6 +1387,7 @@ References:
 
 [[edit_distance]]
 === Edit distance
+
 Given two strings x and y, the edit distance is the minimum cost series of
 edit operations that transform x into y.  There are cost tables:
 cost-deletete[c] is cost to delete char c from x, cost-insert[c] is cost to
@@ -1462,11 +1463,13 @@ Analysis: time complexity: #subprobs=Θ(|x|⋅|y|) (number of cells). time/subpr
 
 Applications:
 
-- computational biology: quantify similarity of DNA sequences
-- correction of spelling mistakes, i.e. which correct word is the most likely
+- Computational biology: quantify similarity of DNA sequences
+
+- Correction of spelling mistakes, i.e. which correct word is the most likely
 
 
 === Longest common subsequence (LCS)
+
 Given a set of sequences, typically two, what is (are) the longest common subsequence(s) -- The solution might not be unique, i.e. multiple subsequences of same lenght will qualify as having the longest lenght.  Note that unlike substrings, subsequences are not required to occupy consecutive positions.
 
 In general: NP-hard.
@@ -1474,8 +1477,10 @@ In general: NP-hard.
 For two sequences: Equals the <<edit_distance>> problem, with cost of insert and delete being 1 and replace being 0 for c→cʹ and ∞ otherwhise.
 
 Applications:
-- file comparison, e.g. the diff utility
-- bio informatics: as a measure how similar DNA sequences are (the longer the LCS the more similar),
+
+- File comparison, e.g. the diff utility.
+
+- Bio informatics: as a measure how similar DNA sequences are (the longer the LCS the more similar).
 
 
 [[knapsack]]
@@ -1579,10 +1584,10 @@ Applications:
 *to-do* process https://en.wikipedia.org/wiki/List_of_knapsack_problems
 
 
-[[rectangular_range_query]]
-=== Orthogonal (rectangular) range (interval) searching (query)
+[[orthogonal_range_search]]
+=== Orthogonal (rectangular) range (interval) search (query)
 
-Given a set of points in k-dimensional space, find the ones being in a k-dimensional range.  E.g. when doing a database query, we want to find the persons with age in [20,40] and height in [150, 200] and weight in [50,100].
+Given a set of points in k-dimensional space, find the ones being in a k-dimensional range.  E.g. when doing a database query, we want to find the persons with age in [20,40] and height in [150, 200] and weight in [50,100]. Don't confuse orthogonal range search with <<range_query>>.
 
 Given a set of k-dimensional geomteric objects (aka ranges), find the ones which intersect (aka overlap).
 
@@ -2881,7 +2886,7 @@ References:
 
 Computes the topological sort of a directed graph in O(V+E); dedects cycles.
 
-Intuitively: While there are vertixes left, pick a source (i.e. a vertex with in-degree 0), append it to output sequence, remove it from graph.  If any vertices are left, the graph contains at least one cycle.
+Intuitively: Have a queue which always maintains all the source vertices (a vertice with indegree 0) of the graph.  While there are vertixes left, pick a source, append it to output sequence, remove it from graph.  If any vertices are left, the graph contains at least one cycle.
 
 --------------------------------------------------
 kahns_algorithm(graph): list
@@ -2916,7 +2921,7 @@ kahns_algorithm(graph): list
 
 Intuitition why the algorithm works: The graph's sources appear consecutively as the first elements in the topoorder sequence.  Removing a source from the graph does not affect the topoorder sequence of the remaining vertices.  Thus we can iteratively remove sources and append them to the topoorder sequence.
 
-*to-do*: Could we also do the same, but with sinks instead sources?
+*to-do*: Could we also do the same, but with sinks instead sources? One disadvantage would be that we cant update the indegree map as easily when `removing' a vertex, because generally it's not trivial to know which vertices point to a given vertex.
 
 Analysis: Runs in O(V+E)
 
@@ -3311,6 +3316,8 @@ Applications: *to-do*
 
 The problem of finding the <<MST>>, actually minimum spanning forest, in an undirected weighted possibly disconnected graph.
 
+Both Kruskal's algorithm and Prim's algorithm rely on the fact that adding a light edge to a partial MST is safe.  Both algorithms essentially start with an empty partial MST, and iteratively greedely add a light edge until the MST is finished.
+
 Algorithms:
 
 - <<kruskals_algorithm>>
@@ -3349,6 +3356,8 @@ Analysis: O(sort(E) + (E+V)α(V)) time, assuming an asymptotically optimal disjo
 References:
 
 -  http://tandy.cs.illinois.edu/Kruskal-analysis.pdf
+
+- Book ``Introduction to algorithms'', subchapter ``The algorithms of Krustal and Prim'', section ``Kruskal's algorithm'', p. 631.
 
 
 [[Prim]]
@@ -3396,7 +3405,7 @@ Analysis:
 
 References:
 
-- Book ``Introduction to algorithms'', subchapter ``Prim's algorithm''.
+- Book ``Introduction to algorithms'', subchapter ``The algorithms of Krustal and Prim'', section ``Prim's algorithm'', p. 634.
 
 
 === Connectivity
@@ -3558,11 +3567,15 @@ _Maximum flow problems_ involve finding the maximum flow in a <<flow_network>>. 
 
 Solutions of max-flow:
 
-- <<ford_fulkerson_algorithm>> in +O(E*f)+ (whereas f is the maximum flow) for the case where capacities are integers.
+- <<ford_fulkerson_algorithm>> in +O(E·f)+ (whereas f is the maximum flow) for the case where capacities are integers.
 
 - <<edmonds_karp>> algorithm in +O(VE²)+ for the case where capacities are integers.
 
-- An algorithm implementing the <<push_relabel>> approach. The generic version is +O(VE²)+, more specific version get better, the `highest label selection' has +O(V²√E)+
+- _Dinic's_ algorithm runs in O(VE²) *to-do*
+
+- An algorithm implementing the <<push_relabel>> approach. The generic version is +O(V²E)+, more specific version get better, the `highest label selection' has +O(V²√E)+
+
+- *to-do* many more, especially blocking flow, see https://en.wikipedia.org/wiki/Maximum_flow_problem#Solutions
 
 
 [[ford_fulkerson_method]]
@@ -4170,25 +4183,21 @@ https://www.youtube.com/playlist?list=PLxc4gS-_A5VDvP_9W8JJ04zk6m1qTolzG
 
 - Book "Introduction to algorithms" aka CLRS (3rd Edition), Cormen, Leiserson, Rivest, Stein
 
-- MIT course 6.006 Introduction to Algorithms: https://courses.csail.mit.edu/6.006
-  * (fall'11): https://courses.csail.mit.edu/6.006/fall11/notes.shtml, https://www.youtube.com/playlist?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb
-  * Newest lecture notes which are freely available spring'14: the newest vidoes seem to be from fall'11.
+- MIT course 6.006 Introduction to Algorithms: 
+  * Umbrella over all semesters: https://courses.csail.mit.edu/6.006
+  * Fall '11: https://courses.csail.mit.edu/6.006/fall11/notes.shtml[lecture notes], https://www.youtube.com/playlist?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb[videos]
 
 - MIT course 6.046J / 18.410J: In 2015 called "Design and Analysis of Algorithms", before "Introduction to Algorithms (SMA 5503)". Aparantly in '15 it's an advanced course between 6.006 and 6.851, before it was a course similar to 6.006.
- * Spring '15:
-   ** youtube: https://www.youtube.com/playlist?list=PLUl4u3cNGP6317WaSNfmCvGym2ucw3oGp
-   ** ocw: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-design-and-analysis-of-algorithms-spring-2015/lecture-videos/
- * Fall '05:
-  ** youtube: https://www.youtube.com/playlist?list=PL81A705FB7F988E7C
-  ** OCW, less videos, but title describing content: http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-introduction-to-algorithms-sma-5503-fall-2005/video-lectures/
+ * Spring '15: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-design-and-analysis-of-algorithms-spring-2015/lecture-notes/[lecture notes], https://www.youtube.com/playlist?list=PLUl4u3cNGP6317WaSNfmCvGym2ucw3oGp[videos]
+ * Fall '05: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-introduction-to-algorithms-sma-5503-fall-2005/index.htm[OCW home page], https://www.youtube.com/playlist?list=PL81A705FB7F988E7C[videos]
 
-- MIT course 6.851 Advanced Data Structures: https://courses.csail.mit.edu/6.851/
-  * spring'12: https://courses.csail.mit.edu/6.851/spring12/lectures/, https://www.youtube.com/playlist?list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf
-  * Newest spring'14: Same videos as spring '12, link suggested by ETH course Advanced Data Structures: https://www.youtube.com/playlist?list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf
+- MIT course 6.851 Advanced Data Structures:
+  * Umbrella over all semesters: https://courses.csail.mit.edu/6.851/
+  * Spring '12: https://courses.csail.mit.edu/6.851/spring12/lectures/[lecture notes], https://www.youtube.com/playlist?list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf[videos]
 
 - MIT course 6.854 Advanced Algorithms
-  * Spring 2016: Youtube https://www.youtube.com/playlist?list=PL6ogFv-ieghdoGKGg2Bik3Gl1glBTEu8c
-  * Unknown date: youtube https://www.youtube.com/playlist?list=PLXzW9t1q_fb_3k_KzBfBnw0NXjvq45-bf
+  * Spring '16: https://www.youtube.com/playlist?list=PL6ogFv-ieghdoGKGg2Bik3Gl1glBTEu8c[videos]
+  * Unknown date: https://www.youtube.com/playlist?list=PLXzW9t1q_fb_3k_KzBfBnw0NXjvq45-bf[videos]
 
 - https://www.cs.usfca.edu/~galles/visualization/
 
