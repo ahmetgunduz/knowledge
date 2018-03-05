@@ -2286,6 +2286,83 @@ Functionally equivalent to quickselect, but runs faster in practice on average.
 
 == Strings
 
+[[string_searching]]
+=== String searching / matching problem
+
+Problem: Find all/some occurences of a pattern P in a given text T.  Let _Σ_ be an alphabet (finite set), _T_ a string of length _n_, _P_ a string of length _m_.  Both the pattern and searched text are vectors of elements of Σ.
+
+Solutions:
+
+- _naive string search_: iteratively check at each location in the searched-text.  Time: +O((n-m+1)m)+ worst case, +O(n)+ average case (note that m<=n).
+
+- <<rabin_karp>>
+
+- <<knuth_morris_pratt>>
+
+- <<boyer_moore>>
+
+- With preprocessing: Variants of <<trie>>s: <<suffix_tree>>, <<suffix_array>>
+
+Comparision *to-do*: Small/big T, small/big P, small/big Σ, repeatedly searching in same T, repeatedly searching same P, ...
+- http://programmers.stackexchange.com/questions/183725/which-string-search-algorithm-is-actually-the-fastest
+
+
+[[rabin_karp]]
+==== Rabin-Karp
+
+Time: +Θ(m)+ pre-processing, +Θ((n-m+1)m)+ worst case running time,  +O(n+m)+ expected running time.  *to-do*: I don't see why the naive approach should have a worse expected running time, or a worse constant factor if equal
+
+Compute a hash of the pattern.  Iteratively move a window over the search text until the left edge of the window hits the end of the search text.  The window has the same length as the pattern.  In each iteration compute a rolling hash of the window.  If the window-hash matches the pattern-hash, do a regular string comparison between the window and the pattern, and if they still match, the pattern is found.
+
+Popular rolling hash functions for Rabin-Karp:
+
+--------------------------------------------------
+static const int q = ...; // a prime where q*radix<INT_MAX
+static const int h = pow(d, m-1) % q;
+
+int find(const string& text, const string& pattern) {
+   int radix = ...; // aka d.  size of alphabet, e.g. 127 or 255
+   int textlen = text.length(); // aka n
+   int patternlen = pattern.length(); // aka m
+   int patternhash = hash(pattern, m); // aka p
+   int texthash = hash(text, m); // aka ts
+   for ( int s=0; s<=textlen-patternlen; ++s ) {
+     if (patternhash==texthash && text.issubstring(s,pattern))
+       return s;
+     if (s<textlen-patternlen)
+       texthash = rollinghash(texthash, text[s+1], text[s+patternlen+1]);
+   }
+   return -1;
+}
+
+int hash(const string& str, int len) {
+    int acc = 0;
+    for ( int i=0; i<len; ++i ) acc = (radix * acc + str[i]) % q;
+    return acc;
+}
+
+int rollinghash(int hash, char ch_out, char ch_in) {
+    return (radix*(hash - ch_out*h) + ch_in) % q;
+}
+--------------------------------------------------
+
+
+[[knuth_morris_pratt]]
+==== Knuth-Morris-Pratt
+
+Time O(n+m) worst case [O(m) preprocessing], O(m) auxillary space
+
+*to-do*
+
+
+[[boyer_moore]]
+==== Boyer-Moore
+
+O(n+m) worst case
+
+*to-do*
+
+
 [[tries_comparision]]
 === Tries / suffix tree/arrays comparison
 
@@ -2393,69 +2470,6 @@ Represents a finite (since it has no cycles) set of strings aka keys.  Single so
 Can be seen as an compact form of a trie.  Uses less space than a trie.  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.  A trie can store attributes for each string aka key, whereas a DAFSA cannot.
 
 Is an implementation of the ADT <<associative_array>>.
-
-
-[[string_searching]]
-=== String searching / matching algorithms
-
-Problem: Find all/some occurences of a pattern P in a given text T.  Let _Σ_ be an alphabet (finite set), _T_ a string of length _n_, _P_ a string of length _m_.  Both the pattern and searched text are vectors of elements of Σ.
-
-_naive string search_: iteratively check at each location in the searched-text.  Time: +O((n-m+1)m)+ worst case, +O(n)+ average case (note that m<=n).
-
-Comparision *to-do*: Small/big T, small/big P, small/big Σ, repeatedly searching in same T, repeatedly searching same P, ...
-- http://programmers.stackexchange.com/questions/183725/which-string-search-algorithm-is-actually-the-fastest
-
-
-[[rabin_karp]]
-==== Rabin-Karp
-Time: +Θ(m)+ pre-processing, +Θ((n-m+1)m)+ worst case running time,  +O(n+m)+ expected running time.  *to-do*: I don't see why the naive approach should have a worse expected running time, or a worse constant factor if equal
-
-Compute a hash of the pattern.  Iteratively move a window over the search text until the left edge of the window hits the end of the search text.  The window has the same length as the pattern.  In each iteration compute a rolling hash of the window.  If the window-hash matches the pattern-hash, do a regular string comparison between the window and the pattern, and if they still match, the pattern is found.
-
-Popular rolling hash functions for Rabin-Karp:
-
---------------------------------------------------
-static const int q = ...; // a prime where q*radix<INT_MAX
-static const int h = pow(d, m-1) % q;
-
-int find(const string& text, const string& pattern) {
-   int radix = ...; // aka d.  size of alphabet, e.g. 127 or 255
-   int textlen = text.length(); // aka n
-   int patternlen = pattern.length(); // aka m
-   int patternhash = hash(pattern, m); // aka p
-   int texthash = hash(text, m); // aka ts
-   for ( int s=0; s<=textlen-patternlen; ++s ) {
-     if (patternhash==texthash && text.issubstring(s,pattern))
-       return s;
-     if (s<textlen-patternlen)
-       texthash = rollinghash(texthash, text[s+1], text[s+patternlen+1]);
-   }
-   return -1;
-}
-
-int hash(const string& str, int len) {
-    int acc = 0;
-    for ( int i=0; i<len; ++i ) acc = (radix * acc + str[i]) % q;
-    return acc;
-}
-
-int rollinghash(int hash, char ch_out, char ch_in) {
-    return (radix*(hash - ch_out*h) + ch_in) % q;
-}
---------------------------------------------------
-
-
-==== Knuth-Morris-Pratt
-Time O(n+m) worst case [O(m) preprocessing], O(m) auxillary space
-
-*to-do*
-
-
-==== Boyer-Moore
-O(n+m) worst case
-
-*to-do*
-
 
 
 [[online_algorithms]]
