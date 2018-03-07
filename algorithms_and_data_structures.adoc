@@ -2342,10 +2342,17 @@ Functionally equivalent to quickselect, but runs faster in practice on average.
 
 == Strings
 
+References:
+
+- http://cs.au.dk/~cstorm/students/Fogh_Nov2014.pdf
+
+
 [[string_searching]]
 === String searching / matching problem
 
 Problem: Find all/some occurences of a pattern P in a given text T.  Let _Σ_ be an alphabet (finite set), _T_ a string of length _n_, _P_ a string of length _m_.  Both the pattern and searched text are vectors of elements of Σ.
+
+With preprocessing, idealy we don't want to spend more than O(P) query time, since we at least have to look at the queried string P, and no more than O(T) auxillary space, since the data structure should not be much bigger than the orginal text T.
 
 Solutions:
 
@@ -2357,10 +2364,19 @@ Solutions:
 
 - <<boyer_moore>>
 
-- With preprocessing: Variants of <<trie>>s: <<suffix_tree>>, <<suffix_array>>
+- With preprocessing: <<suffix_tree>>, <<suffix_array>>
 
 Comparision *to-do*: Small/big T, small/big P, small/big Σ, repeatedly searching in same T, repeatedly searching same P, ...
 - http://programmers.stackexchange.com/questions/183725/which-string-search-algorithm-is-actually-the-fastest
+
+
+==== Misc string problems
+
+- Predecessor problem: Given k strings T~i~, and search pattern P which is one of these k strings, find P's predecessor / successor according to the lexicographical order of the k strings.
+
+- Associative array ADT where key is a string
+
+*to-do*
 
 
 [[rabin_karp]]
@@ -2422,26 +2438,41 @@ O(n+m) worst case
 [[tries_comparision]]
 === Tries / suffix tree/arrays comparison
 
-Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
+For terms and notations, see <<string_searching>>. Additionally, k is the number of stored strings.
+
+The data structure implementing a node of the global tree stores the edges of a global tree node to its global tree node childs.  In other words, for each node in the global tree, its parent node in the global tree uses O(1) space.  Thus O(k) space in total.
 
 |=======
-|                               | query     | space      | ordering
-| c. trie / array               | O(P)      | O(k·Σ)     | ✓
-| c. trie / BST                 | O(P·lg Σ) | O(k)       | ✓
-| c. trie / weight balanced BST | O(P+lg k) | O(k)       | ✓
-| c. trie / w.b. BST + trimming | O(P+lg Σ) | O(k)       | ✓
-| c. trie / van Emde Boas       | O(P)      | O(k·lglgΣ) | ✓
-| c. trie / hash table          | O(P)      | O(k)       | ✗
-| suffix tray                   | O(P+lg Σ) | O(k)       | ?
-| suffix array                  | ?         | ?          | ?
+|                                                  | query     | space  | notes
+| c. trie / nodes as array                         | O(P)      | O(k·Σ) |
+| c. trie / nodes as BST ②                        | O(P·lg Σ) | O(k)   |
+| c. trie / nodes as hash table                    | O(P)      | O(k)   | no ordering
+| c. trie / nodes as vEB tree                      | O(P·lglgΣ)| O(k)   | randomized
+| c. trie / nodes as vEB tree and hash table ①    | O(P+lglgΣ)| O(k)   | randomized
+| c. trie / global tree weight balanced            | O(P+lg k) | O(k)   |
+| c. trie / ... plus indirection                   | O(P+lg Σ) | O(k)   |
 |=======
+
+① Use redundantely both vEB tree and hash table.  Normally use the hash table.  However if a query letter is not on an edge, i.e. not not in the hash table, use the vEB tree to find the previous/next child node of the global tree.  Note that the vEB will at most be used once per query.
+
+② We're considering here static problems, thus we can balance the BSTs upon construction because we know all the nodes.
+
+*to-do* is ``tray'' really a data structure distinct from suffix tray which solves the problem of finding a key in a collection of keys? 
+
+|=======
+| suffix tray                                      | O(P+lg Σ) | O(k)   | 
+| suffix array                                     | ?         | ?      | 
+|=======
+
+*to-do* relation radix sort vs trie, ...
 
 
 [[trie]]
 === Trie (aka digital tree, radix tree, prefix tree)
+
 See this as an intro to what a trie is. In practice you will use a <<compressed_trie>>, see there for more details.
 
-Is an implementation of the ordered <<associative_array>> ADT. It stores +k+ items (key/value pairs), the stored keys being strings _T~i~_, i=1,...,k, the strings' letters are from alphabet _Σ_.  Internally, there is also the special letter _$_ which represents the end of a string.  A trie is a rooted tree where each edge is labeled with a letter.  Thus child nodes have an order.  A root-to-leaf path represents a string/key, the so reached leaf node the value associated with that key.  The strings derived from paths root to leaf are called _words_, the strings from other paths are called _prefixes_. |T|=|T~1~|+...+|T~k~| is the max number of nodes stored in the tree. In query/lookop, _P_ is a pattern/query searched in the trie.
+Is an implementation of the ordered <<associative_array>> ADT. It stores +k+ items (key/value pairs), the stored keys being strings _T~i~_, i=1,...,k, the strings' letters are from alphabet _Σ_.  Internally, there is also the special letter _$_ which represents the end of a string.  A trie is a rooted tree where each edge is labeled with a letter.  Thus child nodes have an order.  A root-to-leaf path represents a string/key, the so reached leaf node the value associated with that key.  The strings derived from paths root to leaf are called _words_, the strings from other paths are called _prefixes_.  Note that the number of leaves equals k.  The maximal number of nodes stored in the tree is |T| = ∑|T~i~|. In query/lookop, _P_ is a pattern/query searched in the trie.
 
 Since the child nodes have an ordering, an in-order traversal prints the stored keys in order.
 
@@ -2454,11 +2485,12 @@ Trivia: The name trie is a pun on re__trie__val.  Originally pronounced it as `t
 
 [[compressed_trie]]
 === Compressed trie (aka radix tree, radix trie, compact prefix tree)
-Based on <<trie>>, see there for terms and symbols. Is an implementation of the ordered <<associative_array>> ADT.  A radix tree is a space-optimized trie, where a node with only one child is removed, merging its two adjacent edges into one, which is then labeled with the concatenation of the labels of the two previous edges.  That is each edge is no longer labeled with a single character but potentially with a string. The [[letter_depth]]_letter depth_ of a node is the lenght of the key/path that leads to it.
 
-Each node has at least two children, so there are less internal nodes than leaves. Recall there are as many leaves as stored strings, i.e. k. Thus there are O(k) nodes in the compressed trie.
+Based on <<trie>>, see there for terms and symbols. Is an implementation of the ordered <<associative_array>> ADT.  A radix tree is a space-optimized trie, where a node with only one child is removed, merging its two adjacent edges into one, which is then labeled with the concatenation of the labels of the two previous edges.  That is each edge is no longer labeled with a single character but potentially with a string.  Typically the nodes/edges do not store the string leading to a child, but the pair (startindex, endindex) into the original text.  Each internal node consequently has at least two children, so there are less internal nodes than leaves.  Recall there are as many leaves as stored strings, i.e. k. Thus there are O(k) nodes in the compressed trie.
 
-Data structure used to store a node (having up to Σ childs), and the resulting querry time and space needed, both in the trie (as opposed to the node).
+The [[letter_depth]]_letter depth_ of a node is the lenght of the key/path that leads to it.
+
+Data structure used to store a node (having up to Σ childs), and the resulting query time and space needed, both in the trie (as opposed to the node).
 
 [[trie_vs_hash_table]]
 Compared to a hash table:
@@ -2480,6 +2512,7 @@ References:
 
 [[suffix_tree]]
 === Suffix tree (aka PAT tree, suffix trie)
+
 Based on compressed trie, see there for terms and symbols. Given a text T, append $ (see <<trie>>), then store all suffixes of T in a (compressed) <<trie>>. The value associated with a leaf is the starting position of the suffix in T.
 
 When given multiple documents T^i^, i=1, 2, ..., n, append $~1~, $~2~, ... and $~n~ to each T^i^ respectively, and then throw all suffixes of each document into the suffix tree.
@@ -2503,11 +2536,14 @@ Applications:
 === Suffix array
 *to-do*
 
+Constructible in O(n log n) time with simple methods and O(n) time with complex methods.
+
 References:
+
 - https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf
 
 
-=== Suffix tray
+=== (Suffix) tray
 
 Is a combination of a suffix tree and a suffix array,
 
