@@ -2674,6 +2674,9 @@ A _balanced_ tree is one where its height is Θ(log |V|).  A _degenerated_ (aka 
 
 A _binary tree_ is a tree where each node has at most two children.  A _full_ (aka _proper_) binary tree is one where every node other than the leaves has exactly two children. A full binary tree in which all leaves have the same depth is called _perfect_ (sometimes also complete, but this conflicts with the next definition).  In a _complete_ binary tree, every level, except possibly the last, is completely filled, and all nodes are as far left as possible.
 
+[[number_of_trees]]
+The number of possible trees of size n is given by the Catalan number.  An upper bound is 4^n^.  Informal proof for the upper bound: Encode a tree by an Euler Tour. Each edge traversal is encoded with one bit.  0 for going down, 1 for going up.  We do 2|E| edge traversals.  Thus 2^2n^.
+
 
 [[BFS]]
 === Breadth-first search (BFS) / traversal
@@ -3123,14 +3126,65 @@ References:
 [[LA_query]]
 === Level ancestor problem / query
 
-Given a rooted tree and a node v, LA(v,d) delivers the ancestor node of v which is at depth d, or equalently, delivers the kth ancestor (where parent is the 1st ancestor), k=height(node)-d.
+Given a rooted tree and a node v, LA(v, k) delivers delivers the k-th ancestor (where parent is the 1st ancestor).
 
-When n is the number of nodes, after preprocessing which takes O(n) time and O(n) space, solvable in O(1) time.
+|=====
+| space      | query    | 
+| O(n²)      | O(1)     | Brute force 2D table A[node,k].
+| O(n log n) | O(log n) | Jump pointers (JP)
+| O(n)       | O(log n) | Ladder decomposition (LD)
+| O(n log n) | O(1)     | LD + JP
+| O(n)       | O(1)     | Indirection: LD (parent tree internal nodes) + JP (parent tree leaves) + table (bottom tree types).
+|=====
+
 
 References:
 
 - MIT course 6.851 Advanced Data Structures, spring 2012, lecture 15 Static trees: https://courses.csail.mit.edu/6.851/spring14/scribe/lec15.pdf[lecture notes], https://www.youtube.com/watch?v=0rCFkuQS968&index=15&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
 
+
+==== Jump pointers
+
+Each node stores a table to its 2^i^-th ancestor, 0 ≤ i ≤ log n.  To find k-th ancestor, goto node stored at index ⌊log k⌋, then recurse with k~i+1~ = k~i~ - 2^⌊log k~i~⌋^.  I.e. in each step, we jump at least half of the remaining distance.
+
+
+==== Ladder decomposition
+
+A preliminary notion is longest path decomposition.  Recursively store the longest path of the remaining tree as an array of pointers to tree nodes.  A[0] represents the leaf, A[1] its 1st parent and so on.  Each tree node stores a pointer to its array and its index within that array.  Within that array, it's trivial to go to k-th ancestor: just add k to the current index.  Each array stores a pointer to its parent array, i.e. the array containing the parent node of the last node in the current array.  That way we can find the k-th ancestor in the general case. If k is smaller then the number of remaining elements in the current array, the current array has the answer.  Else we recursively follow the parent array pointer to higher level arrays until the k~i~ is small enough to end up in an array.  However, as the following diagram shows, in the worst case we never make use of the arrays, always only chasing the pointers to the higher level array.  Thus the worst case query is O(√n).
+
+--------------------------------------------------
+  o
+  |\      arrays are all verticaly 
+  o o
+  | |\
+  o o o
+  | | |\
+  o o o o 
+--------------------------------------------------
+
+Ladder decomposition extends the idea of longest path decomposition by doubling the length of each array.  The intuition are those extensible ladders.  The arrays are now also called ladders.  Each array overshoots now.  Only the first half of the nodes really belong to the array, just as in longest path decomposition.  A tree node can appear in multiple arrays.  But just as in longest path decomposition, it only stores a pointer and index for the array it really belongs to.  The query algorithm is as before.  However in contrast to longest path decomposition, now the progess made by each array is substential.
+
+Analysis: Note that each ladder starts at an leaf. Thus each ladder can at least double the current height. Thus query time is O(log n).  In longest path decomposition, there's an array element for each node in the tree, and each node in the tree is amended.  Thus space complexity is O(n).  In ladder decomposition, we doubled the length of each array, thus space complexity is still O(n).
+
+
+==== Ladder decomposition plus jump pointers
+
+Note that jump pointers initially makes a big jumps which cover at least half the remaining distance, but then in each iteration the jump distance about halfes.  Ladder decomposition is inverse.  In the worst case it starts with only a small height gain, but then in each iteration we can at least double our height.  When we employ both schemes, we make one jump with the help of jump pointers, which covers at least half of the distance, and will then end up guaranteed in a ladder which can cover the remaining distance.
+
+Analysis: O(1) query time, which is apparent from the description above.  We overlayed jump pointers having space complexity O(n log n) and ladder decomposition having O(n), thus the overall space complexity is O(n log n).
+
+
+==== Indirection + JP + LD
+
+We like the ladder decomposition plus jump pointers approach due to its O(1) query time, but instead of O(n log n) space complexity, the nasty log n factor being due to the jump pointer tables, we would like O(n).  The main idea to reach O(n) space is to store jump tables only in few nodes,  and to make the bottom trees small enough such that there are less bottom tree types than actual bottom trees.  As a consequence we can store lookup tables per type, rather than use some data structure per actual bottom tree.
+
+Divide the tree into a parent tree and a set of bottom trees.  The leaves of the parent tree store jump pointers.  The internal nodes of the parent tree do ladder decomposition and store a pointer to one of there leaves.  For each possible type of bottom tree, we store a brute force lookuptable.  Each node in the bottom trees has a pointer to its type / lookuptable.  Thus within the parent tree and within bottom trees we have O(1) query time.  Nodes in bottom trees also store a pointer to their respective leaf in the parent tree.  Thus also queries starting in a bottom tree and ending in the parent tree require only O(1) time.
+
+Details and analysis:  We cut below all maximally deep nodes, now leaves in the parent tree, which have at least 1/4 log n descendants.  Thus there are O(n / log n) leaves in the parent tree, and followingly also as many bottom trees.  Each parent tree leaf requires  O(log n) space for the jump pointers.  Overal thus O((n/log n) log n) = O(n) space for the jump pointers.  The ladder decomposition for the parent tree internal nodes requires O(n / log n) space, but that's now irrelevant.
+
+The size nʹ of a bottom tree is about 1/4 log n. The number of different binary trees of size nʹ is given by the Catalan number.  An upper bound is 4^nʹ^ = 2^2 1/4 log n^ = √n, see also <<number_of_trees>>.  Thus there are only √n possible different bottom tree types, which is less than the number of actual bottom trees being n / log n.  Thus we can store look up tables per bottom tree type, rather than per actual bottom tree.  Regarding a lookup table query in a bottom tree type: there are O(nʹ) = O(log n) nodes to start from, and the same amount of different k's (recall that a binary tree might be degenerated to a path), thus there are O(log² n) different queries.  The space needed for a single cell in the lookup table is the number of bits needed to identify O(nʹ) = O(log n) nodes, which is O(log log n)  (*to-do* but how can I find the actual tree node object when only given the abstract id of a node in respect to a tree type).  Thus the overall space is number of tree types times the number of possible queries per lookuptable times the space per cell = O(√n log²n log log n) = o(n). (*to-do* why is that last equal sign valid?)
+
+Overall we get O(1) query time and O(n) space.
 
 
 [[shortest_path_problem]]
