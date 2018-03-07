@@ -50,6 +50,8 @@ _Asymptotic efficiency_: Only look at rate of growth.  An algorithm is said to b
 
 _amortized time_: `amortized +O(f)+' for operation o: In a sequence of length L of such o operations, the overall time is +O(L*f)+.  I.e. one of those o operations might use a particular large amount of time compared to the average case, but that time is amortized in the large.  A typical example is appending to an array; if the capacity is full, a new array of larger capacity needs to be allocated, and the data has to be copied.
 
+An event E occures _with high probability_ (or __w.h.p.__ or _WHP_) if Pr(E) ≥ 1 - n^-c^ for any constant c.  I.e. we can make Pr(E) as close to 1 as we want by making c large enough.
+
 Common functions ordered after order of growth: c, log~c~(n), n, n·log~c~(n), n^c^, c^n^, n!, n^n^.
 
 [[big_oh_cheat_sheets]]
@@ -1060,7 +1062,7 @@ References:
 [[cartesian_tree]]
 === Cartesian tree
 
-A binary tree T having the min heap property and having the additional porperty that its in-order traversal delivers a given array A.  In other words, each node has the min heap property and the property that when it corresponds to the element A[i], its left subtree is a cartesian tree of A[<i], and its right subtree is a cartesion tree of A[>i].
+A binary tree T having the min heap property and having the additional porperty that its in-order traversal delivers a given array A.  In other words, each node has the min heap property and the property that it corresponds to the element A[i], its left subtree is a cartesian tree of A[<i], and its right subtree is a cartesion tree of A[>i].
 
 Example:
 --------------------------------------------------
@@ -1098,7 +1100,7 @@ References:
 Given a cartesian tree T, a RMQ in A is equivalent to an LCA in T. Only that in RMQ we're talking about array elements identified by their index, and in LCA about tree nodes identified by themselves.
 
 [[reduce_RMQ_to_LCA]]
-_Reduce RMQ to LCA_: Building a cartesian tree T from an array A in O(n), i.e. reduce RMQ to LCA:  This assumes each node has a parent pointer.  Process the array from left to right, inserting the array element in the cartesian tree at the right position.  To insert the next array element into T, start at the node just inserted before. Visualize that in the standard way of drawing a cartesian tree, that node will be the rightmost node, since it corresponds to the last element of A inserted into the tree so far. Follow parent pointers until encountering a node v which is smaller.  Note that we will always take edges going to the left.  Then insert the new node by breaking up the edge (v, v.right), and by making v.right the left child of the new node.  Note the edge case of the new element being smaller than the root; it may help to have a sentinel node with value −∞ pointing to the tree's actual root.
+_Reduce RMQ to LCA_: Building a cartesian tree T from an array A in O(n), i.e. reduce RMQ to LCA:  This assumes each node has a parent pointer.  Process the array from left to right, inserting the array element in the cartesian tree at the appropriate position.  To insert the next array element into T, start at the node just inserted before. Visualizing that in the standard way of drawing a cartesian tree, that node will be the rightmost node, since it corresponds to the last element of A inserted into the tree so far. Follow parent pointers until encountering a node v which is smaller.  Note that we will always take edges going to the left.  Then insert the new node by breaking up the edge (v, v.right), and by making v.right the left child of the new node.  Note the edge case of the new element being smaller than the root; it may help to have a sentinel node with value −∞ pointing to the tree's actual root.
 
 [[reduce_LCA_to_RMQ]]
 _Reduce LCA to RMQ_: Building an array A from a cartesian tree T in O(n).  Do an in-order traversal.  If T's nodes are not already labeled with values as above, which is the case in many applications, label each node with it's depth; with that labeling RMQ on A will be equivalent to LCA on T.
@@ -1724,7 +1726,7 @@ We are given a large amount of arrays of small and similar size n, and need to b
 
 Reduce each array to ± 1 RMQ, via <<reduce_RMQ_to_LCA>> and <<reduce_LCA_to_pm1_RMQ>>, which then can be interpretet as bit string of length n-1, by looking at the difference to the next element, which is either +1 or -1.  For simplicity we think of the string length as n oppose to n-1.  There are 2^n^ possible different arrays aka array types.  In meaningfull applications, there are much more arrays given than there are array types.
 
-For each array type, we store a lookuptable which solves RMQ on that array type in O(1). (*to-do* why exactly uses Demain the naive lookuptable instead the power of two variant?)
+For each array type, we store a lookuptable which solves RMQ on that array type in O(1). (*to-do* why exactly uses Erik Demaine the naive lookuptable instead the power of two variant?)
 
 Each array stores it's array type. Thus we can answer an RMQ on any array by quering the lookuptable associated with that array.
 
@@ -1747,7 +1749,7 @@ The motivation for this algorithm is that we generally liked the properties of t
 
 References:
 
-- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 15 Static trees, chapter "3.4 Indirection to remove log factors" in https://courses.csail.mit.edu/6.851/spring14/scribe/lec15.pdf[lecture notes], or https://www.youtube.com/watch?v=0rCFkuQS968&index=15&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video] ay 27:30.
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 15 Static trees, chapter "3.4 Indirection to remove log factors" in https://courses.csail.mit.edu/6.851/spring14/scribe/lec15.pdf[lecture notes], or https://www.youtube.com/watch?v=0rCFkuQS968&index=15&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video] at 27:30.
 
 
 === Consumer producer
@@ -2532,11 +2534,11 @@ Is an implementation of the ADT <<associative_array>>.
 An online algorithm is _k-competitive_ if there exists a constant k such that its cost is at most k times the cost of an optimal offline algorithm, ignoring a constant offset α.  Intuitively it's a measurement of the online algorithm's quality.
 
 --------------------------------------------------
-online minimum problem: cost(ALG(I)) ≤ k·cost(OPT(I)) + α
-online maximum problem: gain(OPT(I)) ≤ k·gain(ALG(I)) + α
+online minimum problem: cost(ALG(I)) ≤ k·cost(OPT(I)) + α for all inputs I
+online maximum problem: gain(OPT(I)) ≤ k·gain(ALG(I)) + α for all inputs I
 --------------------------------------------------
 
-The factor k is called the _competitive ratio_.  If the constant offset α is zero, the algorithm is said to be _strictly competitive_.  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
+The factor k is called the _competitive ratio_.  If the constant offset α is zero, the algorithm is said to be _strictly competitive_.  If k=1 and α=0, the online algorithm is _optimal_.  The notion of having the constant α allows an algorithm to achieve a good k for long inputs I, even if that algorithm is bad for short inputs I.  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
 
 When analysing online algorthms, we're almost always only interested in the worst case, almost never in the average case.  We want to provide guarantees.
 
@@ -4320,6 +4322,7 @@ https://www.youtube.com/playlist?list=PLxc4gS-_A5VDvP_9W8JJ04zk6m1qTolzG
 
 - https://www.quora.com/What-are-the-very-basic-algorithms-that-every-Computer-Science-student-must-be-aware-of
 
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič. The Introduction chapter serves as good summary of computer science fundamentals.
 
 // Local Variables:
 // eval: (visual-line-mode 1)
