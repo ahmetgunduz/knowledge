@@ -2575,7 +2575,17 @@ Applications:
 
 [[graph_theory]]
 == Graph theory
-This chapter explains graphs as a mathematical concept. For the corresponding abstract data type, see <<graph_adt>>
+
+References:
+
+- http://en.wikipedia.org/wiki/Glossary_of_graph_theory
+
+- ETH course 401-3052-10L / 401-3052-05L Graph Theory, Lecture Notes ``Graph Theory'', Benny Sudakov: https://moodle-app2.let.ethz.ch/mod/resource/view.php?id=227878 (needs login)
+
+
+=== Fundamental definitions
+
+This chapter explains graphs as a mathematical concept. For the corresponding abstract data type, see <<graph_adt>>.  If theorems or similar are labeled with numbers, they are according to the Book ``''
 
 A _graph_ G=(V,E) is given by a set of _vertices_ V (aka _nodes_ or _points_) and a set of _edges_ E (aka _lines_), each edge being an pair of elements from V.  The _order_ of a graph G, denoted by |G| is the number of its vertices, i.e. |V|.  The _size_ of a graph G, denoted by ‖G‖, is the number of its edges, i.e. |E|.
 
@@ -2583,22 +2593,35 @@ An _undirected graph_ is one in which edges are an unordered pairs; the edge ++(
 
 The _degree_ (aka _valency_) d~G~(v)=d(v) of a vertex v in an undirected graph is the number |E(v)| of edges incident with v, with loops counted twice. In directed graphs, _out degree_ (_in degree_) is the number of outgoing (incoming) edges. A vertex of degree 0 is called _isolated_ (or _disconnected_), a vertex of degree 1 is called an _end-vertex_.  The number δ(G) := min { d(v) | v ∈ V } is the minimum degree of G, the number Δ(G) := max { d(v) | v ∈ V } its maximum degree. If all the vertices of G have the same degree k, then G is _k-regular_, or simply _regular_.  The _average degree_ d(G) of G is the average degree of G's vertices.
 
-A _simple graph_ is an undirected graph that has no loops (mind: a loop is not a cycle) and no parallel edges.  A _trivial graph_ is a graph of order 0 or 1.  A _multigraph_ (or _general graph_) is a graph that is not simple.  Alternatively: a multigraph is allowed to have parallel edges.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.  A _null graph_ is one with no edges. The _empty graph_ ∅=(∅,∅) has no vertices and no edges.
+A _simple graph_ is an undirected graph that has no loops (mind: a loop is not a cycle) and no parallel edges.  A _trivial graph_ is a graph of order 0 or 1.  A _multigraph_ (or _general graph_) is a graph that is not simple.  Alternatively: a multigraph is allowed to have parallel edges.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.  An _empty graph_ (or _edgeless graph_) has no edges.  The term _null graph_ is ambigously used to either denote the graph ∅=(∅,∅) with no vertices and no edges, or as a synononym to empty graph.  The _singleton graph_ is the empty graph with one vertice.
 
 A _vertex cover_ is a set of vertices such that each edge of the graph is incident to at least one vertex of the set.  An _independent set_ (aka _stable set_) is a set of vertices, no two of which are adjacent.  Given a simple Graph G, it's _complement_ graph has the same vertices, but only an edge between any two vertices iff they are not adjacent in G.
 
 A _walk_ is a set of consecutive edges.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a walk with distinct edges.  A _circuit_ is a closed trail.  A _path_ is a walk with distinct vertices (which implies distinct edges), except possibly the first and the last.  Some authors call that a _simple path_, and use the term path as a synonym to walk.  Given a subgraph H of graph G, we call a path P an _H-path_ if it meets H only exactly at its two end vertices, i.e. no other common vertices, and no common edges.  A _cycle_ is a path in which the first and last vertex are adjacent.  An _open path_ is a path in which the first and last vertex are not adjacent.  Two paths are _vertex-independent_ (aka _vertex-disjoint_) if they do not have any vertices in common (*to-do* some sources are clear that they only mean inner vertices, other sources seem to include also end vertices).  Two paths are _edge-independent_ (aka _edge disjoint_) if they do not have any edges in common.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The [[shortest_path]]_shortest path_ from vertex u to v is any path with minimal path weight.  See also <<shortest_path_problem>>.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path, and often defined as -infinite it contains a negative-weight cycle.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
 
-Given a graph G, a _subgraph_ of G is a graph, each of whose vertices and edges belong to G.  Given a graph G, an _induced subgraph_ is a subgraph of G, whose edge set consists of all G's edges that have both endpoints in the subgraph.  A graph is _edge-maximal_ with a given graph property if G has the property, but no Graph resulting from adding an (non-parallel) edge does.
+A graph is _edge-maximal_ with a given graph property if G has the property, but no Graph resulting from adding an (non-parallel) edge does.
 
-A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the nodes of G.  A [[MST]]_minimum spanning tree_ (aka _MST_) is a spanning tree of a graph G with the minimal total weighting for its edges.  See also the <<MST_problem>>.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
+Given a graph G, a _subgraph_ of G is a graph, each of whose vertices and edges belong to G.  Given a graph G, an _induced subgraph_ is a subgraph of G, whose edge set consists of all G's edges that have both endpoints in the subgraph. A _super graph_ is formed by adding vertices, edges, or both to a given graph.  If H is a subgraph of G, then G is a supergraph of H.
+
+A graph is called _bipartite_ if there is a partition of its vertices into two sets V~1~ and V~2~ such that each edge is between V~1~ and V~2~.  K~n,m~ is the _complete bipartite_ graph where n = |V~1~| and m = |V~2~| and E contains every possible edge between V~1~ and V~2~.
+
+A subgraph which contains every edge is called _spanning_.  A _spanning tree_ of an undirected graph G is a subgraph that is a tree which includes all of the nodes of G.  A [[MST]]_minimum spanning tree_ (aka _MST_) is a spanning tree of a graph G with the minimal total weighting for its edges.  See also the <<MST_problem>>.  The equivalent to a MST in an directed graph is a _spanning arborescence of minim weight_ (aka _optimum branching_).
 
 [[DAG]]
-A _directed acyclic graph_ (_DAG_) is a graph with no directed cycles.  Given a directed edge C->P, C is the _child_ and P the _parent_. Nodes reachable from C are C's _ancestors_, nodes which can reach P are P's _descendants_.  Whether or not a node is it's own ancestor/descendant is not defined across literature. CLRS say yes.  The _lowest common ancestor_ (_LCA_, aka, less accurately, _least common anchestor_) of two nodes x and y is the first common ancestor in topo order.
+An _acyclic graph_ (aka forest, see chapter forest) is a graph with no cycles.  A _directed acyclic graph_ (_DAG_) is a graph with no directed cycles.  Given a directed edge C->P, C is the _child_ and P the _parent_. Nodes reachable from C are C's _ancestors_, nodes which can reach P are P's _descendants_.  Whether or not a node is it's own ancestor/descendant is not defined across literature. CLRS say yes.  The _lowest common ancestor_ (_LCA_, aka, less accurately, _least common anchestor_) of two nodes x and y is the first common ancestor in topo order.
 
-References:
 
-- http://en.wikipedia.org/wiki/Glossary_of_graph_theory
+=== Misc. theorems / lemmas
+
+For any graph G on n vertices with adjacency and indicence matrices A and B, we have BB^T^ = D + A where D is a diagonal matrix where the diagonal is the degree of vertices [v~1~, ..., v~n~]. [Fact 1 in ``Graph Theory'']
+
+The sum over all vertex degrees equals 2|E|. Every graph has an even number of vertices of odd degree. [Proposition 1.22 and Corollary 1.23 in ``Graph Theory'']
+
+Every graph with minimum degree δ ≥ 2 contains a path of length δ and a cycle of length ≥ δ+1. [Proposition 1.32 in ``Graph Theory'']
+
+Every graph with minimum degree δ ≥ 2 contains cycles of at least δ - 1 different lengths. [Remark 1.33 in ``Graph Theory'']
+
+A graph with n vertices and m edges has at least n - m connected components. [Proposition 1.38 in ``Graph Theory'']
 
 
 [[tree_graph_theory]]
@@ -3498,17 +3521,25 @@ References:
 
 Two vertices v and u of an undirected graph are _connected_ if they are linked by a path, otherwise they are called _disconnected_.  An undirected graph is _connected_ when every pair of vertices is connected.  Two vertices in an directed graph are _strongly connected_ if they are mutually linked by paths.  A directed graph is _weakly connected_ (or just _connected_) if it would be a connected graph if the edges were taken to be undirected.  A directed graph is _strongly connected_, if for every pair there's a path in both directions.  A _connected component_ (or just _component_) of an undirected graph is a subgraph which is connected and is not connected to any vertices of the supergraph.  A directed graph is called _strongly connected_ (or _strong_) if it contains a path from u to v and from v to u for every pair of vertices u and v.  A _strongly connected component_ (_SCC_, or _strong component_) of a directed graph G is a subgraph that is strongly connected, and is maximal with this property: no additional edges or vertices from G can be included in the subgraph without breaking its property of being strongly connected.
 
-Contracting each strongly connected component of a directed graph G to a single vertex is called the _condensation_ of G. The condensation of G is a DAG and also called _kernel DAG_ or _component graph_.
+Contracting each strongly connected component of a directed graph G to a single vertex is called the _condensation_ of G. The condensation of G is a DAG and also called _kernel DAG_ (or _component graph_).
 
-A _cut_ is a partition of V.  A _vertex cut_ (aka _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  An _articulation point_ (aka _cut point_, _separating vertex_ or _cut vertex_) is a vertex in a connected (sub)graph whose removal would disconnect the (sub)graph.  A _bridge_ is an edge in a connected (sub)graph whose removal would disconnect the (sub)graph.  An edge can only be a bridge if it is not contained in an cycle.  A set of edges _respects_ a cut if no edge in that set croses the cut.  An edge is a _light edge_ crossing a cut if its weight is the minimum of any edge crossing the cut.
+A _cut_ is a partition of V.  A _vertex cut_ (aka _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  A set of edges _respects_ a cut if no edge in that set croses the cut.  An edge crossing a cut is a _light edge_ if its weight is the minimum of any edge crossing the cut.  A graph is called _k-connected_ if k<|G| and G remains connected if k-1 vertices (or less of course) are removed.  The greatest k such that a graph G is k-connected is called the _connectivity_ (or _vertex connectivity_) κ(G) of G.  In other word, it is the size of the minimal vertex cut unless it's a complete graph, in which case κ(G) = |G|.  Is the vertex connectivity 1, the single vertex of the vertex cut is called _articulation point_ (aka _cut point_, _separating vertex_ or _cut vertex_).  2-connectivity is also called _biconnectivity_, and 3-connectivity is also called _triconnectivity_.
 
-The _connectivity_ (or _vertex connectivity_) κ(G) is the size of a minimal vertex cut, or in other words, the minimum number of nodes to be removed to disconnect the graph.  A graph is called _k-connected_ (or _k-vertex-connected_) if its vertex connectivity is k or greater, or in other words, if it remains connected whenever fewever than k vertices are removed.  2-connectivity is also called _biconnectivity_, and 3-connectivity is also called _triconnectivity_.
+The removal of a _disconnecting set_ of edges disconnects the graph.  Partition the graph in two set of vertexes; an _edge cut_ is an edge set where each edge as an endpoint in one partition and the other endpoint in the other partition.  A graph is _k-edge-connected_ if every disconnecting set has at least k edges.  The greatest k such that a graph is k-edge-connected is called the _edge connectivity_ κʹ(G) of G.  In other words, is the minimum size of a disconnecting set.  A _bridge_ (aka _cut-edge_) is an edge in a connected (sub)graph whose removal would disconnect the (sub)graph.
 
-A _complete graph_ with n vertices, denoted K~n~, is a simple undirected graph in which every pair of distinct vertices is connected by a unique edge.  A _tournament_ is a directed graph obtained by assigning a direction for each edge in an complete graph.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.  A _biconnected graph_ is a connected graph that has no articulation points.  A _biconnected component_ (aka _block_ or _2-connected component_) is a maximal (*to-do*: what does maximal mean here?) biconnected subgraph.  Note a biconnected component, unlike connected components, can be connected to other parts of the supergraph.  A _block graph_ (aka _clique tree_) is an undirected graph in which every biconnected component (aka block) is a clique.
+A _complete graph_ with n vertices, denoted K~n~, is a simple undirected graph in which every pair of distinct vertices is connected by a unique edge.  A _tournament_ is a directed graph obtained by assigning a direction for each edge in an complete graph.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.  A _block_ is a maximal connected subgraph that has no cut-vertex.
+
+Every (non-empty) graph is 0-connected.  A connected graph (see also previous definition) is a 1-connected graph.  A _biconnected graph_ is a 2-connected graph.  An equivalent definition (except in the case of the path graph P~2~ which has vertex connectivity 1 but no articulation vertices) is a connected graph having no articulation vertices.  A _biconnected component_ (aka _block_ or _2-connected component_) is a maximal (*to-do*: what does maximal mean here?) biconnected subgraph.  Note a biconnected component, unlike connected components, can be connected to other parts of the supergraph.  A _block graph_ (aka _clique tree_) is an undirected graph in which every biconnected component (aka block) is a clique.
+
+For every graph, its connectivity is smaller or equal its minimum degree [Proposition 3.3 in ``Graph Theory''].
+
+Mader: Every graph of average degree at least 4k has a k-connected subgraph.
 
 _Menger's Theorem_: Vertex connectivity: k-connected vertices are connected by k internally vertex-disjoint paths.
 
 Motivation: Connectivity measures fault tolerance of a network. E.g. how many connections can fail without cutting off communications.
+
+An edge can only be a bridge if it is not contained in an cycle.
 
 References:
 
