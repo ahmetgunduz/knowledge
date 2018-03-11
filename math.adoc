@@ -27,14 +27,14 @@ The input set is called the _domain_.
 The output set is called the _codomain_.
 The set of elements in the codomain that appear in f's mappings is called the _range_ (or _image_).
 A _partial function_ does not map all the elements of its input.
-The term _total function_ is a synonym to function as defined above.
-It is typically only used when a disambiguition to partial function is needed.
+The term _total function_ is a synonym to `function' as defined above.
+The term total function is typically only used when a disambiguition to partial function is needed.
 Given a _injective function_, each element of Y is mapped to at most once.
 Given a _bijective function_, each element of Y is mapped to exactly once.
 Given a _surjective function_, each element of Y is mapped to at least once.
 A _k-to-1 function_ maps exactly k elements of X to every element of Y.
 
-A function is bijective if and only if it's injective and bijective.
+A function is bijective if and only if it's both injective and surjective.
 
 
 == Counting & Combinatorics
@@ -170,42 +170,66 @@ Likewise, we have to devide analogously for each of {b, o, k, e, p, r}.
 
 Corollary to the bookkeeper rule: How many x-bit sequences contain y zeros? By the bookkeeper rule, n~1~ = y, n~2~ = x - y, thus x! / (y!·(x-y)!).
 
+References:
 
-== Probability
+- The above is largely based upon MIT course 6.042 "Mathematics for computer science", lecture notes "Mathematics for computer science", chapter "Counting"
 
-A countable _sample space_ S is a nonempty countable set.
-An element ω ∈ S is called an _outcome_.
-A subset of S is called an _event_.
+
+== Probability and Statistics
+
+The _sample space_ S (or Ω) is the set of possible outcomes of an _experiment_.
+An element ω ∈ S is called an _outcome_ (or _sample outcome_ or _element_ or _realization_ (is ambigous to the realization of a random variable)).
+A subset E ⊆ S is called an _event_.
 In other words, an event is a set of outcomes.
-A _probability function_ Pr on a sample space S is a total function Pr : S ⟶ ℝ having the following two properties.
-Pr(ω) ≥ 0 for all ω ∈ S.
-∑~ω∈S~ Pr(ω) = 1.
+∅ denotes the _null event_ which is always false.
+S denotes the _true event_ which is always true.
+The set of `interesting' or `known' events is denoted 𝓕.
+A _probability space_ (or _probability triple_) is the tripe (sample space S, set of events 𝓕, probability function Pr).
+A _probability function_ (or _probability distribution_ or _propability measure_) Pr (or P or ℙ) on a sample space S is, a bit sloppily defined, a total function Pr : 𝓕 ⟶ [0, 1] having the following two properties:
+1) Pr(ω) ≥ 0 for all outcomes ω ∈ S.
+2) ∑~ω∈S~ Pr(ω) = 1.
+3) Pr(E) = ∑~ω∈E~Pr(ω).
+It's a sloppy definition because it enforces that 𝓕 contains every outcome.
+A more precise definition is that a probability function is a total function Pr : 𝓕 ⟶ [0, 1] satisfying the three _probability axioms_ (or _Kolmogorov axioms_):
+1) Pr(E) ≥ 0 for all events E ∈ 𝓕.
+2) Pr(S) = 1.
+3) If E~1~, E~2~, ... are disjoint then Pr(⋃E~i~) = ∑Pr(E~i~).
+There are multiple notations denoting the evaluation of the function Pr: Pr(...) or Pr[...] or Pr{...}.
 A finite probability space S is said to be _uniform_ if Pr(ω) is the same for every outcome ω ∈ S.
-In an uniform probability space, Pr(E) = |E| / |S|.
-A _probability space_ is the tripe (sample space, set of events, probability function).
+In an uniform probability space, Pr(E) = |E| / |S| for any event E ⊆ S.
 
-A _random variable_ R is a total function whose domain is the sample space.
-The codomain can be anything.
-It typically is a subset of ℝ.
-Notice that the name “random variable” is a misnomer; random variables are actually functions.
-An _indicator random variable_ (or _Bernoulli variable_) is a random variable with codomain {0, 1}.
-Thus an event is naturally associated with an indicator random variable.
 
 _conditional probability_: The probability of event A given event B is known to be true is Pr(A|B) = Pr(A∩B) / Pr(B).
-Note that the order in which A and B occur does not matter.
-Intuition: Imagine the standard Venn diagramm of two sets A and B.
-Saying that B is known to be true means we no longer look at the whole sample space S, but only at B.
-Imagine that all but B becomes dark.
-The only outcomes ∈ A which remain in the area of interest are those of A∩B.
-It becomes visually apparent that Pr(A|B) is the ratio of |A∩B| to |B|.  
+Pr(A) is also called the _prior probability_ of A and Pr(A|B) the _posterior probability_ of A.
+Note that the order in time in which the events A and B occur does not matter.
+
+Intuitively Pr(A|B) is the probability of event A when only considering the alternate sample space SB = B.
+
+--------------------------------------------------
+Areas are proportional to probabilities
+
+  Sample space S      Pr(⋅|B) intuitively defines
+                      a new sample space SB = B
+           A
+ S   whole 'column'
+  +----+------+       Pr(A|B) = Pr(A∩B) / Pr(B)
+  |    |      |       = Probability of A in sample space SB
+  |    |      |
+  |    |      |     SB
+  +----+--+---+       +-------+---+
+ B|       |   |      B|       |   |
+  +-------+---+       +-------+---+
+                               A∩B
+--------------------------------------------------
 
 _bayes theorem_: Pr(A|B) = Pr(B|A)Pr(A) / Pr(B).
 
-_law of total probability_: Pr(A) = ∑Pr(A∩B~i~) = ∑Pr(A|B~i~)Pr(B~i~), where {B~1~, ...,B~n~} is a partition of the sample space S.
-In other words, a set of pairwise disjoint sets whose union is the sample space.
+
+_law of total probability_: Given a partition {B~1~, ...,B~n~} of the sample space S, then Pr(A) = ∑Pr(A∩B~i~) = ∑Pr(A|B~i~)Pr(B~i~).
+
 
 [[independence]]
-Two events A and B are _independent_ if Pr(A|B) = Pr(A) or if Pr(B) = 0.
+Two events A and B are _independent_ if Pr(A|B) = Pr(A) or if (Pr(B) = 0).
 Or equivalently, called the _product rule for independent events_, iff Pr(A∩B) = Pr(A)Pr(B).
 Note that disjoint does _not_ imply independent.
 For example say A and B are disjoint and both are non-empty, then Pr(A|B) = 0 ≠ Pr(A).
@@ -214,11 +238,53 @@ That's why we usually say `A and B are independend' rather than `A is independen
 The form `Pr(A|B) = Pr(A) or if Pr(B) = 0' shows more clearly the meaning of `the occurence of B does not affect the probability of A'.
 The form `Pr(A∩B) = Pr(A)Pr(B)' shows more clearly the symmetry of indpendence.
 
-Intuition for indpendence: Draw the Venn diagram.
-S is a rectangle.
-Draw a horizontal line across S to separate B from the rest.
-Draw a vertical line across S to separate A from the rest.
-It is apparent that the ratio |A| to |S| equals the ratio |A∩B| to |B|.
+Informally stated, A and B are independend if the probability of A is independent of whether its relative to sample space S or when considering only the restricted sample space SB = B, _or_ vice versa for B.
+
+--------------------------------------------------
+Areas are proportional to probabilities
+
+                   Pr(A|B) = Pr(A) or if (Pr(B)=0)
+                   Informally: Ratio A∩B:B equals ratio A:S,
+                   i.e. probability of A is independent of whether
+                   its relative to SB or to S.
+ S          A                      S          A
+  +-------+---+                     +-------+---+
+  |       |   |                     |       |   |
+  |       |   |                     |       |   |
+  |       |   |  SB                 |       |   |
+  +-------+---+    +-------+---+    |       |   |
+ B|       |   |   B|       |   |    |       |   |
+  +-------+---+    +-------+---+    +-------+---+
+                            A∩B
+--------------------------------------------------
+
+Example where A and B _are_ dependend:
+
+--------------------------------------------------
+Areas are proportional to probabilities
+
+            A
+  +-------+---+
+  |       |   |
+  |       +---+
+  +-----+-+   |
+ B|     |     |
+  +-----+-----+
+--------------------------------------------------
+
+
+--------------------------------------------------
+Areas are proportional to probabilities
+
+            A        Pr(A∩B) = Pr(A)Pr(B)
+  +-------+---+      Considering the above drawings,
+  |       |   |      this can only be true if
+  |       |   |      both of A and B can be drawn
+  +-------+---+      with straight orthogonal lines,
+ B|       |   |      in which case
+  +-------+---+
+--------------------------------------------------
+
 
 To make that example more concrete, consider that blood can have a certain type and a certain rh factor.
 Say the probability Pr(T) for type T is known, and the probability Pr(F) for rh factor F is known.
@@ -253,7 +319,6 @@ Recurse.
 At each new level in the recursion, toggle between horizontal and vertical lines.
 The result has resemblance to a Venn diagram, only that here a given event is represented by a set of possibly disconnected areas, as opposed to a single connected area.
 
-
 Recipe for solving many probability problems:
 
 . Consequently follow the rules.
@@ -268,8 +333,471 @@ Often the human intuition is wrong.
 
 . Compute probability of your events, which is trivial, now that you have the probabilities of the outcomes.
 
+References:
 
-== Algebra
+- MIT course 6.042 "Mathematics for computer science", lecture notes "Mathematics for computer science", chapter "Probability"
+
+- MIT course 18.650 "Statistics for Applications", Fall 2016, https://www.youtube.com/playlist?list=PLUl4u3cNGP60uVBMaoNERc6knT_MgPKS0[videos], https://ocw.mit.edu/courses/mathematics/18-650-statistics-for-applications-fall-2016/lecture-slides/MIT18_650F16_Introduction.pdf[lecture notes]
+
+- Book ``All of statistics'', chapter ``1 Probability''
+
+- Khan Academy, ``Statistics'' playlist: https://www.youtube.com/watch?v=uhxtUt_-GyM&list=PL1328115D3D8A2566
+
+
+=== Random variables and expectations
+
+The name ``random variable'' is a misnomer.  A random variable is a function, as we will define in the following.  So think function, not variable.
+
+--------------------------------------------------
+ probability space := (sample space S, events 𝓕, probability function Pr)
+
+           probability
+ set of    function Pr
+ events 𝓕 ==========> [0,1]
+  |  
+  |set of
+  |subsets    random      measure 
+  V           variable R  space,      CDF_R(x) := Pr(R≤x)
+ sample  ===============> mostly ℝ    ================> [0,1]  
+ space S
+                                      E[R] := ∫x·CDF_Rʹ(x) 
+                                      ----------------> measure space
+
+                                      Var[R] := E[R-E[R]]²
+                                      = ∫(x-E[R])²CDF_Rʹ(x)
+                                      ----------------> measure space
+
+   S is countable    discrete R       PMF_R(x) := Pr(R = x)
+   set                                if R is the identity: PMF_R = Pr
+                                      ================> [0,1]
+
+                                      E[R] = ∑x·PMF_R(x) = ∑R(ω)·Pr(ω)
+
+   S is infinit      continous R      PDF_R(x) ≈ CDF_Rʹ(x)
+   noncountable      PDF_R exists     Pr(a≤R≤b) = integrate PDF_R(x) over [a,b]
+   set                                if R is the identity: PDF_R = Pr
+                                      ================> [0,1]
+
+                                      E[R] = ∫x·PDF_R(x)
+--------------------------------------------------
+
+A _random variable_ R is a total function R : S ⟶ ℝ.
+Technically the range of R is the _measure space_ E, but in computer science practice the measure space is mostly ℝ.
+Roughly speaking, density functions exist only when the measuere space is ℝ.
+The actually observed value of a random variable R is called _realization_ of R (or _observation_).
+Note that the term `realization' is ambigously also used as a synonum for outcome ω ∈ S.
+An _indicator random variable_ (or _Bernoulli variable_) is a random variable with codomain {0, 1}.
+A random variable is _discrete_ if its domain is a countable set.
+A random variable R is _continuous_ if there exists a probability density function for it.
+Note that for a continuous random variable R, Pr(R = x) = 0 for every x.
+We get a non-zero probability only in a non-empty range.
+
+There's a strong relation between events and random variables.
+Any assertion about the value of a random variable defines an event.
+Say the random variable C counts number of heads in 3 coin flips.
+The condition C = 1 defines the event {HTT, THT, TTH}, or the condition C ≤ 2 {TTT, HTT, THT, ...}.
+Looking at it from the other direction, each event E is naturally associated with a corresponding indicator random variable I~E~, where I~E~(ω) equals 1 if outcome ω ∈ E and and 0 otherwise.
+
+Given a random variable R with measure space ℝ, its _cumulative distribution function_ (or _CDF_ or _cumulative density function_) CDF~R~ (or F~R~) : ℝ ⟶ [0, 1] is defined as CDF~R~(x) = Pr(R ≤ x).
+
+Given a random variable R with measure space ℝ, its _inverse CDF_ (or _quantile function_) is defined by CDF~R~^-1^(q) = inf{r: CDR~R~(x) > 1} for q ∈ [0, 1].
+E.g. CDF~R~^-1^(1/2) tells you the x at which CDR(x) equals 1/2.
+We call CDF~R~^-1^(1/4) the _first quartile_, CDF~R~^-1^(1/2) the _median_ (or _second quartile_) and CDF~R~^-1^(3/4) the _third quantile_.
+
+Given a continuos random variable R with measure space ℝ, its _probability density function_ (or _PDF_) PDF~R~ (or f~R~) : ℝ ⟶ [0, 1] is a function satisfying:
+1) Pr(a ≤ R ≤ b) = ∫~a~^b^PDF~R~(x)·dx for every a ≤ b.
+2) Pr(x) ≥ 0 for all x.
+3) ∫~-∞~^∞^PDF~R~(x)·dx = 1.
+Note that according to these rules a PDF, unlike a PMF, can be bigger than 1; it can even be unbounded.
+
+Given a discrete random variable R with measure space ℝ, its _probability mass function_ (or _PMF_ or _probability function_) PMF~R~ (or f~R~) is defined as PMF~R~(x) = Pr(R = x).
+
+Both the probability density function and the cumulative distribution function capture the same information about the random variable, so take your choice.
+
+PDF~R~(x) = CDFʹ~R~(x) at all points x at which CDF~R~ is differentiable.
+
+CDF~R~(x) = ∫~−∞~^x^PDF~R~(x)·dx.
+
+In sloppy notation, CDF~R~(-∞) = 0 and CDF~R~(∞) = 1.
+
+Two random variables R~1~ and R~2~ are _equal_ if R~1~(ω) = R~2~(ω) for all outcomes ω ∈ S.
+
+Two random variables R1 and R2 are _equal in distribution_ if CDF~R1~(x) = CDF~R2~(x) for all x.
+Note that equal in distribution does not imply equal.
+E.g. consider X = `number of heads' and Y = `number of tails' in N fair coin tosses.
+
+Two random variables R~1~ and R~2~ are _independent_ iff for all x~1~ ∈ codomain(R~1~), x~2~ ∈ codomain(R~2~), the two events [R~1~ = x~1~] and [R~2~ = 2~1~] are independent.
+
+Random variables R~1~, ..., R~n~ are _mutually independent_ iff for all x~1~, ..., x~n~ the events [R~1~ = x~1~], ..., [R~2~ = x~2~] are mutually independent.
+They are _k-way independent_ iff every subset of k of them are mutually independent.
+
+A set of random variables is _independent and identically distributed_ (or _iid_ or __i.i.d.__) if all random variables are mutually indpendent and each random variable has the same probability distribution as the others.
+
+Two events are independent iff their indicator variables are independent.
+
+Let R and S be independent random variables, then f\(R) and g(S) are also independent random variables, where f and g are some functions.
+
+Given a random variable R, then its _expected value_ (or _expectation_ or _mean_ or _average value_ or _first moment_), denoted E[R] (or 𝔼\(R) or 𝔼R or μ or μ~R~ or by the use of on overline), is defined by E[R] = ∫x·CDFʹ~R~(x).
+If R is discrete: E[R] = ∑x~i~·PMF~R~(x~i~) = ∑~ω∈S~R(ω)·Pr(ω).
+If R is continuous: E[R] = ∫x·PDF~R~(x).
+
+The _conditional expectation_ E[R|A] of a random variable R given event A is E[R|A] = ∑r·Pr(R=r|A).
+
+[[variance]]
+Given a random variable R, its _variance_ (or _mean square deviation_), denoted by Var[R] (or 𝕍\(R) or 𝕍R or σ² or σ²~R~), is a measure of spread and is defined by Var[R] = E[(R-E[R])²] = E[R²] - E[R]² = ∫(x-E[R])²CDFʹ~R~(x).
+If R is discrete: Var[R] = (∑x²~i~PMF~R~(x~i~)) - E[R]²
+If R is continuous: Var[R] = (∫x²PDF~R~(x)) - E[R]².
+
+Note that an alternative measure of spread, thought much less often used than variance, is E[|R-E[R]|].
+
+Given a random variable R, its _standard deviation_, denoted σ (or σ~R~ or sd\(R)), is defined by σ = √Var[R].
+
+A set of random variables is called _homoscedastic_ if all of those random variables have the same finite variance.  This is also known as _homoscedasticity_ (or _homogeneity of variance_).  The complementrary notion is called _heteroscedasticity_.
+
+The _covariance_ between two random variables R~1~ and R~2~ is defined as Cov[R~1~, R~2~] = E[(R~1~-E[R~1~])(R~2~-E[R~2~])] = E[R~1~R~2~] - E[R~1~]E[R~2~].
+
+The _correlation_ between two random variables R~1~ and R~2~ is defined as ρ~R1,R2~[R~1~, R~2~] = Cov[R~1~, R~2~] / (√Var[R~1~]√Var[R~2~]). Note that the codomain is [-1,1].
+
+The sum S~n~ of a set of random variables R~1~, ..., R~n~ _converges in probability_ towards the random variable R if lim~n→∞~Pr(|S~n~-R|≤ε)=1 for every ε > 0
+
+E[a·R~1~ + b·R~2~] = a·E[R~1~] + b·E[R~2~] (_linearity of expectation_)
+
+If R~1~, ..., R~n~ are mutually independent: E[∏R~i~] = ∏E[R~i~]
+
+Var[R] = Cov[R, R]
+
+Var[aR+b] = a²Var[R]
+
+Var[R~1~ + R~2~] = Var[R~1~] + Var[R~2~] - 2Cov[R~1~, R~2~]
+
+In general: Var[∑a~i~R~i~] = ∑∑a~i~a~j~Cov(R~i~,R~j~) = (∑a²~i~Var[R~i~]) + 2∑~j~∑~i<j~a~i~a~j~Cov[R~i~, R~j~]
+
+If R~1~, ..., R~n~ are pairwise independent: Var[∑R~i~] = ∑Var[R~i~]
+
+Cov[R, R] = Var[R]
+
+Cov[R~1~, R~2~] = E[R~1~R~2~] - E[R~1~]E[R~2~]
+
+If R~1~ and R~2~ are independent: Cov[R~1~,R~2~] = ρ~R1,R2~ = 0.
+
+_Law of Total Expectation_: Let R be a random variable, and suppose that A~1~, ..., A~n~ is a partition of the sample space S, then E[R] = ∑~i~E[R|A~i~]·Pr(A~i~).
+
+_Mean time to failure_: Given an event E and p = Pr(E), the number of independent experiments until E occures is 1 / p and the variance is (1-p)/p².
+
+_Markov's inequality_: For non-negative R. Pr(R≥a) ≤ E[R] / a.
+
+_Chebyshev's inequality_: Pr(|R-E[R]| ≥ a) ≤ Var[R]/a². Derived from Markov's inequality.
+
+_Pairwise independent sampling_: Let R~1~, ..., R~n~ be pairwise independent random variables with the same mean μ and same deviation σ, and let S be their sum: Pr(|S/n-μ| ≥ x) ≤ 1/n σ²/x².
+
+_Weak Law of Large Numbers_ (or _Khintchine's law_): Let R~1~, ..., R~n~ be pairwise independent random variables with the same finite mean μ and same (possibly infinite) deviation σ, and let S be their sum: lim~n→∞~Pr(|S/n-μ|≤ε)=1 for every ε > 0. Derived from pairwise independent sampling.
+
+References:
+
+- Book ``All of Statistics'', chapters ``2 Random Variables'' and ``3 Expectation''
+
+- MIT course 6.042 "Mathematics for computer science", lecture notes "Mathematics for computer science", chapters "Random Variables" and "Deviation from the Mean"
+
+
+=== Important distributions
+
+*to-do*
+
+
+=== Population & Samples
+
+In a gneral context, μ denotes the _population mean_ and is derived from observing and building the arithmetic mean of every element of the entire population or from computing the expected value of a random variable.  The sample mean can be used as an unbiased estimator for the population mean, i.e. μ̂ = x̄.
+
+Similarily, σ² denotes the _population variance_ and is defined analogously.  The unbiased sample variance can be used as an unbiased estimator for the population variance, i.e. σ² = S².
+
+The _sample mean_ (or _empirical mean_) is derived from observing a sample subset of the population or by taking samples of a random variable and is defined by x̄ = 1/n ∑x~i~.  Note that some authors, e.g. ``all of statistics'', define sample mean not by the arithmetic mean over a set of observations, but as a random variable defined the analogous way over a set of random variables.
+
+The _unbiased sample variance_ (or _Bessel-corrected sample variance_) is derived analogously to the sample mean and is definied by S² = 1/(n-1) ∑(x~i~-x̄)².  Can be used as unbiased estimator for the population variance.  Similarily, the _biased sample variance_ is defined by 1/n ∑(x~i~-x̄)².  Note that some authors define sample variance on the basis of random variables, see also sample mean.
+
+The _sampling distribution_ (or _finite-sample distribution_) is the probability distribution of a given statistic (e.g. the mean) based on a single random sample from the population.  If we would take multiple same sized samples, the given statistic (e.g. the mean) has itself a probability distribution. (*to-do* understand that much more clearly)
+
+The _standard error_ (or _SE_) of a parameter is the standard deviation of its sampling distribution.
+
+If the parameter is the mean, it is called the _standard error of the mean_ (_SEM_), denoted σ~x̄~ (or SEM), and is σ~x̄~ = √Var[x̄] = σ / √n.  The later equal sign assumes independence and same variance σ².  However the population standard deviation σ is seldom known, thus the SEM is often estimated by using the sample standard deviation opposed to to σ.  Proof:  Var[x̄] = Var[1/n ∑x~i~] = 1/n² Var[∑x~i~] =(independent) 1/n² ∑Var[x~i~] =(same variance) 1/n² n Var[x~i~] = Var[x~i~] / n = σ² / n. (*to-do* ISLR p. 65 says that SE can be use to estimate how far off a single μ̂ might be from the true μ. But then the SE doesn't make sense if we calculate it on the basis of the population, since there we know μ exactly. Similarily, why is SE independent of the ratio populationsize:samplesize?) (*to-do* what is done in the R script from lecture week 2??)
+
+A statistic is _biased_ if it is calculated in such a way that it is systematically different from the population parameter being estimated.
+
+Let random variables {X~i~|i∈[n]} \~iid 𝓝(μ, σ²). Then (X̄-μ)/se(X̄) \~ 𝓝(0,1) and (X̄-μ)/sê(X̄) \~ t~n-1~.
+
+|=====
+| N | Size of population
+| μ | Population mean
+| Often: μ̂ = x̄ | Common estimator
+| σ² | Population variance
+| Often: σ̂² = S² | Common estimator
+| n | Number of samples
+| x̄ = 1/n ∑x~i~ | Sample mean
+| S² = 1/(n-1) ∑(x~i~-x̄)² | Unbiased sample variance
+| 1/n ∑(x~i~-x̄)² | Biased sample variance
+| se[x̄] = √Var[x̄] = σ / √n | Standard error of the mean, assuming independence and same variance σ²
+| Often: sê[x̄] = S / √n | Common estimator
+| (X̄-μ)/se[X̄] ~ 𝓝(0,1) | For random variables {X~i~:i∈[n]} ~iid 𝓝(μ, σ²)
+| (X̄-μ)/sê[X̄] \~ t~n-1~ | For random variables {X~i~:i∈[n]} ~iid 𝓝(μ, σ²)
+|=====
+
+
+=== Hypothesis Testing and p-values
+
+In essence, a claim (the alternative hypothesis) is assumed valid if its counter-claim (the null hypothesis) is improbable.
+
+The _null hypothesis_ (the hypothesis to be nullified), denoted H~0~, is a statement usually along the lines ``there is no relationship'' or ``there is no effect''.  The _alternative hypothesis_, denoted H~a~ (or H~1~), is the complementary statement.  Compute from the observations the observed value t~obs~ of some test statistic T.  The _p-value_ (or _probability value_ or _asymptotic significance_) is defined as Pr("test statistic is as at least as extreme as t~obs~"|H~0~).  Choose a _significance level_ α.  Typically the significance level is chosen to be 5 or 1 %.  Reject the null hypothesis, in favor of the alternative hypothesis, iff p-value < α.  A _type I error_ (or _false positive_) is the incorrect rejection of H~0~.  A _type II error_ (or _false negative_) is the incorrect retaining of H~0~.
+
+
+=== Misc. statistics
+
+n denotes the number of distinct _data points_ (or _observations_).  These data points as a whole are called _training data_.  p denotes the number of predictors.  Given is a n ⨯ p matrix X of where each column represents a _predictor_ (or _covariable_ or _input variable_ or _independent variable_ or _feature_ or _regressor_ or just _variable_) and a n ⨯ 1 vector Y of _response variables_ (or just _reponse_ or _output variables_ or _dependent varables_).  The i-th row of X together with Y[i] represents the i-th observation.  We assume that there is some fixed but unknown relationship f between the response Y and the predictors X, i.e. Y = f(X) + ε.  f is also called the _population regression function_ (or _PRF_).  f represents the _systematic_ information that the predictors provide about the response.  ε is a n ⨯ 1 vector of a random _error terms_, which are independent of X and have no systematic error (i.e. E[ε~i~] = 0 ∀ ε~i~).  Note that the error terms are in direction of the y axis, as opposed to perpendicular to a linear regression hyperplane.  This is important to note because the later is what most humans intuitively do in the 2D case when guessing which of multiple regression lines is a better fit.
+
+We may wish to estimate f for the reason of prediction:  Ŷ = f̂(X), where f̂ represents our _estimate for f_, and Ŷ represents the resulting prediction for Y.  The elements ŷ~i~ of Ŷ are called _fitted values_ (or _predicted values_).  Here we treat f̂ as a black box.
+
+Estimating f by _paramtetric methods_: Reduces the problem of estimating f down to the problem of estimating a set of parameters.  1) We make an assumption about the functional form of f, i.e. we guess an parameterized function f̂. For example the linear model has f̂(X) = Xβ, where β a p ⨯ 1 vector constituting the parameters. 2) We use the training data to _fit_ (or _train_) our model, i.e. to determine the model's parameters.  There are multiple approaches for fitting the model, the most common approach being (ordinary) least squares.
+
+The variance Var(ε~i~) of the error terms ε~i~ is in general not known.  Often it is assumed that all error terms have the same constant variance σ²,  and that constant variance often is estimated via σ̂ = RSE.
+
+e~i~ = y~i~ - ŷ~i~ is the i-th _residual_.
+
+_Studentized residual_ t~i~ = e / √Var̂[e]. Can be used to dedect outliers, see there.
+
+The _residual sum of squares_ (or _RSS_) is defined as RSS = ∑~1≤i≤n~e²~i~.  Can be thought of as the amount of variability that is left unexplained after performing the regression.
+
+The _total sum of squares_ (or _TSS_) is defined as TSS = ∑~1≤i≤n~(y~i~-ȳ)².  Can be thought of as the amount of variability inherent in the response before the regression is performed.
+
+The _mean squared error_ (or _MSE_) is defined as MSE = 1/n RSS. Qualifies performance of a statistical learning method on a given training data set.
+
+The _t-statistic_ is defined as t~β̂~ = (β̂ - β~0~) / se(β̂), where β is a parameter in some statistical model, β̂ is an estimator of it and β~0~ is β's hypothesized value.  Typically β~0~ is 0.  The t-statistic is used in hypothesis testing.  If β̂ is an ordinary least squares estimator in the classical linear regression model, and if the true value of parameter β is equal to β~0~, then the sampling distribution of the t-statistic is the Student's t-distribution with (n − p) degrees of freedom, where n is the number of observations, and p is the number of predictors (including the intercept).  Etymology: the term ``t-statistic'' is abbreviated from ``hypothesis test statistic''.
+
+The _residual standard error_ (or _RSE_) is given by RSE = √(RSS/(n-p)).  The RSE is considered an absolute measure of the lack of fit of the model to the data.  Roughly speaking RSE is the average amount that the response will deviate from the true regression hyperplane.  Even if the model were absolutely correct and the parameters of the model were known exactly, any prediction Ŷ is still off by RSE.  RSE is often used as an estimator for the variance Var(ε~i~) ≈ σ̂² = RSE² of the error terms ε~i~. *to-do* derive given formula from √Var[e] or whatever is the basis, and then write RSE = √Var[e] = √(RSS/(n-p)).
+
+The __R²__ statistic is defined as R² = (TSS - RSS) / TSS = 1 - RSS/TSS.  It provides an relative measure of the lack of fit of the model to the data.  TSS - RSS can be thought of as the amount of variability in the response that is explained by performing the regression.  R² then measures the proportion of variability in the response that can be explained using X.  R² ∈ [0,1], 1 meaning good, 0 meaning bad.  Small values might occur becaus the used model (e.g. linear) is wrong or the inherent error σ² is high, or both.  The advantage of R² over RSE is that the former is relative (lies in [0,1]) and the later is absolute.
+
+*to-do* R²~j~
+
+The __adjusted R²__ statistic is defined as 1 - RSE² / (TSS/(n-1)).
+
+Standard error can be used to compute _confidence intervals_. The 95% confidence interval for some variable a is approximately mean(a) ± 2SE(a), assuming a is normal distributed.
+
+An _outlier_ is a data point for which its response y~i~ is unusual by being far from the value predicted by the model. Alternatively: A data point with large studentized residual.  Observations whose studentized residuals are greater than 3 in absolute value are possible outliers [ISLR chapter 3.3.3 Potential Problems, Section 4. Outliers].  In linear regression, typically an outlier has only a small influence on the regression hyper-plane.  However it may have a big influence on RSE and R².  And since RSE is used as estimator for σ, also a big influence on confidence intervals and p-values, i.e. a big influence on the interpretation of such a fit (*to-do* are those statements restrictued to linear regression?).
+
+A data point with high _leverage_ is one for which its predictor is unusual by being far away from the mean of the predictors.  Regarding linear regression, given projection matrix P, the leverages are defined as diag(P). Recall that P only depends on the predictors X, and that Ŷ = PY, i.e. ŷ~i~ = p~i1~y~1~ + ... + p~ii~y~i~ + ... + p~in~y~n~.  You see from this formula that the leverage h~ii~ quantifies the influence the response y~i~ has on its predicted value ŷ~i~.  When having a high-leverage data point, the lack of neighboring predictors means that the fitted regression model will pass close to that particular observation.  As a rule of thumb, a leverage value greater than 2p̄ (other authors say 3p̄) is considered large, where p̄=p/n is the mean leverage value.  (*to-do* 1) I only understand that for simple linear regression, but not confidentaly for multiple linear regression. Is figuratively `far away' the Eucledian distance in ℝ^p^?. ISLR has an example: Figgure 3.13, middle plot, p.98. Has the red predictor higher leverage than the predictors at the right/left border of the ellipse? Its closer in Eucledian distance to the center/mean.  2) The notion of outlier seems to be applicable not only to linear regression, but the notion of leverage seems only to be applicable to linear regression. Correct? Why this asymetry? If not, what is the general definition / formula for leverage? 3) There seem to be two intuitions for leverage: "a measure how far of a predictor is from the predictor mean" and "a measure of the influence of a response on its predicted value", and I cant bring them together in my head 4) I don't understand how high leverage by itself is a problem.  If I have high leverage but a tiny outlineingless, at least in linear rergession with OLS nothing bad at all happens, no?).
+
+[[influencial_data_point]]
+An _influencial data point_ is one whose deletion would noticeably change the calculation. In particular, in regression analysis it has a large effect on the parameter estimates. In other words, a measure of how influencial a data point is, is a measure of the effect of deleting that data point.  One possible measure is the <<cooks_distance>>.  Note that outliers and high-leverage data points have the potential to be influencial, but they not necessarily are influencial. For models with two parameters, a possible way to visually identify influencial data points is to do n `experiments', each removing the i-th data point and then fit the model using the remaining data points, and then draw a scatter plot of the two optained parameters of each `experiment'  (e.g. β~0~ on the x axis and β~1~ on the y axis).  All points should be close together.  References: https://onlinecourses.science.psu.edu/stat501/node/337.  (*to-do* If an data point both is an outlier and has high-leverage, is it guaranteed to be influencial or only very likely to be influencial? According to cooks distance, it is guaranteed to be influencial, no?)
+
+[[cooks_distance]]
+The _Cook's distance_ D~i~ is a commonly used estimate of the <<influencial_data_point,influence>> of the i-th data point when performing least-squares regression analysis.  In an OLS analysis it can also be used to indicate regions of the design space where it would be good to obtain more data points.  The Cook's distance is defined as D~i~ = 1/p · t²~i~ · (P~ii~/(1-P~ii~)) = 1/(pσ̂²) · ∑~j~(ŷ~j~-ŷ~j(i)~)², where t~i~ is the i-th studentized residual, and ŷ~j(i)~ excludes the i-th row.  If the levarage (middle term t²~i~) is high and the leverage (last term) is large then the Cook's distance is large and thus the data point is deemed influencial.  Thresholds for identifying highly influential data points are controversal.  One is D~i~ > 1, another is D~i~ > 4/n. (*to-do* 1) I still don't understand the summation definition. Why is the nominator not mostly zero? 2) Has a given concrete value of the Cook's distance an interpretation, or is it just qualitative, large is bad, small is good? In the later case, why square studentized residual and why not simply use leverage P~ii~). References: https://onlinecourses.science.psu.edu/stat501/node/340
+
+_Least squares_ is a method of fitting a model which tries to minimize the RSS.  In other words, its an estimation technique.
+
+
+|=====
+| n | Number of samples
+| p | Number of predictors
+| Y = f(X) + ε | X = predictors, Y = responses, ε = random errors
+| Ŷ = f̂(X) | Ŷ = predictions (or fitted values), f̂ = estimator for f
+| Often: Var[ε] = const = σ² | σ is in general not known. Often assumed to be constant.
+| Often: Var̂[ε] = σ̂² = RSE² | Common estimator
+| e = Y - Ŷ | Residuals
+| t~i~ = e / √Var̂[e] | Studentized residuals
+| t~i~ > 3 | Rule of thumb for identifying outliners
+| p~ii~ > 2p̄ or p~ii~ > 3p̄  | Rule of thumb for identifying high-leverage data points, where p~ii~ is a diagonal cell in the projection matrix P and p̄=p/n is the mean leverage value.
+| D~i~ = 1/p · t²~i~ · (P~ii~/(1-P~ii~)) = 1/(pσ̂²) · ∑~j~(ŷ~j~-ŷ~j(i)~)² | Cook's distance of i-th observation.  P is the projection matrix.  ŷ~j(i)~ excludes the i-th row.
+| D~i~ > 1 or D~i~ > 4/n | Rules of thumb for identifying influencial data points.
+| TSS = ∑(y~i~ - ȳ)² | Total sum of squares. ȳ is the sample mean, see there.
+| RSS = ∑e²~i~ | Residual sum of squares
+| MSE = 1/n RSS | Mean squared error
+| RSE = √(RSS/(n-p)) | Residual standard error
+| (unadjusted) R² = (TSS - RSS) / TSS = 1 - RSS/TSS |
+| adjusted R² = 1 - RSE² / (TSS/(n-1)) |
+|=====
+
+|=====
+| β | A parameter in some statistical model
+| β̂ | Estimator for β
+| β~0~ | β's hypothesized value
+| t~β̂~ = (β̂ - β~0~) / se(β̂) | t-statistic. β~0~ is often taken to be 0.
+|=====
+
+
+=== Linear regression models
+
+In the linear multiple regression model the relation between the response and the predictors is linear, i.e. f(X) = Xβ and thus Y ≈ f(X) + ε = Xβ + ε.  You migh read ≈ as _"is approximately modeled as"_ (or we are _regressing Y on X_). Often the first column of X is all ones, which then makes β~0~ the _intercept_. The hyperplane described by f̂ intercepts the y-axis at β~0~.  _Simple linear regression_ is linear regression with only one predictor variable. f(X) = Xβ defines the _population regression hyperplane_, which is the best linear approximation to the true relationship between X and Y (recall that linearity was just an assumption). f̂(X) = Xβ̂ defines the _least square hyperplane_, which is an estimate based on the training data (*to-do* Is there are more general term which does not imply the fitting method).
+
+The method to fit the model is commonly ordinary least squares.
+
+*to-do*: the predictors can also be functions of actual predictors, i.e. with that the linear model is actually more general
+
+Assumptions of the linear model (*to-do* of what exactly are these assumptions? Linear model and/or least squares fitting?), roughly ordered after importance: *to-do* how to verify?
+
+
+- E[ε] = 0, i.e. the linear model is the correct model.
+
+  * As a consequence, we have E[β̂] = β (unbiased).
+
+  * If this assumption does not hold, we need other models than the linar model.
+
+- Predictors X are exact, i.e. observed without erors.
+
+  * If this assumption does not hold, we may can use Errors-in-variables models.
+
+- Cov[ε] = σ²I~n×n~, i.e. the errors are uncorrelated. That includes homoscedasticity of the error terms ε.
+
+  * As a consequence we have Cov[β̂] = σ²(X^T^X)^-1^.
+
+  * If the error terms ε are not homoscedastic we may can use weighted least squares.
+
+  * If the error terms ε are correlated we may can use generalized least squares.
+
+- {ε~i~|∀i} \~iid 𝓝(0, σ²).  This implies that Y~i~ ~ 𝓝 ∀ i.
+
+  * As a consequence, we have β̂ ~ 𝓝(β, σ²(X^T^X)^-1^).
+
+  * If asummption does not hold, we may can use robust methods (*to-do* which ones?) instead least squars.
+
+- The matrix has full rank p < n.
+
+  * If that is not fulfilled, then we simply cannot solve the equations delivering β.
+
+_Projection matrix_ (or _influence matrix_ or _hat matrix_), denoted P (or H), *to-do*
+
+|=====
+| P = X(X^T^X)^-1^X^T^; p~ij~ = Cov[ŷ~i~,y~j~]/Var[y~j~] | Projection matrix *to-do* formula for p~ij~ using only x's. That would help to see what it mathematically means for a predictor to be far away from the mean of predictors.
+| P^T^ = P | I.e. P is symmetric
+| P² = P | I.e. P is idempotent
+| PX = X | X is invariant under P
+| diag(P) | Leverages of observations
+| ∑p~ii~ = p |
+| p~ii~ ∈ [1/n,1] |
+| Y = f(X) = Xβ + ε | β and ε unknown, see however assumptions on ε.
+| Ŷ = Xβ̂ = PY  |
+| e = Y - Ŷ = (I~n~ - P)Y | Residuals.
+| Cov[e] = σ²(I~n~ - P) | Residuals e are correlated (error terms ε are not)
+| Var[e] = diag(Cov[e]) = σ²(1-diag(P)) | Variance of residuals is _not_ constant (unlike variance of error terms ε).
+| β̂ = (X^T^X)^-1^X^T^Y | Outcome of least squares approach to fit the model. https://en.wikipedia.org/wiki/Proofs_involving_ordinary_least_squares#Least_squares_estimator_for_.CE.B2[Proof]
+| E[β̂] = β |
+| Cov[β̂] = σ²(X^T^X)^-1^ | Note that in some notations Var instead of Cov is used; since it's a matrix, it's implicit that the covariance matrix is meant. https://stats.stackexchange.com/questions/68151/how-to-derive-variance-covariance-matrix-of-coefficients-in-linear-regression[Proof]
+| Cov̂[β̂] = RSE²(X^T^X)^-1^ | σ is unknown, we estimate it as usual using RSE
+| Var[β̂] = diag(Cov[β̂]) | Usual definition
+| Var̂[β̂] = diag(Cov̂[β̂]) | Usual definition
+| sê[β̂] = √Var̂[β̂] | Usual definition
+| β̂ \~ 𝓝~p~(E[β̂], Var[β̂]) |
+| (β̂~j~ - β~j~)/sê[β̂~j~] \~ t~n-p~ |
+| β̂~j~ ± sê[β̂~j~]t~1-α/2,n-p~ | (1-α)100% confidence interval for β~j~
+| (β̂~j~ - β~j~)/se[β̂~j~] ~ 𝓝(0, 1) |
+| t-value of β~j~: β̂~j~ / se[β̂~j~] | *to-do* se[β̂~j~] typically not known, so I can use sê[β̂~j~], no? But then, when I want to be precisise, I have to distinguish between "t-value of β~j~" and "estimated t-value of β~j~", where as the latter is more often used?
+| p-value of β~j~: pseudo R-code: 2*pt(abs(β~j~), df=n-p, lower=FALSE) |
+|=====
+
+
+*to-do*: understand the discussion about how adding predictors affects quality measurements such as t-values and p-values. -> Googeln. Gibt viele Fälle.
+
+
+References:
+
+- https://www.stat.berkeley.edu/~aditya/resources/LectureSEVEN.pdf
+
+- http://seismo.berkeley.edu/~kirchner/eps_120/Toolkits/Toolkit_10.pdf
+
+
+=== Measuring quality of fit
+
+_Overfitting_ refers specifically to the case in which a less flexible model would have yielded a smaller test MSE.
+
+
+== Algebra and Arithmetic
+
+
+=== Exponentiation, root, logarithm
+
+base^exponent^ = power
+
+^degree^√radicand = root
+
+log~base~(antilogarithm) = logarithm
+
+References:
+
+- Notes on Logarithms and Units: https://www.cs.auckland.ac.nz/courses/compsci314s1c/resources/logNotes.pdf
+
+
+=== Number theory
+
+References:
+
+- MIT course 6.042 "Mathematics for computer science", lecture notes "Mathematics for computer science", chapters "Number Theory"
+
+- Book "Introduction to algorithms", chapter "31 Number-Theoretic Algorithms"
+
+
+==== Divisibility and greatest common divisor
+
+**In this subchapter, we're only looking at integers.**
+
+a _divides_ b (or a is a _divisor_ (or _factor_) of b, or b is _divisible_ by a, or b is a _multiple_ of a), denoted a | b, iff there is a k such that ak=b. **Note that the order of operands is reversed relative to division**.
+
+Divisibility is reflexiv and transitiv, bot not symmetric.
+
+If f|a and f|b, then f|(sa+tb) for any s and t.
+I.e. a linear combination of a and b is divisible by any common factor of a and b.
+
+n is a _linear combination_ of b~0~, ..., b~k~ iff n = ∑s~i~b~i~.
+
+_Division Theorem_ (or _Division Algorithm_): Let n (_numerator_) and d (_denominator_) ≠ 0 be integers, then there exists a unique pair of integers q (_quotient_) and r (_remainder_) such that qd+r = n and 0≤r<|d|.
+Note that by this definition, the remainder is always nonnegative, as opposed to how many programming languages define it.
+
+rem(a,b) and a mod b are diffrent notations for the same thing.
+
+A _commonon divisor_ of a and b is a number that divides them both.  The _greatest common divisor_ of a and b is denoted gcd(a,b).
+
+_Euclid's algorithm_ finds the gcd of a and b ≠ 0: gcd(a,b) = gcd(b, a mod b).
+
+_Bézout's lemma_ (or _Bézout's idendity_): For any nonzero a and b:
+1) gcd(a,b) = sa+tb for some s and t; i.e. gcd(a,b) is a linear combinatino of a and b.
+2) gcd(a,b) is the smallest positive integer that can be written as sa+tb.
+3) sa+tb | gcd(a,b) for any s and t; i.e. every linear combination of a and b is a multiple of gcd(a,b).
+
+Two integers and b are _relative prime_ if gcd(a,b) = 1.
+
+If gcd(a,c)=1 and gcd(b,c)=1 then gcd(ab,c)=1.
+
+
+==== Prime numbers
+
+**In this subchapter, we're only looking at integers.**
+
+A _prime_ is a number greater than 1 that is divisible only by itself and 1. A number other than 0, 1 and -1 that is not a prime is called _composite_.
+
+_Fundamental Theorem of Arithmetic_: Every positive integer is a product of a unique weakly decreasing sequence of primes.
+
+For all primes p and any a,b: if p|ab then p|a or p|b.
+
+The _prime-counting function_ π(x) is the function giving the number of primes less than or equal to a given number x.
+
+_Prime Number Theorem_: π(x) ~ x/ln(x). Thus as a rule of thumb, about 1 integer out every ln n in the vicinity of n is a prime.
+
+_Chebyshev's Theorem on Prime Density_: π(x) > x / (3 ln x).
+
+
+==== Modular arithmetic
+
+**In this subchapter, we're only looking at integers.**
+
+a and b are said to be _congruent modulo_ n ≥ 0, denoted a ≡ b (mod n), iff n | (a-b).
+Stated differently, iff a-b = kn.
+
+The congruent modulo relationship is reflexiv, symetric and transitiv.
+
+a ≡ b (mod n) iff a mod n = b mod n
+
+a ≡ a mod n (mod n)
+
+If a ≡ b (mod n) and c ≡ d (mod n), then a + c ≡ b + d (mod n), ac = bd (mod n).
+
+
+=== Linear algebra
 
 The _determinant_ of a square matrix A is denoted det(A) or |A|.
 
@@ -284,6 +812,7 @@ In the 2D case:
 The geometric interpretation is that, when you think about the matrix representing a linear transformation, the absolute value of the determinant is the factor applied to an area (in the 2D case, volume in 3D case and so on).  Also, in the 2D case, if A is build by combining column vectors v1 and v2 side by side, the determinant is positive when v1 is clockwise from v2 (their tails coinciding), negative when v1 is counterclockwise, and zero when the two are colinear.
 
 
+
 == Geometry
 
 A _right angle_ is an angle of exactly 90° (π/2 radians).  Two vectors are _perpendicular_ iff their angle is a right angle, or equivalently, if their scalar product is zero.  A set of vectors is _orthogonal_ iff they are pairwise perpendicular.  A _normal_ vector of a point on a smooth surface is any vector perpendicular to the plane.
@@ -291,7 +820,6 @@ A _right angle_ is an angle of exactly 90° (π/2 radians).  Two vectors are _pe
 The _dot product_ (or _scalar product_ or _inner product_ (in Euclidean geometry)) of two vectors x⃗ and y⃗ is defined as x⃗·y⃗ = ∑x~i~y~i~ = ‖x⃗‖‖y⃗‖cos(Θ).  The former variant is the algebraic interpretation, the later is the geometric interpration.  More concretely, the geometric interpretation is that x⃗·(y⃗/‖y⃗‖) is the projection of x⃗ onto y⃗, when the two vectors are placed so that their tails coincide.
 
 The _cross product_ (or _vector product_ or _directed area product_ (in Euclidean geometry)) of two vectors x⃗ and y⃗ is defined as x⃗⨯y⃗ = ‖x⃗‖‖y⃗‖sin(Θ)n⃗.  n⃗ is the unit vector normal to the plane containing x⃗ and y⃗.  By convention, the direction of n⃗ is given by the _right-hand rule_: The index finger represents x⃗, the middle finger y⃗, and the thumb x⃗⨯y⃗.  The maginitude of the cross product can be interpreted as the area of the parallelogram having x⃗ and y⃗ as sides: ‖x⃗⨯y⃗‖ = ‖x⃗‖‖y⃗‖sin(Θ).  Cross product is zero ⇔ the lines are parallel. Cross product is positive (negative) ⇔ x⃗ is clockwise (counterclockwise) from y⃗ (their tails coinciding).
-
 
 
 == Misc
@@ -331,6 +859,11 @@ stirlings approximation: n! ~ √(2πn)*(n/e)^n^
   * spring 2015, textbook: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-spring-2015/readings/MIT6_042JS15_textbook.pdf
   * fall 2010, video lectures: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2010/video-lectures/
   * fall 2010, readings: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2010/readings/
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič. The Introduction chapter serves as good summary of computer science fundamentals.
+
+- Book ``Modern Cryptography: Theory and Practice'' has a mathematical foundations part
+
 
 == to-do
 
