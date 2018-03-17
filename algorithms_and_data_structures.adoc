@@ -19,32 +19,42 @@ With high probability (w.h.p.):: An event E occurs with high probability if Pr[E
 
 Output-sensitive algorithm:: An algorithm whose running time depends on the size of the output, in addition to, or instead of, the size of the input.
 
-
 == Asymptotic notations / big O notation
+
 In computer science, big O notation is used to classify algorithms by how they respond to changes in input size, typically regarding running time and space (memory/disk/...).
 
 In the following +n+ is the _input size_, +f(n)+ is the _number of steps_ needed by an algorithm.
+
+Recall definitions from math:
+
+[cols="2,1,4"]
+|====
+| _upper bound_ | f(x) ≤ c ∀ x | f has upper bound c. f is bounded from above by c.
+| _supremum_ (_tight/sharp upper bound_) | | Least upper bound. Not required to be in range of f.
+| _maximum_ | | Largest element of f's range. ``worst case'' (if f models costs).
+| _minimum_ | | Smallest element of f's range. ``best case'' (if f models costs).
+| _infimum_ (_tight/sharp lower bound_) | | Greatest lower bound. Not required to be in range of f.
+| _lower bound_ | f(x) ≥ c ∀ x | f has lower bound c. f is bounded from below by c.
+|====
 
 Types of asymptotic notations:
 
 [cols="3,2,2,6,6"]
 |====
 | notation | | relation of growth rate | definition | notes
-| +f(n) ∊ ο(g(n))+ | little-oh | f < g | ++For all c>0 there exists an n~0~>0 such that \|f(n)\| < c⋅\|g(n)\| for all n≥n~0~++ | f is dominated by g asymptotically.  Intuitively: grows strictly slower than. Rarely used in computer science.
-| +f(n) ∊ O(g(n))+ | big-oh    | f ≤ g | ++There exist an c>0 and n~0~>0 such that \|f(n)\| ≤ c⋅\|g(n)\| for all n≥n~0~++ | Asymptotic upper bound (Mnemonic: O has a squiggle at the top (at least in some fonts)). Intuitively: grows no faster than. No claim on how tight the upper bound is; technically it woudn't be wrong to say that a linear algorigthm is +O(2^n)+.
-| +f(n) ∊ Θ(g(n))+ | big-theta | f = g | ++There exist an c~1~>0, c~2~>0 and n~0~>0 such that c~1~⋅\|g(n)\| ≤ \|f(n)\| ≤ c~2~⋅\|g(n)\| for all n≥n~0~++ | Asymptotic tight bound (Mnemonic: the bar is in the middle). +Θ(g(n)) = O(g(n)) ∩ Ω(g(n))+
-| +f(n) ∊ Ω(g(n))+ | big-omega | f ≥ g | Like O, but ≥ instead ≤ | Asymptotic lower bound (Mnemonic: the bar is at the bottom).
-| +f(n) ∊ ω(g(n))+ | little-omega | f > g | Like ο, but ≥ instead ≤ | f dominates g asymptotically. Rarely used in computer science.
+| f(n) ∊ ο(g(n)) | little-oh | f < g | For all c>0 there exists an n~0~>0 such that \|f(n)\| < c⋅\|g(n)\| for all n≥n~0~ | f is dominated by g asymptotically.  Intuitively: grows strictly slower than. Rarely used in computer science.
+| f(n) ∊ O(g(n)) | big-oh    | f ≤ g | There exist an c>0 and n~0~>0 such that \|f(n)\| ≤ c⋅\|g(n)\| for all n≥n~0~ | Asymptotic upper bound (Mnemonic: O has a squiggle at the top (at least in some fonts)). Intuitively: grows no faster than.
+| f(n) ∊ Θ(g(n)) | big-theta | f = g | There exist an c~1~>0, c~2~>0 and n~0~>0 such that c~1~⋅\|g(n)\| ≤ \|f(n)\| ≤ c~2~⋅\|g(n)\| for all n≥n~0~ | Asymptotic tight bound. Also called _rate/order of growth_. (Mnemonic: the bar is in the middle). Θ(g(n)) = O(g(n)) ∩ Ω(g(n))
+| f(n) ∊ Ω(g(n)) | big-omega | f ≥ g | Like O, but ≥ instead ≤ | Asymptotic lower bound (Mnemonic: the bar is at the bottom).
+| f(n) ∊ ω(g(n)) | little-omega | f > g | Like ο, but ≥ instead ≤ | f dominates g asymptotically. Rarely used in computer science.
 |====
 
-Θ is also called _rate/order of growth_.
+Note: Except for Θ(g(n)), no claim is made on how tight a bound is.  Technically it woudn't be wrong to say that a linear algorigthm is +O(2^n)+.
 
 Note: Because ++O(g(n))++ is really a set, we should actually write ++f(n) ∊ O(g(n))++.  However we often write ++f(n)=O(g(n))++, the equal sign meaning ∊.
 Informally, especially in computer science, the big-oh notation often is permitted to be somewhat abused to describe an asymptotic tight bound (it really only describes an asymptotic upper bound) where using big-theta notation might be more factually appropriate in a given context.
 
 _worst case_ / _average case_ / _best case_ refers to the worst / average / best input -- a ``good'' input results in a short running time of the algorithm, a ``bad'' input results in a long running time.  For many algorithms we only care about the worst case, not the average case, because a) the worst case occurs fairly often in practice b) the average case is often as bad as the worst case c) it's difficult to know what an ``average'' input is (often it is assumed that all possible inputs are equally likely).
-
-_Tight bounds_: An upper bound is said to be a tight upper bound (aka _supremum_) if no smaller value is an upper bound.  Likewise for tight lower bounds (aka _infimum_).
 
 _Asymptotic efficiency_: Only look at rate of growth.  An algorithm is said to be _asymptotically optimal_ if, roughly speaking, its big-oh is equal to the big-oh of the best possible algorithm.
 
