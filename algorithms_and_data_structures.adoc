@@ -2702,17 +2702,56 @@ References:
 - https://people.csail.mit.edu/mip/papers/succinct/succinct.pdf[succincter]. Store string of n elements/characters of alphabet Σ using space close to information-theoric minimum of n·log~2~(|Σ|) bits.
 
 
+[[randomized_algorithms]]
+== Randomized algorithms
+
+See also subchapter <<randomized_online_algorithms>>.
+
+Model one: *to-do*
+
+Model two: *to-do*
+
+|=====
+| Pr(S(x)) ≥ ε ∧ Pr(A(x)=?) + Pr(S(x)) = 1 | 0 < ε ≤ 1 ∧ ∀ inputs x | Las Vegas
+| A is Las Vegas ∧ lim~\|x\|→∞~ Pr(S(x)) = 1 |  | Las Vegas*
+| Pr(A(x) = 1) ≥ 1/2 for ∀ x ∈ L ∧ Pr(A(y) = 0) = 1 for ∀ y ∉ L | For decision problems of language L | 1MC
+| A is 1MC ∧ lim~\|x\|→∞~ Pr(A(x) = 1) = 1 |  | 1MC*
+| Pr(S(x)) ≥ 1/2 + ε  | 0 < ε ≤ 1/2 ∧ ∀ inputs x | 2MC
+| Pr(S(x)) > 1/2  | ∀ inputs x | MC
+|=====
+
+
+=== Las Vegas algorithm
+
+Given a function F, a randomized algorithm A is called _Las Vegas algorithm_ if it can return `?' meaning ``I don't know the correct answer'' and it holds that CA = Pr(A(x)=F(x)) ≥ ε and Pr(A(x)=?) + CA = 1 for every input x and 0 < ε ≤ 1.  In plain English, it either returns the correct answer or optionally ?, but never an incorrect answer.  In other words, it gambles with resources used for computation, but not with correctness.  In the case that ? answers are _not_ allowed, i.e. ε = 1, definitions vary wether the algorithm is allowed to take infinite time or not.  If A is an Las Vegas Vegas Algorithm and lim~\|x\|→∞~ Pr(A(x)=F(x)) = 1, then it is called a _Las Vegas* algorithm_.
+
+If the algorithm is allowed to take infinite time, any Las Vegas algorithm which is allowed to return ? can be converted to one which is not allowed to return ? by executing it repeatedly until the answer is not ?.
+
+A Las Vegas Algorithm which is not allowed to return ? can be converted to one which is allowed to return ? by terminating early.  More generally, the ε can always be made smaller, as long as 0 < ε, in order to trade lower execution time for higher chance of getting ? answers.  Note that altough execution time varies, that variation is still independent of the input size, i.e. its hidden in the constant factor of the asymptotic time complexity.
+
+Las Vegas to Monte Carlo: A Las Vegas algorithm which is allowed to return ? is also a Monte Carlo algorithm.
+
+Examples: quick sort, quick select
+
+
+=== Monte Carlo algorithm
+
+Given a function F, a randomized algorithm A is called _Monte Carlo algorithm_ (or _MC algorithm_) if Pr(A(x)≠F(x)) < ε, for every input x and 0 < ε ≤ 1.  In plain English, it is allowed to return in incorrect answer with a certain bound on the probability.  In other words, it gambles with correctness,  and possibly also with ressources used for computation.
+
+*to-do* note that we can drop the probability of ? arbitrarily by repeating the algorithm.
+
+S(x) : 1 if A(x)=F(x), 0 otherwise. S for same.
+
+
 [[online_algorithms]]
 == Online algorithms
 
-An online algorithm is _k-competitive_ if there exists a constant k such that its cost is at most k times the cost of an optimal offline algorithm, ignoring a constant offset α.  Intuitively it's a measurement of the online algorithm's quality.
+An online algorithm is called _c-competitive_ if it there is a constant c for which the following conditition holds:
 
---------------------------------------------------
-online minimum problem: cost(ALG(I)) ≤ k·cost(OPT(I)) + α for all inputs I
-online maximum problem: gain(OPT(I)) ≤ k·gain(ALG(I)) + α for all inputs I
---------------------------------------------------
+online minimum problem: cost(ALG(I)) ≤ c·cost(OPT(I)) + α for all inputs I +
+online maximum problem: gain(OPT(I)) ≤ c·gain(ALG(I)) + α for all inputs I
 
-The factor k is called the _competitive ratio_.  If the constant offset α is zero, the algorithm is said to be _strictly competitive_.  If k=1 and α=0, the online algorithm is _optimal_.  The notion of having the constant α allows an algorithm to achieve a good k for long inputs I, even if that algorithm is bad for short inputs I.  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
+Unfortunately there is no commonly used term for the factor c~I~ given a specific input I; even the notation c~I~ is made up by me.  I make up the term `_input dependent cost factor_'.  Also there is no term for the constant c.  c is an upper bound on the input dependend cost factor.  If there is no such c, the algorithm is called _not competitive_. The smallest c ≥ 1 for which that inequality is true is the _competitive ratio_ of the algorithm.  In other words the competitive ratio is the minimum of the set of valid constants c (i.e. the minimum of the set of upper bounds on the input dependend cost factor).  It is the supremum of the input dependend cost factor.  Intuitively it's a measurement of the online algorithm's quality.  If the constant offset α is zero, the algorithm is said to be _strictly competitive_.  An online algorithm is called _strongly c competitive_ if its competitive ratio equals the best that is achievable by any online algorithm for the problem at hand.  If c=1 and α=0, the online algorithm is _optimal_.  If looking only at a specific input I, we speak of the _performance_ of ALG on I. (*to-do* 1) term for c for a given instance I. 2) performance's meaning is inversed, no? a larger c is bad, but a larger performance is good.  3) not competitive). The notion of having the constant α allows an algorithm to achieve a good c for long inputs I, even if that algorithm is bad for short inputs I.  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
 
 When analysing online algorthms, we're almost always only interested in the worst case, almost never in the average case.  We want to provide guarantees.
 
@@ -2723,26 +2762,40 @@ References:
 - Extracts of the above book as lectures notes: http://www.ita.inf.ethz.ch/~dkomm/lectures/online-algorithmen.pdf
 
 
+[[randomized_online_algorithms]]
 === Randomized online algorithms
 
-There are diffrent models of adversaries: The _oblivious adversary_ knows what algorithm I am running, but he sees none of the coin flips.  It's the adversary model commonly used.  The _fully adaptive adversary_ additionally also sees the coin flips. But that is uninteresting from a randomized perspective, because then the algorithm could as well be deterministic. The _adaptive adversary_ is somewhere inbetween. It knows the previous coin flips, but not the future flips. So it's an online algorithm itself.
+See also chapter <<randomized_algorithms>>.
 
+A _randomized online algorithm_ has besides the input I ∈ 𝓘 additionally the separate input Φ which is a random binary string, all bits are mutually independent and have a uniform probability distribution of 1/2.  Thus for a given input I, due to random binary string Φ, the costs may vary.  The common approach is to consider the expected costs.  A randomized online algorithm is _c-competitive in expectation_ if the following condition holds:
+
+online minimum problem: E[cost(ALG(I))] ≤ c·cost(OPT(I)) + α for all inputs I +
+online maximum problem: gain(OPT(I)) ≤ c·E[gain(ALG(I))] + α for all inputs I
+
+The smallest c for which the above condition holds is called _expected competitive factor_.
+
+If for a given online problem there exists an optimal randomized algorithm, then there exists also an optimal deterministic online algorithm. (*to-do* understand. Probably the key thing is that randomized online algorithm are mostly about being robust against malicious advesaries trying to provoke worst case behaviour)
+
+There are diffrent models of adversaries: The _oblivious adversary_ knows what algorithm I am running, but he sees none of the coin flips.  It's the adversary model commonly used.  The _fully adaptive adversary_ additionally also sees the coin flips. But that is uninteresting from a randomized perspective, because then the algorithm could as well be deterministic. The _adaptive adversary_ is somewhere inbetween. It knows the previous coin flips, but not the future flips. So it's an online algorithm itself.
+exists also an optimal deterministic online algorithm. (*to-do* understand. Probably the key thing is tha
 
 === Page replacement algorithms
 
-There's (slow) data, k faster-than-data pages. A cache _miss_ is when a requested page is not in the cache. Updating cache from data is called _evicting_ (kicking out a page from the cache) and _fetching_ data into the now free page.
+A page replacemenet algorithm decides which pages of a cache to evict (page out or swap out). E.g RAM (slow) and Cache (fast), or Swap on disk (slow) and virtual memory (fast).  A cache _miss_ is when a requested page is not in the cache. Updating cache from data is called _evicting_ (kicking out a page from the cache) and _fetching_ data into the now free page.
 
-No deterministic algorithm is k-competitive.
+- No deterministic algorithm is k-competitive.
+
+- No online algorithm is better than k-competitive. I.e. k is a lower bound for the competitive ratio of any online algorithm.
 
 Page replacement strategies:
 
-- LRU (least recently used): Evict least recently used. Is an conservative algorithm.
+- _LRU_ (_least recently used_): Evict least recently used. Is a conservative strict k-competitive algorithm.  Experimentally shown to be better than FIFO on average.
 
-- FIFO (first in first out): Evict oldest-loaded page. Is an conservative algorithm.
+- _FIFO_ (_first in first out_): Evict oldest-loaded page. Is a conservative strict k-competitive algorithm.
 
-- LFU (least frequently used): Evict the page that has been requested least frequently.
+- _LFU_ (_least frequently used_): Evict the page that has been requested least frequently.
 
-- LFDT (longest forward distance) or OPT (offline optimal) or MIN: Evict page to be used farthest in the future. A greedy algorithm. Proofably optimal. Cost +O(n/k)+ (n accesses, k pages). Proof: Only very k accesses there's an evict.
+- _LFDT_ (_longest forward distance_) (or _OPT_ (_offline optimal_) or _MIN_): Evict page to be used farthest in the future. A greedy algorithm. Proofably optimal. Cost O(n/k) (n accesses). Proof: Only very k accesses there's an evict.
 
 Applications:
 
