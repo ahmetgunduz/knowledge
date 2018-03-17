@@ -3367,7 +3367,7 @@ Analysis: O(1) query time, which is apparent from the description above.  We ove
 
 ==== Indirection + JP + LD
 
-We like the ladder decomposition plus jump pointers approach due to its O(1) query time, but instead of O(n log n) space complexity, the nasty log n factor being due to the jump pointer tables, we would like O(n).  The main idea to reach O(n) space is to store jump tables only in few nodes,  and to make the bottom trees small enough such that there are less bottom tree types than actual bottom trees.  As a consequence we can store lookup tables per type, rather than use some data structure per actual bottom tree.
+We like the ladder decomposition plus jump pointers approach due to its O(1) query time, but instead of O(n log n) space complexity, the nasty log n factor being due to the jump pointer tables, we would like O(n).  The main idea to reach O(n) space is on one hand to store jump pointers only in a few nodes,  and on the other hand to make the bottom trees small enough such that there are less bottom tree types than actual bottom trees.  As a consequence we can store a data structure per type, rather than use some data structure per actual bottom tree.
 
 Divide the tree into a parent tree and a set of bottom trees.  The leaves of the parent tree store jump pointers.  The internal nodes of the parent tree do ladder decomposition and store a pointer to one of there leaves.  For each possible type of bottom tree, we store a brute force lookuptable.  Each node in the bottom trees has a pointer to its type / lookuptable.  Thus within the parent tree and within bottom trees we have O(1) query time.  Nodes in bottom trees also store a pointer to their respective leaf in the parent tree.  Thus also queries starting in a bottom tree and ending in the parent tree require only O(1) time.
 
@@ -4523,6 +4523,9 @@ Algorithms:
 - _Toom-Cook algorithm_ is O(n^log~3~ 5^) ≈ O(n^1.46^).  Generalizes Karatsube by splitting a factor in k parts opposed to exactly two.  The given asymptotic bounds are for k=3.
 
 - _Schönhage–Strassen algorithm_, fast fourier transformation based, in O(n log(n) log(log(n))).
+
+- Simplified rough answer: we can multiply in approximately O(n log n)
+
 
 References:
 
