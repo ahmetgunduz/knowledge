@@ -524,20 +524,22 @@ A statistic is _biased_ if it is calculated in such a way that it is systematica
 
 Let random variables {X~i~|i∈[n]} \~iid 𝓝(μ, σ²). Then (X̄-μ)/se(X̄) \~ 𝓝(0,1) and (X̄-μ)/sê(X̄) \~ t~n-1~.
 
+[cols="1,3"]
 |=====
 | N | Size of population
-| μ | Population mean
-| Often: μ̂ = x̄ | Common estimator
-| σ² | Population variance
-| Often: σ̂² = S² | Common estimator
 | n | Number of samples
+| μ | Population mean
+| μ̂ = x̄ | Common estimator for μ
+| σ² | Population variance
+| σ̂² = S² | Common estimator for σ²
 | x̄ = 1/n ∑x~i~ | Sample mean
 | S² = 1/(n-1) ∑(x~i~-x̄)² | Unbiased sample variance
 | 1/n ∑(x~i~-x̄)² | Biased sample variance
+| se[·] = sd[·'s sampling distribution] | Standard error of a parameter is the standard deviation of its sampling distribution.
 | se[x̄] = √Var[x̄] = σ / √n | Standard error of the mean, assuming independence and same variance σ²
-| Often: sê[x̄] = S / √n | Common estimator
-| (X̄-μ)/se[X̄] ~ 𝓝(0,1) | For random variables {X~i~:i∈[n]} ~iid 𝓝(μ, σ²)
-| (X̄-μ)/sê[X̄] \~ t~n-1~ | For random variables {X~i~:i∈[n]} ~iid 𝓝(μ, σ²)
+| sê[x̄] = S / √n | Common estimator for se[x̄]
+| (X̄-μ) / se[X̄] ~ 𝓝(0,1) | For random variables {X~i~:i∈[n]} ~iid 𝓝(μ, σ²)
+| (X̄-μ) / sê[X̄] \~ t~n-1~ | For random variables {X~i~:i∈[n]} ~iid 𝓝(μ, σ²)
 |=====
 
 
@@ -568,7 +570,7 @@ The _total sum of squares_ (or _TSS_) is defined as TSS = ∑~1≤i≤n~(y~i~-y�
 
 The _mean squared error_ (or _MSE_) is defined as MSE = 1/n RSS. Qualifies performance of a statistical learning method on a given training data set.
 
-The _t-statistic_ is defined as t~β̂~ = (β̂ - β~0~) / se(β̂), where β is a parameter in some statistical model, β̂ is an estimator of it and β~0~ is β's hypothesized value.  Typically β~0~ is 0.  The t-statistic is used in hypothesis testing.  If β̂ is an ordinary least squares estimator in the classical linear regression model, and if the true value of parameter β is equal to β~0~, then the sampling distribution of the t-statistic is the Student's t-distribution with (n − p) degrees of freedom, where n is the number of observations, and p is the number of predictors (including the intercept).  Etymology: the term ``t-statistic'' is abbreviated from ``hypothesis test statistic''.
+Given the estimator β̂ of parameter β of some statistical model.  The _t-statistic_ is commonly used (*to-do* are there other uses than what I describe here?) in hypothesis testing, where the null hypothesis is that  be β = β~0~.  Typically β~0~ is 0.  The t-statistic for β̂ is defined as t~β̂~ = (β̂ - β~0~) / se(β̂).  If β̂ is an ordinary least squares estimator in the classical linear regression model, and if the true value of parameter β is equal to β~0~, then t~β̂~ \~ t~n-p~ where n is the number of observations, and p is the number of predictors (including the intercept).  Etymology: the term ``t-statistic'' is abbreviated from ``hypothesis test statistic''.
 
 The _residual standard error_ (or _RSE_) is given by RSE = √(RSS/(n-p)).  The RSE is considered an absolute measure of the lack of fit of the model to the data.  Roughly speaking RSE is the average amount that the response will deviate from the true regression hyperplane.  Even if the model were absolutely correct and the parameters of the model were known exactly, any prediction Ŷ is still off by RSE.  RSE is often used as an estimator for the variance Var(ε~i~) ≈ σ̂² = RSE² of the error terms ε~i~. *to-do* derive given formula from √Var[e] or whatever is the basis, and then write RSE = √Var[e] = √(RSS/(n-p)).
 
@@ -582,15 +584,15 @@ Standard error can be used to compute _confidence intervals_. The 95% confidence
 
 An _outlier_ is a data point for which its response y~i~ is unusual by being far from the value predicted by the model. Alternatively: A data point with large studentized residual.  Observations whose studentized residuals are greater than 3 in absolute value are possible outliers [ISLR chapter 3.3.3 Potential Problems, Section 4. Outliers].  In linear regression, typically an outlier has only a small influence on the regression hyper-plane.  However it may have a big influence on RSE and R².  And since RSE is used as estimator for σ, also a big influence on confidence intervals and p-values, i.e. a big influence on the interpretation of such a fit (*to-do* are those statements restrictued to linear regression?).
 
-A data point with high _leverage_ is one for which its predictor is unusual by being far away from the mean of the predictors.  Regarding linear regression, given projection matrix P, the leverages are defined as diag(P). Recall that P only depends on the predictors X, and that Ŷ = PY, i.e. ŷ~i~ = p~i1~y~1~ + ... + p~ii~y~i~ + ... + p~in~y~n~.  You see from this formula that the leverage h~ii~ quantifies the influence the response y~i~ has on its predicted value ŷ~i~.  When having a high-leverage data point, the lack of neighboring predictors means that the fitted regression model will pass close to that particular observation.  As a rule of thumb, a leverage value greater than 2p̄ (other authors say 3p̄) is considered large, where p̄=p/n is the mean leverage value.  (*to-do* 1) I only understand that for simple linear regression, but not confidentaly for multiple linear regression. Is figuratively `far away' the Eucledian distance in ℝ^p^?. ISLR has an example: Figgure 3.13, middle plot, p.98. Has the red predictor higher leverage than the predictors at the right/left border of the ellipse? Its closer in Eucledian distance to the center/mean.  2) The notion of outlier seems to be applicable not only to linear regression, but the notion of leverage seems only to be applicable to linear regression. Correct? Why this asymetry? If not, what is the general definition / formula for leverage? 3) There seem to be two intuitions for leverage: "a measure how far of a predictor is from the predictor mean" and "a measure of the influence of a response on its predicted value", and I cant bring them together in my head 4) I don't understand how high leverage by itself is a problem.  If I have high leverage but a tiny outlineingless, at least in linear rergession with OLS nothing bad at all happens, no?).
+A data point with high _leverage_ is one for which its predictor is unusual by being far away from the mean of the predictors.  Regarding linear regression, given projection matrix P, the leverages are defined as diag(P). Recall that P (also denoted H) only depends on the predictors X, and that Ŷ = PY, i.e. ŷ~i~ = p~i1~y~1~ + ... + p~ii~y~i~ + ... + p~in~y~n~.  You see from this formula that the leverage p~ii~ quantifies the influence the response y~i~ has on its predicted value ŷ~i~.  When having a high-leverage data point, the lack of neighboring predictors means that the fitted regression model will pass close to that particular observation.  As a rule of thumb, a leverage value greater than 2p̄ (other authors say 3p̄) is considered large, where p̄=p/n is the mean leverage value.  (*to-do* 1) I only understand that for simple linear regression, but not confidentaly for multiple linear regression. Is figuratively `far away' the Eucledian distance in ℝ^p^?. ISLR has an example: Figgure 3.13, middle plot, p.98. Has the red predictor higher leverage than the predictors at the right/left border of the ellipse? Its closer in Eucledian distance to the center/mean.  2) The notion of outlier seems to be applicable not only to linear regression, but the notion of leverage seems only to be applicable to linear regression. Correct? Why this asymetry? If not, what is the general definition / formula for leverage? 3) There seem to be two intuitions for leverage: "a measure how far of a predictor is from the predictor mean" and "a measure of the influence of a response on its predicted value", and I cant bring them together in my head 4) I don't understand how high leverage by itself is a problem.  If I have high leverage but a tiny outlineingless, at least in linear rergession with OLS nothing bad at all happens, no?).
 
 [[influencial_data_point]]
 An _influencial data point_ is one whose deletion would noticeably change the calculation. In particular, in regression analysis it has a large effect on the parameter estimates. In other words, a measure of how influencial a data point is, is a measure of the effect of deleting that data point.  One possible measure is the <<cooks_distance>>.  Note that outliers and high-leverage data points have the potential to be influencial, but they not necessarily are influencial. For models with two parameters, a possible way to visually identify influencial data points is to do n `experiments', each removing the i-th data point and then fit the model using the remaining data points, and then draw a scatter plot of the two optained parameters of each `experiment'  (e.g. β~0~ on the x axis and β~1~ on the y axis).  All points should be close together.  References: https://onlinecourses.science.psu.edu/stat501/node/337.  (*to-do* If an data point both is an outlier and has high-leverage, is it guaranteed to be influencial or only very likely to be influencial? According to cooks distance, it is guaranteed to be influencial, no?)
 
 [[cooks_distance]]
-The _Cook's distance_ D~i~ is a commonly used estimate of the <<influencial_data_point,influence>> of the i-th data point when performing least-squares regression analysis.  In an OLS analysis it can also be used to indicate regions of the design space where it would be good to obtain more data points.  The Cook's distance is defined as D~i~ = 1/p · t²~i~ · (P~ii~/(1-P~ii~)) = 1/(pσ̂²) · ∑~j~(ŷ~j~-ŷ~j(i)~)², where t~i~ is the i-th studentized residual, and ŷ~j(i)~ excludes the i-th row.  If the levarage (middle term t²~i~) is high and the leverage (last term) is large then the Cook's distance is large and thus the data point is deemed influencial.  Thresholds for identifying highly influential data points are controversal.  One is D~i~ > 1, another is D~i~ > 4/n. (*to-do* 1) I still don't understand the summation definition. Why is the nominator not mostly zero? 2) Has a given concrete value of the Cook's distance an interpretation, or is it just qualitative, large is bad, small is good? In the later case, why square studentized residual and why not simply use leverage P~ii~). References: https://onlinecourses.science.psu.edu/stat501/node/340
+The _Cook's distance_ D~i~ is a commonly used estimate of the <<influencial_data_point,influence>> of the i-th data point when performing least-squares regression analysis.  In an OLS analysis it can also be used to indicate regions of the design space where it would be good to obtain more data points.  The Cook's distance is defined as D~i~ = 1/p · t²~i~ · (P~ii~/(1-P~ii~)) = 1/(pσ̂²) · ∑~j~(ŷ~j~-ŷ~j(i)~)², where t~i~ is the i-th studentized residual, and ŷ~j(i)~ excludes the i-th row.  If the `outlineniness' (middle term t²~i~) is high and the leverage (last term) is large then the Cook's distance is large and thus the data point is deemed influencial.  Thresholds for identifying highly influential data points are controversal.  One is D~i~ > 1, another is D~i~ > 4/n. (*to-do* 1) I still don't understand the summation definition. Why is the nominator not mostly zero? 2) Has a given concrete value of the Cook's distance an interpretation, or is it just qualitative, large is bad, small is good? In the later case, why square studentized residual and why not simply use leverage P~ii~). References: https://onlinecourses.science.psu.edu/stat501/node/340
 
-_Least squares_ is a method of fitting a model which tries to minimize the RSS.  In other words, its an estimation technique.
+_Least squares_ is a method of fitting a model which tries to minimize the RSS.  In other words, its an estimation technique.  There are two categories: _Ordinary least squares_ (or _OLS_ or _linear least squares_) and _non-linear least squares_.  Linear least squares has a closed-form solution.  The nonlinear prblem is usually solved by iterativie refinement.
 
 
 |=====
@@ -618,7 +620,8 @@ _Least squares_ is a method of fitting a model which tries to minimize the RSS. 
 | β | A parameter in some statistical model
 | β̂ | Estimator for β
 | β~0~ | β's hypothesized value
-| t~β̂~ = (β̂ - β~0~) / se(β̂) | t-statistic. β~0~ is often taken to be 0.
+| t~β̂~ = (β̂ - β~0~) / se(β̂) | t-statistic of β̂. β~0~ is often taken to be 0.
+| t~β̂~ \~ t~n-p~  | If β̂ is an ordinary least squares estimator in the classical linear regression model, and if the true value of parameter β is equal to β~0~.
 |=====
 
 
@@ -663,6 +666,8 @@ Assumptions of the linear model (*to-do* of what exactly are these assumptions? 
 
 _Projection matrix_ (or _influence matrix_ or _hat matrix_), denoted P (or H), *to-do*
 
+_F-test_. *to-do* Where do I find good information? What is it in general, what are the general definition? What is it in case of linear regression via OLS. What about partial F-Test. I find not much in the script nor in ISLR, these are too close to specific small examples / applications. Also understand well why it is possible to get significant F-statistic but non-significant regressor t-tests. https://stats.stackexchange.com/questions/3549/why-is-it-possible-to-get-significant-f-statistic-p-001-but-non-significant-r
+
 |=====
 | P = X(X^T^X)^-1^X^T^; p~ij~ = Cov[ŷ~i~,y~j~]/Var[y~j~] | Projection matrix *to-do* formula for p~ij~ using only x's. That would help to see what it mathematically means for a predictor to be far away from the mean of predictors.
 | P^T^ = P | I.e. P is symmetric
@@ -678,17 +683,17 @@ _Projection matrix_ (or _influence matrix_ or _hat matrix_), denoted P (or H), *
 | Var[e] = diag(Cov[e]) = σ²(1-diag(P)) | Variance of residuals is _not_ constant (unlike variance of error terms ε).
 | β̂ = (X^T^X)^-1^X^T^Y | Outcome of least squares approach to fit the model. https://en.wikipedia.org/wiki/Proofs_involving_ordinary_least_squares#Least_squares_estimator_for_.CE.B2[Proof]
 | E[β̂] = β |
-| Cov[β̂] = σ²(X^T^X)^-1^ | Note that in some notations Var instead of Cov is used; since it's a matrix, it's implicit that the covariance matrix is meant. https://stats.stackexchange.com/questions/68151/how-to-derive-variance-covariance-matrix-of-coefficients-in-linear-regression[Proof]
-| Cov̂[β̂] = RSE²(X^T^X)^-1^ | σ is unknown, we estimate it as usual using RSE
+| Cov[β̂] = σ²(X^T^X)^-1^ | Note that in some notations Var instead of Cov is used; since it's a matrix, it's implicit that the covariance matrix is meant. https://stats.stackexchange.com/questions/68151/how-to-derive-variance-covariance-matrix-of-coefficients-in-linear-r| Cov̂[β̂] = RSE²(X^T^X)^-1^ | σ is unknown, we estimate it as usual using RSE
 | Var[β̂] = diag(Cov[β̂]) | Usual definition
 | Var̂[β̂] = diag(Cov̂[β̂]) | Usual definition
 | sê[β̂] = √Var̂[β̂] | Usual definition
 | β̂ \~ 𝓝~p~(E[β̂], Var[β̂]) |
-| (β̂~j~ - β~j~)/sê[β̂~j~] \~ t~n-p~ |
+| (β̂~j~ - β~j~)/sê[β̂~j~] \~ t~n-p~ | *to-do* valid always or only under some hypothesis?
 | β̂~j~ ± sê[β̂~j~]t~1-α/2,n-p~ | (1-α)100% confidence interval for β~j~
-| (β̂~j~ - β~j~)/se[β̂~j~] ~ 𝓝(0, 1) |
-| t-value of β~j~: β̂~j~ / se[β̂~j~] | *to-do* se[β̂~j~] typically not known, so I can use sê[β̂~j~], no? But then, when I want to be precisise, I have to distinguish between "t-value of β~j~" and "estimated t-value of β~j~", where as the latter is more often used?
-| p-value of β~j~: pseudo R-code: 2*pt(abs(β~j~), df=n-p, lower=FALSE) |
+| (β̂~j~ - β~j~)/se[β̂~j~] ~ 𝓝(0, 1) | *to-do* valid always or only under some hypothesis?
+| t-value of β̂~j~: β̂~j~ / se[β̂~j~] | *to-do* se[β̂~j~] typically not known, so I can use sê[β̂~j~], no? But then, when I want to be precisise, I have to distinguish between "t-value of β~j~" and "estimated t-value of β~j~", where as the latter is more often used?
+| p-value of β~j~: pseudo R-code: 2*pt(abs(t.value.beta), df=n-p, lower=FALSE) |
+| F = [(TSS-RSS)/(p+1)] / [RSS/(n-p)]  | F-statistic. The null hypothesis is β~i~ = 0 for all i except 0.  F-statistic is 1 if there is no relationship between X and Y, larger otherwise.
 |=====
 
 
@@ -705,6 +710,16 @@ References:
 === Measuring quality of fit
 
 _Overfitting_ refers specifically to the case in which a less flexible model would have yielded a smaller test MSE.
+
+
+=== Cross validation
+
+Our estimate f̂ of the model was trained used the training set.  A qualifier Θ for the performance of f̂ is the MSE over a test set.  Since usually we don't have a test set beside the training set,  we somehow have to estimate Θ, resulting in Θ̂.  There are multiple approaches, all of which repeatedly partition the original training set into a (new) training set and a test set,
+
+
+=== Validation set approach
+
+
 
 
 == Algebra and Arithmetic
