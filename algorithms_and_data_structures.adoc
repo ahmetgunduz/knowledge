@@ -2476,13 +2476,18 @@ The data structure implementing a node of the global tree stores the edges of a 
 
 *to-do* relation radix sort vs trie, ...
 
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 16. Strings: https://www.youtube.com/watch?v=NinWEPPrkDQ&t=0s&index=16&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf[video],
+https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf[lecture notes]
+
 
 [[trie]]
 === Trie (aka digital tree, radix tree, prefix tree)
 
 See this as an intro to what a trie is. In practice you will use a <<compressed_trie>>, see there for more details.
 
-Is an implementation of the ordered <<associative_array>> ADT. It stores +k+ items (key/value pairs), the stored keys being strings _T~i~_, i=1,...,k, the strings' letters are from alphabet _Σ_.  Internally, there is also the special letter _$_ which represents the end of a string.  A trie is a rooted tree where each edge is labeled with a letter.  Thus child nodes have an order.  A root-to-leaf path represents a string/key, the so reached leaf node the value associated with that key.  The strings derived from paths root to leaf are called _words_, the strings from other paths are called _prefixes_.  Note that the number of leaves equals k.  The maximal number of nodes stored in the tree is |T| = ∑|T~i~|. In query/lookop, _P_ is a pattern/query searched in the trie.
+Is an implementation of the ordered <<associative_array>> ADT. It stores +k+ items (key/value pairs), the stored keys being strings _T~i~_, i=1,...,k, the strings' letters are from alphabet _Σ_.  Internally, there is also the special letter _$_ which represents the end of a string and lexicographically is smaller than any letter in Σ.  A trie is a rooted tree where each edge is labeled with a letter.  Thus child nodes have an order.  A root-to-leaf path represents a string/key, the so reached leaf node the value associated with that key.  The strings derived from paths root to leaf are called _words_, the strings from other paths are called _prefixes_.  Note that the number of leaves equals k.  The maximal number of nodes stored in the tree is |T| = ∑|T~i~|. In query/lookop, _P_ is a _pattern_ (or _query_) searched in the trie.
 
 Since the child nodes have an ordering, an in-order traversal prints the stored keys in order.
 
@@ -2493,14 +2498,32 @@ Applications: See <<suffix_tree>>
 Trivia: The name trie is a pun on re__trie__val.  Originally pronounced it as `tree'.  However, other authors pronounce it as `try', in an attempt to distuinguish it from `tree'.
 
 
+==== Storing nodes
+
+There multiple ways to actually store a trie.  Subchapter <<tries_comparision>> gives an overview.  The more simple methods are not further explained.  The more complex ones are explained in the following subchapters.  Recall that most of the time, we will use a compressed trie rather than a (uncompressed) trie.
+
+
+==== Storing nodes, global tree weigth balanced
+
+Each node of the original compressed trie, which has up to |Σ| children, is stored as a weight balanced BST, resulting in a new tree with more nodes.  The weight of a node is the number of its descendand leaves.  Each edge stores wheter it's an edge in the original compressed trie or an edge within the BST within a node of the original compressed trie.  Each edge of the internal BST is labeled as follows: look at the edge's end node. Look that node's initernal BST, take the rightmost edge leaving the internal BST, i.e. an edge of the original compressed trie.  Take the label of that edge.
+
+Construction: Each node of the original tree, having multiple children labeled with letters from Σ, is turned into a BST as follows: Partitionate children into two sets, such that each set has about the same cumulative weight.  Create a root node having these two sets as its two children.  Recurse.
+
+Analysis:  Query takes O(P + log  k) time.  This is because it can be proven that for each traversed edge, we either advance one letter in P or we decrease the number of descendant leaves by at least 1/3.
+
+
+==== Storing nodes, global tree weigth balanced plus indirection
+
+Cut edges below all maximall deep nodes that have at least |Σ| descendat leaves.  We will thus get a parent tree which has at most n / |Σ| leaves.  Obviously there also at most as many bottom trees.  Store the nodes of the parent tree using lookup table of size |Σ|.  Store the nodes of the bottom trees using weight balanced trees as described in the previous chapter.
+
+Analysis: O(P + log Σ) query time and O(n) space.  Space for each bottom trie is linear. Space for the parent tree becomes O(n) because it has O(n / Σ) nodes, each using O(Σ) space.  Query time in the parent tree is linear.  The size of a bottom tree is O(Σ), thus, being a balanced tree, query time in a bottom tree is O(log Σ).
+
+
+
 [[compressed_trie]]
 === Compressed trie (aka radix tree, radix trie, compact prefix tree)
 
-Based on <<trie>>, see there for terms and symbols. Is an implementation of the ordered <<associative_array>> ADT.  A radix tree is a space-optimized trie, where a node with only one child is removed, merging its two adjacent edges into one, which is then labeled with the concatenation of the labels of the two previous edges.  That is each edge is no longer labeled with a single character but potentially with a string.  Typically the nodes/edges do not store the string leading to a child, but the pair (startindex, endindex) into the original text.  Each internal node consequently has at least two children, so there are less internal nodes than leaves.  Recall there are as many leaves as stored strings, i.e. k. Thus there are O(k) nodes in the compressed trie.
-
-The [[letter_depth]]_letter depth_ of a node is the lenght of the key/path that leads to it.
-
-Data structure used to store a node (having up to Σ childs), and the resulting query time and space needed, both in the trie (as opposed to the node).
+Based on <<trie>>, see there for terms and symbols. Is an implementation of the ordered <<associative_array>> ADT.  A radix tree is a space-optimized trie, where a node with only one child is removed, merging its two adjacent edges into one, which is then labeled with the concatenation of the labels of the two previous edges.  That is each edge is no longer labeled with a single character but potentially with a string.  Typically the nodes/edges do not store the string leading to a child, but the pair (startindex, endindex) into the original text.  Each internal node consequently has at least two children, so there are less internal nodes than leaves.  The [[letter_depth]]_letter depth_ of a node is the lenght of the key/path that leads to it.
 
 [[trie_vs_hash_table]]
 Compared to a hash table:
@@ -2544,21 +2567,15 @@ Applications:
 
 
 === Suffix array
+
 *to-do*
 
 Constructible in O(n log n) time with simple methods and O(n) time with complex methods.
-
-References:
-
-- https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf
 
 
 === (Suffix) tray
 
 Is a combination of a suffix tree and a suffix array,
-
-Note that there's this similar idea ....
-
 
 *to-do*
 
@@ -2572,6 +2589,24 @@ Represents a finite (since it has no cycles) set of strings aka keys.  Single so
 Can be seen as an compact form of a trie.  Uses less space than a trie.  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.  A trie can store attributes for each string aka key, whereas a DAFSA cannot.
 
 Is an implementation of the ADT <<associative_array>>.
+
+
+[[fm_index]]
+=== FM Index
+
+Based on <<burrows_wheeler_transformation>>.
+
+*to-do*
+
+Variations: Alphabet friendly FM Index (combines with wavelet trees): https://pdfs.semanticscholar.org/59a7/f5aae26198f41053a392b25a5ecc66485d13.pdf
+
+Trivia: The name stands for Full-text index in Minute space.
+
+References:
+
+- https://www.youtube.com/watch?v=kvVGj5V65io
+
+- https://people.unipmn.it/manzini/papers/focs00draft.pdf[Opportunistic Data Structures with Applications]
 
 
 [[online_algorithms]]
