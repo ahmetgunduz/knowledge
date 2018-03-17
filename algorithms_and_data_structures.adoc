@@ -798,6 +798,25 @@ Binary Search Trees]
 - https://en.wikipedia.org/wiki/Search_data_structure#Asymptotic_amortized_worst-case_analysis
 
 
+[[succinct_data_structures]]
+=== Succinct data structures
+
+This subchapter is about what succinct data structures are.  Actual succinct data structures are described in other chapters throughout this document.
+
+The term ``succinct data structures'' sadly is ambigous.  On one hand it is used as an umbrella term meaning space-efficient data structures.  On the other hand it designates a specific subgroup of space-efficient data structures, as defined in the following. Classification of data structures according to their space usage in bits (not words), where OPT is the information-theoretic optimum. 
+
+_implicit_: OPT + O(1).  The ideal is ⌈OPT⌉, so the intend of O(1) is more that the OPT may be a fractional and we need to round up the next integer, rather than using O(1) bits for auxillary information.  Usually very hard, thus often not achieved.  Examples: heap, array.
+
+_succinct_: OPT + o(OPT).  Most common type of space-efficient data structures.
+
+_compact_: O(OPT).  When a space-efficient data structure is the goal, being compact is often not good enough and just an intermediate step towards becoming succint.
+
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
+
+
 [[array]]
 === Array data structure (aka table)
 Fixed size, +Θ(1)+ time for indexing, with a very low constant factor.  ++O(0)++ wasted space.  Due to the fixed size, elements cannot be added / removed.
@@ -1256,6 +1275,38 @@ A balanced binary search tree with the additional property that recently accesse
 A self-balancing binary search tree.  Instead of the small incremental rebalancing operations used by most balanced tree algorithms, scapegoat trees rarely but expensively choose a "scapegoat" and completely rebuild the subtree rooted at the scapegoat into a complete binary tree. Thus insert and delete have O(n) worst-case and O(log n) amortized on average.
 
 *to-do*
+
+
+=== Succinct binary tree, level order representation
+
+All nodes of the tree (inclusive leaves), are called internal nodes, and the `missing leaves', or in other words the null-pointer childs, are called external nodes.  Traverse this extended tree in level order, writing down a 1 for an internal node and a 0 for an external node, resulting in a bit vector.
+
+Queries are based on <<rank>> and <<select>>:
+
+left-child(i): 2·rank(i). O(1) time.
+
+right-child(i): 2·rank(i) + 1. O(1) time.
+
+parent(i): select(⌊i/2⌋). O(1) time.
+
+Analysis: Uses 2n bits space, which is approximately optimal.  The Catalan number tells us how many different binary trees with n nodes there are.  It can be approximated by 4^n^.  log~2~(4^n^) = 2n.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
+
+
+=== Succinct binary tree, balanced parentheses representation
+
+There's a bijection binary tree ⇔ balanced parentheses. Balanced parentheses have a natural encoding: 1 for an open parentheses, 0 for a closed one.
+
+In contrast to the level order representation, now we can also answer subtree size queries.
+
+*to-do*
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
 
 
 [[heap]]
@@ -1808,6 +1859,41 @@ double polynomial(double x, const vector<double>& coefficients) {
     return acc;
 }
 --------------------------------------------------
+
+[[rank]]
+=== Rank
+
+Given a bit vector, determine number of ones upto index i.  Often used for <<succinct_data_structures>>. See also <<select>>
+
+*to-do*
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
+
+
+
+[[select]]
+=== Select
+
+Given a bit vector, determine index of i-th 1.  Often used for <<succinct_data_structures>>. See also <<rank>>.
+
+*to-do*
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
+
+
+
+[[burrows_wheeler_transformation]]
+=== Burrows-Wheeler transformation (BWT)
+
+*to-do*
+
+References:
+
+- https://www.youtube.com/watch?v=4n7NPk5lwbI
 
 
 [[hash_function]]
@@ -2607,6 +2693,13 @@ References:
 - https://www.youtube.com/watch?v=kvVGj5V65io
 
 - https://people.unipmn.it/manzini/papers/focs00draft.pdf[Opportunistic Data Structures with Applications]
+
+
+=== Succinct strings
+
+References:
+
+- https://people.csail.mit.edu/mip/papers/succinct/succinct.pdf[succincter]. Store string of n elements/characters of alphabet Σ using space close to information-theoric minimum of n·log~2~(|Σ|) bits.
 
 
 [[online_algorithms]]
