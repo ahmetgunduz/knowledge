@@ -802,14 +802,13 @@ Binary Search Trees]
 
 This subchapter is about what succinct data structures are.  Actual succinct data structures are described in other chapters throughout this document.
 
-The term ``succinct data structures'' sadly is ambigous.  On one hand it is used as an umbrella term meaning space-efficient data structures.  On the other hand it designates a specific subgroup of space-efficient data structures, as defined in the following. Classification of data structures according to their space usage in bits (not words), where OPT is the information-theoretic optimum. 
+The term ``succinct data structures'' sadly is ambigous.  On one hand it is used as an umbrella term for space-efficient data structures close to the information-theoretic optimum, which still support fast query operations, i.e. without first decompressing everything.  On the other hand it designates a specific class of space-efficient data structures.  The following is a classification of data structures according to their space usage in bits, not words, where OPT is the information-theoretic optimum:
 
-_implicit_: OPT + O(1).  The ideal is ⌈OPT⌉, so the intend of O(1) is more that the OPT may be a fractional and we need to round up the next integer, rather than using O(1) bits for auxillary information.  Usually very hard, thus often not achieved.  Examples: heap, array.
+_implicit_: OPT + O(1).  The ideal is ⌈OPT⌉, so the intend of O(1) is more that the OPT may be a fractional and we need to round up the next integer, rather than using O(1) bits for auxillary information.  Usually very hard, thus usually not achieved.  Examples: array, heap.
 
-_succinct_: OPT + o(OPT).  Most common type of space-efficient data structures.
+_succinct_: OPT + o(OPT).  In other words, less than twice the OPT.  Most common type of space-efficient data structures.
 
 _compact_: O(OPT).  When a space-efficient data structure is the goal, being compact is often not good enough and just an intermediate step towards becoming succint.
-
 
 References:
 
@@ -1278,11 +1277,12 @@ A self-balancing binary search tree.  Instead of the small incremental rebalanci
 *to-do*
 
 
+[[sbt_level_order]]
 === Succinct binary tree, level order representation
 
-All nodes of the tree (inclusive leaves), are called internal nodes, and the `missing leaves', or in other words the null-pointer childs, are called external nodes.  Traverse this extended tree in level order, writing down a 1 for an internal node and a 0 for an external node, resulting in a bit vector.
+All nodes of the tree (inclusive leaves), are called internal nodes, and the `missing leaves', or in other words the null-pointer childs, are called external nodes.  Traverse this extended tree in level order, writing down a 1 for an internal node and a 0 for an external node, resulting in a bit vector which is a definition of the tree.
 
-Queries are based on <<rank>> and <<select>>:
+Queries are based on rank and select provided by some <<bit_vector>> implementation:
 
 left-child(i): 2·rank(i). O(1) time.
 
@@ -1308,6 +1308,68 @@ In contrast to the level order representation, now we can also answer subtree si
 References:
 
 - MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
+
+
+[[bit_vector]]
+=== Bit vector
+
+Often used for <<succinct_data_structures>>.
+
+Solutions:
+
+- Brute force / trivial: Many succinct applications of bit vectors depend on fast rank and select, thus the trivial implementation is often not feasible.
+
+- Auxillary data structure for rank query in O(1)
+
+- Auxillary data structure for select query in O(1)
+
+- <<rrr>>: fast queries and implicit compression
+
+Applications: <<sbt_level_order,succinct binary tree>>
+
+
+==== Auxillary data structure for rank query in O(1)
+
+Given a bit vector, determine number of ones upto index i.  
+
+*to-do* Using auxillary a data structure besides bit vector, query in O(1) time.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
+
+
+==== Auxillary data structure for select query in O(1)
+
+Given a bit vector, determine index of i-th 1. 
+
+*to-do* Using auxillary a data structure besides bit vector, query in O(1) time.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
+
+
+[[rrr]]
+==== RRR
+
+Stores a bitvector of length m (the universe) containing n ones (the stored set).  Answers rank and select queries in O(1) and provides implicit compression resulting in B(n, m) + o(n) + O(log log m) bits space.
+
+Divide bitvector in p = m/u blocks of length u = 1/2 log~2~ m.  Each block stores the number of ones it contains, denoted n~i~ where i is the block's index.  So each block is u bits long and contains n~i~ ones.  Given a block, there are C(u n~i~) possible ways to arrange its n~i~ ones.  So for each block, we only have to store which of the C(u n~i~) variants equals the block's content, denoted O~i~.  So each block stores the tuple (n~i~, O~i~).  Note that O~i~is variable width, given by B~i~ = ⌈log~2~C(u, n~i~)⌉ bits.  Note that rank will add a bit more data.
+
+Note the sequence of O~i~s is what we want to store at the core.  That contains the entropy.  Everything else is auxillary house keeping.
+
+rank(x): In order not being forced to sequencially read all the n~i~ of every block until their sum reaches x, group every log^2^m blocks into a superblock.  Each superblock stores the tuple (sum of n~i~ of all blocks from the very beginning until inclusive this superbock, index into the bitvector of (n~i~, O~i~) tuples). *to-do* did I got this right?
+
+select(x): Not in the scope of this document.
+
+Analysis: O~i~ needs B~i~ bits.  Thus, regarding O~i~s, in total ∑B~i~ = ... = p + log~2~C(m n) bits. *to-do* be more thorough
+
+Trivia: Named after inventors Raman, Raman, Rao.
+
+References:
+
+- http://alexbowe.com/rrr/
 
 
 [[heap]]
@@ -1860,31 +1922,6 @@ double polynomial(double x, const vector<double>& coefficients) {
     return acc;
 }
 --------------------------------------------------
-
-[[rank]]
-=== Rank
-
-Given a bit vector, determine number of ones upto index i.  Often used for <<succinct_data_structures>>. See also <<select>>
-
-*to-do*
-
-References:
-
-- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
-
-
-
-[[select]]
-=== Select
-
-Given a bit vector, determine index of i-th 1.  Often used for <<succinct_data_structures>>. See also <<rank>>.
-
-*to-do*
-
-References:
-
-- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
-
 
 
 [[burrows_wheeler_transformation]]
