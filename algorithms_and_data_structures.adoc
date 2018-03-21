@@ -49,10 +49,9 @@ Types of asymptotic notations:
 | f(n) ∊ ω(g(n)) | little-omega | f > g | Like ο, but ≥ instead ≤ | f dominates g asymptotically. Rarely used in computer science.
 |====
 
-Note: Except for Θ(g(n)), no claim is made on how tight a bound is.  Technically it woudn't be wrong to say that a linear algorigthm is +O(2^n)+.
+Note: Except for Θ(g(n)), no claim is made on how tight a bound is.  Technically it woudn't be wrong to say that a linear algorigthm is O(2^n^).
 
-Note: Because ++O(g(n))++ is really a set, we should actually write ++f(n) ∊ O(g(n))++.  However we often write ++f(n)=O(g(n))++, the equal sign meaning ∊.
-Informally, especially in computer science, the big-oh notation often is permitted to be somewhat abused to describe an asymptotic tight bound (it really only describes an asymptotic upper bound) where using big-theta notation might be more factually appropriate in a given context.
+Note: Because O(g(n)) is really a set, we should actually write f(n) ∊ O(g(n)).  However we often write f(n) = O(g(n)), the equal sign meaning ∊. Informally, especially in computer science, the big-oh notation often is permitted to be somewhat abused to describe an asymptotic tight bound (it really only describes an asymptotic upper bound) where using big-theta notation might be more factually appropriate in a given context.
 
 _worst case_ / _average case_ / _best case_ refers to the worst / average / best input -- a ``good'' input results in a short running time of the algorithm, a ``bad'' input results in a long running time.  For many algorithms we only care about the worst case, not the average case, because a) the worst case occurs fairly often in practice b) the average case is often as bad as the worst case c) it's difficult to know what an ``average'' input is (often it is assumed that all possible inputs are equally likely).
 
@@ -62,7 +61,7 @@ _amortized time_: `amortized +O(f)+' for operation o: In a sequence of length L 
 
 An event E occures _with high probability_ (or __w.h.p.__ or _WHP_) if Pr(E) ≥ 1 - n^-c^ for any constant c.  I.e. we can make Pr(E) as close to 1 as we want by making c large enough.
 
-Common functions ordered after order of growth: c, log~c~(n), n, n·log~c~(n), n^c^, c^n^, n!, n^n^.
+Common functions ordered after order of growth: c, log~c~(n), n^1/c^, n, n·log~c~(n), n^c^, c^n^, n!, n^n^.
 
 [[big_oh_cheat_sheets]]
 Big oh cheat sheets:
@@ -3280,7 +3279,7 @@ The task is to determine whether or not a given graph has at least one cycle.
 
 Algorithms:
 
-- Undirected graph: When DFS or BFS, discover a vertex which was discovered before, a cycle is found. Runs in O(V+E) time.
+- Undirected graph: When DFS or BFS discover a vertex which was discovered before, a cycle is found. Runs in O(V+E) time.
 
 - Undirected graph:  Based on the idea <<kruskals_algorithm>> uses internally. Using a <<disjoint_set>>, put each vertex in its on set.  Then iterate over all edges.  If both ends are in the same set, a cycle is found and the algorithm terminates. Otherwise join the two sets.  Run in O(V + E·α(V)) time and needs O(V) auxiallary space, where α is the very slowly growing inverse function of the Ackermann function.  Is better than BFS / DFS for the case when we need to tell after each edge insertion whether that introduced a cycle. In that case, the running time after an edge insertion is O(α(V)).
 
