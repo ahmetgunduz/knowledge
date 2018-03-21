@@ -2755,14 +2755,22 @@ Model one: *to-do*
 
 Model two: *to-do*
 
+S(x) : 1 if A(x)=F(x), 0 otherwise. S for same.
+
 |=====
 | Pr(S(x)) ≥ ε ∧ Pr(A(x)=?) + Pr(S(x)) = 1 | 0 < ε ≤ 1 ∧ ∀ inputs x | Las Vegas
 | A is Las Vegas ∧ lim~\|x\|→∞~ Pr(S(x)) = 1 |  | Las Vegas*
 | Pr(A(x) = 1) ≥ 1/2 for ∀ x ∈ L ∧ Pr(A(y) = 0) = 1 for ∀ y ∉ L | For decision problems of language L | 1MC
 | A is 1MC ∧ lim~\|x\|→∞~ Pr(A(x) = 1) = 1 |  | 1MC*
-| Pr(S(x)) ≥ 1/2 + ε  | 0 < ε ≤ 1/2 ∧ ∀ inputs x | 2MC
+| Pr(S(x)) ≥ 1/2 + ε  | 0 < ε ≤ 1/2, ε is independent of input ∧ ∀ inputs x | 2MC
 | Pr(S(x)) > 1/2  | ∀ inputs x | MC
 |=====
+
+*to-do* Why constant 1/2 in monte carlo algorithms? Again, in general its just some constant, right? If its exactly 1/2, we get no information at all, i.e. we have a problem. If it's less than 1/2, we just inverse the logic and get > 1/2 again.
+
+References:
+
+- Book "Design and Analysis of Randomized Algorithms"
 
 
 === Las Vegas algorithm
@@ -2780,11 +2788,15 @@ Examples: quick sort, quick select
 
 === Monte Carlo algorithm
 
-Given a function F, a randomized algorithm A is called _Monte Carlo algorithm_ (or _MC algorithm_) if Pr(A(x)≠F(x)) < ε, for every input x and 0 < ε ≤ 1.  In plain English, it is allowed to return in incorrect answer with a certain bound on the probability.  In other words, it gambles with correctness,  and possibly also with ressources used for computation.
+Given a function F, a randomized algorithm A is called _Monte Carlo algorithm_ (or _MC algorithm_) if Pr(A(x)≠F(x)) < ε, for every input x and 0 < ε ≤ 1.  In plain English, it is allowed to return an incorrect answer with a certain bound on the probability.  In other words, it gambles with correctness,  and possibly also with ressources used for computation.
 
-*to-do* note that we can drop the probability of ? arbitrarily by repeating the algorithm.
+For the case of decision problems, a randomized algorithm A is called _false-biased Monte Carlo algorithm_ (or _on-sided-error Monte Carlo algorithm_ or _1MC algorithm_) if Pr(A(x)=F(x)) = 1 for every false F(x) and Pr(A(x)=F(x)) ≥ 1/2 for every true F(x).  In other words, it's always correct when it returns false.  If A is an 1MC Algorithm and lim~\|x\|→∞~ Pr(A(x)=F(x)) = 1, then it is called a _1MC* algorithm_.
 
-S(x) : 1 if A(x)=F(x), 0 otherwise. S for same.
+*to-do* be sure to write down definition correctly. Its really confusing.
+
+*to-do* 1) Book says: "Wo ist der Unterschied zwischen den 2MC-AIgorithmen und den
+MC-AIgorithmen?" and then explains. But I didn't got the final conclusion. 2) Probably the same question: why 1/2, opposed to some other constant?
+
 
 
 [[online_algorithms]]
