@@ -1924,103 +1924,6 @@ double polynomial(double x, const vector<double>& coefficients) {
 --------------------------------------------------
 
 
-[[burrows_wheeler_transformation]]
-=== Burrows-Wheeler transformation (BWT)
-
-*to-do* move to chapter strings, just before FM Index
-
-The _Burrows-Wheeler Transform_ (BWT) is a way of reversibly permuting the characters of a string T into another string BWT(T).
-
-Given is a string T of length n over alphabet Σ; The last character of T is a special character $ ∉ Σ which is lexicographically smaller than any character in Σ.  The Burrow-Wheeler Transform of T, denoted BWT(T) (or just BWT) is a string of length n.  It's construction is described in the following.  Note that the BWT is the only thing which is actually stored.  The other introduced things are just for illustration.
-
-Let the Burrows-Wheeler Matrix BWM(T) (or simply BWT) be the matrix constructed by first taking every possible rotation of T, row by row, and then sort it by row.  The first column is denoted F, the last column is denoted L.  The Burrows-Wheeler Transform, denoted BWT(T) (or simply BWT), is given by L.  Note that given a row i, L[i] precedes F[i] in T.  Also note that the suffixes given by the <<suffix_array>> SA(T) is exactly the same as the content of the BWM up to inclusive the $.
-
-------------------------------------------------------------
-    01234567    BWM: Burrows-Wheeler Matrix
-T = bananas$    F: first column of BWM, L: last column of BWM,
-                BWT = L: Burrows wheeler transform of T,
-                SA: auffix array, CAS: compressed suffix array,
-                LF: LF Mapping
-
- Suffixes             BWM     
- given by SA        /------\            rank rankall
- = BWM up to $  row F      L  SA CAS LF R    a b . n . s .
- $              0   $bananas  7  7   7  0    0 0 0 0 0 1 0
- ananas$        1   ananas$b  1  1   4  0    0 1 0 0 0 1 0
- anas$          2   anas$ban  3  -   5  0    0 1 0 1 0 1 0
- as$            3   as$banan  5  -   6  1    0 1 0 2 0 1 0
- bananas$       4   bananas$  0  0   0  0    0 1 0 2 0 1 0
- anas$          5   nanas$ba  2  -   1  0    1 1 0 2 0 1 0
- nas$           6   nas$bana  4  4   2  1    2 1 0 2 0 1 0
- s$             7   s$banana  6  -   3  2    3 1 0 2 0 1 0
-
-          # smaller
-          letters
- {$,Σ}    O
- $     1  0
- a     3  1
- b     1  4
- .     0  5
- n     2  5
- .     0  7
- s     1  7
- .     0  8
-------------------------------------------------------------
-
-Note that when looking at F and L, the ranks of a given character c are the in the same order.  The following illustrates this.  In  F, all the charcters c are consecutive.  Regarding these rows, the suffixes BWM[...,1:n-1] (0-based index) are in lexicographical order.  The corresponding suffixes BWM[...,0:n-1] are also in lexicographical order.  Thus in the same order.  Thus regarding these rows, BWM[...,0] = F[...] and BWM[...,n-1] = L[...] are also in same order. *to-do*
-
---------------------------------------------------
-  F         L
-  ..         
-  c0 X  .. ..
-  c1 Y  .. ..
-  c2 Z  .. ..
-  ..        
-  ..
-  X  .. .. c0  
-  ..
-  Y  .. .. c1
-  ..
-  Z  .. .. c2
-  ..
---------------------------------------------------
-
-__Rank of L[i] / R array__: Is a building block used in the following.  Given row i, determine rank of character at L[i] = BWT[i].  Solution 1)  Precompute in O(n) time an auxillary array R of size n, where R[i] stores the rank of character L[i]. Rank queries of character L[i] can then be answered in O(1) time by simply returning R[i]. Solution 2) When storing BWT with a <<wavelet_tree>>, rank queries cost O(log Σ) time.
-
-__Number of smaller letters / O array__: Is a building block optionally used in the following. For each letter c ∈ {$, Σ}, return the number of smaller letters in T.  Can be precomputed in O(n) time, storing the result in an array O of size |Σ|+1.  L is defined by O and vice versa, see also LF mapping.
-
-__LF Mapping / LF array__: Is a building block used in the following.  Given row i, determine row j such that F[j] precedes L[i] in T.  j = LF[i] = O[L[i]] + R[i].  Rational: As descibed above, the ranks of characters remain in the same order, within F and L.  Note that F is given by sorting L, or in other words, by sorting the letters occuring in T and then repeat each letter by its occurence count.  Row j is then given by the row where character L[i] first appears in F (possibly precomputed in array O), plus the rank of character L[i] (possibly precomputed in array R).
-
-__(Re)construct T from BWT__: Start with empty result string T and in first row i = 0. Iteratively do n times (or until LF[i]=$): Prepend L[i] to T. i = LF[i].
-
-__Construct BWT from T__: *to-do*
-
-__Construct BWT from SA__: For i=0 to n(inclusive): if SA[i]>0 then BWT[i] = T[SA[i]-1], else BWT[i] = $.
-
-__Construct SA from BWT__: Basically the same as constructing T from BWT. Start with j = |T| and in first row i = 0. Iteratively do n times (or until LF[i]=$): SA[i] = j--. i = LF[i].
-
-__Compute SA[i] only given BWT__: *to-do*
-
-__Search pattern P in T__: In the following, the range of selected rows defines the matches found so far. Initially, select the range of rows where F starts with the last character of P.  I.e. lastchar=P[|P|-1], from=O[lastchar], toincl=O[lastchar+1]-1.  Set i = |P| - 2. Iteratively narrow the range of rows by taking one more character of P into account, progressing from P's back towards P's front.  In each iteration, within the current range of rows, determine first and last occurence of P[i].  Let firstrow and lastrow denote that result.  We define later how to actually do that.  Via LF mapping, that defines the new range of rows: from=LF[firstrow], toincl=LF[lastrow].  The algorithm stops when the range of rows becomes empty, which means P does not occur in T.  Otherwise, after iterating over all P's characters, the remaining range of rows denotes the found matches.  The SA array tells us where in T to find each match.  *to-do* 1) profs idea that we overall there multiple rank select ops, and only one rank op remains at the end. maybe that only works with wavelet trees? 2) What's the difference now to use SA for indexing? After all, at the end we need SA also. 3) Merg with chapter FM Index.
-
-Applications:
-
-- compression:  In the BWT, there's a tendency that runs of the same character are suprisingly long.  Thus run-length encoding works well to compress the BWT string.  An intuition why this runs are suprisingly long may give the following example:  Consider columb F, the rows starting with n, which naturally will be consecutive.  The corresponding cells in L will be the consecutive charactes in BWT.  Since in the English language, only a few characters can come before an n with a relative high chance, there will be long runs of these characters in the BWT. (*to-do* so BWT plus run-length encoding only works well for human languages, but not for abritrary languages in the computer science sense?)
-
-- indexing, notably using little space: *to-do* see FM Index
-
-Trivia: Named after the inventors Michael Burrows and David Wheeler.
-
-
-References:
-
-- Burrows-Wheeler Transform and FM Index: https://www.youtube.com/watch?v=4n7NPk5lwbI
-
-- Introduction to the Burrows-Wheeler Transform and FM Index: http://www.cs.jhu.edu/~langmea/resources/bwt_fm.pdf
-
-- Parallel Lightweight Wavelet Tree, Suffix Array and FM-Index Construction: https://people.csail.mit.edu/jshun/dcc2016.pdf
-
-
 [[hash_function]]
 === Hash function (aka hash)
 
@@ -2807,6 +2710,101 @@ Represents a finite (since it has no cycles) set of strings aka keys.  Single so
 Can be seen as an compact form of a trie.  Uses less space than a trie.  A trie eliminates prefix redundancy.  A DAFSA additionally also removes suffix redundancy.  A trie can store attributes for each string aka key, whereas a DAFSA cannot.
 
 Is an implementation of the ADT <<associative_array>>.
+
+
+[[burrows_wheeler_transformation]]
+=== Burrows-Wheeler transformation (BWT)
+
+The _Burrows-Wheeler Transform_ (BWT) is a way of reversibly permuting the characters of a string T into another string BWT(T).  It has applications in indexing, see FM Index, and in compression.
+
+Given is a string T of length n over alphabet Σ; The last character of T is a special character $ ∉ Σ which is lexicographically smaller than all characters in Σ.  The Burrow-Wheeler Transform of T, denoted BWT(T) (or just BWT) is a string of length n.  It's construction is described in the following.  Note that the BWT is the only thing which is actually stored.  The other introduced things are just for illustration.
+
+Let the Burrows-Wheeler Matrix BWM(T) (or simply BWT) be the matrix constructed by first taking every possible rotation of T, row by row, and then sort it by row.  The first column is denoted F, the last column is denoted L.  The Burrows-Wheeler Transform, denoted BWT(T) (or simply BWT), is given by L.  Note that given a row i, L[i] precedes F[i] in T.  Also note that the suffixes given by the <<suffix_array>> SA(T) is exactly the same as the content of the BWM up to inclusive the $.
+
+------------------------------------------------------------
+    01234567    BWM: Burrows-Wheeler Matrix
+T = bananas$    F: first column of BWM, L: last column of BWM,
+                BWT = L: Burrows wheeler transform of T,
+                SA: suffix array, CAS: compressed suffix array,
+                LF: LF Mapping
+
+ Suffixes             BWM     
+ given by SA        /------\           rank  rankall
+ = BWM up to $  row F      L  SA CAS LF R    a b . n . s .
+ $              0   $bananas  7  7   7  0    0 0 0 0 0 1 0
+ ananas$        1   ananas$b  1  1   4  0    0 1 0 0 0 1 0
+ anas$          2   anas$ban  3  -   5  0    0 1 0 1 0 1 0
+ as$            3   as$banan  5  -   6  1    0 1 0 2 0 1 0
+ bananas$       4   bananas$  0  0   0  0    0 1 0 2 0 1 0
+ anas$          5   nanas$ba  2  -   1  0    1 1 0 2 0 1 0
+ nas$           6   nas$bana  4  4   2  1    2 1 0 2 0 1 0
+ s$             7   s$banana  6  -   3  2    3 1 0 2 0 1 0
+
+          # smaller
+          letters
+ {$,Σ}    O
+ $     1  0
+ a     3  1
+ b     1  4
+ .     0  5
+ n     2  5
+ .     0  7
+ s     1  7
+ .     0  8
+------------------------------------------------------------
+
+Note that when looking at F and L, the ranks of a given character c are the in the same order.  The following illustrates this.  In  F, all the charcters c are consecutive.  Regarding these rows, the suffixes BWM[...,1:n-1] (0-based index) are in lexicographical order.  The corresponding suffixes BWM[...,0:n-1] are also in lexicographical order.  Thus in the same order.  Thus regarding these rows, BWM[...,0] = F[...] and BWM[...,n-1] = L[...] are also in same order. *to-do*
+
+--------------------------------------------------
+  F         L
+  ..         
+  c0 X  .. ..
+  c1 Y  .. ..
+  c2 Z  .. ..
+  ..        
+  ..
+  X  .. .. c0  
+  ..
+  Y  .. .. c1
+  ..
+  Z  .. .. c2
+  ..
+--------------------------------------------------
+
+__Rank of L[i] / R array__: Is a building block used in the following.  Given row i, determine rank of character at L[i] = BWT[i].  Solution 1)  Precompute in O(n) time an auxillary array R of size n, where R[i] stores the rank of character L[i]. Rank queries of character L[i] can then be answered in O(1) time by simply returning R[i]. Solution 2) When storing BWT with a <<wavelet_tree>>, rank queries cost O(log Σ) time.
+
+__Number of smaller letters / O array__: Is a building block optionally used in the following. For each letter c ∈ {$, Σ}, return the number of smaller letters in T.  Can be precomputed in O(n) time, storing the result in an array O of size |Σ|+1.  L is defined by O and vice versa, see also LF mapping.
+
+__LF Mapping__: Is a building block used in the following.  Given row i, determine row j such that F[j] precedes L[i] in T.  j = LF(i) = O[L[i]] + R[i].  Rational: As descibed above, the ranks of characters remain in the same order, within F and L.  Note that F is given by sorting L, or in other words, by sorting the letters occuring in T and then repeat each letter by its occurence count.  Row j is then given by the row where character L[i] first appears in F (possibly precomputed in array O), plus the rank of character L[i] (possibly precomputed in array R).
+
+__(Re)construct T from BWT__: Start with empty result string T and in first row i = 0. Iteratively do n times (or until LF(i)=$): Prepend L[i] to T. i = LF(i).
+
+__Construct BWT from T__: The naive way to construct BWT is via the Burrows-Wheeler Matrix (BWM), as described in the beginning of this chapter.  However that is obviously wastefull both in space and in time.  Better is to first construct the suffix array SA in O(n) time, see there, and the construct the BWT using the SA in O(n) time, see following point.
+
+__Construct BWT from SA__: For i=0 to n(inclusive): if SA[i]>0 then BWT[i] = T[SA[i]-1], else BWT[i] = $. Obviously O(n) time.
+
+__Construct SA from BWT__: Basically the same as constructing T from BWT. Start with j = |T| and in first row i = 0. Iteratively do n times (or until LF(i)=$): SA[i] = j--. i = LF(i).
+
+__Compute SA[i] only given BWT__: *to-do*
+
+__Search pattern P in T__: In the following, the range of selected rows defines the matches found so far. Initially, select the range of rows where F starts with the last character of P.  I.e. lastchar=P[|P|-1], from=O[lastchar], toincl=O[lastchar+1]-1.  Set i = |P| - 2. Iteratively narrow the range of rows by taking one more character of P into account, progressing from P's back towards P's front.  In each iteration, within the current range of rows, determine first and last occurence of P[i].  Let firstrow and lastrow denote that result.  We define later how to actually do that.  Via LF mapping, that defines the new range of rows: from=LF(firstrow), toincl=LF(lastrow).  The algorithm stops when the range of rows becomes empty, which means P does not occur in T.  Otherwise, after iterating over all P's characters, the remaining range of rows denotes the found matches.  The SA array tells us where in T to find each match.  *to-do* 1) profs idea that we overall there multiple rank select ops, and only one rank op remains at the end. maybe that only works with wavelet trees? 2) What's the difference now to use SA for indexing? After all, at the end we need SA also. 3) Merg with chapter FM Index.
+
+Applications:
+
+- compression:  In the BWT, there's a tendency that runs of the same character are suprisingly long.  Thus run-length encoding works well to compress the BWT string.  An intuition why this runs are suprisingly long may give the following example:  Consider columb F, the rows starting with n, which naturally will be consecutive.  The corresponding cells in L will be the consecutive charactes in BWT.  Since in the English language, only a few characters can come before an n with a relative high chance, there will be long runs of these characters in the BWT. (*to-do* so BWT plus run-length encoding only works well for human languages, but not for abritrary languages in the computer science sense?)
+
+- indexing, notably using little space: *to-do* see FM Index
+
+Trivia: Named after the inventors Michael Burrows and David Wheeler.
+
+
+References:
+
+- Burrows-Wheeler Transform and FM Index: https://www.youtube.com/watch?v=4n7NPk5lwbI
+
+- Introduction to the Burrows-Wheeler Transform and FM Index: http://www.cs.jhu.edu/~langmea/resources/bwt_fm.pdf
+
+- Parallel Lightweight Wavelet Tree, Suffix Array and FM-Index Construction: https://people.csail.mit.edu/jshun/dcc2016.pdf
 
 
 [[fm_index]]
