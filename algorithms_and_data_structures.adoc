@@ -2494,9 +2494,10 @@ Solutions:
 
 - <<boyer_moore>>
 
-- With preprocessing: <<suffix_tree>>, <<suffix_array>>
+- With preprocessing: <<suffix_tree>>, <<suffix_array>>, <<fm_index>>
 
-Comparision *to-do*: Small/big T, small/big P, small/big Σ, repeatedly searching in same T, repeatedly searching same P, ...
+Comparision *to-do*: Small/big T, small/big P, small/big Σ, repeatedly searching in same T, repeatedly searching same P, ...:
+
 - http://programmers.stackexchange.com/questions/183725/which-string-search-algorithm-is-actually-the-fastest
 
 
@@ -2573,14 +2574,14 @@ For terms and notations, see <<string_searching>>. Additionally, k is the number
 The data structure implementing a node of the global tree stores the edges of a global tree node to its global tree node childs.  In other words, for each node in the global tree, its parent node in the global tree uses O(1) space.  Thus O(k) space in total.
 
 |=======
-|                                                  | query     | space  | notes
-| c. trie / nodes as array                         | O(P)      | O(k·Σ) |
-| c. trie / nodes as BST ②                        | O(P·lg Σ) | O(k)   |
-| c. trie / nodes as hash table                    | O(P)      | O(k)   | no ordering
-| c. trie / nodes as vEB tree                      | O(P·lglgΣ)| O(k)   | randomized
-| c. trie / nodes as vEB tree and hash table ①    | O(P+lglgΣ)| O(k)   | randomized
-| c. trie / global tree weight balanced            | O(P+lg k) | O(k)   |
-| c. trie / ... plus indirection                   | O(P+lg Σ) | O(k)   |
+|                                                  | query     | space  | construction | notes
+| c. trie / nodes as array                         | O(P)      | O(k·Σ) |              |
+| c. trie / nodes as BST ②                        | O(P·lg Σ) | O(k)   |              |
+| c. trie / nodes as hash table                    | O(P)      | O(k)   |              | no ordering
+| c. trie / nodes as vEB tree                      | O(P·lglgΣ)| O(k)   |              | randomized
+| c. trie / nodes as vEB tree and hash table ①    | O(P+lglgΣ)| O(k)   |              | randomized
+| c. trie / global tree weight balanced            | O(P+lg k) | O(k)   |              |
+| c. trie / ... plus indirection                   | O(P+lg Σ) | O(k)   |              |
 |=======
 
 ① Use redundantely both vEB tree and hash table.  Normally use the hash table.  However if a query letter is not on an edge, i.e. not not in the hash table, use the vEB tree to find the previous/next child node of the global tree.  Note that the vEB will at most be used once per query.
@@ -2590,8 +2591,13 @@ The data structure implementing a node of the global tree stores the edges of a 
 *to-do* is ``tray'' really a data structure distinct from suffix tray which solves the problem of finding a key in a collection of keys? 
 
 |=======
-| suffix tray                                      | O(P+lg Σ) | O(k)   | 
-| suffix array                                     | ?         | ?      | 
+|                      | query     | space    | construction | notes
+| suffix tray          | O(P+lg Σ) | O(k)     | ?            |
+| suffix tree          | see trie  | see trie | see trie     |
+| suffix array         | O(P·lg Σ) | O(n)     | O(n)         |
+| suffix array + LPC   | O(P+lg Σ) | O(n)     | O(n)         |
+| suffix array + ?     | O(P)      | ?        | ?            | Abouelhoda, Kurtz & Ohlebusch (2004)
+| FM index             | ?         | ?        | ?            |
 |=======
 
 *to-do* relation radix sort vs trie, ...
@@ -2676,20 +2682,46 @@ Details: Seeing a letter as a string of size one, all edges in a compressed trie
 
 Applications:
 
-- <<string_searching>>:
-  * Find (all) occcurences of pattern P in text T. Create suffix tree for T. Using P as key delivers subtree whose leaves corresponds to all occurences of P in T.
-  * Find first i occurences of pattern P in text T: Augment the leave nodes so they build a linked list, and augment internal nodes by a pointer to its leftmost descendant leaf.
-  * Find number of occurences of pattern P in T: Augment internal nodes in the suffix tree with the number of leaves. Use P as key, the found node thus delivers number of leaves, which equals number of occurences.
-  * Find longest substring that occures twice in P: Augment internal nodes with their <<letter_depth>>. Then search the internal node with the largest letter depth in O(T) time.
-  * Find longest substring that occures in multiple documents T^i^: Similar to above, but look for the internal nodes with maximum letter depth with greater than one distinct $~x~ below.
-  * Longest common prefix of two substrings in T in O(1) time: Take the two leaves corresponding to the indexes where the substring start, <<LCA_problem,find LCA>> in O(1) time, and the letter depth of the found node is the answer.
-  * Find all occurences of T[i:j]: Instead of, as in a normal search, finding the node from the root in O(j-i) time, find the (j-i)the ancestor of leaf i in O(1) time (via an _LA_query_)
+* Find (all) occcurences of pattern P in text T. Create suffix tree for T. Using P as key delivers subtree whose leaves corresponds to all occurences of P in T.
+
+* Find first i occurences of pattern P in text T: Augment the leave nodes so they build a linked list, and augment internal nodes by a pointer to its leftmost descendant leaf.
+
+* Find number of occurences of pattern P in T: Augment internal nodes in the suffix tree with the number of leaves. Use P as key, the found node thus delivers number of leaves, which equals number of occurences.
+
+* Find longest substring that occures twice in P: Augment internal nodes with their <<letter_depth>>. Then search the internal node with the largest letter depth in O(T) time.
+
+* Find longest substring that occures in multiple documents T^i^: Similar to above, but look for the internal nodes with maximum letter depth with greater than one distinct $~x~ below.
+
+* Longest common prefix of two substrings in T in O(1) time: Take the two leaves corresponding to the indexes where the substring start, <<LCA_problem,find LCA>> in O(1) time, and the letter depth of the found node is the answer.
+
+* Find all occurences of T[i:j]: Instead of, as in a normal search, finding the node from the root in O(j-i) time, find the (j-i)the ancestor of leaf i in O(1) time (via an _LA_query_)
 
 
 [[suffix_array]]
-=== Suffix array
+=== Suffix array (SA)
 
-*to-do*
+A suffix array is an index into a string T.
+
+Given a string T of length n over alphabet Σ.  The last character of T is a special character $ ∉ Σ which is lexicographically smaller than all characters in Σ.  Conceptually sort all suffixes of T.  The cell SA[i] in the suffix array SA provides the position within T at which the i-th suffix starts.
+
+--------------------------------------------------
+      sorted                 0123456
+      suffixes           T = banana$
+ row  of T       SA LCP
+  0   $          7  -
+  1   a$         5  0
+  2   ana$       3  1
+  3   anana$     1  3
+  4   banana$    0  0
+  5   na$        4  0
+  6   nana$      2  2
+--------------------------------------------------
+
+To query a string P in T:
+
+_trivial binary search_: O(P log n) query time.  Do a binary search of P in T via SA.
+
+_LPC + binary search_: O(P + log n) query time.  As a preprocessing step, construct longest common prefix (LCP) array which stores the length of two consecutive suffixes.  LCP[i] = |i-th suffix| - |(i-1)-th suffix|. With the information provided by the LCP array, individual comparisons during the binary search can compare fewer characters than the trivial binary search.  Algorithm exists which construct LCP together with SA in O(n) time.
 
 Constructible in O(n log n) time with simple methods and O(n) time with complex methods.
 
@@ -2701,7 +2733,10 @@ Is a combination of a suffix tree and a suffix array,
 *to-do*
 
 References:
+
 - https://courses.csail.mit.edu/6.851/spring07/scribe/lec09.pdf
+
+- Suffix Trays and Suffix Trists: Structures for Faster Text Indexing: https://cs.nyu.edu/cole/papers/suffix-trays.pdf
 
 
 === DAFSA as data structure
@@ -2717,43 +2752,53 @@ Is an implementation of the ADT <<associative_array>>.
 
 The _Burrows-Wheeler Transform_ (BWT) is a way of reversibly permuting the characters of a string T into another string BWT(T).  It has applications in indexing, see FM Index, and in compression.
 
-Given is a string T of length n over alphabet Σ; The last character of T is a special character $ ∉ Σ which is lexicographically smaller than all characters in Σ.  The Burrow-Wheeler Transform of T, denoted BWT(T) (or just BWT) is a string of length n.  It's construction is described in the following.  Note that the BWT is the only thing which is actually stored.  The other introduced things are just for illustration.
+Given a string T of length n over alphabet Σ.  The last character of T is a special character $ ∉ Σ which is lexicographically smaller than all characters in Σ.  The Burrow-Wheeler Transform of T, denoted BWT(T) (or just BWT) is a string of length n.  It's construction is described in the following.  Note that the BWT is the only thing which is actually stored.  The other introduced things are just for illustration.
 
 Let the Burrows-Wheeler Matrix BWM(T) (or simply BWT) be the matrix constructed by first taking every possible rotation of T, row by row, and then sort it by row.  The first column is denoted F, the last column is denoted L.  The Burrows-Wheeler Transform, denoted BWT(T) (or simply BWT), is given by L.  Note that given a row i, L[i] precedes F[i] in T.  Also note that the suffixes given by the <<suffix_array>> SA(T) is exactly the same as the content of the BWM up to inclusive the $.
 
-------------------------------------------------------------
+Example of many things introduced in the following:
+
+----------------------------------------------------------------------
     01234567    BWM: Burrows-Wheeler Matrix
 T = bananas$    F: first column of BWM, L: last column of BWM,
                 BWT = L: Burrows wheeler transform of T,
                 SA: suffix array, CAS: compressed suffix array,
-                LF: LF Mapping
+                LF: LF Mapping, C[l]: number of letters smaller
+                than a given letter l
+ Suffixes       
+ given by        BWM                                  |
+ SA = BWM      /------\           rank  rankall       |        
+ up to $   row F      L  SA CAS LF R    a b . n . s . | {$,Σ}    C
+                                                      |
+ $         0   $bananas  7  7   7  0    0 0 0 0 0 1 0 | $     1  0
+ ananas$   1   ananas$b  1  1   4  0    0 1 0 0 0 1 0 | a     3  1
+ anas$     2   anas$ban  3  -   5  0    0 1 0 1 0 1 0 | b     1  4
+ as$       3   as$banan  5  -   6  1    0 1 0 2 0 1 0 | .     0  5
+ bananas$  4   bananas$  0  0   0  0    0 1 0 2 0 1 0 | n     2  5
+ anas$     5   nanas$ba  2  -   1  0    1 1 0 2 0 1 0 | .     0  7
+ nas$      6   nas$bana  4  4   2  1    2 1 0 2 0 1 0 | s     1  7
+ s$        7   s$banana  6  -   3  2    3 1 0 2 0 1 0 | .     0  8
+----------------------------------------------------------------------
 
- Suffixes             BWM     
- given by SA        /------\           rank  rankall
- = BWM up to $  row F      L  SA CAS LF R    a b . n . s .
- $              0   $bananas  7  7   7  0    0 0 0 0 0 1 0
- ananas$        1   ananas$b  1  1   4  0    0 1 0 0 0 1 0
- anas$          2   anas$ban  3  -   5  0    0 1 0 1 0 1 0
- as$            3   as$banan  5  -   6  1    0 1 0 2 0 1 0
- bananas$       4   bananas$  0  0   0  0    0 1 0 2 0 1 0
- anas$          5   nanas$ba  2  -   1  0    1 1 0 2 0 1 0
- nas$           6   nas$bana  4  4   2  1    2 1 0 2 0 1 0
- s$             7   s$banana  6  -   3  2    3 1 0 2 0 1 0
+__Rank of L[i] / R array__: Is a building block used in the following.  Given row i, determine rank of character at L[i] = BWT[i].  Solution 1)  Precompute in O(n) time an auxillary array R of size n, where R[i] stores the rank of character L[i]. Rank queries of character L[i] can then be answered in O(1) time by simply returning R[i]. Solution 2) When storing BWT with a <<wavelet_tree>>, rank queries cost O(log Σ) time.
 
-          # smaller
-          letters
- {$,Σ}    O
- $     1  0
- a     3  1
- b     1  4
- .     0  5
- n     2  5
- .     0  7
- s     1  7
- .     0  8
-------------------------------------------------------------
+__Number of letters smaller than a given letter l / C (counting) array__: Is a building block optionally used in the following. Given a letter l ∈ {$, Σ}, return the number of letters in T which are smaller than l.  Can be precomputed in O(n) time by scanning L, storing the result in an array C of size |Σ|+1.  L is trivially defined by C and vice versa, see also LF mapping.
 
-Note that when looking at F and L, the ranks of a given character c are the in the same order.  The following illustrates this.  In  F, all the charcters c are consecutive.  Regarding these rows, the suffixes BWM[...,1:n-1] (0-based index) are in lexicographical order.  The corresponding suffixes BWM[...,0:n-1] are also in lexicographical order.  Thus in the same order.  Thus regarding these rows, BWM[...,0] = F[...] and BWM[...,n-1] = L[...] are also in same order. *to-do*
+__LF Mapping__: Is an essential building block used in most Burrows-Wheeler Transformation related algorithms.  Given row i, determine row j such that F[j] has same rank as L[i].  In less formal words, given L[i], find L[j] that preceeds L[i] in T.  j = LF(i) = C[L[i]] + R[i].  Rational: As described in greater detail further below in this chapter, the ranks of characters remain in the same order, within F and L.  Note that F is given by sorting L, or in other words, by sorting the letters occuring in T and then repeat each letter by its occurence count.  Row j is then given by the row where character L[i] first appears in F (possibly precomputed in array C), plus the rank of character L[i] (possibly precomputed in array R).
+
+__(Re)construct T from BWT__: Start with empty result string T and in first row i = 0. Iteratively do n times (or until LF(i)=$): Prepend L[i] to T. i = LF(i).
+
+__Construct BWT from T__: The naive way to construct BWT is via the Burrows-Wheeler Matrix (BWM), as described in the beginning of this chapter.  However that is obviously wastefull both in space and in time.  Better is to first construct the suffix array SA in O(n) time, see there, and the construct the BWT using the SA in O(n) time, see following point.
+
+__Construct BWT from SA__: For i=0 to n(inclusive): if SA[i]>0 then BWT[i] = T[SA[i]-1], else BWT[i] = $. Obviously O(n) time.
+
+__Construct SA from BWT__: Basically the same as constructing T from BWT. Start with j = |T| and in first row i = 0. Iteratively do n times (or until LF(i)=$): SA[i] = j--. i = LF(i).
+
+__Compute SA[i] from BWT / compressed SA (CAS)__: Say we actually would like the complete SA array, but don't want to spend the space of a complete SA array.  A use case is the <<fm_index>>.  Store only every k-th SA element, counted in the order the LF mapping, starting at row 0, does access rows.  When quering SA[i], set j = i, do LF Mapping, modifying j, until SA[j] is a precomputed one.  Return SA[j] + number of LF Mapping steps. *to-do* more details what data structue to use. It can't be just a trivial array, due to the erratic jumping of the LF Mapping.
+
+__Search pattern P in T__: See <<fm_index>>
+
+When looking at F and L, the ranks of a given character c are the in the same order.  The following illustrates this.  In  F, all the charcters c are consecutive.  Regarding these rows, the suffixes BWM[...,1:n-1] (0-based index) are in lexicographical order.  The corresponding suffixes BWM[...,0:n-1] are also in lexicographical order.  Thus in the same order.  Thus regarding these rows, BWM[...,0] = F[...] and BWM[...,n-1] = L[...] are also in same order.
 
 --------------------------------------------------
   F         L
@@ -2771,29 +2816,11 @@ Note that when looking at F and L, the ranks of a given character c are the in t
   ..
 --------------------------------------------------
 
-__Rank of L[i] / R array__: Is a building block used in the following.  Given row i, determine rank of character at L[i] = BWT[i].  Solution 1)  Precompute in O(n) time an auxillary array R of size n, where R[i] stores the rank of character L[i]. Rank queries of character L[i] can then be answered in O(1) time by simply returning R[i]. Solution 2) When storing BWT with a <<wavelet_tree>>, rank queries cost O(log Σ) time.
-
-__Number of smaller letters / O array__: Is a building block optionally used in the following. For each letter c ∈ {$, Σ}, return the number of smaller letters in T.  Can be precomputed in O(n) time, storing the result in an array O of size |Σ|+1.  L is defined by O and vice versa, see also LF mapping.
-
-__LF Mapping__: Is a building block used in the following.  Given row i, determine row j such that F[j] precedes L[i] in T.  j = LF(i) = O[L[i]] + R[i].  Rational: As descibed above, the ranks of characters remain in the same order, within F and L.  Note that F is given by sorting L, or in other words, by sorting the letters occuring in T and then repeat each letter by its occurence count.  Row j is then given by the row where character L[i] first appears in F (possibly precomputed in array O), plus the rank of character L[i] (possibly precomputed in array R).
-
-__(Re)construct T from BWT__: Start with empty result string T and in first row i = 0. Iteratively do n times (or until LF(i)=$): Prepend L[i] to T. i = LF(i).
-
-__Construct BWT from T__: The naive way to construct BWT is via the Burrows-Wheeler Matrix (BWM), as described in the beginning of this chapter.  However that is obviously wastefull both in space and in time.  Better is to first construct the suffix array SA in O(n) time, see there, and the construct the BWT using the SA in O(n) time, see following point.
-
-__Construct BWT from SA__: For i=0 to n(inclusive): if SA[i]>0 then BWT[i] = T[SA[i]-1], else BWT[i] = $. Obviously O(n) time.
-
-__Construct SA from BWT__: Basically the same as constructing T from BWT. Start with j = |T| and in first row i = 0. Iteratively do n times (or until LF(i)=$): SA[i] = j--. i = LF(i).
-
-__Compute SA[i] only given BWT__: *to-do*
-
-__Search pattern P in T__: In the following, the range of selected rows defines the matches found so far. Initially, select the range of rows where F starts with the last character of P.  I.e. lastchar=P[|P|-1], from=O[lastchar], toincl=O[lastchar+1]-1.  Set i = |P| - 2. Iteratively narrow the range of rows by taking one more character of P into account, progressing from P's back towards P's front.  In each iteration, within the current range of rows, determine first and last occurence of P[i].  Let firstrow and lastrow denote that result.  We define later how to actually do that.  Via LF mapping, that defines the new range of rows: from=LF(firstrow), toincl=LF(lastrow).  The algorithm stops when the range of rows becomes empty, which means P does not occur in T.  Otherwise, after iterating over all P's characters, the remaining range of rows denotes the found matches.  The SA array tells us where in T to find each match.  *to-do* 1) profs idea that we overall there multiple rank select ops, and only one rank op remains at the end. maybe that only works with wavelet trees? 2) What's the difference now to use SA for indexing? After all, at the end we need SA also. 3) Merg with chapter FM Index.
-
 Applications:
 
 - compression:  In the BWT, there's a tendency that runs of the same character are suprisingly long.  Thus run-length encoding works well to compress the BWT string.  An intuition why this runs are suprisingly long may give the following example:  Consider columb F, the rows starting with n, which naturally will be consecutive.  The corresponding cells in L will be the consecutive charactes in BWT.  Since in the English language, only a few characters can come before an n with a relative high chance, there will be long runs of these characters in the BWT. (*to-do* so BWT plus run-length encoding only works well for human languages, but not for abritrary languages in the computer science sense?)
 
-- indexing, notably using little space: *to-do* see FM Index
+- indexing: See <<fm_index>>
 
 Trivia: Named after the inventors Michael Burrows and David Wheeler.
 
@@ -2806,13 +2833,41 @@ References:
 
 - Parallel Lightweight Wavelet Tree, Suffix Array and FM-Index Construction: https://people.csail.mit.edu/jshun/dcc2016.pdf
 
+- https://www.youtube.com/watch?v=kvVGj5V65io
+
+- https://people.unipmn.it/manzini/papers/focs00draft.pdf[Opportunistic Data Structures with Applications]
+
+- FM-Indexes and Backwards Search: http://alexbowe.com/fm-index/
+
+- A tutorial on Burrows-Wheeler indexing methods: http://blog.thegrandlocus.com/2016/07/a-tutorial-on-burrows-wheeler-indexing-methods
+
+- A Wavelet Tree Based FM-Index for Biological Sequences in SeqAn: http://www.mi.fu-berlin.de/wiki/pub/ABI/FMIndexThesis/FMIndex.pdf
+
 
 [[fm_index]]
 === FM Index
 
-Based on <<burrows_wheeler_transformation>>.
+Based on the <<burrows_wheeler_transformation>>.
 
-*to-do*
+We will iteretively try to match a longer suffix of P, starting at the P's last character.  In the following, the range of selected rows represent the matches found so far.  Initially, select the range of rows where F starts with the last character of P.  I.e. Plastchar = P[|P|-1], rangefirst = C[Plastchar], rangelast = C[Plastchar+1]-1.  Set i = |P| - 2.  Iteratively, decreasing i, narrow the range of rows by taking one more character P[i] of P into account, progressing from P's back towards P's front.  In each iteration, within the current range of rows, determine the first and last occurence of P[i] in L.  Via LF mapping, that defines the new range of rows.  The algorithm stops when the range of rows becomes empty, which means P does not occur in T.  Otherwise, after iterating over all P's characters, the remaining range of rows represents the found matches.
+
+The step of narrowing down the range of selected rows was above described as `find first/last occurence of P[i] within selected range of rows' plus `LF Mapping of that result'.  These two steps can at the core be combined in a single range query.  Recall that the core step of the LF Mapping is to find the rank of a given character at a given position in L.  E.g. regarding narrowing down the the beginninig of the range of rows, the overall task is to find the rank of P[i] just before the range of rows, and then add one, to get the rank of the first occurence of P[i] within or after the range of rows.
+
+How to narrow down range of selected row in each iteration:
+
+__Brute force__:  Scan L twice within range of selected rows to find first and last occurence of P[i].  Then do an LF Mapping with the result.  rangefirst = LF(firstoccurence), rangelast = LF(lastoccurence).
+
+__Rankall matrix__: Precompute a |T| ⨯ |Σ| matrix denoted rankall, where rankall[i,c] delivers the rank of character c at row / position i in L.  rangefirst = C[P[i]] + rankall[rangefirst-i, P[i]], rangelast = C[P[i]] + rankall[rangelast, P[i]]. O(1) query time and O(T·Σ) auxillary space.
+
+__Sparse/compressed rankall matrix__: As before, but only store every k-th row.
+
+__Store L=BWT as wavelet tree__: As with the rankall matrix, only that now the wavelet tree can directly answer the same range queries as the rankall matrix did.  O(log Σ) query time and O(1) auxillary space.
+
+At the end, when having found a range of rows representing found matches, how to report the corresponding indexes into T:
+
+_Suffix array SA_: The suffix array SA directly contains the required indexes.  Report SA[firstrow] through SA[lastrow].
+
+_Sparse/compressed suffix array CSA_: Store only every k-th element of the suffix array. Via LF Mapping the suffix array elements inbetween can be recomputed.  See <<burrows_wheeler_transformation>>.
 
 Variations: Alphabet friendly FM Index (combines with wavelet trees): https://pdfs.semanticscholar.org/59a7/f5aae26198f41053a392b25a5ecc66485d13.pdf
 
@@ -2820,13 +2875,7 @@ Trivia: The name stands for Full-text index in Minute space.  This is according 
 
 References:
 
-- See also <<burrows_wheeler_transformation>>
-
-- https://www.youtube.com/watch?v=kvVGj5V65io
-
-- https://people.unipmn.it/manzini/papers/focs00draft.pdf[Opportunistic Data Structures with Applications]
-
-- http://www.cs.jhu.edu/~langmea/resources/bwt_fm.pdf
+- See <<burrows_wheeler_transformation>>
 
 
 === Succinct strings
