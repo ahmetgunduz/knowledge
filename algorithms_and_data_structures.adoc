@@ -2722,9 +2722,9 @@ To query a string P in T:
 
 _trivial binary search_: O(P log n) query time.  Do a binary search of P in T via SA.
 
-_LPC + binary search_: O(P + log n) query time.  As a preprocessing step, construct longest common prefix (LCP) array which stores the length of two consecutive suffixes.  LCP[i] = |i-th suffix| - |(i-1)-th suffix|. With the information provided by the LCP array, individual comparisons during the binary search can compare fewer characters than the trivial binary search.  Algorithm exists which construct LCP together with SA in O(n) time.
+_LPC + binary search_: O(P + log n) query time.  As a preprocessing step, construct longest common prefix (LCP) array which stores the length of two consecutive suffixes.  LCP[i] = |i-th suffix| - |(i-1)-th suffix|. With the information provided by the LCP array, individual comparisons during the binary search can compare fewer characters than the trivial binary search.  Algorithms exists which construct LCP together with SA in O(n) time.
 
-Constructible in O(n log n) time with simple methods and O(n) time with complex methods.
+Construcing SA: Constructible in O(n log n) time with simple methods and O(n) time with complex methods.
 
 
 === (Suffix) tray
@@ -2795,8 +2795,7 @@ __Construct BWT from SA__: For i=0 to n(inclusive): if SA[i]>0 then BWT[i] = T[S
 
 __Construct SA from BWT__: Basically the same as constructing T from BWT. Start with j = |T| and in first row i = 0. Iteratively do n times (or until LF(i)=$): SA[i] = j--. i = LF(i).
 
-[[compressed_suffix_array]]
-__Compute SA[i] from BWT / compressed SA (CAS)__: Say we actually would like the complete SA array, but don't want to spend the space of a complete SA array.  A use case is the <<fm_index>>.  Store only every k-th SA element, counted in the order the LF mapping, starting at row 0, does access rows.  When quering SA[i], set j = i, do LF Mapping, modifying j, until SA[j] is a precomputed one.  Return SA[j] + number of LF Mapping steps. Is used within certain variations of <<fm_index>>. *to-do* more details what data structue to use. It can't be just a trivial array, due to the erratic jumping of the LF Mapping.
+__Compute SA[i] from BWT / compressed SA (CAS)__: Say we actually would like the complete SA array, but don't want to spend the space of a complete SA array.  We only store parts of the complete SA array, and compute the missing parts on the fly.  See <<fm_index>>.
 
 __Search pattern P in T__: See <<fm_index>>
 
@@ -2853,7 +2852,7 @@ A space efficient index into a string T.  Based on the <<burrows_wheeler_transfo
 
 Search pattern P in T:  We will iteratively try to match a longer suffix of P, starting at P's last character.  In the following, the range of selected rows in L = BWT represent the matches found so far.  Initially, select the range of rows where F starts with the last character of P.  I.e. Plastchar = P[|P|-1], rangefirst = C[Plastchar], rangelast = C[Plastchar+1]-1.  Set i = |P| - 2.  Iteratively, decreasing i, narrow the range of rows by taking one more character P[i] of P into account, progressing from P's back towards P's front.  In each iteration, within the current range of rows, determine the first and last occurence of P[i] in L.  Via LF mapping, that defines the new range of rows.  The algorithm stops when the range of rows becomes empty, which means P does not occur in T.  Otherwise, after iterating over all P's characters, the remaining range of rows represents the found matches.
 
-The step of narrowing down the range of selected rows was above described as `find first/last occurence of P[i] within selected range of rows' plus `LF Mapping of that result'.  These two steps can at the core be combined in a single range query.  Recall that the core step of the LF Mapping is to find the rank of a given character at a given position in L.  Thus regarding narrowing down the the beginninig of the range of rows, the overall task is to find the rank of P[i] at the row just before the range of rows, and then add one, to get the rank of the first occurence of P[i] within or after the range of rows.  Analogous for the end of the range of rows.
+The step of narrowing down the range of selected rows was described above as `find first/last occurence of P[i] within selected range of rows' plus `LF Mapping of that result'.  These two steps can at the core be combined in a single range query.  Recall that the core step of the LF Mapping is to find the rank of a given character at a given position in L.  Thus regarding narrowing down the the beginning of the range of rows, the overall task is to find the rank of P[i] at the row just before the range of rows, and then add one, to get the rank of the first occurence of P[i] within or after the range of rows.  Analogous for the end of the range of rows.
 
 How to narrow down range of selected row in each iteration:
 
@@ -2861,15 +2860,23 @@ __Brute force__:  Scan L within range of selected rows to find first and last oc
 
 __Rankall matrix__: Precompute a |T| ⨯ |Σ| matrix denoted rankall, where rankall[i,c] delivers the rank of character c at row / position i in L.  rangefirst = C[P[i]] + rankall[rangefirst-i, P[i]], rangelast = C[P[i]] + rankall[rangelast, P[i]]. O(1) query time and O(T·Σ) auxillary space.  The chapter <<burrows_wheeler_transformation>> has an illustratory example of the rankall matrix.
 
-__Sparse/compressed rankall matrix__: As before, but only store every k-th row.  What is missing can be recomputed on the fly analgous to the brute force scheme explained above.
+__Sparse/compressed rankall matrix__: As before, but only store every k-th row.  What is missing can be recomputed on the fly analogous to the brute force scheme explained above.
+
+__(Succinct) bitvectors__: Precompute |Σ| bit vectors, one for each character c ∈ Σ, each of length |T|.  Say L[i] is the character `x', then the bit vector of character `x' has a 1 at position i, and all other bit vectors have a 0 at position i.  Using the bitvector for letter P[i], we can do rank queries analogous the the rankall matrix variant.  See <<bit_vector>> for succinct implementations with fast rank queries.
 
 __Store L=BWT as wavelet tree__: As with the rankall matrix, only that now the wavelet tree can directly answer the same range queries as the rankall matrix did.  O(log Σ) query time and O(1) auxillary space.
 
 At the end, when having found a range of rows representing found matches, how to report the corresponding indexes into T:
 
-_Suffix array SA_: The suffix array SA directly contains the required indexes.  Report SA[firstrow] through SA[lastrow].
+_Brute force_: As the compresses suffix array variant described below, with a constant amount of entries in CSA.  Note that the last SA entry, in order of the FM Mapping sequence, is always 0.  So when storing no CAS entries at all, i.e. pure brute force, L[i]'s index within T is equal to the number of LF Mapping steps it takes us to reach the end of the LF Mapping sequence.
 
-_Sparse/compressed suffix array CSA_: Store only every k-th element of the suffix array. Via LF Mapping the suffix array elements inbetween can be recomputed.  See <<compressed_suffix_array>>.
+_Suffix array SA_: The suffix array SA directly contains the required indexes.  Report SA[rangefirst] through SA[rangelast].
+
+_Compressed suffix array CSA, variant 1_: Store only every k-th SA element, counted in the order the LF mapping does access rows, starting at L[0].  When quering SA[i], set j = i, repeatedly do LF Mapping j = LF(j), until SA[j] is a precomputed one.  Return SA[j] + number of LF Mapping steps.  Use a bitvector of lenght |T| to denote whether SA[i] is part of CAS or not.  If it is, access CAS[rank(i)].  Alternatively, use a hash table to store the CAS elements, using i as key.
+
+_Compressed suffix array CSA, variant 3_: Insert an special letter at every k-th position in T at the very beginning, before any other processing step.  In the BWM and thus in F, there will be a consecutive range of rows denoting T's suffixes starting with that special letter.  The CSA is now the part of SA intersecting with that range of rows.
+
+__Compressed suffix array CSA, variant ... __: *to-do* better understand the common variants
 
 Variations: Alphabet friendly FM Index (combines with wavelet trees): https://pdfs.semanticscholar.org/59a7/f5aae26198f41053a392b25a5ecc66485d13.pdf
 
