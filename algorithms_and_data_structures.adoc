@@ -292,8 +292,9 @@ References:
 [[master_theorem]]
 ==== Master theorem for solving recurrences
 
-Is a way of obtaining the asymptotic bounds of the running time T(n) of an algorithm when being given T(n) as a recurence relation.  Say the running time T(n) of an divide and conquer algorithm can be described recursively in the form ``T(n) = aT(n/b) + f(n)'', where a is the number of created subproblems and n/b is the size of each subproblem.  In other words, there are a subproblems which are solved recursively, each in time T(n/b). f(n) is the cost outside the recursive calls which includes dividing the problem and combining the results of the subproblems. In the following, ε is some constant greater than zero, c is a constant smaller than one, and p(n) = n^log~b~ a^.
+Is a way of obtaining the asymptotic bounds of the running time T(n) of an algorithm when being given T(n) as a recurence relation.  Say the running time T(n) of an divide and conquer algorithm can be described recursively in the form ``T(n) = aT(n/b) + f(n)'', where a is the number of created subproblems and n/b is the size of each subproblem.  In other words, there are a subproblems which are solved recursively, each in time T(n/b). f(n) is the cost outside the recursive calls which includes dividing the problem and combining the results of the subproblems. In the following, ε is some constant greater than zero, c is a constant smaller than one, and p(n) = n^log~b~ a^.  The cases are numbered the same way as done by the book CLRS, which seems to be the canonical way of refering to the different cases.
 
+[cols="1,4,4,6,6"]
 |=====
 |Case |Asymptotic bounds of T(n) |Condition for f(n) |Informal condition for f(n) |Additional conditions
 |1    |Θ(p(n))                   |O(p(n)·n^-ε^)      |Grows polynomically slower than p(n)      |
