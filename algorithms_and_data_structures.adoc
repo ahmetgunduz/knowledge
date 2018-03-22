@@ -2702,12 +2702,12 @@ Applications:
 
 A suffix array is an index into a string T.
 
-Given a string T of length n over alphabet Σ.  The last character of T is a special character $ ∉ Σ which is lexicographically smaller than all characters in Σ.  Conceptually sort all suffixes of T.  The cell SA[i] in the suffix array SA provides the position within T at which the i-th suffix starts.
+Given a string T of length n over alphabet Σ.  The last character of T is a special character $ ∉ Σ which is lexicographically smaller than all characters in Σ.  Conceptually sort all suffixes of T.  The cell SA[i] in the suffix array SA provides the position within T at which the i-th sorted suffix starts.
 
 --------------------------------------------------
-      sorted                 0123456
-      suffixes           T = banana$
- row  of T       SA LCP
+      sorted             T = banana$    
+      suffixes               0123456
+ row  of T       SA LCP      
   0   $          7  -
   1   a$         5  0
   2   ana$       3  1
@@ -2759,8 +2759,8 @@ Let the Burrows-Wheeler Matrix BWM(T) (or simply BWT) be the matrix constructed 
 Example of many things introduced in the following:
 
 ----------------------------------------------------------------------
-    01234567    BWM: Burrows-Wheeler Matrix
-T = bananas$    F: first column of BWM, L: last column of BWM,
+ T = bananas$   BWM: Burrows-Wheeler Matrix
+     01234567   F: first column of BWM, L: last column of BWM,
                 BWT = L: Burrows wheeler transform of T,
                 SA: suffix array, CAS: compressed suffix array,
                 LF: LF Mapping, C[l]: number of letters smaller
@@ -2794,7 +2794,8 @@ __Construct BWT from SA__: For i=0 to n(inclusive): if SA[i]>0 then BWT[i] = T[S
 
 __Construct SA from BWT__: Basically the same as constructing T from BWT. Start with j = |T| and in first row i = 0. Iteratively do n times (or until LF(i)=$): SA[i] = j--. i = LF(i).
 
-__Compute SA[i] from BWT / compressed SA (CAS)__: Say we actually would like the complete SA array, but don't want to spend the space of a complete SA array.  A use case is the <<fm_index>>.  Store only every k-th SA element, counted in the order the LF mapping, starting at row 0, does access rows.  When quering SA[i], set j = i, do LF Mapping, modifying j, until SA[j] is a precomputed one.  Return SA[j] + number of LF Mapping steps. *to-do* more details what data structue to use. It can't be just a trivial array, due to the erratic jumping of the LF Mapping.
+[[compressed_suffix_array]]
+__Compute SA[i] from BWT / compressed SA (CAS)__: Say we actually would like the complete SA array, but don't want to spend the space of a complete SA array.  A use case is the <<fm_index>>.  Store only every k-th SA element, counted in the order the LF mapping, starting at row 0, does access rows.  When quering SA[i], set j = i, do LF Mapping, modifying j, until SA[j] is a precomputed one.  Return SA[j] + number of LF Mapping steps. Is used within certain variations of <<fm_index>>. *to-do* more details what data structue to use. It can't be just a trivial array, due to the erratic jumping of the LF Mapping.
 
 __Search pattern P in T__: See <<fm_index>>
 
@@ -2847,19 +2848,19 @@ References:
 [[fm_index]]
 === FM Index
 
-Based on the <<burrows_wheeler_transformation>>.
+A space efficient index into a string T.  Based on the <<burrows_wheeler_transformation>>.  At the core consists only of the Burrows-Wheeler Transform (BWT), i.e. the last column L of the Burrows-Wheeler transformation matrix (BWM).  Usually also the suffix array SA or a variation of it is stored.  The BWT string might be stored using special data structures, e.g. wavelet trees, and optionally auxillary data structers might be used to improve query time.
 
-We will iteretively try to match a longer suffix of P, starting at the P's last character.  In the following, the range of selected rows represent the matches found so far.  Initially, select the range of rows where F starts with the last character of P.  I.e. Plastchar = P[|P|-1], rangefirst = C[Plastchar], rangelast = C[Plastchar+1]-1.  Set i = |P| - 2.  Iteratively, decreasing i, narrow the range of rows by taking one more character P[i] of P into account, progressing from P's back towards P's front.  In each iteration, within the current range of rows, determine the first and last occurence of P[i] in L.  Via LF mapping, that defines the new range of rows.  The algorithm stops when the range of rows becomes empty, which means P does not occur in T.  Otherwise, after iterating over all P's characters, the remaining range of rows represents the found matches.
+Search pattern P in T:  We will iteratively try to match a longer suffix of P, starting at P's last character.  In the following, the range of selected rows in L = BWT represent the matches found so far.  Initially, select the range of rows where F starts with the last character of P.  I.e. Plastchar = P[|P|-1], rangefirst = C[Plastchar], rangelast = C[Plastchar+1]-1.  Set i = |P| - 2.  Iteratively, decreasing i, narrow the range of rows by taking one more character P[i] of P into account, progressing from P's back towards P's front.  In each iteration, within the current range of rows, determine the first and last occurence of P[i] in L.  Via LF mapping, that defines the new range of rows.  The algorithm stops when the range of rows becomes empty, which means P does not occur in T.  Otherwise, after iterating over all P's characters, the remaining range of rows represents the found matches.
 
-The step of narrowing down the range of selected rows was above described as `find first/last occurence of P[i] within selected range of rows' plus `LF Mapping of that result'.  These two steps can at the core be combined in a single range query.  Recall that the core step of the LF Mapping is to find the rank of a given character at a given position in L.  E.g. regarding narrowing down the the beginninig of the range of rows, the overall task is to find the rank of P[i] just before the range of rows, and then add one, to get the rank of the first occurence of P[i] within or after the range of rows.
+The step of narrowing down the range of selected rows was above described as `find first/last occurence of P[i] within selected range of rows' plus `LF Mapping of that result'.  These two steps can at the core be combined in a single range query.  Recall that the core step of the LF Mapping is to find the rank of a given character at a given position in L.  Thus regarding narrowing down the the beginninig of the range of rows, the overall task is to find the rank of P[i] at the row just before the range of rows, and then add one, to get the rank of the first occurence of P[i] within or after the range of rows.  Analogous for the end of the range of rows.
 
 How to narrow down range of selected row in each iteration:
 
-__Brute force__:  Scan L twice within range of selected rows to find first and last occurence of P[i].  Then do an LF Mapping with the result.  rangefirst = LF(firstoccurence), rangelast = LF(lastoccurence).
+__Brute force__:  Scan L within range of selected rows to find first and last occurence of P[i].  Once from the beginning and once from the end.  Then do an LF Mapping with each of the two results.  rangefirst = LF(firstoccurence), rangelast = LF(lastoccurence).
 
-__Rankall matrix__: Precompute a |T| ⨯ |Σ| matrix denoted rankall, where rankall[i,c] delivers the rank of character c at row / position i in L.  rangefirst = C[P[i]] + rankall[rangefirst-i, P[i]], rangelast = C[P[i]] + rankall[rangelast, P[i]]. O(1) query time and O(T·Σ) auxillary space.
+__Rankall matrix__: Precompute a |T| ⨯ |Σ| matrix denoted rankall, where rankall[i,c] delivers the rank of character c at row / position i in L.  rangefirst = C[P[i]] + rankall[rangefirst-i, P[i]], rangelast = C[P[i]] + rankall[rangelast, P[i]]. O(1) query time and O(T·Σ) auxillary space.  The chapter <<burrows_wheeler_transformation>> has an illustratory example of the rankall matrix.
 
-__Sparse/compressed rankall matrix__: As before, but only store every k-th row.
+__Sparse/compressed rankall matrix__: As before, but only store every k-th row.  What is missing can be recomputed on the fly analgous to the brute force scheme explained above.
 
 __Store L=BWT as wavelet tree__: As with the rankall matrix, only that now the wavelet tree can directly answer the same range queries as the rankall matrix did.  O(log Σ) query time and O(1) auxillary space.
 
@@ -2867,7 +2868,7 @@ At the end, when having found a range of rows representing found matches, how to
 
 _Suffix array SA_: The suffix array SA directly contains the required indexes.  Report SA[firstrow] through SA[lastrow].
 
-_Sparse/compressed suffix array CSA_: Store only every k-th element of the suffix array. Via LF Mapping the suffix array elements inbetween can be recomputed.  See <<burrows_wheeler_transformation>>.
+_Sparse/compressed suffix array CSA_: Store only every k-th element of the suffix array. Via LF Mapping the suffix array elements inbetween can be recomputed.  See <<compressed_suffix_array>>.
 
 Variations: Alphabet friendly FM Index (combines with wavelet trees): https://pdfs.semanticscholar.org/59a7/f5aae26198f41053a392b25a5ecc66485d13.pdf
 
