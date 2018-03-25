@@ -2287,10 +2287,15 @@ Functionally equivalent to quickselect, but runs faster in practice on average.
 == Ranges / Intervals
 
 
+Refrences:
+
+- Comparison between rage tree, interval tree, segment tree and binary indexed tree: https://cs.stackexchange.com/questions/13874/what-data-structure-would-efficiently-store-integer-ranges?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+
+
 [[range_tree]]
 === Range tree
 
-See also <<interval_tree>> and <<segment_tree>>.
+See also <<interval_tree>>, <<segment_tree>> and <<binary_indexed_tree>>.
 
 *to-do*.
 
@@ -2310,7 +2315,7 @@ References:
 [[interval_tree]]
 === Interval tree / interval search tree
 
-Augments a binary search tree to store a set of intervals.  In case a BBST is augmented, each operation can be done in O(log n) time.  See also <<range_tree>> and <<segment_tree>>.
+Augments a binary search tree to store a set of intervals.  In case a BBST is augmented, each operation can be done in O(log n) time.  See also <<range_tree>>, <<segment_tree>> and <<binary_indexed_tree>>.
 
 The value stored in each node is a pair representing the interval [low, high] and max, which is the maximum high value stored in this subtree.  The low value of the pair is used as key to maintain order in the BST.
 
@@ -2331,13 +2336,15 @@ References:
 [[segment_tree]]
 === Segment tree
 
-See also <<interval_tree>> and <<range_tree>>.
+See also <<interval_tree>>, <<range_tree>> and <<binary_indexed_tree>>.
 
 *to-do*
 
 
 [[binary_indexed_tree]]
 === Binary indexed tree
+
+ee also <<interval_tree>>, <<range_tree>> and <<segment tree>>.
 
 *to-do*
 
@@ -2386,9 +2393,9 @@ References:
 [[range_query]]
 === Range query (data structures)
 
-A _range query_ consists of preprocessing some input data into a data structure to efficiently answer any number of queries on any subset of the input.  Don't confuse range query with <<orthogonal_range_search>>.
+A _range query_ consists of preprocessing some input data into a data structure to efficiently answer any number of queries on any subset of the input.  For example a query might be we might want to compute the sum of all elements in a given range, or the find the minimum element in a given range.  Don't confuse range query with <<orthogonal_range_search>>.
 
-A q~f~(A, i, j) range query on an array A of n elements, takes two array indices i and j, an implied function f whose domain is a set of array elements, and outputs f(A[i,j]) = f(a~i~, ..., a~j~). E.g. the function f might be the sum over all input arguments.
+More formally, a q~f~(A, i, j) range query on an array A of n elements takes two array indices i and j, an implied function f whose domain is a set of array elements, and outputs f(A[i,j]) = f(a~i~, ..., a~j~).
 
 Solutions:
 
@@ -2396,11 +2403,13 @@ Solutions:
 
 - *to-do* order statistics in a range: https://en.wikipedia.org/wiki/Range_query_(data_structures)#Median
 
+- In case the function f asks for the minimum, i.e. the range minimum query (RMQ) problem, see <<RMQ>>.
+
 
 [[RMQ]]
 === Range minimim query (RMQ)
 
-Given an array A, find the index k of the minimum element in a given range [i,j].  It can be shown that the two problems RMQ and <<LCA_problem,LCA>> are equivalent, see <<RMQ_LCA_equivalence>>.
+A specific <<range_query>>.  Given an array A, find the index k of the minimum element in a given range [i,j].  It can be shown that the two problems RMQ and <<LCA_problem,LCA>> are equivalent, see <<RMQ_LCA_equivalence>>.
 
 The RMQ LCA equivalence even allows us to do a _universe reduction_ of RMQ problems.  The original RMQ problem may involve numbers of any size, or even any orderable things. By converting the original RMQ to a LCA, and then back to RMQ with node depths as labels, the new RMQ only deals with integers < n.  Of course we can alternatively even reduce to ± 1 RMQ instead, see <<reduce_LCA_to_pm1_RMQ,reduce LCA to ± 1 RMQ>>.
 
