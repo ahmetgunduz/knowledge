@@ -1228,6 +1228,8 @@ References:
 [[range_tree]]
 === Range tree
 
+See also <<interval_tree>> and <<segment_tree>>.
+
 *to-do*.
 
 Applications:
@@ -1246,7 +1248,7 @@ References:
 [[interval_tree]]
 === Interval tree / interval search tree
 
-Augments a binary search tree to store a set of intervals.  In case a BBST is augmented, each operation can be done in O(log n) time.
+Augments a binary search tree to store a set of intervals.  In case a BBST is augmented, each operation can be done in O(log n) time.  See also <<range_tree>> and <<segment_tree>>.
 
 The value stored in each node is a pair representing the interval [low, high] and max, which is the maximum high value stored in this subtree.  The low value of the pair is used as key to maintain order in the BST.
 
@@ -1262,6 +1264,20 @@ References:
 - https://www.youtube.com/watch?v=E-9b8k7JK6I&index=4&list=PLe-ggMe31CTdBsRIw0hXln0hilRs-DqAx
 
 - https://www.geeksforgeeks.org/interval-tree/
+
+
+[[segment_tree]]
+=== Segment tree
+
+See also <<interval_tree>> and <<range_tree>>.
+
+*to-do*
+
+
+[[binary_indexed_tree]]
+=== Binary indexed tree
+
+*to-do*
 
 
 === Splay tree
@@ -1356,7 +1372,7 @@ References:
 
 Stores a bitvector of length m (the universe) containing n ones (the stored set).  Answers rank and select queries in O(1) and provides implicit compression resulting in B(n, m) + o(n) + O(log log m) bits space.
 
-Divide bitvector in p = m/u blocks of length u = 1/2 log~2~ m.  Each block stores the number of ones it contains, denoted n~i~ where i is the block's index.  So each block is u bits long and contains n~i~ ones.  Given a block, there are C(u n~i~) possible ways to arrange its n~i~ ones.  So for each block, we only have to store which of the C(u n~i~) variants equals the block's content, denoted O~i~.  So each block stores the tuple (n~i~, O~i~).  Note that O~i~is variable width, given by B~i~ = ⌈log~2~C(u, n~i~)⌉ bits.  Note that rank will add a bit more data.
+Divide bitvector in p = m/u blocks of length u = 1/2 log~2~ m.  Each block stores the number of ones it contains, denoted n~i~ where i is the block's index.  So each block is u bits long and contains n~i~ ones.  Given a block, there are C(u n~i~) possible ways to arrange its n~i~ ones.  So for each block, we only have to store which of the C(u n~i~) variants equals the block's content, denoted O~i~.  So each block at the core stores the tuple (n~i~, O~i~).  Note that O~i~ is variable width, given by B~i~ = ⌈log~2~C(u, n~i~)⌉ bits.
 
 Note the sequence of O~i~s is what we want to store at the core.  That contains the entropy.  Everything else is auxillary house keeping.
 
@@ -1928,7 +1944,7 @@ double polynomial(double x, const vector<double>& coefficients) {
 [[hash_function]]
 === Hash function (aka hash)
 
-A _hash function_ h(k, m) maps a key k to an integer in the range [0, m).  m is an integer m ≤ k.  In the case of a hash table, m is the size of the underlying array.  U is the universe of possible keys.  K is the set of keys actually used.  In the case of an hash table, contrast this with the keys currently stored in the table; K then is the set of keys ever stored in the table during it's life time.  Typically k is an integer of the size of a CPU word.  _Prehashing_ is used to map any originial key of any size to [0,k).
+A _hash function_ h(k, m) maps a key k ∈ U to [m].  In the case of a hash table, m is the size of the underlying array.  U is the universe of possible keys.  Typically m ≪ |U|.  K is the set of keys actually used.  In the case of an hash table, contrast this with the keys currently stored in the table; K then is the set of keys ever stored in the table during it's life time.  Typically k is an integer of the size of a CPU word.  _Prehashing_ is used to map any originial key of any size to [k].
 
 A _good hash function_:
 
@@ -2049,6 +2065,8 @@ Pr(⋀~1≤i≤k~h(x~i~)=t~i~) = O(1/m^k^) for a randomly chosen h ∈ H and for
 k=2: In other words, if h is choosen at random from H, then the random variables h(x) and h(y) are uniformly distributed and pairwise indpendent.
 
 k-wise independent gives stronger guarantees than universal.  Even pairwise independent (k=2) is already stronger than universal.  Every totally random hash function is k-wise independent for any k.
+
+k-wise independent basically means "it behaves like a perfect hash function, if you only feed it k inputs" or "it behaves like a perfect hash function, as far as correlations between up to k different hash values appear".
 
 *to-do*: understand the following
 
@@ -2701,21 +2719,22 @@ Applications:
 [[suffix_array]]
 === Suffix array (SA)
 
-A suffix array is an index into a string T.
+A _suffix array_ (or _SA_) is an index into a string T.
 
 Given a string T of length n over alphabet Σ.  The last character of T is a special character $ ∉ Σ which is lexicographically smaller than all characters in Σ.  Conceptually sort all suffixes of T.  The cell SA[i] in the suffix array SA provides the position within T at which the i-th sorted suffix starts.
 
 --------------------------------------------------
-      sorted             T = banana$    
-      suffixes               0123456
+      sorted             T = bananas$
+      suffixes               01234567
  row  of T       SA LCP      
-  0   $          7  -
-  1   a$         5  0
-  2   ana$       3  1
-  3   anana$     1  3
-  4   banana$    0  0
-  5   na$        4  0
-  6   nana$      2  2
+  0   $           7  -
+  1   as$         5  0
+  2   anas$       3  1
+  3   ananas$     1  3
+  4   bananas$    0  0
+  5   nas$        4  0
+  6   nanas$      2  2
+  7   s$          6  0
 --------------------------------------------------
 
 To query a string P in T:
@@ -2753,7 +2772,7 @@ Is an implementation of the ADT <<associative_array>>.
 
 The _Burrows-Wheeler Transform_ (BWT) is a way of reversibly permuting the characters of a string T into another string BWT(T).  It has applications in indexing, see FM Index, and in compression.
 
-Given a string T of length n over alphabet Σ.  The last character of T is a special character $ ∉ Σ which is lexicographically smaller than all characters in Σ.  The Burrow-Wheeler Transform of T, denoted BWT(T) (or just BWT) is a string of length n.  It's construction is described in the following.  Note that the BWT is the only thing which is actually stored.  The other introduced things are just for illustration.
+Given a string T of length n over alphabet Σ.  The last character of T is a special character $ ∉ Σ which is lexicographically smaller than all characters in Σ.  The Burrow-Wheeler Transform of T, denoted BWT(T) (or just BWT) is a string of length n.  It's construction is described in the following.  Note that L = BWT is the only thing which is actually stored at the core.  The other introduced things are either just for illustration or auxillary data structures to improve query times.
 
 Let the Burrows-Wheeler Matrix BWM(T) (or simply BWT) be the matrix constructed by first taking every possible rotation of T, row by row, and then sort it by row.  The first column is denoted F, the last column is denoted L.  The Burrows-Wheeler Transform, denoted BWT(T) (or simply BWT), is given by L.  Note that given a row i, L[i] precedes F[i] in T.  Also note that the suffixes given by the <<suffix_array>> SA(T) is exactly the same as the content of the BWM up to inclusive the $.
 
@@ -2789,7 +2808,7 @@ __LF Mapping__: Is an essential building block used in most Burrows-Wheeler Tran
 
 __(Re)construct T from BWT__: Start with empty result string T and in first row i = 0. Iteratively do n times (or until LF(i)=$): Prepend L[i] to T. i = LF(i).
 
-__Construct BWT from T__: The naive way to construct BWT is via the Burrows-Wheeler Matrix (BWM), as described in the beginning of this chapter.  However that is obviously wastefull both in space and in time.  Better is to first construct the suffix array SA in O(n) time, see there, and the construct the BWT using the SA in O(n) time, see following point.
+__Construct BWT from T__: The naive way to construct BWT is via the Burrows-Wheeler Matrix (BWM), as described in the beginning of this chapter.  However that is obviously wastefull both in space and in time.  Better is to first construct the suffix array SA in O(n) time, see there, and then construct the BWT using the SA in O(n) time, see following point.
 
 __Construct BWT from SA__: For i=0 to n(inclusive): if SA[i]>0 then BWT[i] = T[SA[i]-1], else BWT[i] = $. Obviously O(n) time.
 
@@ -2850,7 +2869,7 @@ References:
 
 A space efficient index into a string T.  Based on the <<burrows_wheeler_transformation>>.  At the core consists only of the Burrows-Wheeler Transform (BWT), i.e. the last column L of the Burrows-Wheeler transformation matrix (BWM).  Usually also the suffix array SA or a variation of it is stored.  The BWT string might be stored using special data structures, e.g. wavelet trees, and optionally auxillary data structers might be used to improve query time.
 
-Search pattern P in T:  We will iteratively try to match a longer suffix of P, starting at P's last character.  In the following, the range of selected rows in L = BWT represent the matches found so far.  Initially, select the range of rows where F starts with the last character of P.  I.e. Plastchar = P[|P|-1], rangefirst = C[Plastchar], rangelast = C[Plastchar+1]-1.  Set i = |P| - 2.  Iteratively, decreasing i, narrow the range of rows by taking one more character P[i] of P into account, progressing from P's back towards P's front.  In each iteration, within the current range of rows, determine the first and last occurence of P[i] in L.  Via LF mapping, that defines the new range of rows.  The algorithm stops when the range of rows becomes empty, which means P does not occur in T.  Otherwise, after iterating over all P's characters, the remaining range of rows represents the found matches.
+Search pattern P in T:  We will iteratively try to match a longer suffix of P, starting at P's last character.  In the following, the range of selected rows in L = BWT represent the matches found so far.  Initially, select all rows, set i = |P| - 1.  Iteratively, decreasing i, narrow the range of rows by taking one more character P[i] of P into account, progressing from P's back towards P's front.  In each iteration, within the current range of rows, determine the first and last occurence of P[i] in L.  Via LF mapping, that defines the new range of rows.  The algorithm stops when the range of rows becomes empty, which means P does not occur in T.  Otherwise, after iterating over all P's characters, the remaining range of rows represents the found matches.
 
 The step of narrowing down the range of selected rows was described above as `find first/last occurence of P[i] within selected range of rows' plus `LF Mapping of that result'.  These two steps can at the core be combined in a single range query.  Recall that the core step of the LF Mapping is to find the rank of a given character at a given position in L.  Thus regarding narrowing down the the beginning of the range of rows, the overall task is to find the rank of P[i] at the row just before the range of rows, and then add one, to get the rank of the first occurence of P[i] within or after the range of rows.  Analogous for the end of the range of rows.
 
@@ -2874,7 +2893,7 @@ _Suffix array SA_: The suffix array SA directly contains the required indexes.  
 
 _Compressed suffix array CSA, variant 1_: Store only every k-th SA element, counted in the order the LF mapping does access rows, starting at L[0].  When quering SA[i], set j = i, repeatedly do LF Mapping j = LF(j), until SA[j] is a precomputed one.  Return SA[j] + number of LF Mapping steps.  Use a bitvector of lenght |T| to denote whether SA[i] is part of CAS or not.  If it is, access CAS[rank(i)].  Alternatively, use a hash table to store the CAS elements, using i as key.
 
-_Compressed suffix array CSA, variant 3_: Insert an special letter at every k-th position in T at the very beginning, before any other processing step.  In the BWM and thus in F, there will be a consecutive range of rows denoting T's suffixes starting with that special letter.  The CSA is now the part of SA intersecting with that range of rows.
+_Compressed suffix array CSA, variant 2_: insert an special letter at every k-th position in T at the very beginning, before any other processing step.  In the BWM and thus in F, there will be a consecutive range of rows denoting T's suffixes starting with that special letter.  The CSA is now the part of SA intersecting with that range of rows.
 
 __Compressed suffix array CSA, variant ... __: *to-do* better understand the common variants
 
