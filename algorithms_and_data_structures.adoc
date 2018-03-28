@@ -2331,9 +2331,21 @@ Functionally equivalent to quickselect, but runs faster in practice on average.
 == Ranges / Intervals
 
 
+=== Comparison between DSs involving intervals
+
+Given n entities (intervals or points, depending on data structure).  A query finds k results.
+
+|=====
+|                     | query        | preprocessing | space      | notes
+| range tree          | O(k + log n) | O(n log n)    | O(n)       | Stores points. Optimzed for finding points contained in a given interval.
+| interval tree       | O(k + log n) | O(n log n)    | O(n)       | Stores intervals. Optimized for finding intervals overlapping with a given interval.
+| segment tree        | O(k + log n) | O(n log n)    | O(n log n) | Stores intervals. Optimized for finding intervals containing a given point.
+| binary indexed tree | O(lg n)      | O(n log n)    | O(n)       | *to-do*
+|=====
+
 Refrences:
 
-- Comparison between rage tree, interval tree, segment tree and binary indexed tree: https://cs.stackexchange.com/questions/13874/what-data-structure-would-efficiently-store-integer-ranges?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+- Comparison between rage tree, interval tree, segment tree and binary indexed tree: https://stackoverflow.com/questions/17466218/what-are-the-differences-between-segment-trees-interval-trees-binary-indexed-t?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 
 
 [[range_tree]]
@@ -2361,11 +2373,11 @@ References:
 
 Augments a binary search tree to store a set of intervals.  In case a BBST is augmented, each operation can be done in O(log n) time.  See also <<range_tree>>, <<segment_tree>> and <<binary_indexed_tree>>.
 
-The value stored in each node is a pair representing the interval [low, high] and max, which is the maximum high value stored in this subtree.  The low value of the pair is used as key to maintain order in the BST.
+Each node stores the values low, high and max, where low is used as the BST's search key. The pair (low, high) represents an interal, thus semantically each node stores an interval. Max is the maximal high value stored in the node's subtree.
 
 insertion(low, high): First do a regular insertion.  Recall, low is key.  After insertion, for all nodes on the way from the new node to the root, update max.
 
-search(low, high):  Searches any one interval in the tree that intersects the given interval. If interval in node intersects given interval, return node.  Else if there's no left subtree or max endpoint in root of left subtree is less than low, descend right.  Else descend left.
+search(low, high):  Searches any one interval in the tree that intersects the given interval. If interval in node intersects given interval, return node.  Else if there's no left subtree or max endpoint in root of left subtree is less than low, descend right.  Otherwise descend left.
 
 
 Applications: <<rectangle_intersection>>
@@ -2409,7 +2421,7 @@ See also <<interval_tree>>, <<range_tree>> and <<binary_indexed_tree>>.
 [[binary_indexed_tree]]
 === Binary indexed tree
 
-ee also <<interval_tree>>, <<range_tree>> and <<segment tree>>.
+See also <<interval_tree>>, <<range_tree>> and <<segment tree>>.
 
 *to-do*
 
