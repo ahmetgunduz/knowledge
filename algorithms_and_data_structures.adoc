@@ -1319,7 +1319,7 @@ References:
 [[bit_vector]]
 === Bit vector
 
-Often used for <<succinct_data_structures>>.
+Often used as building block for <<succinct_data_structures>>.
 
 Solutions:
 
@@ -2834,6 +2834,12 @@ _LPC + binary search_: O(P + log n) query time.  As a preprocessing step, constr
 
 Construcing SA: Constructible in O(n log n) time with simple methods and O(n) time with complex methods.
 
+References:
+
+- Linear-Time Longest-Common-Prefix
+Computation in Suffix Arrays and Its
+Applications: http://alumni.cs.ucr.edu/~rakthant/cs234/01_KLAAP_Linear%20time%20LCP.PDF
+
 
 === (Suffix) tray
 
@@ -3000,7 +3006,7 @@ References:
 [[wavelet_tree]]
 ==== Wavelet tree
 
-Succinctly store a string. The data structure is based on a tree, each node stores a <<bit_vector>>.  Here Σ denotes the alphabet of characters actually used in the string, opposed to the universe of known characters.  Supports rank~c~(i) in O(log Σ), and fast select~c~(i) queries.
+Succinctly stores a string. The data structure is based on a tree, each node stores a <<bit_vector>>.  Here Σ denotes the alphabet of characters actually used in the string, opposed to the universe of known characters.  Supports rank~c~(i) in O(log Σ), and fast select~c~(i) queries.
 
 ------------------------------------------------------------
 Note that only the bitvectors are stored in a node.
@@ -3016,7 +3022,7 @@ The characters are written down just for illustration.
           01000      110    10              w = 111
 ------------------------------------------------------------
 
-The tree is recursively defined as follows: Take the alphabet actually used in the current string.  The root node naturally takes the input string.  Devide that alphabet into two equally sized parts.  Encode the string using a bit vector, one bit per character.  0 for a characters in the first part of the alphabet, 1 for characters in the second part.  Pass on a string composed of only the characters in the first part to a newly created left child.  Analogously for the right child.  The recursion stops if a child's alphabet would consist of only a single letter.
+The tree is recursively defined as follows, starting with the original string T: Given a string, create a node for it. Compute the alphabet actually used in the string.  Devide that alphabet into two equally sized parts.  Encode the string into a bit vector, one bit per character.  0 for a characters in the first part of the alphabet, 1 for characters in the second part.  Pass on a string composed of only the characters in the first part to a newly created left child.  Analogously for the right child.  The recursion stops if a child's alphabet would consist of only a single letter.
 
 The bit vector is the essence of what is stored per tree node. From this high level point of view, we don't care about further details of how to practically store the tree.  See <<bit_vector>> for variants of storing bit vectors.
 
