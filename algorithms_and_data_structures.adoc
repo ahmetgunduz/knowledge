@@ -2380,9 +2380,30 @@ References:
 [[segment_tree]]
 === Segment tree
 
-See also <<interval_tree>>, <<range_tree>> and <<binary_indexed_tree>>.
+Stores intervals. Optimized for finding intervals containing a given point.
 
-*to-do*
+Given a set V of n intervals, stores the end points of these intervals in the leaves of a complete (*to-do* ?) BST. Each node v stores the min and max among all the leaves in its subtree, which represents an interval I~v~ = [min, max] (*to-do* proper distinction open/closed). Also each node v stores a subset of V according to the folling rules: an interval I ∈ V is stored iff I contains I~v~ completely and I does not contain I~parent(v)~. Followingly each interval I ∈ V might be associated to more than one node, but never to more than O(log n) nodes.
+
+--------------------------------------------------
+              o
+          /      \
+     o2              o1
+   /   \           /  \
+  o     o1,3      o3    o
+ / \   / \       / \   / \
+ o o   o o       o o   o o
+   1               4   4
+   |---------------------|1
+ |-------|2
+       |-----------|3
+                 |-----|4
+--------------------------------------------------
+
+query(point:p): Return all intervals which contain given point p.  Search p in BST (*to-do* what to do if p is not one of the end points?). For each node on the search path, return the intervals I ∈ V which are associated with that node.
+
+*to-do* 1) Often stored similarily to a heap? 2) there's this more general definition of a segment tree. In Prof's view it's a class like BBST, the boundaries between BBST and segment tries being vague.
+
+See also <<interval_tree>>, <<range_tree>> and <<binary_indexed_tree>>.
 
 
 [[binary_indexed_tree]]
