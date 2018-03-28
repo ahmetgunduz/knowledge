@@ -839,6 +839,27 @@ References:
 - MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
 
 
+[[persistent_data_structures]]
+=== Persistent data structures
+
+A _persistent data structure_ is a data structure that always preserves the previous version of itself when it is modified.  A data structure is _partially persistent_ if all versions can be accessed but only the newest version can be modified. The data structure is _fully persistent_ if every version can be both accessed and modified. If there is also a meld (aka merge) operation that can create a new version from two previous versions, the data structure is called _confluently persistent_.  In a _functionally persistent_ data structure, regarding the <<pointer_machine_model>>, all nodes are immutable, i.e. nodes can only be added.  Beside that further restriction,  it's the same as a confluently persistent data structure.  A data structure that is not persistent is called _ephemeral_.  Each of the succeeding levels of paristence is stronger than the preceding one: Functional implies confluent, confluent implies full, full implies partiel.
+
+
+--------------------------------------------------
+  o <--- o <--- o <--- o  : partially persistent : sequence
+
+  o <--- o <--- o         : fully persistent : tree
+  ^      ^
+  |      o
+  o <-o
+
+  o <--- o <---- o        : confluently persistent: DAG
+  ^      ^
+  |      |
+  o <--- o
+--------------------------------------------------
+
+
 [[array]]
 === Array data structure (aka table)
 Fixed size, +Θ(1)+ time for indexing, with a very low constant factor.  ++O(0)++ wasted space.  Due to the fixed size, elements cannot be added / removed.
