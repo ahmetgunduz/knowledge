@@ -19,6 +19,29 @@ With high probability (w.h.p.):: An event E occurs with high probability if Pr[E
 
 Output-sensitive algorithm:: An algorithm whose running time depends on the size of the output, in addition to, or instead of, the size of the input.
 
+
+== Models of computation
+
+A _model of computation_ formally scpecifies what a computer can do and what each operation costs (e.g. in terms of running time or space).
+
+*to-do* turing macine, state automaton
+
+[[RAM_model]]
+=== Random Access Machine (RAM) model
+
+Random access memory modeled by huge array of words. The size of the array is left undefined.  A _word_ is defined has having w bits.  Since a word should be able to be used as an index into the big array, we usually want w ≥ log~2~(arraysize). The CPU has O(1) _registers_, each being able to store one word.  In O(1) time, we can _load_ O(1) words from that array into registers, do O(1) _computations_ with registers, and _store_ O(1) words from registers into that array.
+
+Note that RAM is also used to mean Random Access Memory, which is not quite the same thing.
+
+
+[[pointer_machine_model]]
+=== Pointer machine model
+
+We have dynamically allocated _objects_ (or _nodes_).  An object has O(1) fields.  A _field_ is either a word or pointer.  A _pointer_ (or _reference_) either refers to an object or has the special value null (or nil).  All the elementary things you can do with pointers / words cost O(1) time.
+
+The pointer machine model is weaker than the RAM model, i.e. it can be implemented on RAM.
+
+
 == Asymptotic notations / big O notation
 
 In computer science, big O notation is used to classify algorithms by how they respond to changes in input size, typically regarding running time and space (memory/disk/...).
