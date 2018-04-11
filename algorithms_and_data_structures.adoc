@@ -2612,19 +2612,34 @@ References:
 [[2D_dominance_query]]
 ==== 2D dominance query
 
-The 2D y ⨯ z range query is defined by (-∞,b~2~)⨯(-∞,b~3~). This chapter is currently written with the intend to provide a building block for the <<3d_range_tree>> special case, so it uses a notion tailored towards this use case.
+Given n points in 2D (yz coordinates), report all points which lie in a given axis parallel orthogonal box (-∞,b~y~)⨯(-∞,b~z~).   In other words, report all points dominated by a given query point q = (b~y~, b~z~).  This chapter is currently written with the intend to provide a building block for the <<3d_range_tree>> special case, so it uses a notion tailored towards this use case.
 
-Is equivalent to stabbing n upward vertical rays, starting at the n points, with one lefward horizontal ray, starting at query point.
+Figurative interpretation of a 2D dominance query: A 2D dominance query is equivalent to stabbing n upward vertical rays, starting at the n points, with one rightward horizontal ray, coming from the left from -∞ and ending at the query point q.
 
-Preprocess: Walk on the horizontal ray from left to right.
+--------------------------------------------------
 
-Decompose plane: From each of the n points, draw a horizontal line in both directions until it hits a vertical ray.  We now have a set of rectangular faces.  At the very left, there are at most n such lines, i.e. n+1 such faces. Via binary search find the face stabed by the vertical ray of the query point. The point inducing its right border is in the answer. Go one face to the left at the height of the vertical ray (*to-do* how exactly, see also following optimization). The point inducing the right border is in the anser. Iteratively hop rightwards from face to face being stabed by vertical ray.
+ -∞
+ |      ^    ^    ^    ^    ^    o n given points,
+ |      |    |    |    |    |      inducing upward rays
+ +----->o--->+    |    |    |    q query point
+ |      |    |    |    |    |      inducing stabbing
+ |      +--->o--->+    |    |      horizontal ray
+ |      |         |    +--->o    o,+ represent elements
+ ===================>q |             in the arrays
+ |      |         |    |     
+ |      +-------->o--->+
+ |      |              |       ^z
+ +----->o------------->+       |
+ |                     |       |
+ +-------------------->o       +-->y
+ |
+--------------------------------------------------
 
-*to-do* better explain that we're really only do fractional cascading, with the ony difference, that when cascading/promoting, some arrays might be skipped, and we cross link directly with arrays further down.
+Preprocessing: Each upward ray is represented by an array. Rays sharing the same y coordinate produce one array.  The arrays as a whole are in sequence, in the order of their y coordinate.  There is also an array representing a vertical ray at y = -∞.  Each array initially contains as elements only the z coordinate of the points inducing the array's respective ray.  The array representing y = -∞ is initially empty.  The problem of stabbing the upward rays with a horizontal ray induced by the query point q is now equivalent to find q.z in all arrays ≤ q.y.  <<fractional_cascading>> solves this kind of problem.  The promoting / cascading works as follows:  Starting at the right, each point p in the array is promoted to the next array to the left whose ray starts below p.z, and likewise to the next array to the right.  Then do the ususual cascading, starting at the right, cascade every (1/α)-th element into the next leftward array.  Only that as before the `next' leftward array is the one whose rays starts below the respective z coordinate.  Each array element also has a pointer to the previous (smaller z) point in the array.  That way when we arrive in an array during a fractional cascading query, we can report all points below the arrival element.
 
-Optimization by fractional cascading: The goal is do bound the number of faces to the right of a vertical ray, so we can hop leftwards in O(1), because we only have to examine a constant number of candidate faces.  Given a vertical ray, looking at horizontal lines ending at it comming from the right, extend every other of those horizongtal lines once more to the left until they hit something. As in fractional cascading, this only costs O(n) additional space.
+Query: As in fractional cascading. Every time when arriving in an array, use the pointer which each element has which points to the previous (smaller z) point and report all points found that way.
 
-Analysis: O(k) query time.
+Analysis: O(k) query time and O(n) space, see fractional cascading.  Note that due to the way we cross linked the arrays, the arrays corresponding to rays starting above q.z are not looked at in any way, i.e. they cost us O(0), which is exactly what we need.
 
 References:
 
