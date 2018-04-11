@@ -695,7 +695,7 @@ A _search tree_ is a specialized tree used store a set of compareable keys or ke
 
 A _binary search tree_ (_BST_) is a specialized search tree based on a binary tree and where each node satisfies the _binary-search-tree property_: Each node has a comparable key, and the key of the left child, if child present, is smaller than the node's key, and the key of the right child, if child present, is larger than the node's key.  Be n the number of stored elements.  The height h of the tree is h >= log n.  The expected height is h = log n for a randomly built binary tree.
 
-Some implementations store data only in the leaves.  Each non-leaf node stores the min and max of the leaves in its subtrees; alternatively, we can store the max value in the left subtree if we want to store just one value per node.  An advantage is that keys are closer together, i.e. there are less page misses.  An advantage of storing values also in internal nodes is that often accessed keys are found in less hops.
+Some implementations store _data only in the leaves_.  Each non-leaf node stores the min and max of the leaves in its subtrees; alternatively, we can store the max value in the left subtree if we want to store just one value per node.  An advantage is that keys are closer together, i.e. there are less page misses.  An advantage of storing values also in internal nodes is that often accessed keys are found in less hops.
 
 On _duplicates_: 1) disallow them 2) Adapt the binary search tree property such that either the left or the right subtree includes equal keys. 3) Each node can store a collection of elements with that key, or store the number of times the key occures.
 
@@ -4983,6 +4983,8 @@ https://www.youtube.com/playlist?list=PLxc4gS-_A5VDvP_9W8JJ04zk6m1qTolzG
 - https://www.cs.usfca.edu/~galles/visualization/
 
 - https://www.quora.com/What-are-the-very-basic-algorithms-that-every-Computer-Science-student-must-be-aware-of
+
+- Drexel University course CS 521 Data Structures & Algorithms I, Ariel Stolerman's personal notes: http://www.stolerman.net/drexel.html, in particular the ``Notes for Tests'' summaries.
 
 - Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič. The Introduction chapter serves as good summary of computer science fundamentals.
 
