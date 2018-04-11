@@ -2236,9 +2236,42 @@ Similar to introsort, a variant is to start with interpolation search.  But when
 *to-do*
 
 
-==== Fractional cascading
+[[fractional_cascading]]
+==== Fractional cascading on a sequence of sorted arrays
 
-*to-do*
+After preprocessing (*to-do* time) using O(n~all~) auxillary space, solves the problem of finding an element x in k sorted arrays in O(log n~max~ + k) time, where n~max~ is the size of the longest array and n~all~ is the cumulative size of all arrays.
+
+Fractional cascading on a sequence of sorted arrays is a special case of <<fractional_cascading_on_a_graph>>.  Once this special case is understood, it's easy to also understand the general case.
+
+Preprocess: Let L~1~, ..., L~k~ denote the k given sorted arrays.  Create k new sorted arrays Lʹ~1~, ..., Lʹ~k~ as follows.  Let Lʹ~k~ be equal to L~k~. Lʹ~i~ is the sorted union of L~i~ plus every (1/α)-th element of Lʹ~i+1~, where α>1 is some constant.  E.g if α = 2, then every other element of Lʹ~i+1~ is promoted into Lʹ~i~.  Any element in a Lʹ knows wheter it's a promoted or non-promoted.  A promoted element in Lʹ~i~ and the corresponding original element in Lʹ~i+1~ are cross linked with pointers.  A promoted element in Lʹ~i~ additionally has each a pointer to its previous and next non-promoted element in Lʹ~i~.  A non-promoted element in Lʹ~i~ has each a pointer to its previous and next promoted element in Lʹ~i~, and to its corresponding element in L~i~.
+
+Query: Start with binary search of x in Lʹ~1~.  Ignoring details, using the pointers and promoted / non-promoted flag: If we found an element Lʹ~1~ and it is non-promoted, we know the corresponding element in L~1~, otherwise we know the gap in L~1~ where it would fit into. Still hand waving, using the information we have, we find the element or gap in Lʹ~2~ matching x. Recurse.
+
+*to-do*: why do we need pointers from Lʹ~i+1~ to Lʹ~i~?
+
+Space analysis: |Lʹ~i~| = |L~i~| + 1/α·|Lʹ~i+1~|, i.e. a geometric series, i.e. O(n~all~).
+
+Time analysis: The costly part is the initial binary search in Lʹ~1~ costing O(log |Lʹ~1~|) = O(log n~max~). From then on its only k hops costing O(1) each. Overall it's thus O(log n~max~ + k).
+
+Trivia: The name stems from that you take a fraction of Lʹ~i~ and cascade / promote it to Lʹ~i-1~.
+
+References:
+
+- See <<fractional_cascading_on_a_graph>>
+
+
+[[fractional_cascading_on_a_graph]]
+==== Fractional cascading on a graph of sorted arrays
+
+As an introduction into fractional cascading, first read the special case of <<fractional_cascading>> on a sequence of sorted arrays.  Here in the general case we have a directed graph, where each vertex is an sorted array, and each edge is labeled with a range.  As a restriction we require locally bounded in-degree, meaning for each vertex v and for each possible query x, the number of v's incoming edges labeled with a range containing x is bounded by a constant.  In the special case the graph was a linked list (i.e. sequence), and the edges were not labeled with ranges.
+
+Proprecess: Analogous to the sequence case. For each vertex, cascade / promote every (1/α)-th element along all outgoing edges.  Cycles don't really hurt, since the number of elements doing a full cycle decays quickly enough, if α depends on the constant which bounds the in-degree.
+
+Query: Given x and a start vertex v. Analogous to the sequence case.  Do a binary search of x in vertex v.  This is the expensive step taking O(log |v|) time. Then traverse the graph in any order, only traversing edges where x falls into the range associated with the edge.  The way we walk from v to its adjacent vertex vʹ, we can find x in vʹ in O(1), analogous to the sequence case.  We do kʹ traversals costing O(1) each, where kʹ is the number of nodes in the tree implicitely build by walking the graph by the previously stated rules.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 3, Geometric Structures I: https://www.youtube.com/watch?v=NMxLL3D5qd8&t=0s&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&index=3[video] 54:43, https://courses.csail.mit.edu/6.851/spring12/scribe/lec3.pdf[lecture notes]
 
 
 ==== Fibonacci search
