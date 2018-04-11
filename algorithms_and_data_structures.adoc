@@ -84,7 +84,21 @@ _amortized time_: `amortized +O(f)+' for operation o: In a sequence of length L 
 
 An event E occures _with high probability_ (or __w.h.p.__ or _WHP_) if Pr(E) ≥ 1 - n^-c^ for any constant c.  I.e. we can make Pr(E) as close to 1 as we want by making c large enough.
 
-Common functions ordered after order of growth: c, log~c~(n), n^1/c^, n, n·log~c~(n), n^c^, c^n^, n!, n^n^.
+Common functions ordered after order of growth:
+
+|=====
+| n^-c^          | c > 1
+| 1/n            |
+| c              | no restrictions
+| log~c~(n)      | c > 1
+| n^1/c^         | c > 1
+| n              |
+| n·log~c~(n)    | c > 1
+| n^c^           | c > 1
+| c^n^           | c > 1
+| n!             | Stirling's formula: n! ~ √(2πn)*(n/e)^n^
+| n^n^           |
+|=====
 
 [[big_oh_cheat_sheets]]
 Big oh cheat sheets:
