@@ -1052,7 +1052,7 @@ Etymology: A portmanteau of tree and heap.
 [[avl_tree]]
 === AVL Tree
 
-A data structure implementing the binary search tree ADT.  Is a balanced binary search tree; balance is ensured by the following invariant: For each node n: |height(n.left) - heigh(n.right)| ≤ 1.  From that (indirectly) follows: tree height ≈ 1.44 lg(|V|).
+A data structure implementing the binary search tree ADT.  Is a height balanced binary search tree; balance is ensured by the following invariant: For each node n: |height(n.left) - heigh(n.right)| ≤ 1.  From that (indirectly) follows: tree height ≈ 1.44 lg(|V|).
 
 Time complexity: O(log n) average and worst case for all basic operations (search, insert, delete).
 
@@ -1074,7 +1074,7 @@ Etymology: Named after its two inventors Adelson-Velsky and Landis.
 [[red_black_tree]]
 === Red-Black tree
 
-A data structure implementing the binary search tree ADT.  Is a balanced binary search tree; Balance is preserved by attributing each node with one of two colors (typically called `red' and `black') in a way that satisfies red-black properties (see below).  Tree height ≈ 2*lg(|V|).
+A data structure implementing the binary search tree ADT.  Is a height balanced binary search tree; Balance is preserved by attributing each node with one of two colors (typically called `red' and `black') in a way that satisfies red-black properties (see below).  Tree height ≈ 2*lg(|V|).
 
 red-black properties:
 
@@ -1093,11 +1093,21 @@ References:
 - MIT 6.046J, Lecture 10 Red-black Trees, Rotations, Insertions, Deletions: https://www.youtube.com/watch?v=O3hI9FdxFOM&t=158s
 
 
-=== Weight-balanced tree (WBT)
+[[bb_alpha]]
+=== Weight-balanced tree (WBT) / BB[α] tree
 
-The size difference between the left and the right subtree is kept within some constant factor.
+Recall that AVL trees and red black trees are height balanced.  BB[α] trees are weight balanced, i.e. the size of left and right subtree is roughly the same.  What `size' exactly means can be defined any `reasonable' way, say number of nodes in subtree or number of leaves in subtree.
 
-*to-do*
+The size difference between the left and the right subtree is kept within some constant factor. Formally, given a node v:
+
+size(left(v)) ≥ α·size(v) +
+size(right(v)) ≥ α·size(v)
+
+If α = 1/2, then the result is a perfectly balanced tree. This is generally considered bad since it is a too hard constraint.  If α is smaller, balancedness decreases, and also number of times balancdness needs to be reestablished decreases.
+
+If after an insertion or deletion the above condition becomes violated, balancdness needs to be restablished by rotations.
+
+Weight balanced implies height balanced.  A weight balanced tree will have height ≤ log~1/α~ n.
 
 
 [[b_tree]]
