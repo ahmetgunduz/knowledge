@@ -3274,20 +3274,100 @@ MC-AIgorithmen?" and then explains. But I didn't got the final conclusion. 2) Pr
 [[online_algorithms]]
 == Online algorithms
 
-An online algorithm is called _c-competitive_ if it there is a constant c for which the following conditition holds:
+An _online problem_ ∏(𝓘, 𝓞, sol, quality goal) consists of a set 𝓘 of instances I, a set 𝓞 of solutions, and three functions sol quality and goal.  An _instance_ (or _input_) I ∈ 𝓘 is a sequence of _requests_ I = (x~1~, ..., x~n~).  A _solution_ (or _output_) O ∈ 𝓞 is a sequence of _answers_ O = (y~1~, ..., y~n~).  We assign the i-th request x~i~ and the i-th anser y~i~ the _timestep_ T~i~.  An online algorithm is called _c-competitive_ if there is a constant c for which the following conditition holds:
 
-online minimum problem: cost(ALG(I)) ≤ c·cost(OPT(I)) + α for all inputs I +
-online maximum problem: gain(OPT(I)) ≤ c·gain(ALG(I)) + α for all inputs I
+online minimum problem: cost(ALG(I)) ≤ c·cost(OPT(I)) + α  ∀ I ∈ 𝓘 +
+online maximum problem: gain(OPT(I)) ≤ c·gain(ALG(I)) + α  ∀ I ∈ 𝓘
 
-Unfortunately there is no commonly used term for the factor c~I~ given a specific input I; even the notation c~I~ is made up by me.  I make up the term `_input dependent cost factor_'.  Also there is no term for the constant c.  c is an upper bound on the input dependend cost factor.  If there is no such c, the algorithm is called _not competitive_. The smallest c ≥ 1 for which that inequality is true is the _competitive ratio_ of the algorithm.  In other words the competitive ratio is the minimum of the set of valid constants c (i.e. the minimum of the set of upper bounds on the input dependend cost factor).  It is the supremum of the input dependend cost factor.  Intuitively it's a measurement of the online algorithm's quality.  If the constant offset α is zero, the algorithm is said to be _strictly competitive_.  An online algorithm is called _strongly c competitive_ if its competitive ratio equals the best that is achievable by any online algorithm for the problem at hand.  If c=1 and α=0, the online algorithm is _optimal_.  If looking only at a specific input I, we speak of the _performance_ of ALG on I. (*to-do* 1) term for c for a given instance I. 2) performance's meaning is inversed, no? a larger c is bad, but a larger performance is good.  3) not competitive). The notion of having the constant α allows an algorithm to achieve a good c for long inputs I, even if that algorithm is bad for short inputs I.  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
+Unfortunately there is no commonly used term for the factor c~I~ = cost(ALG(I)) / cost(OPT(I)) given a specific input I; even the notation c~I~ is made up by me.  I make up the term `__input dependent cost factor__'.  Also there is no term for the constant c; note that `cost factor' is not an official term.  c is an upper bound on the set of input dependend cost factors.  If there is no such c, the algorithm is called _not competitive_. The smallest c ≥ 1 for which that inequality is true is the _competitive ratio_ of the algorithm.  In other words the competitive ratio is the minimum of the set of valid constants c (i.e. the minimum of the set of upper bounds on the input dependend cost factor).  It is the supremum of the input dependend cost factor.  Intuitively it's a measurement of the online algorithm's quality.  If the constant offset α is zero, the algorithm is said to be _strictly competitive_.  An online algorithm is called _strongly c competitive_ if its competitive ratio equals the best that is achievable by any online algorithm for the problem at hand.  If c=1 and α=0, the online algorithm is _optimal_.  If looking only at a specific input I, we speak of the _performance_ of ALG on I. (*to-do* 1) term for c for a given instance I. 2) performance's meaning is inversed, no? a larger c is bad, but a larger performance is good.  3) not competitive). The notion of having the constant α allows an algorithm to achieve a good c for long inputs I, even if that algorithm is bad for short inputs I.  Thus if 𝓘 is finite, then any online algorithm is 1-competitive, since we can set α to the worst possible cost cost(ALG(I)).  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
+
+Single online algorithm:
+--------------------------------------------------
+⋯----------------------------------------> cost factor
+  set of cI's                
+  = set of lower bounds     set of c's
+    for competitive ratio   = set of upper bounds on the set of cI's
+ |------------------------| = set of upper bounds on the competitive ratio
+                          |----------⋯⋯
+                          | 
+                competitive ratio   
+                = minimum of set of c's
+                = supremum of set of cI's
+--------------------------------------------------
+
+Set of online algorithms:
+------------------------------------------------------------
+⋯----------------------------------------> cost factor
+  union of sets of cI's
+ |-----------------|
+           union of sets of c's
+          |--------------------⋯⋯
+           set of competitive ratios
+           !! Note that many sets of online algorithms allow !!
+           !! for arbitrarily stupid/bad competitive ratios  !!
+          |--------|
+ ---------|
+ set of lower bounds for set of competitive ratios
+ = no algorithm of family is better than this-competitive
+ = no algorithm of family has better competitive ratio
+          |
+ tight lower bound for set of competitive ratios
+ = best competitive ratio of the given set of online algorithms
+                   |------⋯⋯
+                    set of upper bounds for set of competitive ratios
+                    = all algorithms of family are this-competitive
+                    = no algorithm of family has worse competitive ratio
+                   |
+               tight upper bound for set of competitive ratios
+               = worst competitive ratio of the given set of online algorithms
+------------------------------------------------------------
+
+*to-do* After this rather complicated proof that there is an online algorithm with advice for paging being strictly ... competitive, Prof said that proofing lower bounds is hard because we have to show
+that something does not exits. I understand that if we try to find a lower bound for the set of competitive ratios.
+- He also said showing upper bounds is easy
+because we only have to provide an example: I don't see that in my diagram
+above.
+- E.g. lecture script p. 57, last sentence sais that Satz 4.4, which shows
+an competitive ratio, is an upper bound. An upper bound on what set? The best competitive ratio among all algorithms?
+- E.g. book p 121 says "...in fact, the best-known upper bound is also just that
+  of 2k − 1". Again, bound on what set? The best competive ratio The best competitive ratio among all k-server algorithms?
 
 When analysing online algorthms, we're almost always only interested in the worst case, almost never in the average case.  We want to provide guarantees.
+
+Defining the _configuration_ of an online algorithm formally is tricky, so we will stay on an intuitive level.  It's the basic logical state of the algorithm.  E.g. for paging it's the content of the cache, for k-server its the positions of the servers.
 
 References:
 
 - Book ``An Introduction to Online Computation: Determinism, Randomization, Advice'', D. Komm.
 
 - Extracts of the above book as lectures notes: http://www.ita.inf.ethz.ch/~dkomm/lectures/online-algorithmen.pdf
+
+
+=== Potential Functions and Amortized Costs
+
+In what follows, we consider online minimization problems and deterministic online algorithms. Let C~ALG~ denote the set of configurations of an online algorithm ALG, and likewise C~OPT~ for an arbitrary optimal algorithm OPT.  A _potential function_ Φ is a function Φ : C~ALG~ ⨯ C~OPT~ → ℝ or Φ : 𝓘 → ℝ.  We call Φ(x~i~) the _potential_ of ALG in time step T~i~.  Figuratively, the potential is a bank account with which we can pay future high costs.  We call cost(ALG(x~i~)) the _real cost_ of ALG on request x~i~.  The _amortized cost_ of ALG on request x~i~ is defined as amcost(ALG(x~i~)) = cost(ALG(x~i~)) + Φ(x~i~) - Φ(x~i-1~).  It can be interpreted as the average cost per request that is caused by processing some instance.
+
+The potential function Φ can then be used to proof that ALG is c-comptetitive.  ALG is is c-comptetitive if:
+
+(i) -β ≤ Φ(x~i~) ∀ i ∈ [n], ∃ β ∈ ℝ^+^ +
+(ii) amcost(ALG(x~i~)) ≤ c·cost(OPT(x~i~)) ∀ i ∈ [n]
+
+(ii) implies cost(ALG(x~i~)) ≤ c·cost(OPT(x~i~)) - (Φ(x~i~)-Φ(x~i-1~)) ∀ i ∈ [n]
+
+ALG is strictly c-competitive if additionally Φ(x~0~) = 0
+
+Thus when the potential Φ(x~i~) is currently large, we can afford to have higher costs cost(ALG(x~j~)) at some later time step j > i.  Likewise, if the costs cost(ALG(x~i~)) at time step T~i~ are exceptionally high, this is ok if we can compensate by reducing the potential.
+
+References:
+
+- Book ``An Introduction to Online Computation'', chapter ``4.3 Potential Functions''
+
+
+=== Deterministic online algorithms
+
+*to-do*
+
+*to-do* Comparision deterministic, randomized, with advice.
 
 
 [[randomized_online_algorithms]]
@@ -3297,8 +3377,8 @@ See also chapter <<randomized_algorithms>>.
 
 A _randomized online algorithm_ has besides the input I ∈ 𝓘 additionally the separate input Φ which is a random binary string, all bits are mutually independent and have a uniform probability distribution of 1/2.  Thus for a given input I, due to random binary string Φ, the costs may vary.  The common approach is to consider the expected costs.  A randomized online algorithm is _c-competitive in expectation_ if the following condition holds:
 
-online minimum problem: E[cost(ALG(I))] ≤ c·cost(OPT(I)) + α for all inputs I +
-online maximum problem: gain(OPT(I)) ≤ c·E[gain(ALG(I))] + α for all inputs I
+online minimum problem: E[cost(ALG(I))] ≤ c·cost(OPT(I)) + α  ∀ I ∈ 𝓘 +
+online maximum problem: gain(OPT(I)) ≤ c·E[gain(ALG(I))] + α  ∀ I ∈ 𝓘
 
 The smallest c for which the above condition holds is called _expected competitive factor_.
 
@@ -3307,9 +3387,47 @@ If for a given online problem there exists an optimal randomized algorithm, then
 There are diffrent models of adversaries: The _oblivious adversary_ knows what algorithm I am running, but he sees none of the coin flips.  It's the adversary model commonly used.  The _fully adaptive adversary_ additionally also sees the coin flips. But that is uninteresting from a randomized perspective, because then the algorithm could as well be deterministic. The _adaptive adversary_ is somewhere inbetween. It knows the previous coin flips, but not the future flips. So it's an online algorithm itself.
 exists also an optimal deterministic online algorithm. (*to-do* understand. Probably the key thing is tha
 
+
+=== Online algorithms with advice
+
+An even more powerful model than <<randomized_online_algorithms>>.
+
+An _online algorithm with advice_ ALG^Φ^ (or simply ALG) has as additional input, relative to the previous definition of an online algorithm, the  _binary advice string_ Φ.  We say ALG is __c-competitive with advive complexity b(n)__ if the usual respective condition holds and ALG uses at most the first b(n) bits of Φ, where n is the size of the input I.  Analogously we append ``... with advice complexity b(n)'' to the usual terms.
+
+The advice string Φ usually depends on the input I.  Figuratively, the advice string is provided by an oracle which looks at the complete input I and then provides advice the algorithm.  Naturally the advice string can contain the complete solution for input I, but we would like to do better in order to get a better advice complexity b(n).
+
+Φ is infinite, i.e. the algorithm doesn't know how many bits the Orakel does provide. If the size of Φ was known to the algorithm (e.g. by explicitely stating the number of bits, or some 3rd stop `bit' value at the end of `Φ'), that would constitute additional information provided to the algorithm, which is a problem, since we measure the algorithm's quality by how many bits it reads from Φ.
+
+The task of encoding an number or information in general of completely unknown size in Φ is not trivial.  Note that first stating how many bits the number uses is not a feasible option, because that number is itself of unknown size.  One possible solution is a so called _self-delimiting encoding_. We encode the n bit of information into n bit pairs. The first bit of the i-th pair contains the i-th bit of the original information.  The second bit is always 0, except for the last pair, where it's 1.
+
+Example: For the <<ski_rental_probblem>> there exist an online algorithm with advice with advice complexity 1. The one advice bit tells the algorithm whether it should buy the skies at the very beginning or always rent.
+
+randomized vs with advice:
+
+- Given an online randomized algorithm, we can trivially turn it into an online algorithm with advice by overtaking the algorithm as is and the oracle provides the best possible advice string.  I.e. best possible sequence of now no longer `random' bits.
+
+  * If there is a randomized online algorithm for any online problem ∏ that is c-competitive in expectation and uses at most b(n) random bits, then there is also an online algorithm with advice for ∏ that is c-competitive and that uses at most b(n) advice bits.
+
+  * If there is no online algorithm with advice that is c-competitive while using at most b(n) advice bits for ∏, then there is also no randomized nonline algorithm for ∏ that is c-competitive in expectation and that uses at most b(n) random bits.
+
+- The advice string can depend on the input I, the random string is the same for all inputs I ∈ 𝓘.
+
+- Given an input I of length n.  Both an online algorithm with advice ADV and a randomized algorithm RAND can be viewed as a set of of 2^b(n)^ deterministic algorithms.  Both read at most b(n) bits from their respective string.  Only that ADV always chooses the best from the set, while RAND chooses one uniformely at random.
+
+
+=== Yao's (minmax) Principle
+
+
+References:
+
+- Book ``An Introduction to Online Computation'', chapter ``2.3 Yao's Principle''
+
+
+[[paging_problem]]
 === Page replacement algorithms
 
-A page replacemenet algorithm decides which pages of a cache to evict (page out or swap out). E.g RAM (slow) and Cache (fast), or Swap on disk (slow) and virtual memory (fast).  A cache _miss_ is when a requested page is not in the cache. Updating cache from data is called _evicting_ (kicking out a page from the cache) and _fetching_ data into the now free page.
+A page replacemenet algorithm decides which pages of a cache to evict (page out or swap out). E.g RAM (slow) and Cache (fast), or Swap on disk (slow) and virtual memory (fast).  A cache _miss_ is when a requested page is not in the cache. Updating cache from data is called _evicting_ (kicking out a page from the cache) and _fetching_ data into the now free page. The paging problem is a specialization of the <<k_server_problem>>, see there for the proof.
+
 
 - No deterministic algorithm is k-competitive.
 
@@ -3328,6 +3446,44 @@ Page replacement strategies:
 Applications:
 
 - Cachings at all levels of the memory hierarchy
+
+
+[[ski_rental_problem]]
+=== Ski rental problem
+
+*to-do*
+
+
+[[k_server_problem]]
+=== k-server problem
+
+The _k-server problem_ (or simply _k-server_) is an online minimization problem.  Given a metric space M(P, dist) and k _servers_ labeled s~1~, ..., s~k~.  A _configuration_ C~i~ ⊆ P, |C~i~| = k describes the positions of these servers in timestep T~i~.  C~1~ is called the _initial configuration_.  An input I = (x~1~, ..., x~n~) consists of n requests x~i~ ∈ P.  At the end of timestep T~i~, at least one server must be on x~i~.  The algorithm possibly must move one or more servers to _serve_ the request x~i~.  The _distance_ between two configurations C~i~ and C~j~ is given by the cost of a minimum-weight matching bewteen C~i~ and C~j~.  The goal ist to minimize ∑distance(C~i~,C~i-1~).
+
+Recall observation: All complete undirected graphs that only have edge weights of 1 and 2 satisfy the triangle inequality.
+
+Observation: k-server is a generalization of the <<paging_problem>>.  The m pages in memory are represented by m vertices p~i~ of a complete undirected graph P where all edge weigths are 1.  Instead of k cache slots, we have k servers.
+
+An online algorithm for k-server is caled _lazy_ if it only moves a server in time steps where there is not yet a server located at the requested position. Moreover, such an algorithm never moves more than one server in one time step.  Due to the triangle inequality, any algorithm for k-server can be transforded into a lazy one.
+
+Altough it would be allowed to place multiple servers on the same point, it can be shown that this is never necessairy.
+
+Theorem: No deterministic online algorithm for k-server is (k-ε)-competitive on any metric space with at least k+1 points and for any ε>0.
+
+_k-Server conjecture_: There is a k-comptetive deterministic online algorithm for k-server. If the conjecture were true, this would mean that paging is as hard as k-server from a deterministic point of view. The best knownh onine algorithm for arbitrary metric spaces achieves a competitive ratio of 2k-1.
+
+
+==== Greedy k-server algorithm
+
+The _greedy k-server algorithm_ which always moves the server closest to x~i~ on x~i~ is not competitive for k-server.  Proof: Consider in 1D space p~1~=0, p~2~=2, p~3~=3, k=2, and a C~1~ where s~1~ is on p1 and s~2~ on p3. The adversary makes the input I=(p~1~, p~2~, p~1~, p~2~, ...). The optimal strategy would be to move s~1~ to p~2~ and be done with it.  The greedy strategy eternaly moves s~2~ between p~2~ and p~3~.
+
+
+==== Double coverage (DC) algorithm solving k-server on the line
+
+We look at the metric space M~[0,1]~ = ([0,1], dist) where dist(x,y) = |x-y|.  The _double coverage algorithm_ is k-competitive for k-server.  It moves the server closest to x~i~ onto x~i~.  Say the server was to the right (left) of x~i~, and it was moved by distance d.  If there are also servers on the other side of x~i~, i.e. to the left (righ),  then move the server closest to x~i~ by distance d towards x~i~.  In case of any ties choose arbitrarily.
+
+References:
+
+- Book ``An Introduction to Online Computation'', chapter ``4.4 k-Server on the Line''
 
 
 [[graph_theory]]
