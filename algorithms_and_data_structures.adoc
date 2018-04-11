@@ -2414,6 +2414,8 @@ Given n entities (intervals or points, depending on data structure).  A query fi
 
 kd-tree vs range-tree: Range trees have faster d-dimensional range queries, at the cost of higher space.
 
+segment tree vs interval tree: Interval tree uses less space. Segment tree can structure the set of of intervals stored in a node in any matter convenient for the problem at hand.
+
 *to-do*: r-tree
 
 *to-do*: kd-tree has also multiple variants
@@ -2570,6 +2572,11 @@ query(point:p): Return all intervals which contain given point p.  Search p in B
 *to-do* 1) Often stored similarily to a heap? 2) there's this more general definition of a segment tree. In Prof's view it's a class like BBST, the boundaries between BBST and segment tries being vague. 3) I think the same is this general definition where a segment tree is optimized for a given associative operation on intervals over an given array, the leaves store array values.
 
 See also <<interval_tree>>, <<range_tree>> and <<binary_indexed_tree>>.
+
+References:
+
+- Book "Computational Geometry - Algorithms and Applications", chapter "10.3 Segment Trees"
+
 
 
 [[binary_indexed_tree]]
@@ -3392,8 +3399,8 @@ See also chapter <<randomized_algorithms>>.
 
 A _randomized online algorithm_ has besides the input I ∈ 𝓘 additionally the separate input Φ which is a random binary string, all bits are mutually independent and have a uniform probability distribution of 1/2.  Thus for a given input I, due to random binary string Φ, the costs may vary.  The common approach is to consider the expected costs.  A randomized online algorithm is _c-competitive in expectation_ if the following condition holds:
 
-online minimum problem: E[cost(ALG(I))] ≤ c·cost(OPT(I)) + α  ∀ I ∈ 𝓘 +
-online maximum problem: gain(OPT(I)) ≤ c·E[gain(ALG(I))] + α  ∀ I ∈ 𝓘
+online minimum problem: E~Φ~[cost(ALG(I))] ≤ c·cost(OPT(I)) + α  ∀ I ∈ 𝓘 +
+online maximum problem: gain(OPT(I)) ≤ c·E~Φ~[gain(ALG(I))] + α  ∀ I ∈ 𝓘
 
 The smallest c for which the above condition holds is called _expected competitive factor_.
 
@@ -3417,7 +3424,8 @@ The task of encoding an number or information in general of completely unknown s
 
 Example: For the <<ski_rental_probblem>> there exist an online algorithm with advice with advice complexity 1. The one advice bit tells the algorithm whether it should buy the skies at the very beginning or always rent.
 
-randomized vs with advice:
+
+=== Randomized vs with advice
 
 - Given an online randomized algorithm, we can trivially turn it into an online algorithm with advice by overtaking the algorithm as is and the oracle provides the best possible advice string.  I.e. best possible sequence of now no longer `random' bits.
 
@@ -3428,6 +3436,12 @@ randomized vs with advice:
 - The advice string can depend on the input I, the random string is the same for all inputs I ∈ 𝓘.
 
 - Given an input I of length n.  Both an online algorithm with advice ADV and a randomized algorithm RAND can be viewed as a set of of 2^b(n)^ deterministic algorithms.  Both read at most b(n) bits from their respective string.  Only that ADV always chooses the best from the set, while RAND chooses one uniformely at random.
+
+References:
+
+- Scipt ``Eine Einiführung in Online-Algorithmen'', chapter ``6 Advice und Randomisierung''
+
+- Book ``An Introduction to Online Computation'', chapter ``3.5 Advice and Randomization''.
 
 
 === Yao's (minmax) Principle
