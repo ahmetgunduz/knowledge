@@ -4809,8 +4809,6 @@ intersect(p1: point, p2: point, q1: point, q2: point): bool
  return true
 ----------------------------------------------------------------------
 
-In _sweeping_, an imaginary vertical sweep line pases through the given set of geometric objects, usually from left to right.  We treat the spatial dimension that the sweep line moves across, in this case the x-dimension, as a dimension of time.  Sweeping provides a method for ordering geometric objects.
-
 References:
 
 - Book "Computational Geometry - Algorithms and Applications", aka 4M.
@@ -4830,6 +4828,13 @@ References:
 - http://jeffe.cs.illinois.edu/teaching/373/notes/allnotes.pdf, Non-lecture notes at the end.
 
 - http://www.cs.umd.edu/~mount/754/Lects/754lects.pdf
+
+
+=== Sweep line algorithm
+
+A _sweep line algorithm_ (or _plane sweep algorithm_) is an algorithmic paradigm that uses a conceptual sweep line (or sweep surface in higher dimensions) to solve various problems in computational geometry.  It allows to reduce a k dimensional problem to a (k-1)-dimensional problem.  The line (surface) is swept acros the plane (k-dim space), conventionally a vertical line from left ro right.  We treat the spatial dimension that the sweep line moves across, in this case the x-dimension, as a dimension of time.  What the line (surface) currently intersects is the sweep line status and the new (k-1)-dimensional problem.
+
+*to-do* 1) combining with (partial) persistence 2) event points
 
 
 === Convex hull
