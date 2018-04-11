@@ -1293,6 +1293,12 @@ References:
 - https://www.youtube.com/watch?v=W94M9D_yXKk&index=3&list=PLe-ggMe31CTdBsRIw0hXln0hilRs-DqAx
 
 
+[[r_tree]]
+=== R-tree
+
+*to-do*
+
+
 === Splay tree
 
 A balanced binary search tree with the additional property that recently accessed elements are quick to access again.
