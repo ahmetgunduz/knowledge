@@ -1278,6 +1278,8 @@ build-2dimensional-kd-tree(points, depth): node
 
 Optimisation:  For each dimension, have a presorted sequence of all points.  The recursively called core function gets the current sequence of points for each dimenssion.  Partitioning is now trivially possible in O(kn).
 
+See also <<comparison_between_dss_involving_intervals>>.
+
 Applications:
 
 - <<orthogonal_range_search>>
@@ -1297,6 +1299,8 @@ References:
 === R-tree
 
 *to-do*
+
+See also <<comparison_between_dss_involving_intervals>>.
 
 
 === Splay tree
@@ -1359,7 +1363,7 @@ Solutions:
 
 - Auxillary data structure for select query in O(1)
 
-- <<rrr>>: fast queries and implicit compression
+- <<rrr>>: Rank and select in O(1) and implicit compression
 
 Applications: <<sbt_level_order,succinct binary tree>>
 
@@ -2394,30 +2398,31 @@ Functionally equivalent to quickselect, but runs faster in practice on average.
 [[ranges_intervals]]
 == Ranges / Intervals
 
-
+[[comparison_between_dss_involving_intervals]]
 === Comparison between DSs involving intervals
 
 Given n entities (intervals or points, depending on data structure).  A query finds k results.
 
 |=====
-|                          | query             | preprocessing   | space           | notes
-| kd-tree                  | O(k + n^1-1/d^)   | O(n log n)      | O(n)            | Stores points. Optimzed for finding points contained in a given interval.
-| d-dim range tree         | O(k + log^d^ n)   | O(n log^d-1^ n) | O(n log^d-1^ n) | Stores points. Optimzed for finding points contained in a given interval.
-| d-dim layered range tree | O(k + log^d-1^ n) | O(n log^d-1^ n) | O(n log^d-1^ n) |
-| 3D range tree            | O(k + log n)      | ?               | O(n log^3^ n)   |
-| 2D dominance             | O(k + log n)      | ?               | O(n)            |
-| (1D) interval tree       | O(k + log n)      | O(n log n)      | O(n)            | Stores intervals. Optimized for finding intervals overlapping with a given interval.
-| (1D) segment tree        | O(k + log n)      | O(n log n)      | O(n log n)      | Stores intervals. Optimized for finding intervals containing a given point.
-| (1D) binary indexed tree | O(lg n)           | O(n log n)      | O(n)            | *to-do*
+|                              | query             | preprocessing   | space           | notes
+| k-d tree                     | O(k + n^1-1/d^)   | O(n log n)      | O(n)            | *to-do*
+| d-dim range tree             | O(k + log^d^ n)   | O(n log^d-1^ n) | O(n log^d-1^ n) | Stores points. Optimzed for finding points contained in a given interval.
+| d-dim layered range tree     | O(k + log^d-1^ n) | O(n log^d-1^ n) | O(n log^d-1^ n) | "
+| d-dim range tree based on 3D | O(k + log^d-2^ n) | ?               | O(n log^d^ n)   | "
+| 3D range tree                | O(k + log n)      | ?               | O(n log^3^ n)   | "
+| 2D dominance                 | O(k + log n)      | ?               | O(n)            | "
+| (1D) interval tree           | O(k + log n)      | O(n log n)      | O(n)            | Stores intervals. Optimized for finding intervals overlapping with a given interval.
+| (1D) segment tree            | O(k + log n)      | O(n log n)      | O(n log n)      | Stores intervals. Optimized for finding intervals containing a given point.
+| (1D) binary indexed tree     | O(log n)          | O(n log n)      | O(n)            | *to-do*
 |=====
 
-kd-tree vs range-tree: Range trees have faster d-dimensional range queries, at the cost of higher space.
+k-d tree vs range-tree: Range trees have faster d-dimensional range queries, at the cost of higher space.
 
 segment tree vs interval tree: Interval tree uses less space. Segment tree can structure the set of of intervals stored in a node in any matter convenient for the problem at hand.
 
 *to-do*: r-tree
 
-*to-do*: kd-tree has also multiple variants
+*to-do*: k-d tree has also multiple variants
 
 Refrences:
 
@@ -2427,9 +2432,7 @@ Refrences:
 [[range_tree]]
 === Range tree
 
-See also <<interval_tree>>, <<segment_tree>> and <<binary_indexed_tree>>.
-
-It is a multi-level data structure.  Informally explained for the 2D case:  A <<1D_range_tree>> tree, which is basically just a BBST, stores the points, ordered by x coordinates.  Figuratively each subtree, or equivalently each subtree root, represents a vertical slice of the original 2D plane.  Each node (i.e. subtree i.e. slice) has associated its own independent 1D range tree storing the the points in the associated slice sorted by y coordinate. The subtree in the X tree and the associacted Y tree both store the same points, the former sorted by x, the later sorted by y. Thus every point lives in the one X tree and also in log n Y trees.
+Data structure: It is a multi-level data structure.  Informally explained for the 2D case:  A <<1D_range_tree>> tree, which is basically just a BBST, stores the points, ordered by x coordinates.  Figuratively each subtree, or equivalently each subtree root, represents a vertical slice of the original 2D plane.  Each node (i.e. subtree i.e. slice) has associated its own independent 1D range tree storing the the points in the associated slice sorted by y coordinate. The subtree in the X tree and the associacted Y tree both store the same points, the former sorted by x, the later sorted by y. Thus every point lives in the one X tree and also in log n Y trees.  In d-dimension the pattern continuous. Every node in a y tree refers to a z tree and so on.
 
 --------------------------------------------------
    Example: 2D (xy) range tree
@@ -2457,21 +2460,23 @@ slice                   slice
  @ @ @ @ @ @ @ @ @ @ @ @ @
 --------------------------------------------------
 
-In d-dimension the pattern continuous: Every node in a y tree refers to a z tree and so on.
+Query:  Consider a d-dimensional range tree on the coordinates xy... and let the query be [a~x~,b~x~]⨯[a~y~,b~y~]⨯....  Analogous to a <<1D_range_tree>>, do two searches, one for a~x~ and one for b~x~, in the 1st level tree, here on x.  That delivers O(log n) subtrees enclosed by the two search splines.  For each of these subtrees, we query the 2nd level data structure stored in the root of each subtree.  Here, that 2nd level data structure is again a range tree, however with one dimension less, i.e. here on y...,  and the pattern recurses.
 
-query: 2D case: O(log²n + k) time. Do a query using the given x range in the outer, i.e. X, 1-dim range tree.  For each found subtree, rooted at `inner' childs of the search path, do a query using the given y range in the respective associated Y 1-dim range tree.
+Analysis query 2D: O(log²n + k) time. Do a query using the given x range in the outer, i.e. X, 1-dim range tree.  For each found subtree, rooted at `inner' childs of the search path, do a query using the given y range in the respective associated Y 1-dim range tree.
 
-query: d-dim: O(log^d^ + k) time
+Analysis query d-dim: O(log^d^ + k) time
 
-Space: 2D case: Θ(n log n), since every of the n points is a leaf in one X tree and in log n Y trees.
+Analysis space 2D: Θ(n log n), since every of the n points is a leaf in one X tree and in log n Y trees.  Why is a point in log n Y trees?  Recall that a point is always stored in a leaf.  Look at a point, i.e. a leaf, in the X tree.  Each internal node on the path from the root to that leaf stores an y tree,  each of those y trees containing the same point,  and there are O(log n) nodes in that path.  Or from another viewpoint: Each level in the x tree needs O(n) space for the respective y trees, and there are O(log n) levels. You see that each x level needs O(n) space because the i-th level in the x just divides the original n points in i parts / slices.  There are 2^i^ nodes on the i-th level, each representing n / 2^i^ points, each node stores an y tree which again stores 1 / 2^i^ points, so as previously statet O(n) per level in total.
 
-space: d-dim: O(n log^d-1^ n)
+Analysis space d-dim: O(n log^d-1^ n)
 
-preprocessing: d-dim: O(n log^d-1^ n) time, however not trivial
+Analysis reprocessing d-dim: O(n log^d-1^ n) time, however not trivial
 
 Applications:
 
 - <<orthogonal_range_search>>
+
+See also <<comparison_between_dss_involving_intervals>>.
 
 References:
 
@@ -2487,9 +2492,9 @@ References:
 
 Given a set P of points, find the points in range [f, t].
 
-A 1D range tree is actually just a BBST which stores its values in its leaves, see also <<naive_BST>>.  If you really only have a 1D problem, storing the values only in the leaves might not be necessairy, but in higher dimensions it becomes really convenient, see <<range_tree>>.
+Data structure: A 1D range tree is actually just a BBST which stores its values in its leaves, see also <<naive_BST>>.  If you really only have a 1D problem, storing the values only in the leaves might not be necessairy, but in higher dimensions it becomes really convenient, see the general <<range_tree>>.
 
-Search f and t in the tree, resulting in the nodes nf = predecessor(f) and nt = successor(b).  There is one search path until a node, often called the split node, where the search splits in two paths.  The leafes of all the subtrees `enclosed' by the two paths (splitnode, nf) and (splitnode, nt) are the result.  In text book examples, typically these subtrees are reported on the fly while descenting from the split node.  On the left search path, the right subtree when descending left, and nothing when descending right.  Analogously for the right search path.
+Query: Search f and t in the tree, resulting in the nodes nf = predecessor(f) and nt = successor(b).  There is one search path until a node, often called the split node, where the search splits in two paths.  The leafes of all the subtrees `enclosed' by the two paths (splitnode, nf) and (splitnode, nt) are the result.  In text book examples, typically these subtrees are reported on the fly while descenting from the split node.  On the left search path, the right subtree when descending left, and nothing when descending right.  Analogously for the right search path.
 
 --------------------------------------------------
            o root     given range [f, t], search pred(f) and succ(t)
@@ -2511,27 +2516,27 @@ Search f and t in the tree, resulting in the nodes nf = predecessor(f) and nt = 
    pred(f)        succ(t)
 --------------------------------------------------
 
-Analysis: O(n log n) for building the binary search tree, and O(k + log n) for reporting, where k is the number of reported points.  Informal proof: Reporting a subtree is O(kʹ), where kʹ is the number of leavs in that subtree.  Searching f and t in the tree is O(log n).
+Analysis: O(n log n) for building the binary search tree, and O(k + log n) for reporting, where k is the number of reported points.  Informal proof:  Searching f and t in the tree is O(log n).  We find O(log n) subtrees.  Reporting a single subtree is O(kʹ), where kʹ is the number of leaves in that subtree, e.g. by simple walking the complete subtree.  In total the reporting of all subtrees costs O(k).  The two searches in the tree, plus the reporting in multiple subtrees together is O(k + log n).
 
 References:
 
 - Book "Computational Geometry - Algorithms and Applications", subchapter "5.1 1-Dimensional Range Searching"
 
-- https://courses.csail.mit.edu/6.851/spring12/scribe/lec3.pdf, first part of section "range trees"
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 3, Geometric Structures I: https://www.youtube.com/watch?v=NMxLL3D5qd8&index=3&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video], https://courses.csail.mit.edu/6.851/spring12/scribe/lec3.pdf[lecture notes]
 
 - http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf, chapter "1 - Dimensional Range Searching"
 
 
 ==== 2D
 
-There's nothing special, as for higher dimensions than 3D, use a <<layered_range_tree>>, giving you the same space and query complexities as the 1D case.
+There's nothing special, as for higher dimensions than 3D, use a <<layered_range_tree>>, giving you the same space and query complexities as the <<1d_range_tree>>.
 
 
 ==== 3D with two onesided intervals
 
 For queries in the form of [a~x~,b~x~]⨯(-∞,b~y~)⨯(-∞,b~z~).  This subchapter is written with the intention of providing a building block for the <<3d_range_tree>>, so the notation is tailored towards that use case.
 
-Data structure: Use kind of a layered range tree, where the first level sorts points by their x coordinate. Each node conceptually stores a data structure for an yz <<2D_dominance_query>>.  Recall that the query time in such a 2D dominance query data structure is dominated by the initial binary search of b~z~ in an array of z coordinates. The fractional cascading aspect of the layered range tree is thus in respect to these z arrays.
+Data structure: Use kind of a layered range tree, where the first level sorts points by their x coordinate.  Each node conceptually refers to a data structure for an yz <<2D_dominance_query>>.  Analogous to what we did in a layered range tree, the nodes in the x tree do not really refer to a 2nd level data structre.  Instead, there is, `at the side', a 2nd z tree with the same topological shape as the y tree, where each node is some data structure, and where fractional cascading is used to connect the data structures in the nodes.  Recall that the structure for a 2D dominance query esentially is a sequence of sorted arrays on z, stored via fractional cascading.  So now in the whole we have a have a tree of sequences of arrays, i.e. simply a tree of arrays, and store that whole thing via fractional cascading.
 
 Query: Analogous to layered range tree.
 
@@ -2584,7 +2589,7 @@ Query formally: Start at root. For each node v make case distinction:
 
   * Report all the found points. Terminate.
 
---------------------------------------------------
+------------------------------------------------------------
                o            A = subtree
               / \
       points A   o
@@ -2601,13 +2606,13 @@ Query formally: Start at root. For each node v make case distinction:
                (--------] right(v) = (key, max(v)]
    <----------------] (-∞,by]
                (----] (key,by] = righ(v) ∩ (-∞,by]
---------------------------------------------------
+------------------------------------------------------------
 
 Analysis query time: Unlike a regular range tree, which queries the 2nd level DS O(log n) times, once for found subtree enclosed by the two search splines, here we query each of our two 2nd level DSs only once each. So it's O(log n) for walking down our range tree, plus O(log n + k) from the 2nd level DS, thus O(log n + k) in total.
 
 Analysis space: Analogous to range tree: O(n log² n) space.
 
-Note that from ``3D with two onesided interval'' to ``3D with one onesided interval'' we turned a one-sided interval into a two-sided interval, at the same asymptotic query costs, but by paying a O(log n) factor space.
+Technique ``one-sided intervals and two-sided intervals are equivalent'':  Note that from ``3D with two onesided interval'' to ``3D with one onesided interval'' we turned the one-sided interval (-∞,b~y~] into the two-sided interval [a~y~,b~y~], at the same asymptotic query costs, but by paying a O(log n) factor space.
 
 References:
 
@@ -2646,9 +2651,9 @@ References:
 [[layered_range_tree]]
 ==== Layered range tree
 
-The motiviation relative to the simple variant is to shave off one log n factor in the query time, becoming O(log^d-1^n + k), with same space costs. In the 2D case the query costs are thus the same as for the 1D case.  To achieve this, we use the cross linking aspect of <<fractional_cascading>>.  However this scheme works only for the last dimension of a d-dimensional range tree.
+The motiviation relative to the simple variant is to shave off one log n factor in the query time, becoming O(log^d-1^n + k), with same space costs.  Regarding the 2D case the query costs become thus the same as for the 1D case.  To achieve this, the basic idea is to use the cross linking aspect of <<fractional_cascading>>.  However this scheme works only for the last dimension of a d-dimensional range tree.
 
-Preprocessing:  In the range tree of the 2nd last dimension, a node v (i.e. subtree i.e. slice) no longer has a 1-dim range tree for the last dimension associated, but an array of points sorted by last dimension.  So figuratively the last dimension is represented by a tree of sorted arrays.  The root array contains all the points.  The left child of the array associated to node v contains all the points of left(v), the right child contains all the points of right(v).  We use the crosslinking aspect of fractional cascading such that after doing a binary search of a query point q in the root array, we can in O(1) hop to the respective element matching q in the left or right child array.  More precisely, each element in such an ordered array has two pointers, one into the left child array and one into the right child array.  A pointer points to the same element if the child array contains that same element, or to the successor in the child array otherwise.  One of the two pointers of the last array element will be a null pointer, since there is no successor in the child array.
+Data structure:  In the range tree of the 2nd last dimension, a node v (i.e. subtree i.e. slice) no longer has a 1-dim range tree for the last dimension associated, but an array of points sorted by last dimension.  So figuratively the last dimension is represented by a tree of sorted arrays.  The root array contains all the points.  The left child of the array associated to node v contains all the points of left(v), the right child contains all the points of right(v).  We use the crosslinking aspect of fractional cascading such that after doing a binary search of a query point q in the root array, we can in O(1) hop to the respective element matching q in the left or right child array.  More precisely, each element in such an ordered array has two pointers, one into the left child array and one into the right child array.  A pointer points to the same element if the child array contains that same element, or to the successor in the child array otherwise.  One of the two pointers of the last array element will be a null pointer, since there is no successor in the child array.
 
 --------------------------------------------------
  2nd-last level: range tree sorting points by (d-1)-th coordinate     
@@ -2674,18 +2679,28 @@ Preprocessing:  In the range tree of the 2nd last dimension, a node v (i.e. subt
  D=[...]                        E=[...]   F=[...]                 G=[...]   
 --------------------------------------------------
 
-Query: Lets look at the 2D xy case, the query is [a~x~,b~x~]⨯[a~y~,b~y~].  Here the 2nd last level is also the first level, which is the range tree sorting points by their x corrdinate.  The last level is the analogous tree of cross linked arrays sorting points by their y coordinate.  We do two binary searches in the top level y array, one for a~y~ and one for b~y~, giving us two elements in the top level y array, representing the range of points / elements within intervall [a~y~, b~y~].  Then we procede analogous to a regular range tree query.  However everytime whe descent in the 2nd last level, here the first level, i.e. the tree on x coordinates, from a node v to its appropriate child vʹ, we also descent to the analogous child in the tree of sorted arrays.  More precisely, for each of the two y array elements we currently have, we either follow its left-child or its right-child pointer.  That delivers two new elements in an y array, representing the points of vʹ which within [a~y~, b~y~] with respect to their y coordinate.
+Query: Lets look at the 2D xy case, the query is [a~x~,b~x~]⨯[a~y~,b~y~].  Here the 2nd last level is also the first level, which is the range tree sorting points by their x corrdinate.  The last level is the analogous tree of cross linked arrays sorting points by their y coordinate.  We do two binary searches in the top level y array, one for a~y~ and one for b~y~, giving us two elements in the top level y array, representing the range of points / elements within intervall [a~y~, b~y~].  Then we procede analogous to a regular range tree query.  However everytime we descent in the 2nd last level, here the first level, i.e. the tree on x coordinates, from a node v to its appropriate child vʹ, we also descent to the analogous child in the tree of sorted arrays.  More precisely, for each of the two y array elements we currently have, we either follow its left-child or its right-child pointer.  That delivers two new elements in an y array, representing the points of vʹ which within [a~y~, b~y~] with respect to their y coordinate.
 
 Analysis: The difference relative to the simple variant is that in y direction, we only have to do two binary searches in the top level y array, costing O(log n). Regarding y, its only following pointers from then on.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 3, Geometric Structures I: https://www.youtube.com/watch?v=NMxLL3D5qd8&index=3&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video], https://courses.csail.mit.edu/6.851/spring12/scribe/lec3.pdf[lecture notes]
 
 
 ==== Dynamic range tree
 
-An orthogonal concept to the previous range tree variants.  The goal is to get a dynamic range tree, i.e. we want to allow updates.  Using balanced search trees which internally use rotations to reestablish balancedness is not really an option because the range tree is a multi-level data structure.  Every of the O(1) touched nodes by a rotation has a chain of complete trees behind it.  The idea is to use a weight balanced tree, e.g. a <<bb_alpha>> tree.  Recall that weight balanced trees give a stronger guarantee than height balanced trees.  However to reestablish balancedness, don't do rotations.  Instead, rebuild the complete subtree perfectly balanced, inclusive what's dependend on it from scratch.
+An orthogonal concept to the previous range tree variants.  The goal is to get a dynamic range tree, i.e. we want to allow updates.  The basic idea is to use a weight balanced BST and when having to reestablish balancedness, rebuild the whole subtree, opposed to do rotations.
 
-query time is the same.
+Data structure:  Using balanced search trees which internally use rotations to reestablish balancedness is not really an option because the range tree is a multi-level data structure.  Every of the O(1) touched nodes by a rotation has a chain of complete trees behind it.  The idea is to use a weight balanced tree, e.g. a <<bb_alpha>> tree.  Recall that weight balanced trees give a stronger guarantee than height balanced trees.  However to reestablish balancedness, don't do rotations.  Instead, rebuild the complete subtree perfectly balanced, inclusive what's dependend on it from scratch.
 
-update analysis: O(log^d^ n) amortized.  Once rebuild, we can make at least Θ(k) insertions or deletions before it becomes unbalanced again, where k is the size of the subtree.  Each node is part of O(log n) subtrees.  It can potentially unbalance those subtrees. *to-do*
+Analysis query: remains the same.
+
+Analysis update: O(log^d^ n) amortized.  Once rebuild, we can make at least Θ(k) insertions or deletions before it becomes unbalanced again, where k is the size of the subtree.  Each node is part of O(log n) subtrees.  It can potentially unbalance those subtrees. (*to-do* write that more cleanly)
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 3, Geometric Structures I: https://www.youtube.com/watch?v=NMxLL3D5qd8&index=3&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video], https://courses.csail.mit.edu/6.851/spring12/scribe/lec3.pdf[lecture notes]
 
 
 [[interval_tree]]
@@ -2699,8 +2714,9 @@ insertion(low, high): First do a regular insertion.  Recall, low is key.  After 
 
 search(low, high):  Searches any one interval in the tree that intersects the given interval. If interval in node intersects given interval, return node.  Else if there's no left subtree or max endpoint in root of left subtree is less than low, descend right.  Otherwise descend left.
 
-
 Applications: <<rectangle_intersection>>
+
+See also <<comparison_between_dss_involving_intervals>>.
 
 References:
 
@@ -2735,7 +2751,7 @@ query(point:p): Return all intervals which contain given point p.  Search p in B
 
 *to-do* 1) Often stored similarily to a heap? 2) there's this more general definition of a segment tree. In Prof's view it's a class like BBST, the boundaries between BBST and segment tries being vague. 3) I think the same is this general definition where a segment tree is optimized for a given associative operation on intervals over an given array, the leaves store array values.
 
-See also <<interval_tree>>, <<range_tree>> and <<binary_indexed_tree>>.
+See also <<comparison_between_dss_involving_intervals>>.
 
 References:
 
@@ -2744,9 +2760,9 @@ References:
 
 
 [[binary_indexed_tree]]
-=== Binary indexed tree
+=== Binary indexed tree / Fenwick tree
 
-See also <<interval_tree>>, <<range_tree>> and <<segment tree>>.
+See also <<comparison_between_dss_involving_intervals>>.
 
 *to-do*
 
@@ -3352,6 +3368,9 @@ References:
 
 
 === Succinct strings
+
+When the alphabet is just {0, 1}, see <<bit_vector>>.
+
 
 [[wavelet_tree]]
 ==== Wavelet tree
