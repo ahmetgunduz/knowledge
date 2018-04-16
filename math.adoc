@@ -830,11 +830,19 @@ The geometric interpretation is that, when you think about the matrix representi
 
 == Geometry
 
+A _metric space_ M is an ordered pair (S, d) where S is a set and d is a metric on S.  A _metric_ (or _distance function_ or simply _distance_) is a function d that defines a distance between each pair of elements of a set S.  It is defined as d: S⨯S → ℝ~+~, where for all x,y,z ∈ S the following conditions are satisfied:
+
+d(x,y) ≥ 0 [small]#(non-negatity)# +
+d(x,y) = 0 ⇔ x = y [small]#(identity of indiscernibles)# +
+d(x,y) = d(y,x) [small]#(symmetry)# +
+d(d,z) ≤ d(d,y) + d(dy,z) [small]#(triangle inequality)#
+
 A _right angle_ is an angle of exactly 90° (π/2 radians).  Two vectors are _perpendicular_ iff their angle is a right angle, or equivalently, if their scalar product is zero.  A set of vectors is _orthogonal_ iff they are pairwise perpendicular.  A _normal_ vector of a point on a smooth surface is any vector perpendicular to the plane.
 
-The _dot product_ (or _scalar product_ or _inner product_ (in Euclidean geometry)) of two vectors x⃗ and y⃗ is defined as x⃗·y⃗ = ∑x~i~y~i~ = ‖x⃗‖‖y⃗‖cos(Θ).  The former variant is the algebraic interpretation, the later is the geometric interpration.  More concretely, the geometric interpretation is that x⃗·(y⃗/‖y⃗‖) is the projection of x⃗ onto y⃗, when the two vectors are placed so that their tails coincide.
+The _dot product_ (or _scalar product_ or _inner product_ (in Euclidean geometry)) of two vectors x⃗ and y⃗ is defined as x⃗·y⃗ = ∑x~i~y~i~ = ‖x⃗‖‖y⃗‖cos(θ).  The former variant is the algebraic interpretation, the later is the geometric interpration.  More concretely, the geometric interpretation is that x⃗·(y⃗/‖y⃗‖) is the projection of x⃗ onto y⃗, when the two vectors are placed so that their tails coincide.
 
-The _cross product_ (or _vector product_ or _directed area product_ (in Euclidean geometry)) of two vectors x⃗ and y⃗ is defined as x⃗⨯y⃗ = ‖x⃗‖‖y⃗‖sin(Θ)n⃗.  n⃗ is the unit vector normal to the plane containing x⃗ and y⃗.  By convention, the direction of n⃗ is given by the _right-hand rule_: The index finger represents x⃗, the middle finger y⃗, and the thumb x⃗⨯y⃗.  The maginitude of the cross product can be interpreted as the area of the parallelogram having x⃗ and y⃗ as sides: ‖x⃗⨯y⃗‖ = ‖x⃗‖‖y⃗‖sin(Θ).  Cross product is zero ⇔ the lines are parallel. Cross product is positive (negative) ⇔ x⃗ is clockwise (counterclockwise) from y⃗ (their tails coinciding).
+The _cross product_ (or _vector product_ or _directed area product_ (in Euclidean geometry)) of two vectors x⃗ and y⃗ is defined as x⃗⨯y⃗ = ‖x⃗‖‖y⃗‖sin(θ)n⃗.  n⃗ is the unit vector normal to the plane containing x⃗ and y⃗.  By convention, the direction of n⃗ is given by the _right-hand rule_: The index finger represents x⃗, the middle finger y⃗, and the thumb x⃗⨯y⃗.  The maginitude of the cross product can be interpreted as the area of the parallelogram having x⃗ and y⃗ as sides: ‖x⃗⨯y⃗‖ = ‖x⃗‖‖y⃗‖sin(θ).  Cross product is zero ⇔ the lines are parallel. Cross product is positive (negative) ⇔ x⃗ is clockwise (counterclockwise) from y⃗ (their tails coinciding).
+
 
 
 == Misc
