@@ -346,7 +346,7 @@ References:
 
 === Random variables and expectations
 
-The name ``random variable'' is a misnomer.  A random variable is a function, as we will define in the following.  So think function, not variable.
+The name ``random variable'' is a misnomer.  A random variable is a function, as we will define in the following.  The sample space associated to a random variable is rarely explicitelly mentioned, but keep in mind that it really is there.  Random variables can be interpreted as link between data and sample spaces.
 
 --------------------------------------------------
  probability space := (sample space S, events 𝓕, probability function Pr)
@@ -373,7 +373,7 @@ The name ``random variable'' is a misnomer.  A random variable is a function, as
 
                                       E[R] = ∑x·PMF_R(x) = ∑R(ω)·Pr(ω)
 
-   S is infinit      continous R      PDF_R(x) ≈ CDF_Rʹ(x)
+   S is infinit      continous R      PDF_R(x) = CDF_Rʹ(x) (informally)
    noncountable      PDF_R exists     Pr(a≤R≤b) = integrate PDF_R(x) over [a,b]
    set                                if R is the identity: PDF_R = Pr
                                       ================> [0,1]
@@ -381,11 +381,11 @@ The name ``random variable'' is a misnomer.  A random variable is a function, as
                                       E[R] = ∫x·PDF_R(x)
 --------------------------------------------------
 
-A _random variable_ R is a total function R : S ⟶ ℝ.
+A _random variable_ R is a measurable total function R : S ⟶ ℝ.
 Technically the range of R is the _measure space_ E, but in computer science practice the measure space is mostly ℝ.
 Roughly speaking, density functions exist only when the measuere space is ℝ.
 The actually observed value of a random variable R is called _realization_ of R (or _observation_).
-Note that the term `realization' is ambigously also used as a synonum for outcome ω ∈ S.
+Note that the term `realization' is ambigously also used as a synonym for outcome ω ∈ S.
 An _indicator random variable_ (or _Bernoulli variable_) is a random variable with codomain {0, 1}.
 A random variable is _discrete_ if its domain is a countable set.
 A random variable R is _continuous_ if there exists a probability density function for it.
@@ -458,8 +458,6 @@ The _covariance_ between two random variables R~1~ and R~2~ is defined as Cov[R~
 
 The _correlation_ between two random variables R~1~ and R~2~ is defined as ρ~R1,R2~[R~1~, R~2~] = Cov[R~1~, R~2~] / (√Var[R~1~]√Var[R~2~]). Note that the codomain is [-1,1].
 
-The sum S~n~ of a set of random variables R~1~, ..., R~n~ _converges in probability_ towards the random variable R if lim~n→∞~Pr(|S~n~-R|≤ε)=1 for every ε > 0
-
 E[a·R~1~ + b·R~2~] = a·E[R~1~] + b·E[R~2~] (_linearity of expectation_)
 
 If R~1~, ..., R~n~ are mutually independent: E[∏R~i~] = ∏E[R~i~]
@@ -490,7 +488,13 @@ _Chebyshev's inequality_: Pr(|R-E[R]| ≥ a) ≤ Var[R]/a². Derived from Markov
 
 _Pairwise independent sampling_: Let R~1~, ..., R~n~ be pairwise independent random variables with the same mean μ and same deviation σ, and let S be their sum: Pr(|S/n-μ| ≥ x) ≤ 1/n σ²/x².
 
-_Weak Law of Large Numbers_ (or _Khintchine's law_): Let R~1~, ..., R~n~ be pairwise independent random variables with the same finite mean μ and same (possibly infinite) deviation σ, and let S be their sum: lim~n→∞~Pr(|S/n-μ|≤ε)=1 for every ε > 0. Derived from pairwise independent sampling.
+Given a sequence X~1~, ..., X~n~ of random variables.  X~n~, the last of the sequence, _converges in distribution_ (or _converges weakly_ or _converge in law_) towards the random variable X, denoted X~n~ D→ X (D above the arrow) or X~n~ ⇝ X, if lim~n→∞~ CDF~Xn~(x) = CDF~X~(x) ∀ x ∈ ℝ at which CDF~X~ is continuous.
+
+Given a sequence X~1~, ..., X~n~ of random variables.  X~n~, the last of the sequence, _converges in probability_ towards the random variable X, denoted X~n~ P→ X (P above the arrow) or plim~n→∞~ X~n~ = X, if for all ε > 0 lim~n→∞~ Pr(|X~n~ - X| > ε) = 0. Convergence in probability implies convergence in distribution.
+
+_Weak Law of Large Numbers_ (or _WLNN_ or _Khintchine's law_): Let X~1~, ..., X~n~ be iid random variables with the same finite mean μ and same (possibly infinite) deviation σ, and let X̄~n~ denote their sample mean X̄~n~ = 1/n ∑X~i~. WLNN states that X̄~n~ P→ μ. Interpretation: The distributionh of X̄~n~ becomes more concentrated around μ as n gets large. Note E[X̄~n~] = μ and Var[X̄~n~] = σ²/n are also true, but different statements.
+
+_central limit theorem_ (_CLT_):  Let the random variables X~1~, ..., X~n~ be independent, each X~i~ with some arbitrary unknown distribution but with known mean μ~i~ and finite variance σ²~i~.  Then (∑X~i~ - ∑μ~i~) / √∑σ²~i~ has a limiting CDF which approaches a normal distribution. If additionally X~1~, ..., X~n~ are identically distributed with mean μ and variance σ², then the sample average X̄ = 1/n ∑X~i~ ⇝ N(μ, σ²/n).  (*to-do* 1) better understand what http://mathworld.wolfram.com/CentralLimitTheorem.html says more 2) relation to `converges in distribution'?  See all of statistics p 72)
 
 References:
 
@@ -504,7 +508,11 @@ References:
 *to-do*
 
 
-=== Population & Samples
+=== Models, statistical inference and learning
+
+A _statistical model_ 𝔉 is a set of distributions or regression functions (*to-do* but regression functions are quite a different thing than distributions; I don't understand). A _parametric model_ is set 𝔉 that can be parameterized by a finite number of parameters: 𝔉 = { f(x;θ) : θ ∈ 0}, where θ is an _parameter_ (or vector of parameters) that can take values in the _parameter space_ 0. f is a function of x, parameterized by θ.
+
+The notations Pr~θ~[·],  E~θ~[·] and Var~θ~[·] mean that the probability is with respect to PDF/PMF f(x;θ), i.e. averaging over all possible observations x, the generating PDF/PMF being f(x;θ). (*to-do* in the context of an estimator θ̂, what if θ is not a parameter of a model, but some other population parameter)
 
 In a gneral context, μ denotes the _population mean_ and is derived from observing and building the arithmetic mean of every element of the entire population or from computing the expected value of a random variable.  The sample mean can be used as an unbiased estimator for the population mean, i.e. μ̂ = x̄.
 
@@ -514,20 +522,40 @@ The _sample mean_ (or _empirical mean_) is derived from observing a sample subse
 
 The _unbiased sample variance_ (or _Bessel-corrected sample variance_) is derived analogously to the sample mean and is definied by S² = 1/(n-1) ∑(x~i~-x̄)².  Can be used as unbiased estimator for the population variance.  Similarily, the _biased sample variance_ is defined by 1/n ∑(x~i~-x̄)².  Note that some authors define sample variance on the basis of random variables, see also sample mean.
 
-The _sampling distribution_ (or _finite-sample distribution_) is the probability distribution of a given statistic (e.g. the mean) based on a single random sample from the population.  If we would take multiple same sized samples, the given statistic (e.g. the mean) has itself a probability distribution. (*to-do* understand that much more clearly)
+A _population parameter_ (or _statistical parameter_) is a numeric characteristic of a population or statistical model.
 
-The _standard error_ (or _SE_) of a parameter is the standard deviation of its sampling distribution.
+A _stastic_ is the result of invoking function g on a random sample X~1~, ..., X~n~ of the population: g(X~1~, ..., X~n~).  In other words, a statistic is a single measure of some attribute of a sample using some function g on the sample data.  Is a random variable since it depends on a random sample X~1~, ..., X~n~ of the population.
 
-If the parameter is the mean, it is called the _standard error of the mean_ (_SEM_), denoted σ~x̄~ (or SEM), and is σ~x̄~ = √Var[x̄] = σ / √n.  The later equal sign assumes independence and same variance σ².  However the population standard deviation σ is seldom known, thus the SEM is often estimated by using the sample standard deviation opposed to to σ.  Proof:  Var[x̄] = Var[1/n ∑x~i~] = 1/n² Var[∑x~i~] =(independent) 1/n² ∑Var[x~i~] =(same variance) 1/n² n Var[x~i~] = Var[x~i~] / n = σ² / n. (*to-do* ISLR p. 65 says that SE can be use to estimate how far off a single μ̂ might be from the true μ. But then the SE doesn't make sense if we calculate it on the basis of the population, since there we know μ exactly. Similarily, why is SE independent of the ratio populationsize:samplesize?) (*to-do* what is done in the R script from lecture week 2??)
+The _sampling distribution_ (or _finite-sample distribution_) is the probability distribution of a given statistic based on a single random sample from the population.  If we would take infinitly many same sized samples and calculate the statistic each time, we would get the sampling distribution.
 
-A statistic is _biased_ if it is calculated in such a way that it is systematically different from the population parameter being estimated.
+The _standard error_ (or _SE_) of a statistic is defined by the standard deviation of that statistic, i.e. by the standard deviations of its sampling distribution.  Standard error can be used to compute confidence intervals.  The 95% confidence interval for some variable a is approximately mean(a) ± 2SE(a), assuming a is normal distributed. (*to-do* verify those  numbers again / give more examples of confidence intervals, e.g. 1%)
 
-Let random variables {X~i~|i∈[n]} \~iid 𝓝(μ, σ²). Then (X̄-μ)/se(X̄) \~ 𝓝(0,1) and (X̄-μ)/sê(X̄) \~ t~n-1~.
+If the parameter is the mean, it is called the _standard error of the mean_ (_SEM_), denoted σ~x̄~ (or SEM), and is σ~x̄~ = sd[x̄] = σ / √n.  The later equal sign assumes independence and same variance σ².  However the population standard deviation σ is seldom known, thus the SEM is often estimated by using the sample standard deviation opposed to to σ.  Proof:  Var[x̄] = Var[1/n ∑x~i~] = 1/n² Var[∑x~i~] =(independent) 1/n² ∑Var[x~i~] =(same variance) 1/n² n Var[x~i~] = Var[x~i~] / n = σ² / n. (*to-do* ISLR p. 65 says that SE can be use to estimate how far off a single μ̂ might be from the true μ. But then the SE doesn't make sense if we calculate it on the basis of the population, since there we know μ exactly. Similarily, why is SE independent of the ratio populationsize:samplesize?) (*to-do* what is done in the R script from lecture week 2??)
+
+An _estimator_ (or _point estimator_ or _(point) estimate_), denoted θ̂ (or θ̂~n~), is a statistic g(X~1~, ..., X~n~) plus refering to a single fixed unknown quantity θ for which that statistic is intended to be an estimator of.  In other words, a (point) estimate is a single ``best guess'' of θ.  An estimator is a random variable since a statistic is one, see there.
+
+The _bias_ of an estimator θ̂ with respect to an unknown parameter θ is defined as Bias~θ~[θ̂] = E~θ~[θ̂] - θ = E~θ~[θ̂ - θ].  An estimator with zero bias is called _unbiased_.  Otherwise the estimator is said to be _biased_.  Note that there's also an analogously defined bias for the estimate f̂ of an regression function f, see there.
+
+An estimator θ̂ with respect to an unknown parameter θ is said to be _consistent_ if θ̂ P→ θ.
+
+If bias→0 and se→0 as n→∞, then estimator θ̂ is consistent.
+
+The _mean squared error_ (or _MSE_) of an estimator θ̂ with respect to an unknown parameter θ is defined as MSE[θ̂] = E~0~[(θ̂-θ)²]. The MSE can be used to assess the quality of the estimator θ̂. Note that there's also an analogously defined MSE for the estimate f̂ of an regression function f, see there.
+
+MSE[θ̂] = Bias²~θ~[θ̂] + Var~θ~[θ̂]
+
+A 1-α _confidence interval_ C~n~ for an unknown parameter θ, where 1-α is called the _confidence level_, means that in (1-α)·100% of the times you make an 1-α confidence interval for some parameter,  possibly each time for another parameter, the interval contains the true parameter.  Note that a 1-α confidence interval does _not_ mean that given a realized interval there is a 1-α probability that it contains the true parameter.  θ is an unknown parameter, and no probability statement concerning its value may be made. (*to-do* I don't get the difference. If you are given a 1-α confidence interval and the game is to predict whether it contains the true parameter, what percentage of your bet must the casino give you in order for the game to be fair?)
+
+_prediction interval_: *to-do*
+
+Let random variables {X~i~|i∈[n]} iid \~ 𝓝(μ, σ²). Then (X̄-μ)/se(X̄) \~ 𝓝(0,1) and (X̄-μ)/sê(X̄) \~ t~n-1~.
 
 [cols="1,3"]
 |=====
+| 𝔉 = { f(x;θ) : θ ∈ 0 }  | Parametric model
+| Pr~θ~[·],  E~θ~[·],Var~θ~[·]  | Probability is with respect to PDF/PMF f(x;θ)
 | N | Size of population
-| n | Number of samples
+| n | Size of sample
 | μ | Population mean
 | μ̂ = x̄ | Common estimator for μ
 | σ² | Population variance
@@ -535,11 +563,17 @@ Let random variables {X~i~|i∈[n]} \~iid 𝓝(μ, σ²). Then (X̄-μ)/se(X̄) 
 | x̄ = 1/n ∑x~i~ | Sample mean
 | S² = 1/(n-1) ∑(x~i~-x̄)² | Unbiased sample variance
 | 1/n ∑(x~i~-x̄)² | Biased sample variance
-| se[·] = sd[·'s sampling distribution] | Standard error of a parameter is the standard deviation of its sampling distribution.
-| se[x̄] = √Var[x̄] = σ / √n | Standard error of the mean, assuming independence and same variance σ²
-| sê[x̄] = S / √n | Common estimator for se[x̄]
-| (X̄-μ) / se[X̄] ~ 𝓝(0,1) | For random variables {X~i~:i∈[n]} ~iid 𝓝(μ, σ²)
-| (X̄-μ) / sê[X̄] \~ t~n-1~ | For random variables {X~i~:i∈[n]} ~iid 𝓝(μ, σ²)
+| se[·] = sd[·] | Standard error of a statistic = standard deviation that statistic
+| SEM = se[x̄] = sd[x̄] = σ / √n | Standard error of the mean, assuming independence and same variance σ²
+| SEM̂ = sê[x̄] = S / √n | Common estimator for se[x̄]
+| g(X~1~, ..., X~n~) | Statistic: Result of function g on a random sample
+| θ̂ or θ̂~n~ | Estimator for quantity θ. Estimator = a statistic plus stating which quantity is estimated.
+| Bias~θ~[θ̂] = E~θ~[θ̂] - θ = E~θ~[θ̂ - θ] | Bias of estimator θ̂ with respect to θ
+| θ̂ is said to be consistent if θ̂ P→ θ |
+| MSE[θ̂] = E~0~[(θ̂-θ)²] |
+| MSE[θ̂] = Bias²~θ~[θ̂] + Var~θ~[θ̂] |
+| (X̄-μ) / se[X̄] ~ 𝓝(0,1) | For random variables {X~i~:i∈[n]} iid ~ 𝓝(μ, σ²)
+| (X̄-μ) / sê[X̄] \~ t~n-1~ | For random variables {X~i~:i∈[n]} iid ~ 𝓝(μ, σ²)
 |=====
 
 
@@ -550,25 +584,24 @@ In essence, a claim (the alternative hypothesis) is assumed valid if its counter
 The _null hypothesis_ (the hypothesis to be nullified), denoted H~0~, is a statement usually along the lines ``there is no relationship'' or ``there is no effect''.  The _alternative hypothesis_, denoted H~a~ (or H~1~), is the complementary statement.  Compute from the observations the observed value t~obs~ of some test statistic T.  The _p-value_ (or _probability value_ or _asymptotic significance_) is defined as Pr("test statistic is as at least as extreme as t~obs~"|H~0~).  Choose a _significance level_ α.  Typically the significance level is chosen to be 5 or 1 %.  Reject the null hypothesis, in favor of the alternative hypothesis, iff p-value < α.  A _type I error_ (or _false positive_) is the incorrect rejection of H~0~.  A _type II error_ (or _false negative_) is the incorrect retaining of H~0~.
 
 
+[[misc_statistics]]
 === Misc. statistics
 
-n denotes the number of distinct _data points_ (or _observations_).  These data points as a whole are called _training data_.  p denotes the number of predictors.  Given is a n ⨯ p matrix X of where each column represents a _predictor_ (or _covariable_ or _input variable_ or _independent variable_ or _feature_ or _regressor_ or just _variable_) and a n ⨯ 1 vector Y of _response variables_ (or just _reponse_ or _output variables_ or _dependent varables_).  The i-th row of X together with Y[i] represents the i-th observation.  We assume that there is some fixed but unknown relationship f between the response Y and the predictors X, i.e. Y = f(X) + ε.  f is also called the _population regression function_ (or _PRF_).  f represents the _systematic_ information that the predictors provide about the response.  ε is a n ⨯ 1 vector of a random _error terms_, which are independent of X and have no systematic error (i.e. E[ε~i~] = 0 ∀ ε~i~).  Note that the error terms are in direction of the y axis, as opposed to perpendicular to a linear regression hyperplane.  This is important to note because the later is what most humans intuitively do in the 2D case when guessing which of multiple regression lines is a better fit.
+p denotes the number of predictors and n the number of data points.  Predictors and data points will be defined shortly.  Given is a n ⨯ p matrix X of where each column represents a _predictor_ (or _covariable_ or _covariate_ or _input variable_ or _independent variable_ or _feature_ or _regressor_ or just _variable_) and a n ⨯ 1 vector Y of _response variables_ (or just _reponse_ or _output variables_ or _dependent varables_).  The tuple (Y[i], X[i-th row]) represents the i-th _observation_ (or _data point_).  We assume that there is some fixed but unknown relationship between the response Y and the predictors X.  We model that by the _regression function_ f (or _population regression function_ or _PRF_) by writing Y ≈ f(X). This can be read as ``__is approximately modeled as__'' or Y _is regressed_ on X.  f represents the _systematic_ information that the predictors provide about the response.  ε is a n ⨯ 1 vector of a random _error terms_, which are independent of X and have no systematic error (i.e. E[ε~i~] = 0 ∀ ε~i~).  We like to estimate f and use it like so Ŷ = f̂(X).  f̂ is our _estimate for f_, and Ŷ is the resulting _prediction_ for Y.  The elements ŷ~i~ of Ŷ are called _fitted values_ (or _predicted values_).
 
-We may wish to estimate f for the reason of prediction:  Ŷ = f̂(X), where f̂ represents our _estimate for f_, and Ŷ represents the resulting prediction for Y.  The elements ŷ~i~ of Ŷ are called _fitted values_ (or _predicted values_).  Here we treat f̂ as a black box.
+_Estimating f by paramtetric methods_: We assume f to be a parameterized function.  The parameters of f are called _unknown parameters_ (or _coefficients_).  The problem of estimating f reducues now to estimating these paramters.  For example the linear model has f̂(X) = Xβ, where β is a p ⨯ 1 vector constituting the unknown parameters.  We use the training data to _fit_ (or _train_) our model, i.e. to compute estimates β̂ of the unknown parameters.  There are multiple approaches for fitting the model, the most common approach being (ordinary) least squares.
 
-Estimating f by _paramtetric methods_: Reduces the problem of estimating f down to the problem of estimating a set of parameters.  1) We make an assumption about the functional form of f, i.e. we guess an parameterized function f̂. For example the linear model has f̂(X) = Xβ, where β a p ⨯ 1 vector constituting the parameters. 2) We use the training data to _fit_ (or _train_) our model, i.e. to determine the model's parameters.  There are multiple approaches for fitting the model, the most common approach being (ordinary) least squares.
+In general, we can use regression only for prediction of a response variable given new predictors.  In general the observiations on which the regression is based do not allow for conclusions about causal relations. (*to-do* Some reference to a trusted source which concisely accurately states this)
 
-The variance Var(ε~i~) of the error terms ε~i~ is in general not known.  Often it is assumed that all error terms have the same constant variance σ²,  and that constant variance often is estimated via σ̂ = RSE.
+The variance Var(ε~i~) of the error terms ε~i~ is in general not known.  Often it is assumed that all error terms have the same constant variance σ²,  and that constant variance often is estimated via σ̂ = RSE.  Note that the error terms are in direction of the y axis, as opposed to perpendicular to a linear regression hyperplane.  This is important to note because the later is what most humans intuitively do in the 2D case when guessing which of multiple regression lines is a better fit.
 
 e~i~ = y~i~ - ŷ~i~ is the i-th _residual_.
 
-_Studentized residual_ t~i~ = e / √Var̂[e]. Can be used to dedect outliers, see there.
+_Studentized residual_ (*to-do* what are standardized residuals? They appear in R plots) t~i~ = e / sê[e]. Can be used to dedect outliers, see there.
 
 The _residual sum of squares_ (or _RSS_) is defined as RSS = ∑~1≤i≤n~e²~i~.  Can be thought of as the amount of variability that is left unexplained after performing the regression.
 
 The _total sum of squares_ (or _TSS_) is defined as TSS = ∑~1≤i≤n~(y~i~-ȳ)².  Can be thought of as the amount of variability inherent in the response before the regression is performed.
-
-The _mean squared error_ (or _MSE_) is defined as MSE = 1/n RSS. Qualifies performance of a statistical learning method on a given training data set.
 
 Given the estimator β̂ of parameter β of some statistical model.  The _t-statistic_ is commonly used (*to-do* are there other uses than what I describe here?) in hypothesis testing, where the null hypothesis is that  be β = β~0~.  Typically β~0~ is 0.  The t-statistic for β̂ is defined as t~β̂~ = (β̂ - β~0~) / se(β̂).  If β̂ is an ordinary least squares estimator in the classical linear regression model, and if the true value of parameter β is equal to β~0~, then t~β̂~ \~ t~n-p~ where n is the number of observations, and p is the number of predictors (including the intercept).  Etymology: the term ``t-statistic'' is abbreviated from ``hypothesis test statistic''.
 
@@ -579,8 +612,6 @@ The __R²__ statistic is defined as R² = (TSS - RSS) / TSS = 1 - RSS/TSS.  It p
 *to-do* R²~j~
 
 The __adjusted R²__ statistic is defined as 1 - RSE² / (TSS/(n-1)).
-
-Standard error can be used to compute _confidence intervals_. The 95% confidence interval for some variable a is approximately mean(a) ± 2SE(a), assuming a is normal distributed.
 
 An _outlier_ is a data point for which its response y~i~ is unusual by being far from the value predicted by the model. Alternatively: A data point with large studentized residual.  Observations whose studentized residuals are greater than 3 in absolute value are possible outliers [ISLR chapter 3.3.3 Potential Problems, Section 4. Outliers].  In linear regression, typically an outlier has only a small influence on the regression hyper-plane.  However it may have a big influence on RSE and R².  And since RSE is used as estimator for σ, also a big influence on confidence intervals and p-values, i.e. a big influence on the interpretation of such a fit (*to-do* are those statements restrictued to linear regression?).
 
@@ -594,23 +625,57 @@ The _Cook's distance_ D~i~ is a commonly used estimate of the <<influencial_data
 
 _Least squares_ is a method of fitting a model which tries to minimize the RSS.  In other words, its an estimation technique.  There are two categories: _Ordinary least squares_ (or _OLS_ or _linear least squares_) and _non-linear least squares_.  Linear least squares has a closed-form solution.  The nonlinear prblem is usually solved by iterativie refinement.
 
+The _bias_ of estimate f̂ with respect to f at x~0~ is defined analogous to the bias for an estimator θ̂, see there. f̂(x~0~) is a random variable since f̂, i.e. its internal parameters, depends on its training data.
+
+Bias~f,training data~[f̂(x~0~)] = E~training data~[f̂(x~0~)] - f(x~0~)
+
+Regarding `the' _MSE_, there are multiple variants, depending on what exactly we want to describe.  The basic idea is always the same, but depending on the specific MSE variant, it is calculated over different data and the used estimate f̂ is either fixed or varies by repeteadly training it with some data. See also MSE for an estimator θ̂, which is analogously defined.
+
+The _training MSE_ is calculated using the training data and a fixed estimate f̂ which was trained using that training data: trainingMSE = RSS/n.
+
+The _expected test MSE_ is conceptually calculated in two levels. One level iterates over all possible training data sets, each iteration training a new estimate f̂.  For each of those f̂, the other level iterates over all possible test data sets.
+
+expectedTestMSE = E~training data~[E~test data~[(y~test~ - f̂(x~test~))² | f̂ trained by training data]]
+
+The __expected test MSE at x~0~__ is analogous, but here we only look at a fixed x~0~. Note that the corresponding y~0~ is still random due to the error term ε.
+
+expectedTestMSE(x~0~) = E~training data~[E~y0~[(y~0~ - f̂(x~0~))² | f̂ trained by training data]]
+
+The _bias-variance trade-off_ states that that the expected test MSE at x~0~ can always be decomposed into three parts as follows.
+
+expectedTestMSE(x~0~) = (Bias~f,training data~[f̂(x~0~)])² + Var~training data~[f̂(x~0~)] + Var[ε]
+
+*to-do* why do we have a Var[ε] summand here, but not in the more general formula MSE[θ̂] = Bias²~θ~[θ̂] + Var~θ~[θ̂].  I vaguely intuitively understand it, but I cannot accurately phrase it.
+
+*to-do*: What is "test MSE" (opposed to expected test MSE)?
+
+*to-do*: Is all of the above about MSE & bias truly acurate? Be picky! E.g. I suspect I use non-standard / unusual notation.
+
+*to-do*: I can't exactly phrase why in the bias variance tradeoff formula, we're no longer directly dependend on the test data. Or in other words, I can't exactly phrase the connection between Var[ε] and the test data.
+
 
 |=====
 | n | Number of samples
 | p | Number of predictors
-| Y = f(X) + ε | X = predictors, Y = responses, ε = random errors
-| Ŷ = f̂(X) | Ŷ = predictions (or fitted values), f̂ = estimator for f
+| X | Predictors. Given by being part of the given data set.
+| Y | Responses. Given by being part of the given data set.
+| ε | Error terms. Unknown.
 | Often: Var[ε] = const = σ² | σ is in general not known. Often assumed to be constant.
 | Often: Var̂[ε] = σ̂² = RSE² | Common estimator
+| f | Regression function. Guessed, unknown parameters.
+| Y ≈ f(X) | ``Approximately modeled as'' or ``X is regressed on Y''.
+| Y = f(X) + ε |
+| f̂ | Estimate for f
+| Ŷ = f̂(X) | Predictions (or fitted values)
 | e = Y - Ŷ | Residuals
-| t~i~ = e / √Var̂[e] | Studentized residuals
+| t~i~ = e / sê[e] | Studentized residuals. For sê[e] see your specific model.
 | t~i~ > 3 | Rule of thumb for identifying outliners
 | p~ii~ > 2p̄ or p~ii~ > 3p̄  | Rule of thumb for identifying high-leverage data points, where p~ii~ is a diagonal cell in the projection matrix P and p̄=p/n is the mean leverage value.
 | D~i~ = 1/p · t²~i~ · (P~ii~/(1-P~ii~)) = 1/(pσ̂²) · ∑~j~(ŷ~j~-ŷ~j(i)~)² | Cook's distance of i-th observation.  P is the projection matrix.  ŷ~j(i)~ excludes the i-th row.
 | D~i~ > 1 or D~i~ > 4/n | Rules of thumb for identifying influencial data points.
 | TSS = ∑(y~i~ - ȳ)² | Total sum of squares. ȳ is the sample mean, see there.
 | RSS = ∑e²~i~ | Residual sum of squares
-| MSE = 1/n RSS | Mean squared error
+| trainingMSE = RSS/n |
 | RSE = √(RSS/(n-p)) | Residual standard error
 | (unadjusted) R² = (TSS - RSS) / TSS = 1 - RSS/TSS |
 | adjusted R² = 1 - RSE² / (TSS/(n-1)) |
@@ -619,15 +684,19 @@ _Least squares_ is a method of fitting a model which tries to minimize the RSS. 
 |=====
 | β | A parameter in some statistical model
 | β̂ | Estimator for β
-| β~0~ | β's hypothesized value
+| β~0~ | β's hypothesized value in the null-hypothesis
 | t~β̂~ = (β̂ - β~0~) / se(β̂) | t-statistic of β̂. β~0~ is often taken to be 0.
 | t~β̂~ \~ t~n-p~  | If β̂ is an ordinary least squares estimator in the classical linear regression model, and if the true value of parameter β is equal to β~0~.
 |=====
 
+References:
+
+- Statisitic Cheat Sheet: http://web.mit.edu/~csvoss/Public/usabo/stats_handout.pdf
+
 
 === Linear regression models
 
-In the linear multiple regression model the relation between the response and the predictors is linear, i.e. f(X) = Xβ and thus Y ≈ f(X) + ε = Xβ + ε.  You migh read ≈ as _"is approximately modeled as"_ (or we are _regressing Y on X_). Often the first column of X is all ones, which then makes β~0~ the _intercept_. The hyperplane described by f̂ intercepts the y-axis at β~0~.  _Simple linear regression_ is linear regression with only one predictor variable. f(X) = Xβ defines the _population regression hyperplane_, which is the best linear approximation to the true relationship between X and Y (recall that linearity was just an assumption). f̂(X) = Xβ̂ defines the _least square hyperplane_, which is an estimate based on the training data (*to-do* Is there are more general term which does not imply the fitting method).
+<<misc_statistics>> introduces many terms and notations this subchapter is based upon.  In the linear multiple regression model the relation between the response and the predictors is linear, i.e. f(X) = Xβ.  Thus the estimated model is f̂(X) = Xβ̂ and thus Ŷ = f̂(X) + ε. Often the first column of X is all ones, which then makes β~0~ the _intercept_: the hyperplane described by f̂ intercepts the y-axis at β~0~.  _Simple linear regression_ is linear regression with only one predictor variable. f(X) = Xβ defines the _population regression hyperplane_, which is the best linear approximation to the true relationship between X and Y (recall that linearity was just an assumption). f̂(X) = Xβ̂ defines the _least square hyperplane_, which is an estimate based on the training data (*to-do* Is there are more general term which does not imply the fitting method).
 
 The method to fit the model is commonly ordinary least squares.
 
@@ -654,7 +723,7 @@ Assumptions of the linear model (*to-do* of what exactly are these assumptions? 
 
   * If the error terms ε are correlated we may can use generalized least squares.
 
-- {ε~i~|∀i} \~iid 𝓝(0, σ²).  This implies that Y~i~ ~ 𝓝 ∀ i.
+- {ε~i~|∀i} iid \~ 𝓝(0, σ²).  This implies that Y~i~ ~ 𝓝 ∀ i.
 
   * As a consequence, we have β̂ ~ 𝓝(β, σ²(X^T^X)^-1^).
 
@@ -666,7 +735,13 @@ Assumptions of the linear model (*to-do* of what exactly are these assumptions? 
 
 _Projection matrix_ (or _influence matrix_ or _hat matrix_), denoted P (or H), *to-do*
 
-_F-test_. *to-do* Where do I find good information? What is it in general, what are the general definition? What is it in case of linear regression via OLS. What about partial F-Test. I find not much in the script nor in ISLR, these are too close to specific small examples / applications. Also understand well why it is possible to get significant F-statistic but non-significant regressor t-tests. https://stats.stackexchange.com/questions/3549/why-is-it-possible-to-get-significant-f-statistic-p-001-but-non-significant-r
+_F-test_. See also <<multicollinearity>> *to-do* Where do I find good information? What is it in general, what are the general definition? What is it in case of linear regression via OLS. What about partial F-Test. I find not much in the script nor in ISLR, these are too close to specific small examples / applications. Also understand well why it is possible to get significant F-statistic but non-significant regressor t-tests. Make a paragraph about correlated predictors. What if the predictors are correlated, but still a plane is well defined, since I have at least three point clouds, e.g. a triangle function. https://stats.stackexchange.com/questions/3549/why-is-it-possible-to-get-significant-f-statistic-p-001-but-non-significant-r
+
+[[multicollinearity]]
+_Multicollinearity_ describes the situation that a predictor can be linearly predicted from one or more other predictors.  In this situation, the coefficient estimates β̂
+
+_Choosing predictors_: The individual variabilities for each coefficient sum up and the variability of the estimated hyper-plane increases the more predictors are entered into the model, whether they are relevant or not. See also bias-variance trade-off.
+
 
 |=====
 | P = X(X^T^X)^-1^X^T^; p~ij~ = Cov[ŷ~i~,y~j~]/Var[y~j~] | Projection matrix *to-do* formula for p~ij~ using only x's. That would help to see what it mathematically means for a predictor to be far away from the mean of predictors.
@@ -681,7 +756,9 @@ _F-test_. *to-do* Where do I find good information? What is it in general, what 
 | e = Y - Ŷ = (I~n~ - P)Y | Residuals.
 | Cov[e] = σ²(I~n~ - P) | Residuals e are correlated (error terms ε are not)
 | Var[e] = diag(Cov[e]) = σ²(1-diag(P)) | Variance of residuals is _not_ constant (unlike variance of error terms ε).
-| β̂ = (X^T^X)^-1^X^T^Y | Outcome of least squares approach to fit the model. https://en.wikipedia.org/wiki/Proofs_involving_ordinary_least_squares#Least_squares_estimator_for_.CE.B2[Proof]
+| sê[e] = se[e] = √Var[e] | (*to-do* is this absolutely correct? why/proofs?)
+| e / sê[e] = e / (σ√(1-diag(P))) | Studentized residual (*to-do* from exercis-lecture, but really studentized or standardized?)
+| β̂ = (X^T^X)^-1^X^T^Y | Coefficient estimates, computed using OLS. https://en.wikipedia.org/wiki/Proofs_involving_ordinary_least_squares#Least_squares_estimator_for_.CE.B2[Proof]
 | E[β̂] = β |
 | Cov[β̂] = σ²(X^T^X)^-1^ | Note that in some notations Var instead of Cov is used; since it's a matrix, it's implicit that the covariance matrix is meant. https://stats.stackexchange.com/questions/68151/how-to-derive-variance-covariance-matrix-of-coefficients-in-linear-r| Cov̂[β̂] = RSE²(X^T^X)^-1^ | σ is unknown, we estimate it as usual using RSE
 | Var[β̂] = diag(Cov[β̂]) | Usual definition
@@ -697,9 +774,6 @@ _F-test_. *to-do* Where do I find good information? What is it in general, what 
 |=====
 
 
-*to-do*: understand the discussion about how adding predictors affects quality measurements such as t-values and p-values. -> Googeln. Gibt viele Fälle.
-
-
 References:
 
 - https://www.stat.berkeley.edu/~aditya/resources/LectureSEVEN.pdf
@@ -707,19 +781,168 @@ References:
 - http://seismo.berkeley.edu/~kirchner/eps_120/Toolkits/Toolkit_10.pdf
 
 
-=== Measuring quality of fit
 
-_Overfitting_ refers specifically to the case in which a less flexible model would have yielded a smaller test MSE.
+[[KNN]]
+=== K-nearest-neighbor regression (KNN)
 
+f̂(y~i~) = 1/k ∑~j~y~j~ | Find the k x~j~ closest to x~i~
 
-=== Cross validation
+If the underlying model is linear, KNN is worse.
 
-Our estimate f̂ of the model was trained used the training set.  A qualifier Θ for the performance of f̂ is the MSE over a test set.  Since usually we don't have a test set beside the training set,  we somehow have to estimate Θ, resulting in Θ̂.  There are multiple approaches, all of which repeatedly partition the original training set into a (new) training set and a test set,
-
-
-=== Validation set approach
+_Curse of diemsionality_: With more predictors KNN gets worse. Intuitively: When p is gettig larger, then in p-dimensional space the density of data point usually decreses.  Thus the number of neighbors usually decreases.  Linear regression also suffers from larger p's, but not as mutch as KNN.
 
 
+[[LOESS]]
+=== LOESS regression curve
+
+Generalization of KNN which is smoother.  KNN can be thought of as a rectangle function.  The k neigherst neighbors get wheight 1/k, all others get weight 0.  LOESS has a smoother weighting function, parameterized by α.  Larger α means more moothing.
+
+
+
+=== Model selection, model validation, cross validation
+
+_Model selection_ is the task of selecting a statistical model from a set of candiate models and determining the parameters of the choosen model.
+
+The _performance_ of a model is a measure of how `good' a model is, most often in respect to its predictive power.  For example, one could use the expected test MSE, that is, an estimate thereof.  (*to-do* is it always a property of the model, or can it also be a property of a concrete already trained estimate f̂?)
+
+_Model validation_ is the task of calculating the performance a given model (whose parameter are already determined) is.  Note that it's about a model, as opposed to a single given already trained estimate f̂.  For a meaningfull model validation we usually also need to calculate the bias and the variance of the calculated performence.  The problem of model validation is that for most ways to perfectly calculate a performance we often would need all possible test data to train multiple estimates f̂ and for each of those f̂ all possible test data.  See also definition of expected test MSE.
+
+_Cross-validation_ (or _rotation estimation_) is a coarse model validation technique having multiple more concrete instanciations, such as <<validation_set_approach>>, <<LOOCV>> and <<k_fold_CV>>.  It tries to mitigate the problem of only having one data set of finite size by partitioning it once or multiple times into a training set and a test set, and then calculate an estimate of the performance of the model using the set of training/test-set-pairs.
+
+Given one data set, <<double_cross_validation>> does model selection and model validation. It basically is two level of cross validation, one for each of these two tasks.
+
+*to-do* define terms overfitting, underfitting.
+
+*to-do* Is all of the this chapter correct, inclusive following subchapters? Be picky!
+
+References:
+
+- Book ``An introduction to statistical learning'', chapter ``5.1 Cross-Validation''
+
+- Book ``All of statistics'', chapter ``13.6 Model Selection''
+
+- ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``4 Cross-Validation''
+
+
+[[double_cross_validation]]
+==== Double cross validation
+
+Use two layers of cross validation.  We use the inner CV for model selection, and the outer for model assessment.  I.e. in the inner CV, after the respective CV approach gives us a training set and test set, we multiple times train the model with the training set, each time with different model parameters.  At the end choose the best parameter based on which parameter lead to the model with the best test MSE.  Then use the outer CV to (*to-do* HOLY DAMN SHIT!!! GIVE AN CONCRETE **DETAILED** EXAMPLE!!!!!!!!!! THERE'S JUST TOO MUCH FUCKING HAND-WAVING FOR CHRIST SAKE!!!! WITH WHAT DATA IS THE FINALLY USED MODEL TRAINED? CAN I CHOOSE THE CONCRETE CROSS-VALIDATION METHOD (LOOCV, ...) FOR BOTH LEVELS????)
+
+
+[[validation_set_approach]]
+==== Validation set approach
+
+Partition data randomly in two equaly sized partitions, one constituting the training data and the other constituting the test data (or validation data).
+
+Pro: Simple
+
+Pro: Fair estimate of test MSE
+
+Contra: Fewer training data always always means a worse fit of the model.  In particular it typically means more bias.  In other words, it's too pessimistic: we get a biased estimate (e.g of expected test MSE).
+
+Contra: Large variance of the validation estimate (e.g. estimated expected test MSE) because the validation estimate might depend a lot on how the partition turned out to be.
+
+References:
+
+- Book ``An introduction to statistical learning'', chapter ``5.1.1 The Validation Set Approach''
+
+- ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``4.3.1 Leave-one-out cross-validation''
+
+
+[[LOOCV]]
+==== Leave one out cross validation (LOOCV)
+
+Do n iterations. In each iteration, make the i-th observation the test set, and the rest the training set.
+
+MSE~i~ = (y~i~ - f̂^(-i)^(x~i~))².  LOOCV estimate of expected test MSE is 1/n ∑MSE~i~.
+
+*to-do* The training of the finally used model is by the full original data set, right? And the above calculated MSE is the estimated MSE of that final model?
+
+Pro: Much less bias than validation set approach due to larger training set
+
+Pro: No randomization
+
+Cons: Computationally expensive, especially for large n. However for some models, e.g. for linear regression, there are short cuts.
+
+References:
+
+- Book ``An introduction to statistical learning'', chapter ``5.1.2 Leave-One-Out Cross-Validation''
+
+- ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``4.3.1 Leave-one-out cross-validation''
+
+
+[[k_fold_CV]]
+==== k-fold cross validation
+
+Split observation randomly in k equaly sized partitions.
+
+*to-do*
+
+References:
+
+- Book ``An introduction to statistical learning'', chapter ``5.1.3 k-Fold Cross-Validation''
+
+- ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``4.3.2 K-fold Cross-Validation''
+
+
+=== Bootstrap
+
+The _bootstrap_ is a tool that can be used to quantify the uncertainty associated with a given estimator.  Given an unknown distribution P and the original data set Z~1~, ..., Z~n~ iid \~ P.  E.g. in regression problems, Z~i~ = (X~i~, Y~i~), X~i~ ∈ ℝ^p^, Y~i~ ∈ ℝ.  Also given a function g and an estimator θ̂~n~ = g(Z~1~, ..., Z~n~) of some unknown Value θ.  The problem is to find the distribution of the estimator θ̂~n~.  If we had P, we could simulate using P.  The key idea is to simulate using an estimate P̂~n~ of P.  P̂~n~ is an empirical distribution of Z~1~, ..., Z~n~ which places mass 1/n at each data point.  It is a discrete distribution on the data points, and each point is equally likely.  To sample from P̂~n~ means uniform sampling with replacement from {Z~1~, ..., Z~n~}.
+
+Bootstrapping an estimator can be done as follows by B times doing the following, i denoting the iteration:
+
+- Generate the i-th _bootstrap sample_ Z~1~^∗i^, ..., Z~n~^∗i^ iid \~ P̂~n~. Here, the size of the boot strap sample is also n for convenience.
+
+- Compute the i-th _bootstrapped estimator_ θ̂~n~^∗^ = θ̂~n~^∗i^ = g(Z~1~^∗i^, ..., Z~n~^∗i^)
+
+Real world: P ⇒ (Z~1~, ..., Z~n~) ⇒  θ̂~n~ = g(Z~1~, ..., Z~n~) +
+Boostrap world: P̂~n~ ⇒ (Z~1~^∗^, ..., Z~n~^∗^) ⇒  θ̂~n~^∗^ = g(Z~1~^∗^, ..., Z~n~^∗^)
+
+The _bootstrap distribution_ P^∗i^ is the distribution of the _bootstrapped estimator_ θ̂~n~^∗^.  It is a conditional distribution given the data.  Induced by sampling from P̂~n~.  The _bootstrap expectation_ E^∗^[·] is a conditional expectation given the data.  Likewise the _bootstrap variance_ Var^∗^[·] is a conditional variance given the data.
+
+Recall that we already computed the estimator θ̂~n~ = g(Z~1~, ..., Z~n~), whe now liked to compute its expectation and variance.  The bootstraped estimators θ̂~n~^∗i^ can be used to approximate the bootstrap expectation E^∗^[·] and the boostrap variance Var^∗^[·] of the bootstrapped estimator θ̂~n~^∗^ as defined in the table below.
+
+Note that the script on p. 41 talks about boostrap expectation.  Instead of saying that we want to apprixmate E^∗^[...], we could say that we estimate it and write Ê^∗^[...] = .... Analgous for Var.
+
+The boostrap is called to be _consistent_ for θ̂~n~ if for an increasing sequence a~n~, for all x:
+
+Pr[a~n~(θ̂~n~-θ)≤x] - Pr*[a~n~(θ̂~n~^∗^-θ̂~n~)≤x] P→ 0 (n→∞)
+
+In the left Pr[...], θ̂~n~ is a random variable which is centered around the fixed value θ. In the right Pr*[...], θ̂~n~^∗^ is random variable which is centered around the fixed value θ̂~n~.  Typically a~n~ = √n. Consistency of the boostrap typically holds if the limiting distribution of θ̂~n~ is Normal, and if the original data Z~1~, ..., Z~n~ are iid.
+
+Consistency of the boostrap implies consistent variance and bias estimation, i.e.:
+
+Var^∗^[θ̂~n~^∗^] / Var[θ̂~n~] P→ 1
+
+(E^∗^[θ̂~n~^∗^]-θ̂~n~) / (E[θ̂~n~]-θ) P→ 1
+
+[cols="1,3"]
+|=====
+| B                          | Number of bootstrap iterations
+| P                          | The unknown distribution of Z~1~, ..., Z~n~
+| P̂~n~                      | Estimate of P. Empirical distribution of Z~1~, ..., Z~n~ which places probability mass 1/n on very data point Z~i~.
+| P^∗^                       | Bootstrap distribution / distribution of θ̂~n~^∗^.  Is a conditional distribution given the data.
+| Z~1~, ..., Z~n~ iid ~ P    | Original data set
+| Z~1~^∗^, ..., Z~n~^∗^ iid \~ P̂~n~ |  Bootstrap sample or simulated data.
+| g                          | Some function to calculate θ̂~n~, see there
+| θ or θ~0~                  | Some unkown value
+| θ̂~n~ = g(Z~1~, ..., Z~n~) | Estimator for θ with unknown distribution (which depends on g and P)
+| θ̂~n~^∗^                   | Boostraped estimator
+| E^∗^[θ̂~n~^∗^] ≈ 1/B ∑^B^ θ̂~n~^∗i^ | Approximation for bootstrap expectation of θ̂~n~^∗^
+| (E^∗^[θ̂~n~^∗^]-θ̂~n~) / (E[θ̂~n~]-θ) P→ 1 |
+| Var^∗^[θ̂~n~^∗^] ≈ 1/(B-1) ∑^B^(θ̂~n~^∗i^ - 1/B ∑^B^ θ̂~n~^∗i^)² | Approximation for bootstrap variance of θ̂~n~^∗^.
+| Var^∗^[θ̂~n~^∗^] / Var[θ̂~n~] P→ 1 |
+|=====
+
+
+References:
+
+- Book ``An introduction to statistical learning'', chapter ``5.2 The Bootstrap''
+
+- Book ``All of statistics'', chapter ``8 The Bootstrap''
+
+- ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``5 Bootsrap''
 
 
 == Algebra and Arithmetic
@@ -882,6 +1105,8 @@ stirlings approximation: n! ~ √(2πn)*(n/e)^n^
   * spring 2015, textbook: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-spring-2015/readings/MIT6_042JS15_textbook.pdf
   * fall 2010, video lectures: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2010/video-lectures/
   * fall 2010, readings: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2010/readings/
+
+- MIT course 18.650 Statistics for Applications, fall 2016: https://ocw.mit.edu/courses/mathematics/18-650-statistics-for-applications-fall-2016/lecture-slides/[lecture notes], https://www.youtube.com/watch?v=VPZD_aij8H0&list=PLUl4u3cNGP60uVBMaoNERc6knT_MgPKS0[videos]
 
 - Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič. The Introduction chapter serves as good summary of computer science fundamentals.
 
