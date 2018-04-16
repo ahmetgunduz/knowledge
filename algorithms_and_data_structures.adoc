@@ -2628,6 +2628,16 @@ Data structure: We do the idea of the last subchapter again. So now the first le
 
 Query: As before. With the same analogous rules walk down the tree sorting points by their z coordinate, and once we find a node v such that a~z~ ≤ key(v) ≤ b~z~, we make each a query to the two 2nd level data structures stored within v.
 
+Summary of the complete data structure:
+
+1. A range tree on z answering [a~x~,b~x~]⨯[a~y~,b~y~]⨯[a~z~,b~z~] queries, where each node stores two instances of the following DS. A query to us only delegates one query to each.
+
+2. A range tree on y answering [a~x~,b~x~]⨯[a~y~,b~y~]⨯(one sided) queries, where each node stores two instances of the following DS. A query to us only delegates one query to to each.
+
+3. A layered range tree on x answering [a~x~,b~x~]⨯(one sided)⨯(one sided) queries.  The mirroring tree at the side is a tree where each node node stores an instance of the following DS, resulting in a tree of z-sorted arrays stored via fractional cascading.  Regular layered range tree query: while walking down our tree (i.e. x), simultanously walk down the same way in the mirroring tree at the side. Thus for each found enclosed (by the two search splines) subtree in the x tree, i.e. the root node there of, we already know the respective node in the mirroring tree on the side, and thus readily have the answer from this next level DS.
+
+4. A 2D dominance query data structure answering (one sided)⨯(one sided) queries. A sequence of z-sorted arrays, stored via fractional cascading.
+
 Analysis: As before. Thus O(log n + k) query time, O(n log³ n) space.
 
 References:
@@ -2637,7 +2647,7 @@ References:
 
 ==== Range tree + 3D special case for last 3 dimensions
 
-Data structure: Use a range tree, plus <<3d_range_tree>> for the last three dimensions.
+Data structure: Use a range tree, where the last three dimensions are implemented by a <<3d_range_tree>>.
 
 Analysis: O(log^d-2^(n) + k) query time and O(n log^d^ n) space.
 
