@@ -6,7 +6,9 @@
 = Algorithms and data structures
 
 
-== Misc. terms
+== Introduction
+
+=== Misc. terms
 
 In-place:: An algorithm using +O(1)+ auxiliary memory space.  Often even +O(log n)+ is considered as in place.
 
@@ -20,14 +22,14 @@ With high probability (w.h.p.):: An event E occurs with high probability if Pr[E
 Output-sensitive algorithm:: An algorithm whose running time depends on the size of the output, in addition to, or instead of, the size of the input.
 
 
-== Models of computation
+=== Models of computation
 
 A _model of computation_ formally scpecifies what a computer can do and what each operation costs (e.g. in terms of running time or space).
 
 *to-do* turing macine, state automaton
 
 [[RAM_model]]
-=== Random Access Machine (RAM) model
+==== Random Access Machine (RAM) model
 
 Random access memory modeled by huge array of words. The size of the array is left undefined.  A _word_ is defined has having w bits.  Since a word should be able to be used as an index into the big array, we usually want w ≥ log~2~(arraysize). The CPU has O(1) _registers_, each being able to store one word.  In O(1) time, we can _load_ O(1) words from that array into registers, do O(1) _computations_ with registers, and _store_ O(1) words from registers into that array.
 
@@ -35,16 +37,16 @@ Note that RAM is also used to mean Random Access Memory, which is not quite the 
 
 
 [[pointer_machine_model]]
-=== Pointer machine model
+==== Pointer machine model
 
 We have dynamically allocated _objects_ (or _nodes_).  An object has O(1) fields.  A _field_ is either a word or pointer.  A _pointer_ (or _reference_) either refers to an object or has the special value null (or nil).  All the elementary things you can do with pointers / words cost O(1) time.
 
 The pointer machine model is weaker than the RAM model, i.e. it can be implemented on RAM.
 
 
-== Asymptotic notations / big O notation
+=== Asymptotic notation / big O notation
 
-In computer science, big O notation is used to classify algorithms by how they respond to changes in input size, typically regarding running time and space (memory/disk/...).
+In computer science, big _asymptotic notation_ (or _big O notation_) is used to classify algorithms by how they respond to changes in input size, typically regarding running time and space (memory/disk/...).
 
 In the following +n+ is the _input size_, +f(n)+ is the _number of steps_ needed by an algorithm.
 
@@ -138,7 +140,7 @@ References:
 - https://www.saylor.org/site/wp-content/uploads/2011/06/Master-theorem.pdf
 
 
-== Computational complexity classes
+=== Computational complexity classes
 
 The field of computational _complexity classes_ categorizes decidable decision problems by how difficult they are to solve. "Difficult", in this sense, is described in terms of the needed computational resources.  A _decision problem_ is a problem with a binary answer, e.g. yes or no.  A _function problem_ can have answers that are more complex than a simple `yes' or `no'.  Function problems can be transformed into decision problems and vice versa.  Thus computational complexity can focus on decision problems. An _intractable problem_ is one that can be solved in theory (i.e. which is in R), but which in practice takes too long to be usefull. There's no exact definition, but in general problems not in P (but in R) are considered intractable.
 
@@ -195,9 +197,9 @@ Examples of NP-complete problems:
 - _Graph coloring_ regarding vertices (edges): Coloring the vertices (edges) of a graph such that no two adjacent vertices (edges) share the same color.
 
 
-== Algorithm classifications by implementations
+=== Algorithm classifications by implementations
 
-=== Recursion vs iteration
+==== Recursion vs iteration
 
 - What is computable by recursive functions is computable by an iterative model and vice versa.
 
@@ -213,9 +215,9 @@ Examples of NP-complete problems:
 Terms: _base case_ is input for which the solution is directly known.  When the recursion arrives at the base case it is said to _bottom out_.
 
 
-=== Recipes for convertion recursion to iteration
+==== Recipes for convertion recursion to iteration
 
-==== Tail call
+===== Tail call
 Recipe for translating recursion into iteration for a function ++foo++ for the case where recursive calls are convertible to tail calls:
 
 . Convert all recursive calls into tail calls.  If you're programming language supports tail call optimization, you're already done.
@@ -229,7 +231,7 @@ Recipe for translating recursion into iteration for a function ++foo++ for the c
 . Tidy up.
 
 
-==== Non tail call
+===== Non tail call
 `Recipe' for translating recursion into iteration in case there are n multiple recursive calls which are not tail calls and not convertible to tail calls.  It's more tips than a proper recipe.
 
 - Remember that all local variables (which includes parameters) and the return address are on the stack.  So if one needs to know the return address, i.e. one of multiple possible places, it gets nasty difficult.
@@ -237,9 +239,6 @@ Recipe for translating recursion into iteration for a function ++foo++ for the c
 - Enclose the whole body in a ++stack<...> s; s.push(args); while (!s.empty()) { current_args = s.pop(); ... }++
 
 - Instead of n times recursively calling foo like ++foo(args1); foo(args2);...++ push the args on the stack in reverse order ++s.push(args2); s.push(args1)++.
-
-
-
 
 Recipe for turning a non-tail call recursive function ++foo++ into one having a tail call:
 
@@ -266,7 +265,7 @@ def factorial(n, acc=1):
 See also: http://blog.moertel.com/posts/2013-05-11-recursive-to-iterative.html
 
 
-==== Non tail call
+===== Non tail call
 
 --------------------------------------------------
 stack localsAndParamsStack;
@@ -310,20 +309,13 @@ jmp funAddr        addr = FunEntry              | addr = addrStack.pop()
 --------------------------------------------------
 
 
-=== Deterministic vs non-deterministic
-*to-do*
+== Algorithm design paradigms
 
-=== Serial vs parallel vs distributed
-*to-do*
-
-=== Exact vs approximate
-*to-do*
+An _algorithmic design paradigm_ (or _algorithm paradigm_, or _algorithmic technique_, or _algorithmic strategy_) is a generic method or approach which underlies the design of a class of algorithms.
 
 
-== Algorithm design techniques / paradigms
-
-[[relation_between_techniques]]
-=== Relation between techniques
+[[alg_paradigm_comparision]]
+=== Algorithm design paradigms comparision
 
 Decrease and conquer is similar to divide and conquer.  However the latter splits the problem into two or more sub problems.  The former doesn't need to combine the results of the sub problems.
 
@@ -339,7 +331,7 @@ This is the naive method of trying every possible solution to see which is best.
 [[divide_and_conquer]]
 === Divide and Conquer
 
-_Divide_ the problem into two or more subproblems that are smaller instances of the same problem.  _Conquer_ the subproblems by solving them recursively.  If the size of a subproblem is small enough, stop recursion (we say the recursion _bottoms out_) and solve it (we call that small subproblem a _base case_) in a straightforward manner.  _Combine_ the solutions the subproblems into the solution of the original problem.  See also <<relation_between_techniques>>.
+_Divide_ the problem into two or more subproblems that are smaller instances of the same problem.  _Conquer_ the subproblems by solving them recursively.  If the size of a subproblem is small enough, stop recursion (we say the recursion _bottoms out_) and solve it (we call that small subproblem a _base case_) in a straightforward manner.  _Combine_ the solutions the subproblems into the solution of the original problem.  See also <<alg_paradigm_comparision>>.
 
 See <<master_theorem>> for a possible way of calculating assymptotic bounds on the running time.
 
@@ -353,7 +345,7 @@ References:
 [[decrease_and_conquer]]
 === Decrease and conquer (aka prune and search)
 
-In each step the problem is turned into one single sub problem of smaller size, where as the rest ist pruned.  The algorithm stops when the base case is reached.  My thoughts: The size of a subproblem is typically by a constant factor (on average) smaller than one of the parent problem -- if the size would only decrease by a constant amount, in the worst case 1, it would just be the naive brute force solution.  See also See also <<relation_between_techniques>>.
+In each step the problem is turned into one single sub problem of smaller size, where as the rest ist pruned.  The algorithm stops when the base case is reached.  My thoughts: The size of a subproblem is typically by a constant factor (on average) smaller than one of the parent problem -- if the size would only decrease by a constant amount, in the worst case 1, it would just be the naive brute force solution.  See also See also <<alg_paradigm_comparision>>.
 
 Examples: binary search, quickselect.
 
@@ -450,13 +442,13 @@ _certificate of optimality_: *to-do*
 
 _LP duality_: Know the concept, but you probably won't use it often in practice. Every primal form has a _dual form_, where ``everything is inversed'': Minimize, by solving for y⃑, a linear objective function b⃑·y⃑, subject to the linear inequalities Aᵀ·y⃑≥c⃑ and to y⃑≥0.  The primal form and the dual form are equivalent.
 
-
 References:
 
 - MIT course 6.046J, Design and Analysis of Algorithms (Spring 2015), Lecture 15: "Linear Programming: LP, reductions, Simplex":  https://www.youtube.com/watch?v=WwMz2fJwUCg&t=603s[video], https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-design-and-analysis-of-algorithms-spring-2015/lecture-notes/MIT6_046JS15_lec15.pdf[lecture notes]
 
 
 === Heuristic method
+
 Such algorithms include local search, tabu search, simulated annealing, and genetic algorithms.
 
 *to-do*
@@ -466,7 +458,82 @@ Such algorithms include local search, tabu search, simulated annealing, and gene
 *to-do*
 
 
-== Augmenting data structures
+[[data_structures]]
+== Data structures
+
+This chapter is about topics concerning data structures in general. See also <<misc_data_structures>>, which presents miscellaneous concrete data structures.
+
+A _data structure_ is concrete particular way of organizing data in memory.  In OO lingo, its is a (non-abstract) class.  See also <<ADT>>, which is in OO lingo an interface.
+
+
+[[data_structure_comparison]]
+=== Data structures comparison
+
+*to-do*: Intro about why certain applications care about worst-case performance, and compared to an alternative, rather have a worse average case than a much worse worst-case.  E.g. to counter DoS attacks, realtime systems.
+
+Key properties of general data structures:
+
+|=====
+|                        | Pros                             | Cons
+| Array in general       | Cache hierarchy friendly, simple | O(n) insertion/deletion
+| Hash table             | O(1) average                     | O(n) worst case, no ordering
+| Balanced search tree   | Balanced properties              |
+|=====
+
+Key properties of more specialized data structures, in addition to the key properties above:
+
+|=====
+|                        | Pros                                     | Cons
+| Sorted array           | O(1) order stastics                      | 
+| B-tree                 | Optimized for secondary memory           |
+| Skip list              | Simple, especially regarding concurrency | O(n) worst case
+|=====
+
+.Array in general
+
+Even though asymptotically requiring O(n) space as most others, no space is wasted at all for a fixed sized array, since no house keeping data like pointers are needed.  A dynamic array usually has some consecutive unused slots at the end, which doesn't affect cache hierarchies.  An array is highly CPU cache friendly, thus the hidden constant factors are typically very small.  Thus in practice, for many applications an array is a better choice than a more `advanced' data structure, especially when considering sorted arrays.
+
+.Hash table
+
+Hash tables are great on average having O(1) running time, however their worst-case of O(n) is worse than the O(log n) worst-case of most search tree based data structures.  In certain cases you can have perfect hashing, in which case the worst-case is O(1).  Also, opposed to search trees, a hash table has no notion of ordering.
+
+
+.AVL tree and red-black-tree
+
+Theoretically equivalent since time and space complexity are identical.  AVL trees are more rigidly balanced (≈ 1.44 lg(|V|)) than red-black trees (≈ 2 lg(|V|)), whereas the number of rotations when inserting or deleting is O(lg n) for AVL and O(1) for red-black.  Followingly prefer AVL when number of lookup operations dominate sum of insert/delete operations, and red-black otherwise.
+
+.B-tree
+
+Has the same asymptotic complexities as AVL tree and red-black tree, but is optimized for large data structures not fitting into main memory and residing mostly in secondary memory.
+
+
+.Skip List
+
+Is just are another variant of a binary search tree. Is easier to implement than a AVL tree or red-black tree, especially when considering the respective concurrent data structure variants.  However a skip list has a worst-case running time of O(n), opposed to the O(log n) of most BBSTs, however with low probability.  Also the space complexity is O(n log n) in the worst-case, opposed to O(n) worst-case of most other data structures. Concurrent variants of AVL trees or red-black trees often trade concurrency for balancedness, so their worst case guarantees drops, which was one of their main benefits over skip lists.  Skip lists have more pointers per key, thus are less chache friendly.
+
+*to-do*: data strucures optimized for secondary memory, e.g. B-trees.
+
+*to-do*: cache-oblivious data structures
+
+*to-do*: concurrent data structures.  Most AVL tree and red-black tree implementations implement insert and delete in a locking fashion.  Note that these operations in the worst case affect large portions of the tree.  Only recently lock free variants emerged: http://www.cs.umanitoba.ca/~hacamero/Research/RBTreesKim.pdf.  Typically concurrent balanced search trees trade better concurrency for worse guaranteed balancedness.
+
+*to-do*: specialed for integers (e.g van Emde Boas trees), specialized for strings (e.g. all the trie based data structures).
+
+References:
+
+- <<big_oh_cheat_sheets>>
+
+- https://stackoverflow.com/questions/256511/skip-list-vs-binary-tree
+
+- https://www.quora.com/Why-arent-skip-lists-used-more-often-instead-of-balanced-trees
+
+- https://people.cs.clemson.edu/~bcdean/skip_bst.pdf[Exploring the Duality Between Skip Lists and
+Binary Search Trees]
+
+- https://en.wikipedia.org/wiki/Search_data_structure#Asymptotic_amortized_worst-case_analysis
+
+
+=== Augmenting data structures
 
 1. Choose an underlying data structure DS.
 2. Determine additional information AI to maintain in DS.
@@ -476,11 +543,50 @@ Such algorithms include local search, tabu search, simulated annealing, and gene
 Let +f+ be an attribute that augments a red-black tree +T+, and suppose that the value +x.f+ for each node +x+ only depends on only the information in the nodes +x+, +x.left+ and +x.right+. Then we can maintain +f+ in all nodes of +T+ during insertion and deletion without affecting the +O(lg n)+ performance of these operations.
 
 
+[[succinct_data_structures]]
+=== Succinct data structures
+
+This subchapter is about what succinct data structures are.  Actual succinct data structures are described in other chapters throughout this document.
+
+The term ``succinct data structures'' sadly is ambigous.  On one hand it is used as an umbrella term for space-efficient data structures close to the information-theoretic optimum, which still support fast query operations, i.e. without first decompressing everything.  On the other hand it designates a specific class of space-efficient data structures.  The following is a classification of data structures according to their space usage in bits, not words, where OPT is the information-theoretic optimum:
+
+_implicit_: OPT + O(1).  The ideal is ⌈OPT⌉, so the intend of O(1) is more that the OPT may be a fractional and we need to round up the next integer, rather than using O(1) bits for auxillary information.  Usually very hard, thus usually not achieved.  Examples: array, heap.
+
+_succinct_: OPT + o(OPT).  In other words, less than twice the OPT.  Most common type of space-efficient data structures.
+
+_compact_: O(OPT).  When a space-efficient data structure is the goal, being compact is often not good enough and just an intermediate step towards becoming succint.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
+
+
+[[persistent_data_structures]]
+=== Persistent data structures
+
+A _persistent data structure_ is a data structure that always preserves the previous version of itself when it is modified.  A data structure is _partially persistent_ if all versions can be accessed but only the newest version can be modified. The data structure is _fully persistent_ if every version can be both accessed and modified. If there is also a meld (aka merge) operation that can create a new version from two previous versions, the data structure is called _confluently persistent_.  In a _functionally persistent_ data structure, regarding the <<pointer_machine_model>>, all nodes are immutable, i.e. nodes can only be added.  Beside that further restriction,  it's the same as a confluently persistent data structure.  A data structure that is not persistent is called _ephemeral_.  Each of the succeeding levels of paristence is stronger than the preceding one: Functional implies confluent, confluent implies full, full implies partiel.
+
+
+--------------------------------------------------
+  o <--- o <--- o <--- o  : partially persistent : sequence
+
+  o <--- o <--- o         : fully persistent : tree
+  ^      ^
+  |      o
+  o <-o
+
+  o <--- o <---- o        : confluently persistent: DAG
+  ^      ^
+  |      |
+  o <--- o
+--------------------------------------------------
+
+
 [[ADT]]
 == Misc. abstract data types (ADT)
 An abstract data type is defined only by the operations that may be performed on it and by mathematical pre-conditions and constraints on the effects (and possibly cost) of those operations.  In OO lingo, it is an interface.  See also <<data structures>>,  which in OO are (non-abstract) classes.
 
-=== Summary
+=== ADT comparision
 
 *to-do*: finish tables
 
@@ -763,115 +869,9 @@ References:
 - Book "Introduction to algorithms", chapter "21.1 Disjoint-set operations"
 
 
-[[data_structures]]
 == Misc. Data structures
-A concrete particular way of organizing data in memory.  In OO lingo, its is a (non-abstract) class.  See also <<ADT>>, which is in OO lingo an interface.
 
-
-[[data_structure_comparison]]
-=== Data structures comparison
-
-*to-do*: Intro about why certain applications care about worst-case performance, and compared to an alternative, rather have a worse average case than a much worse worst-case.  E.g. to counter DoS attacks, realtime systems.
-
-Key properties of general data structures:
-
-|=====
-|                        | Pros                             | Cons
-| Array in general       | Cache hierarchy friendly, simple | O(n) insertion/deletion
-| Hash table             | O(1) average                     | O(n) worst case, no ordering
-| Balanced search tree   | Balanced properties              |
-|=====
-
-Key properties of more specialized data structures, in addition to the key properties above:
-
-|=====
-|                        | Pros                                     | Cons
-| Sorted array           | O(1) order stastics                      | 
-| B-tree                 | Optimized for secondary memory           |
-| Skip list              | Simple, especially regarding concurrency | O(n) worst case
-|=====
-
-.Array in general
-
-Even though asymptotically requiring O(n) space as most others, no space is wasted at all for a fixed sized array, since no house keeping data like pointers are needed.  A dynamic array usually has some consecutive unused slots at the end, which doesn't affect cache hierarchies.  An array is highly CPU cache friendly, thus the hidden constant factors are typically very small.  Thus in practice, for many applications an array is a better choice than a more `advanced' data structure, especially when considering sorted arrays.
-
-.Hash table
-
-Hash tables are great on average having O(1) running time, however their worst-case of O(n) is worse than the O(log n) worst-case of most search tree based data structures.  In certain cases you can have perfect hashing, in which case the worst-case is O(1).  Also, opposed to search trees, a hash table has no notion of ordering.
-
-
-.AVL tree and red-black-tree
-
-Theoretically equivalent since time and space complexity are identical.  AVL trees are more rigidly balanced (≈ 1.44 lg(|V|)) than red-black trees (≈ 2 lg(|V|)), whereas the number of rotations when inserting or deleting is O(lg n) for AVL and O(1) for red-black.  Followingly prefer AVL when number of lookup operations dominate sum of insert/delete operations, and red-black otherwise.
-
-.B-tree
-
-Has the same asymptotic complexities as AVL tree and red-black tree, but is optimized for large data structures not fitting into main memory and residing mostly in secondary memory.
-
-
-.Skip List
-
-Is just are another variant of a binary search tree. Is easier to implement than a AVL tree or red-black tree, especially when considering the respective concurrent data structure variants.  However a skip list has a worst-case running time of O(n), opposed to the O(log n) of most BBSTs, however with low probability.  Also the space complexity is O(n log n) in the worst-case, opposed to O(n) worst-case of most other data structures. Concurrent variants of AVL trees or red-black trees often trade concurrency for balancedness, so their worst case guarantees drops, which was one of their main benefits over skip lists.  Skip lists have more pointers per key, thus are less chache friendly.
-
-*to-do*: data strucures optimized for secondary memory, e.g. B-trees.
-
-*to-do*: cache-oblivious data structures
-
-*to-do*: concurrent data structures.  Most AVL tree and red-black tree implementations implement insert and delete in a locking fashion.  Note that these operations in the worst case affect large portions of the tree.  Only recently lock free variants emerged: http://www.cs.umanitoba.ca/~hacamero/Research/RBTreesKim.pdf.  Typically concurrent balanced search trees trade better concurrency for worse guaranteed balancedness.
-
-*to-do*: specialed for integers (e.g van Emde Boas trees), specialized for strings (e.g. all the trie based data structures).
-
-References:
-
-- <<big_oh_cheat_sheets>>
-
-- https://stackoverflow.com/questions/256511/skip-list-vs-binary-tree
-
-- https://www.quora.com/Why-arent-skip-lists-used-more-often-instead-of-balanced-trees
-
-- https://people.cs.clemson.edu/~bcdean/skip_bst.pdf[Exploring the Duality Between Skip Lists and
-Binary Search Trees]
-
-- https://en.wikipedia.org/wiki/Search_data_structure#Asymptotic_amortized_worst-case_analysis
-
-
-[[succinct_data_structures]]
-=== Succinct data structures
-
-This subchapter is about what succinct data structures are.  Actual succinct data structures are described in other chapters throughout this document.
-
-The term ``succinct data structures'' sadly is ambigous.  On one hand it is used as an umbrella term for space-efficient data structures close to the information-theoretic optimum, which still support fast query operations, i.e. without first decompressing everything.  On the other hand it designates a specific class of space-efficient data structures.  The following is a classification of data structures according to their space usage in bits, not words, where OPT is the information-theoretic optimum:
-
-_implicit_: OPT + O(1).  The ideal is ⌈OPT⌉, so the intend of O(1) is more that the OPT may be a fractional and we need to round up the next integer, rather than using O(1) bits for auxillary information.  Usually very hard, thus usually not achieved.  Examples: array, heap.
-
-_succinct_: OPT + o(OPT).  In other words, less than twice the OPT.  Most common type of space-efficient data structures.
-
-_compact_: O(OPT).  When a space-efficient data structure is the goal, being compact is often not good enough and just an intermediate step towards becoming succint.
-
-References:
-
-- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
-
-
-[[persistent_data_structures]]
-=== Persistent data structures
-
-A _persistent data structure_ is a data structure that always preserves the previous version of itself when it is modified.  A data structure is _partially persistent_ if all versions can be accessed but only the newest version can be modified. The data structure is _fully persistent_ if every version can be both accessed and modified. If there is also a meld (aka merge) operation that can create a new version from two previous versions, the data structure is called _confluently persistent_.  In a _functionally persistent_ data structure, regarding the <<pointer_machine_model>>, all nodes are immutable, i.e. nodes can only be added.  Beside that further restriction,  it's the same as a confluently persistent data structure.  A data structure that is not persistent is called _ephemeral_.  Each of the succeeding levels of paristence is stronger than the preceding one: Functional implies confluent, confluent implies full, full implies partiel.
-
-
---------------------------------------------------
-  o <--- o <--- o <--- o  : partially persistent : sequence
-
-  o <--- o <--- o         : fully persistent : tree
-  ^      ^
-  |      o
-  o <-o
-
-  o <--- o <---- o        : confluently persistent: DAG
-  ^      ^
-  |      |
-  o <--- o
---------------------------------------------------
+This chapter is about miscellaneous concrete data structures.  Further concrete data structures are spread all over chapters discussing specific areas, such as <<computational_geometry>> or <<strings>> for example.  See also chapter <<data_structures>>, which is about topics related to data structures in general.
 
 
 [[array]]
@@ -1261,7 +1261,7 @@ Assumptions for simplicity: No two points have same x coordinate, and no two poi
 
 A _k-dimensional k-d tree_ is a non-balanced binary search tree storing k-dimensional points.  They are often used for k-dimensional <<orthogonal_range_search>>.  Informal description for the 2D case: Each subtree represents an rectangular area,  possibly unbounded, i.e. rectangle edges can be at infinity.  The root represents the whole plane.  As normal in BSTs, each node stores a value, here a point.  Each node splits its associated area in two halfes by an imaginary line through its point.  Nodes at even tree levels split vertically, nodes at odd tree levels horizontally.  Each of its subtrees is then associated with one of the halfes.  Thus the plane is recursively diveded into smaller and smaller rectangles.
 
-Algorithm to build tree:  Partion the of set points in x-direction in two equal halfes by finding the median point in x direction, see <<order_statistics>>.  That point becomes the root.  For each of the two partitions recurse.  Only that now, on depth 1 of the recursion, we partition in y-direction.  In general, in a k-dimensianal tree, we partition after the (depth%k+1)-th dimension.
+Algorithm to build tree:  Partion the of set points in x-direction in two equal halfes by finding the median point in x direction, see <<selection_problem>>.  That point becomes the root.  For each of the two partitions recurse.  Only that now, on depth 1 of the recursion, we partition in y-direction.  In general, in a k-dimensianal tree, we partition after the (depth%k+1)-th dimension.
 
 --------------------------------------------------
 build-2dimensional-kd-tree(points, depth): node
@@ -1566,6 +1566,95 @@ References:
 
 
 == Misc. problems and algorithms
+
+This chapter is about miscellaneous concrete problems and algorithms.  Further concrete problems and algorithms are spread all over chapters discussing specific areas, such as for example <<sorting>> or <<graph_theory>>
+
+
+[[selection_problem]]
+=== Selection problem
+
+The _i-th order statistic_ is the i-th smallest element out of a set of elements.  For example, the _minimum_ of a set of elements is the first order statistic, and the _maximum_ is the n-th order statistic.  A _median_, informally, is the “halfway point” of the set.  When n is odd, the median is unique, occurring at i D .n C 1/=2.  When n is even, there are two medians, occurring at i D n=2 and i D n=2C1.  Thus, regardless of the parity of n, medians occur at i D b.n C 1/=2c (the _lower median_) and i D d.n C 1/=2e (the _upper median_).  For simplicity in this text, however, we consistently use the phrase “the median” to refer to the lower median.
+
+_Selection problem_: Find the i-th order statistic, i.e. find the i-th smallest element out of an, typically unsorted, set of elements.
+
+Overview:
+
+|======
+|                                  | time av.               | time worst  
+|via sort                          | O(sort(n))             | O(sort(n))
+|quick select / random             | O(n) almost certain    | O(n^2)
+|quick select / median of 3        | O(n)                   | O(n^2)
+|quick select / median of medians  | O(n) high const factor | O(n) high const factor
+|Introselect                       | O(n)                   | O(n) high const factor
+|Floyd–Rivest algorithm            | O(n)                   | ? *to-do*
+|======
+
+==== Trivial algorithms
+
+Finding the minimum, i.e. i=1, element can be trivially solved in +O(n)+ time and +O(1)+ auxillary space by iteratively searching through the array for the smallest element respectively.
+
+If the input is preprocessed sorting it first, then we can just access the i-th element in the sorted collection in +O(1)+. Recalling sorting algorithms, the cost of the preprocessing is typically +O(n log n)+, but can be +O(n)+ for certain input. Obviously this might be a good strategy if the collection is static and thus has to be preprocessed only once, and there are more than +O(log n)+ queries (assuming +O(n log n)+ sorting and +O(n)+ for the competing selection algorithm).
+
+
+==== Quick select
+
+A <<decrease_and_conquer>> algorithm: In each recursion step, choose a pivot and partition the input (of the current recursion step) into a part smaller than the pivot and larger than the pivot respectively.  That delivers the position / index of the pivot, i.e. if all the values were sorted, the pivot would be at the same position.  Then recurse into the left/right part depending on whether i is smaller/larger than the pivot's index.  The base case is either if i is equal the pivot after partitioning, or when the input size is 1.
+
+The best possible pivot is the median (apart from the i-th element, which would directly deliver the solution), since it halves the input.  Like quicksort, the quickselect has good average performance, but is sensitive to the pivot that is chosen.  See the next chapters on strategies how to choose the pivot.
+
+
+===== Quick select / variant random pivot random
+
+See the previous `common core' chapter. The pivot is chosen randomly.
+
+
+===== Quick select / variant median of 3
+
+The pivot is the median of the first, middle and last element. Also sort these three elements.
+
+
+[[median_of_medians]]
+===== Quick select / variant median of medians (aka BFPRT)
+
+See the previous `quick select core' chapter. The chosen pivot is an approximate median (remember that the real median would be optimal). It is guaranteed being between 30th and 70th percentiles.
+
+Algorithm to find pivot in array A: Make groups of five elements and find median in each of those (e.g. via insertion sort and taking 3rd element). Then recursively find median of those medians.
+
+Trivia: BFPRT stands for the name of its inventors Blum-Floyd-Pratt-Rivest-Tarjan
+
+*to-do*: Time, auxillary space?
+
+
+==== Introselect
+
+The idea is to start out with an decrease and conquer selection algorithm that has very good average performance but bad worst case performance, and if it on the fly remarks that it is making bad progress (i.e. steers towards the worst case), switch to choosing a selection algorithm that has optimal worst case perforamnce.
+
+Concretely, starts out with the quick select variant which uses a random pivot, and potentially switches to the median of medians quick select variant.
+
+Examples of possible switching strategies:
+
+- If the sum of partitions so far exceeds the original input size times a constant factor. Only one variable needed to track sum of partitions so far.
+- If at any point the last k partitions did not half the input size, where k is some small positive constant. 
+
+Trivia: Introselect is short for introspective selection.
+
+
+==== Order statistics tree
+
+1) Augment a binary search tree by augmenting each node with the size of its subtree.
+
+Select(i): O(log n) [however that does not include the cost of creating the tree!!]
+
+2) Via min max heap
+
+*to-do*
+
+==== Floyd–Rivest
+
+Functionally equivalent to quickselect, but runs faster in practice on average.
+
+*to-do*
+
 
 [[edit_distance]]
 === Edit distance
@@ -2022,13 +2111,7 @@ References:
 
 ==== Sort strings
 
-- least-significant-digit first (LSD) string sort
-
-- most-significant-digit-first (MSD) string sort
-
-- three-way string quicksort
-
-*to-do*
+See <<string_sorting>>
 
 
 ==== External sorting
@@ -2309,90 +2392,6 @@ Intended for unbounded arrays, or when it's expected that the element is near th
 An algorithm for finding an element in an sorted, possibly unbounded array.  It finds the element in O(log i) time, where i is the position of the element in the array, or the position where it would be if it's not in the array.
 
 The algorithm first determines the range in which the search key would reside if it were in the list.  For that, every 2^j^-th element is examined and compared with the search key, where j is the iteration of this loop.  When the search key equals the element, the search terminates.  Otherwise when its smaller, continue the first stage, otherwise use binary search in the found range to find the element.
-
-
-[[order_statistics]]
-== Order statistics / medians / selection problem
-
-_Selection problem_: Find the i-th order statistic, i.e. find the i-th smallest element out of an, typically unsorted, set of elements.
-
-The _i-th order statistic_ is the i-th smallest element out of a set of elements.  For example, the _minimum_ of a set of elements is the first order statistic, and the _maximum_ is the n-th order statistic.  A _median_, informally, is the “halfway point” of the set.  When n is odd, the median is unique, occurring at i D .n C 1/=2.  When n is even, there are two medians, occurring at i D n=2 and i D n=2C1.  Thus, regardless of the parity of n, medians occur at i D b.n C 1/=2c (the _lower median_) and i D d.n C 1/=2e (the _upper median_).  For simplicity in this text, however, we consistently use the phrase “the median” to refer to the lower median.
-
-Overview:
-
-|======
-|                                  | time av.               | time worst  
-|via sort                          | O(sort(n))             | O(sort(n))
-|quick select / random             | O(n) almost certain    | O(n^2)
-|quick select / median of 3        | O(n)                   | O(n^2)
-|quick select / median of medians  | O(n) high const factor | O(n) high const factor
-|Introselect                       | O(n)                   | O(n) high const factor
-|Floyd–Rivest algorithm            | O(n)                   | ? *to-do*
-|======
-
-=== Trivial algorithms
-
-Finding the minimum, i.e. i=1, element can be trivially solved in +O(n)+ time and +O(1)+ auxillary space by iteratively searching through the array for the smallest element respectively.
-
-If the input is preprocessed sorting it first, then we can just access the i-th element in the sorted collection in +O(1)+. Recalling sorting algorithms, the cost of the preprocessing is typically +O(n log n)+, but can be +O(n)+ for certain input. Obviously this might be a good strategy if the collection is static and thus has to be preprocessed only once, and there are more than +O(log n)+ queries (assuming +O(n log n)+ sorting and +O(n)+ for the competing selection algorithm).
-
-
-=== Quick select
-
-A <<decrease_and_conquer>> algorithm: In each recursion step, choose a pivot and partition the input (of the current recursion step) into a part smaller than the pivot and larger than the pivot respectively.  That delivers the position / index of the pivot, i.e. if all the values were sorted, the pivot would be at the same position.  Then recurse into the left/right part depending on whether i is smaller/larger than the pivot's index.  The base case is either if i is equal the pivot after partitioning, or when the input size is 1.
-
-The best possible pivot is the median (apart from the i-th element, which would directly deliver the solution), since it halves the input.  Like quicksort, the quickselect has good average performance, but is sensitive to the pivot that is chosen.  See the next chapters on strategies how to choose the pivot.
-
-
-==== Quick select / variant random pivot random
-
-See the previous `common core' chapter. The pivot is chosen randomly.
-
-
-==== Quick select / variant median of 3
-
-The pivot is the median of the first, middle and last element. Also sort these three elements.
-
-
-[[median_of_medians]]
-==== Quick select / variant median of medians (aka BFPRT)
-
-See the previous `quick select core' chapter. The chosen pivot is an approximate median (remember that the real median would be optimal). It is guaranteed being between 30th and 70th percentiles.
-
-Algorithm to find pivot in array A: Make groups of five elements and find median in each of those (e.g. via insertion sort and taking 3rd element). Then recursively find median of those medians.
-
-Trivia: BFPRT stands for the name of its inventors Blum-Floyd-Pratt-Rivest-Tarjan
-
-*to-do*: Time, auxillary space?
-
-
-=== Introselect
-
-The idea is to start out with an decrease and conquer selection algorithm that has very good average performance but bad worst case performance, and if it on the fly remarks that it is making bad progress (i.e. steers towards the worst case), switch to choosing a selection algorithm that has optimal worst case perforamnce.
-
-Concretely, starts out with the quick select variant which uses a random pivot, and potentially switches to the median of medians quick select variant.
-
-Examples of possible switching strategies:
-
-- If the sum of partitions so far exceeds the original input size times a constant factor. Only one variable needed to track sum of partitions so far.
-- If at any point the last k partitions did not half the input size, where k is some small positive constant. 
-
-Trivia: Introselect is short for introspective selection.
-
-=== Order statistics tree
-
-1) Augment a binary search tree by augmenting each node with the size of its subtree.
-
-Select(i): O(log n) [however that does not include the cost of creating the tree!!]
-
-2) Via min max heap
-
-*to-do*
-
-=== Floyd–Rivest
-Functionally equivalent to quickselect, but runs faster in practice on average.
-
-*to-do*
 
 
 [[ranges_intervals]]
@@ -2954,11 +2953,24 @@ References:
 - MIT course 6.851 Advanced Data Structures, spring 2012, lecture 15 Static trees, chapter "3.4 Indirection to remove log factors" in https://courses.csail.mit.edu/6.851/spring14/scribe/lec15.pdf[lecture notes], or https://www.youtube.com/watch?v=0rCFkuQS968&index=15&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video] at 27:30.
 
 
+[[strings]]
 == Strings
 
 References:
 
 - http://cs.au.dk/~cstorm/students/Fogh_Nov2014.pdf
+
+
+[[string_sorting]]
+=== String sorting
+
+- least-significant-digit first (LSD) string sort
+
+- most-significant-digit-first (MSD) string sort
+
+- three-way string quicksort
+
+*to-do*
 
 
 [[string_searching]]
@@ -3438,11 +3450,7 @@ References:
 
 See also subchapter <<randomized_online_algorithms>>.
 
-Model one: *to-do*
-
-Model two: *to-do*
-
-S(x) : 1 if A(x)=F(x), 0 otherwise. S for same.
+Overview of classification of randomized algorithms for solving decision problems and for computing functions. S(x) : 1 if A(x)=F(x), 0 otherwise. S for same.
 
 |=====
 | Pr(S(x)) ≥ ε ∧ Pr(A(x)=?) + Pr(S(x)) = 1 | 0 < ε ≤ 1 ∧ ∀ inputs x | Las Vegas
@@ -3483,6 +3491,10 @@ For the case of decision problems, a randomized algorithm A is called _false-bia
 
 *to-do* 1) Book says: "Wo ist der Unterschied zwischen den 2MC-AIgorithmen und den
 MC-AIgorithmen?" and then explains. But I didn't got the final conclusion. 2) Probably the same question: why 1/2, opposed to some other constant?
+
+
+=== Classification of Randomized Algorithms for Optimization Problems
+
 
 
 
@@ -4998,6 +5010,7 @@ References:
 - Book ``Introduction to algorithms'', chapters ``Push-relabel algorithms'' and ``The relabel-to-front algorithm''.
 
 
+[[computational_geometry]]
 == Computational Geometry
 
 A subset S of the plane is called _convex_ iff for any pair of points p,q ∊ S the linesegment pq is completely contained in S.  Given a set S, the _convex hull_ 𝒞ℋ(S) is the smallest convex set that contains S.  Alternatively, the convex hull is the unique convex polygon whose vertices are points from S and that contains all points of S.
