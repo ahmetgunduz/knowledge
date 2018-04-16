@@ -197,125 +197,16 @@ Examples of NP-complete problems:
 - _Graph coloring_ regarding vertices (edges): Coloring the vertices (edges) of a graph such that no two adjacent vertices (edges) share the same color.
 
 
-=== Algorithm classifications by implementations
-
-==== Recursion vs iteration
-
-- What is computable by recursive functions is computable by an iterative model and vice versa.
-
-- KISS: Use whichever is more easy to reason about for the given problem.  Since recursion maps easily to proof by induction, for many problems recursion is a straight forward choice.
-
-* Recursion has to pay expense of function calls and function returns, which is typically larger than the (conditional) jump used in the iterative solution.  However in case of tail calls and an compiler featuring tail call optimization becomes pretty much equivalent to iteration since the machine code is iterative.
-
-* Recursion needs memory on the stack for all the locals, the stack frame (the return address, the old stack pointer, ...).  However there are iterative solutions which need an stack or queue, which internally probably uses the heap with all its overhead in space and time.  It depends on the queue/stack implementation which is more efficient in terms of memory usage, locality, ....
-
-- Modern compilers are good at converting some recursions to loops without even asking.
+== Algorithms
 
 
-Terms: _base case_ is input for which the solution is directly known.  When the recursion arrives at the base case it is said to _bottom out_.
-
-
-==== Recipes for convertion recursion to iteration
-
-===== Tail call
-Recipe for translating recursion into iteration for a function ++foo++ for the case where recursive calls are convertible to tail calls:
-
-. Convert all recursive calls into tail calls.  If you're programming language supports tail call optimization, you're already done.
-
-. Enclose the body of the function with a ++while(true) { ... }++ loop.
-
-. Replace each call to ++foo++ according to this scheme: ``++foo(f1(...), f2(...), ...)++'' => ``++x1=f1(...); x2=f2(...); ...; continue;++''
-
-. For languages where identifiers need to be defined: For each +x+ object introduced in the previous step, define the object before the while loop introduced earlier.
-
-. Tidy up.
-
-
-===== Non tail call
-`Recipe' for translating recursion into iteration in case there are n multiple recursive calls which are not tail calls and not convertible to tail calls.  It's more tips than a proper recipe.
-
-- Remember that all local variables (which includes parameters) and the return address are on the stack.  So if one needs to know the return address, i.e. one of multiple possible places, it gets nasty difficult.
-
-- Enclose the whole body in a ++stack<...> s; s.push(args); while (!s.empty()) { current_args = s.pop(); ... }++
-
-- Instead of n times recursively calling foo like ++foo(args1); foo(args2);...++ push the args on the stack in reverse order ++s.push(args2); s.push(args1)++.
-
-Recipe for turning a non-tail call recursive function ++foo++ into one having a tail call:
-
-. Identify what work is being done between the recursive call and the return statement.  That delivers a function +g(x,y)+, so the respective expression could be written as ++return g(foo(...), bar)++.
-. Extend the function to do that +g+ work for us.  Extend it with an new accumulator argument, ++foo(..., acc=default_doing_nothing)++, and replace all return statements ++return lorem;++ with ++return g(lorem, acc);++.
-. Now you can replace very occurrence of ++return g(foo(...), bar)++ with ++return foo(..., bar)++, since we don't have to do +g+ ourselves any more, we can let +foo+ do +g+ for us.
-
---------------------------------------------------
-// example step 1
-def factorial(n):
-    if n < 2: return 1
-    return factorial(n - 1) * n // thus we have an g: g(x,y)=x*y
-
-// example step 2
-def factorial(n, acc=1):
-     if n < 2: return 1 * acc
-     return (n * factorial(n - 1)) * acc //==factorial(n-1)*(acc*n)
-
-// example step 3
-def factorial(n, acc=1):
-     if n < 2: return acc * 1
-     return factorial(n - 1, acc*n)
---------------------------------------------------
-See also: http://blog.moertel.com/posts/2013-05-11-recursive-to-iterative.html
-
-
-===== Non tail call
-
---------------------------------------------------
-stack localsAndParamsStack;
-stack addrStack;
-addr = FunEntr;
-auto done = false;
-do {
-  switch (addr) {
-  case FunEntry:
-    ...
-  case X:
-    ...
-  }
-} while (not done);
---------------------------------------------------
-
-
-*to-do*: mind implicit return at end of original function
-
-*to-do*: how to return values from called function?
-
-How to translate calls and returns:
-
---------------------------------------------------
-             function call                      | return
-machine instr.     pseudo code in loop          | pseudo code in loop
- -----------------------------------------------|-------------------------
-                                                | continue
-                                                |
-(save locals)      localsAndParamsStack.push(   | localsAndParams = 
-                       locals and params)       |    localsAndParamsStack.pop()
-                                                |
-push params        params = new params          |
-                                                |
-push returnAddr    addrStack.push(addr)         |
-                                                |
-jmp funAddr        addr = FunEntry              | addr = addrStack.pop()
-                   continue                     |
-                                                |
-                                                | if (addrStack.empty())
---------------------------------------------------
-
-
-== Algorithm design paradigms
+=== Algorithm design paradigms
 
 An _algorithmic design paradigm_ (or _algorithm paradigm_, or _algorithmic technique_, or _algorithmic strategy_) is a generic method or approach which underlies the design of a class of algorithms.
 
 
 [[alg_paradigm_comparision]]
-=== Algorithm design paradigms comparision
+==== Algorithm design paradigms comparision
 
 Decrease and conquer is similar to divide and conquer.  However the latter splits the problem into two or more sub problems.  The former doesn't need to combine the results of the sub problems.
 
@@ -324,12 +215,12 @@ In dynamic programming, subproblems overlapp and we need to solve them only once
 Dynamic programming vs greedy algorithm: in dynamic programming and divide/decrease and conquer the choices are made depending on the result of the sub problems. I.e. the sub problems are solved first.  The greedy algorithm makes first a (greedy) choice, thus reduces the problem to a subproblem, and then solves that remaining subproblem.
 
 
-=== Brute force (aka exhaustive search)
+==== Brute force (aka exhaustive search)
 This is the naive method of trying every possible solution to see which is best.
 
 
 [[divide_and_conquer]]
-=== Divide and Conquer
+==== Divide and Conquer
 
 _Divide_ the problem into two or more subproblems that are smaller instances of the same problem.  _Conquer_ the subproblems by solving them recursively.  If the size of a subproblem is small enough, stop recursion (we say the recursion _bottoms out_) and solve it (we call that small subproblem a _base case_) in a straightforward manner.  _Combine_ the solutions the subproblems into the solution of the original problem.  See also <<alg_paradigm_comparision>>.
 
@@ -343,7 +234,7 @@ References:
 
 
 [[decrease_and_conquer]]
-=== Decrease and conquer (aka prune and search)
+==== Decrease and conquer (aka prune and search)
 
 In each step the problem is turned into one single sub problem of smaller size, where as the rest ist pruned.  The algorithm stops when the base case is reached.  My thoughts: The size of a subproblem is typically by a constant factor (on average) smaller than one of the parent problem -- if the size would only decrease by a constant amount, in the worst case 1, it would just be the naive brute force solution.  See also See also <<alg_paradigm_comparision>>.
 
@@ -351,7 +242,7 @@ Examples: binary search, quickselect.
 
 
 [[dynamic_programming]]
-=== Dynamic programming (DP)
+==== Dynamic programming (DP)
 Basic idea: `carefull brute force'.  Use brute force, i.e. try all possible ways (and in case of optimization problems, take the best one).  However do that `carefully', by dividing the problem recursively into subproblems and use <<memoization>> to solve a particular subproblem only once.  Thus DP is often good for optimizations problems.  The memo is typically an associative array with +O(1)+ insert and lookup time.
 
 The following demonstrates dynamic programing by solving the <<rod_cutting_problem>>: Consider a steel company cutting steel rods and selling the pieces.  For simplicity lengths are integers.  Given a table of prices which states the price for a rod of length i.  How to cut a rod of length n into multiple smaller rods to maximize revenue.
@@ -415,7 +306,7 @@ Example algorithms or example problems solvable with dynamic programing: Bellman
 
 
 [[greedy_technique]]
-=== Greedy technique / algorithm
+==== Greedy technique / algorithm
 
 A _greedy algorithm_ repeatedly makes locally best choice/decision, ignoring effect on future, with the hope, but not guarantee, of finding an optimal solution to the overall problem.
 
@@ -430,32 +321,127 @@ In many problems, a greedy strategy does not in general produce an optimal solut
 Example algorithms: (Greedy) best-first search, A*, <<Dijkstra>>, fractional knapsack problem, change-making problem for canonical coin system. *to-do*: more examples.
 
 
-=== Linear programming (LP)
-
-_Integer linear programming_ (ILP) adds the additional constraint that numbers must be integers, making the problem NP-complete.
-
-_standard form_ (aka _general form_, or _primal form_ (see LP duality)): Maximize, by solving for x⃑, a linear objective function x⃑·c⃑, subject to the linear inequalities A·x⃑≤b⃑ and to x⃑≥0. A, c⃑ and b⃑ are constant.
-
-Any linear problem can be converted to the standard form. Original problem wants to minimize: switch signs of c⃑'s coefficients. Original problem has not a non-negative constraint on x~j~: Replace x~j~ by xʹ~j~-xʺ~j~.  Original problem has an equality constraint, say x~1~+x~2~=42: Replace that constraint by two constraints, x~1~+x~2~≤42 and -x~1~-x~2~≤-42.  Original problem has an ≥ constraint, say x~1~≥42 : Replace that constraint by -1 times the original constraint, e.g. -x~1~≤-42.
-
-_certificate of optimality_: *to-do*
-
-_LP duality_: Know the concept, but you probably won't use it often in practice. Every primal form has a _dual form_, where ``everything is inversed'': Minimize, by solving for y⃑, a linear objective function b⃑·y⃑, subject to the linear inequalities Aᵀ·y⃑≥c⃑ and to y⃑≥0.  The primal form and the dual form are equivalent.
-
-References:
-
-- MIT course 6.046J, Design and Analysis of Algorithms (Spring 2015), Lecture 15: "Linear Programming: LP, reductions, Simplex":  https://www.youtube.com/watch?v=WwMz2fJwUCg&t=603s[video], https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-design-and-analysis-of-algorithms-spring-2015/lecture-notes/MIT6_046JS15_lec15.pdf[lecture notes]
-
-
-=== Heuristic method
+==== Heuristic method
 
 Such algorithms include local search, tabu search, simulated annealing, and genetic algorithms.
 
 *to-do*
 
-=== Branch and bound
+==== Branch and bound
 
 *to-do*
+
+
+=== Recursion vs iteration
+
+- What is computable by recursive functions is computable by an iterative model and vice versa.
+
+- KISS: Use whichever is more easy to reason about for the given problem.  Since recursion maps easily to proof by induction, for many problems recursion is a straight forward choice.
+
+* Recursion has to pay expense of function calls and function returns, which is typically larger than the (conditional) jump used in the iterative solution.  However in case of tail calls and an compiler featuring tail call optimization becomes pretty much equivalent to iteration since the machine code is iterative.
+
+* Recursion needs memory on the stack for all the locals, the stack frame (the return address, the old stack pointer, ...).  However there are iterative solutions which need an stack or queue, which internally probably uses the heap with all its overhead in space and time.  It depends on the queue/stack implementation which is more efficient in terms of memory usage, locality, ....
+
+- Modern compilers are good at converting some recursions to loops without even asking.
+
+
+Terms: _base case_ is input for which the solution is directly known.  When the recursion arrives at the base case it is said to _bottom out_.
+
+
+==== Recipes for convertion recursion to iteration
+
+===== Tail call
+
+Recipe for translating recursion into iteration for a function ++foo++ for the case where recursive calls are convertible to tail calls:
+
+. Convert all recursive calls into tail calls.  If you're programming language supports tail call optimization, you're already done.
+
+. Enclose the body of the function with a ++while(true) { ... }++ loop.
+
+. Replace each call to ++foo++ according to this scheme: ``++foo(f1(...), f2(...), ...)++'' => ``++x1=f1(...); x2=f2(...); ...; continue;++''
+
+. For languages where identifiers need to be defined: For each +x+ object introduced in the previous step, define the object before the while loop introduced earlier.
+
+. Tidy up.
+
+
+===== Non tail call
+
+`Recipe' for translating recursion into iteration in case there are n multiple recursive calls which are not tail calls and not convertible to tail calls.  It's more tips than a proper recipe.
+
+- Remember that all local variables (which includes parameters) and the return address are on the stack.  So if one needs to know the return address, i.e. one of multiple possible places, it gets nasty difficult.
+
+- Enclose the whole body in a ++stack<...> s; s.push(args); while (!s.empty()) { current_args = s.pop(); ... }++
+
+- Instead of n times recursively calling foo like ++foo(args1); foo(args2);...++ push the args on the stack in reverse order ++s.push(args2); s.push(args1)++.
+
+Recipe for turning a non-tail call recursive function ++foo++ into one having a tail call:
+
+. Identify what work is being done between the recursive call and the return statement.  That delivers a function +g(x,y)+, so the respective expression could be written as ++return g(foo(...), bar)++.
+. Extend the function to do that +g+ work for us.  Extend it with an new accumulator argument, ++foo(..., acc=default_doing_nothing)++, and replace all return statements ++return lorem;++ with ++return g(lorem, acc);++.
+. Now you can replace very occurrence of ++return g(foo(...), bar)++ with ++return foo(..., bar)++, since we don't have to do +g+ ourselves any more, we can let +foo+ do +g+ for us.
+
+--------------------------------------------------
+// example step 1
+def factorial(n):
+    if n < 2: return 1
+    return factorial(n - 1) * n // thus we have an g: g(x,y)=x*y
+
+// example step 2
+def factorial(n, acc=1):
+     if n < 2: return 1 * acc
+     return (n * factorial(n - 1)) * acc //==factorial(n-1)*(acc*n)
+
+// example step 3
+def factorial(n, acc=1):
+     if n < 2: return acc * 1
+     return factorial(n - 1, acc*n)
+--------------------------------------------------
+
+See also: http://blog.moertel.com/posts/2013-05-11-recursive-to-iterative.html
+
+
+===== Non tail call
+
+--------------------------------------------------
+stack localsAndParamsStack;
+stack addrStack;
+addr = FunEntr;
+auto done = false;
+do {
+  switch (addr) {
+  case FunEntry:
+    ...
+  case X:
+    ...
+  }
+} while (not done);
+--------------------------------------------------
+
+*to-do*: mind implicit return at end of original function
+
+*to-do*: how to return values from called function?
+
+How to translate calls and returns:
+
+--------------------------------------------------
+             function call                      | return
+machine instr.     pseudo code in loop          | pseudo code in loop
+ -----------------------------------------------|-------------------------
+                                                | continue
+                                                |
+(save locals)      localsAndParamsStack.push(   | localsAndParams = 
+                       locals and params)       |    localsAndParamsStack.pop()
+                                                |
+push params        params = new params          |
+                                                |
+push returnAddr    addrStack.push(addr)         |
+                                                |
+jmp funAddr        addr = FunEntry              | addr = addrStack.pop()
+                   continue                     |
+                                                |
+                                                | if (addrStack.empty())
+--------------------------------------------------
 
 
 [[data_structures]]
@@ -1654,6 +1640,24 @@ Select(i): O(log n) [however that does not include the cost of creating the tree
 Functionally equivalent to quickselect, but runs faster in practice on average.
 
 *to-do*
+
+
+[[linear_programming]]
+=== Linear programming (LP)
+
+_Integer linear programming_ (ILP) adds the additional constraint that numbers must be integers, making the problem NP-complete.
+
+_standard form_ (aka _general form_, or _primal form_ (see LP duality)): Maximize, by solving for x⃑, a linear objective function x⃑·c⃑, subject to the linear inequalities A·x⃑≤b⃑ and to x⃑≥0. A, c⃑ and b⃑ are constant.
+
+Any linear problem can be converted to the standard form. Original problem wants to minimize: switch signs of c⃑'s coefficients. Original problem has not a non-negative constraint on x~j~: Replace x~j~ by xʹ~j~-xʺ~j~.  Original problem has an equality constraint, say x~1~+x~2~=42: Replace that constraint by two constraints, x~1~+x~2~≤42 and -x~1~-x~2~≤-42.  Original problem has an ≥ constraint, say x~1~≥42 : Replace that constraint by -1 times the original constraint, e.g. -x~1~≤-42.
+
+_certificate of optimality_: *to-do*
+
+_LP duality_: Know the concept, but you probably won't use it often in practice. Every primal form has a _dual form_, where ``everything is inversed'': Minimize, by solving for y⃑, a linear objective function b⃑·y⃑, subject to the linear inequalities Aᵀ·y⃑≥c⃑ and to y⃑≥0.  The primal form and the dual form are equivalent.
+
+References:
+
+- MIT course 6.046J, Design and Analysis of Algorithms (Spring 2015), Lecture 15: "Linear Programming: LP, reductions, Simplex":  https://www.youtube.com/watch?v=WwMz2fJwUCg&t=603s[video], https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-design-and-analysis-of-algorithms-spring-2015/lecture-notes/MIT6_046JS15_lec15.pdf[lecture notes]
 
 
 [[edit_distance]]
