@@ -2454,6 +2454,27 @@ The algorithm first determines the range in which the search key would reside if
 [[intervals]]
 == Intervals
 
+[[orthogonal_range_search]]
+=== Interval query / orthogonal (rectangular) range search
+
+Given n points in k-dimensional space, find the ones being in a k-dimensional interval.  E.g. when doing a database query, we want to find the persons with age in [20,40] and height in [150, 200] and weight in [50,100].
+
+[[dominance_query]]
+A special is a _dominance query_, where the k intervals are onesided.  The problem then is: given n points in k-dimensional space, find the ones being in the k-dimensional interval [-∞,b~1~]⨯...⨯[-∞,b~k~].  In other words, find all points dominated by a given query point q = (b~1~, ..., b~k~).
+
+Don't confuse orthogonal range search with <<range_query>>. See also <<ranges>>.
+
+Data structes / Algorithms:
+
+- Those presented in this chapter
+
+References:
+
+- Book "Computational Geometry - Algorithms and Applications", chapter "Orthogonal range searching"
+
+- http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf
+
+
 [[comparison_between_dss_involving_intervals]]
 === Comparison between DSs involving intervals
 
@@ -2592,7 +2613,7 @@ There's nothing special, as for higher dimensions than 3D, use a <<layered_range
 
 For queries in the form of [a~x~,b~x~]⨯(-∞,b~y~)⨯(-∞,b~z~).  This subchapter is written with the intention of providing a building block for the <<3d_range_tree>>, so the notation is tailored towards that use case.
 
-Data structure: Use kind of a layered range tree, where the first level sorts points by their x coordinate.  Each node conceptually refers to a data structure for an yz <<2D_dominance_query>>.  Analogous to what we did in a layered range tree, the nodes in the x tree do not really refer to a 2nd level data structre.  Instead, there is, `at the side', a 2nd z tree with the same topological shape as the y tree, where each node is some data structure, and where fractional cascading is used to connect the data structures in the nodes.  Recall that the structure for a 2D dominance query esentially is a sequence of sorted arrays on z, stored via fractional cascading.  So now in the whole we have a have a tree of sequences of arrays, i.e. simply a tree of arrays, and store that whole thing via fractional cascading.
+Data structure: Use kind of a layered range tree, where the first level sorts points by their x coordinate.  Each node conceptually refers to a <<2D_dominance_with_fractional_cascading>> data structure.  Analogous to what we did in a layered range tree, the nodes in the x tree do not really refer to a 2nd level data structre.  Instead, there is, `at the side', a 2nd z tree with the same topological shape as the y tree, where each node is some data structure, and where fractional cascading is used to connect the data structures in the nodes.  Recall that the structure for a 2D dominance query esentially is a sequence of sorted arrays on z, stored via fractional cascading.  So now in the whole we have a have a tree of sequences of arrays, i.e. simply a tree of arrays, and store that whole thing via fractional cascading.
 
 Query: Analogous to layered range tree.
 
@@ -2833,39 +2854,10 @@ See also <<comparison_between_dss_involving_intervals>>.
 *to-do*
 
 
-[[orthogonal_range_search]]
-=== Orthogonal (rectangular) range (interval) search (query)
+[[2D_dominance_with_fractional_cascading]]
+=== 2D dominance with fractional cascading
 
-1) Given a set of points in k-dimensional space, find the ones being in a k-dimensional range.  E.g. when doing a database query, we want to find the persons with age in [20,40] and height in [150, 200] and weight in [50,100].
-
-2) Given a set of k-dimensional geomteric objects (aka ranges), find the ones which intersect (aka overlap).
-
-Don't confuse orthogonal range search with <<range_query>>. See also <<ranges_intervals>>.
-
-Data structes / Algorithms:
-
-- <<kd_tree>>
-
-- <<range_tree>>. That includes a special variants for the 1D, 2D and 3D case. The 1D case is basically a BBST.
-
-- See also <<domincance_query>>
-
-References:
-
-- Book "Computational Geometry - Algorithms and Applications", chapter "Orthogonal range searching"
-
-- http://www.cs.utah.edu/~lifeifei/cs6931/kdtree.pdf
-
-
-[[dominance_query]]
-=== Dominance query
-
-*to-do* intro
-
-[[2D_dominance_query]]
-==== 2D dominance query
-
-Given n points in 2D (yz coordinates), report all points which lie in a given axis parallel orthogonal box (-∞,b~y~)⨯(-∞,b~z~).   In other words, report all points dominated by a given query point q = (b~y~, b~z~).  This chapter is currently written with the intend to provide a building block for the <<3d_range_tree>> special case, so it uses a notion tailored towards this use case.
+This subchapter presents an unnamed data structure for answering <<dominance_query,2D dominance queries>>.  It is based on fractional cascading.  Given n points in 2D (yz coordinates), report all points which lie in a given axis parallel orthogonal box (-∞,b~y~)⨯(-∞,b~z~).   In other words, report all points dominated by a given query point q = (b~y~, b~z~).  This chapter is currently written with the intend to provide a building block for the <<3d_range_tree>> special case, so it uses a notion tailored towards this use case.
 
 Figurative interpretation of a 2D dominance query: A 2D dominance query is equivalent to stabbing n upward vertical rays, starting at the n points, with one rightward horizontal ray, coming from the left from -∞ and ending at the query point q.
 
