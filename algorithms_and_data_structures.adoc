@@ -2456,8 +2456,8 @@ An algorithm for finding an element in an sorted, possibly unbounded array.  It 
 The algorithm first determines the range in which the search key would reside if it were in the list.  For that, every 2^j^-th element is examined and compared with the search key, where j is the iteration of this loop.  When the search key equals the element, the search terminates.  Otherwise when its smaller, continue the first stage, otherwise use binary search in the found range to find the element.
 
 
-[[ranges_intervals]]
-== Ranges / Intervals
+[[intervals]]
+== Intervals
 
 [[comparison_between_dss_involving_intervals]]
 === Comparison between DSs involving intervals
@@ -2903,6 +2903,9 @@ References:
 
 - See <<3d_range_tree>>; this subchapter here is only a building block of that.
 
+
+[[ranges]]
+== Ranges
 
 [[range_query]]
 === Range query (data structures)
