@@ -1645,9 +1645,11 @@ Functionally equivalent to quickselect, but runs faster in practice on average.
 [[linear_programming]]
 === Linear programming (LP)
 
-_Integer linear programming_ (ILP) adds the additional constraint that numbers must be integers, making the problem NP-complete.
+_standard form_ (aka _general form_, or _primal form_ (see LP duality)):
 
-_standard form_ (aka _general form_, or _primal form_ (see LP duality)): Maximize, by solving for x⃑, a linear objective function x⃑·c⃑, subject to the linear inequalities A·x⃑≤b⃑ and to x⃑≥0. A, c⃑ and b⃑ are constant.
+Maximize, by solving for x⃑, a linear objective function x⃑·c⃑ +
+subject to the linear inequalities A·x⃑≤b⃑ and to x⃑≥0. +
+A, c⃑ and b⃑ are constant.
 
 Any linear problem can be converted to the standard form. Original problem wants to minimize: switch signs of c⃑'s coefficients. Original problem has not a non-negative constraint on x~j~: Replace x~j~ by xʹ~j~-xʺ~j~.  Original problem has an equality constraint, say x~1~+x~2~=42: Replace that constraint by two constraints, x~1~+x~2~≤42 and -x~1~-x~2~≤-42.  Original problem has an ≥ constraint, say x~1~≥42 : Replace that constraint by -1 times the original constraint, e.g. -x~1~≤-42.
 
@@ -1655,9 +1657,25 @@ _certificate of optimality_: *to-do*
 
 _LP duality_: Know the concept, but you probably won't use it often in practice. Every primal form has a _dual form_, where ``everything is inversed'': Minimize, by solving for y⃑, a linear objective function b⃑·y⃑, subject to the linear inequalities Aᵀ·y⃑≥c⃑ and to y⃑≥0.  The primal form and the dual form are equivalent.
 
+[[ILP]]
+_Integer linear programming_ (_ILP_) adds the additional constraint that numbers must be integers.  An even further restriction is _0-1 integer programming_ (_0-1 LP_) which demands that numbers are Boolean.
+
+LP is in P, while ILP and 0-1 LP are NP-hard. The reason is that the constraints requiring integer or Boolean solutions cannot be formulated as linear equations.  The linearity of LP is really substential, because then we can start at an arbitrary edge of the described polytype, a convex multidimensional object, and move along edges to find the optimum.
+
+Applications:
+
+- Many <<optimization_problem,optimization problems>> can be reduced to LP, or ILP in case of discrete optimization problems.
+
 References:
 
 - MIT course 6.046J, Design and Analysis of Algorithms (Spring 2015), Lecture 15: "Linear Programming: LP, reductions, Simplex":  https://www.youtube.com/watch?v=WwMz2fJwUCg&t=603s[video], https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-design-and-analysis-of-algorithms-spring-2015/lecture-notes/MIT6_046JS15_lec15.pdf[lecture notes]
+
+
+==== Relaxation to linear programming
+
+References:
+
+- Book "Design and Analysis of Randomized Algorithms", chapter "7.2 Relaxation to Linear Programming"
 
 
 [[edit_distance]]
