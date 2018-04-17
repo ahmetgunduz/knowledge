@@ -734,50 +734,8 @@ Implementations: <<array>>, <<linked_list>>.
 
 [[graph_adt]]
 === Graph (ADT)
+
 Chapter <<graph_theory>> explains the mathematical theory behind the graph ADT.
-
-Common implementations / representations:
-
-- _Adjacency list_: An ADT having the function Adj(u:vertex), which returns a linked list defining the vertices adjacent to vertex u.  E.g. an associative array (i.e. a collection) of linked lists.  It is left to the more concrete implementation, whether the collection element definitely defines a vertex with all its attributes, or whether the vertex is defined by yet another object and the collection element only defines its adjacent vertices.  Note that in an undirected graph, an edge appears twice.  Typically data structures for the outer collection:
-
- * A (dynamic) array. Each slot represents a vertex.  Vertices are identified by theyr index in the array.  Only works well with the variant where vertices are separate objects, if these separate vertices objects store their array index as attribute.
-
- * A hash table, the key being a vertice's hash.  A linked list node can define the adjacent vertex via a pointer, or its hash, or directly the slot index.
-
- * A function which implicitely defines the adjacent vertices.
-
-- _Objects and pointers_: Can also be seen as a variant of the adjacency list representation.  A collection stores pointers to all vertices.  Each vertex stores its adjacent vertices via a collection of pointers.  Alternatively, each vertex stores a collection of outgoing edges.  An outgoing edge stores a pointer to the source and to the destination vertex, and possibly other edge attributes such as weight.  The other graph representations have the advantage, that with them you can have multiple graphs using the same vertex objects.
-
-- _Edge list_: A collection of edge objects, each edge object storing something to identify the start and end vertex, possibly additionally also the edge's weight.
-
-- _Adjacency matrix_ |V|×|V|:  Rows represent source vertices and columns represent destination vertices and cells the associated edge.  Data on vertices typically stored externally.  Typically for dense graphs, or when a quick way is needed to tell if two vertices are adjacent.  Does not work for multigraphs. *to-do* symetric for undirected graphs, inf for not adjacent vertexes, edge weights...
-
-- _Incidence matrix_ |V|×|E|: The rows represent the columns, the columns the edges, a cell is 1 if the associated vertex is an start point of the assiciated edge, -1 if it's the end point, and 0 otherwise.  In a weighted graph, the 1s are replaced by the edge's weight.
-
-The time complexities for adjacency list assume that Adj(u:vertex) takes O(1) time. a is the number of incident edges to the vertex in question.
-
-|======
-|                           | adjacency list         | adjacency matrix  | incidence matrix
-|Space requirements         | O(V+E) ☺ if sparse     | O(V²)             | O(VE)
-|Add vertex                 | O(1) ☺                | O(V²)             | O(VE)
-|Remove vertex and its edges| ✝                     | O(V²)             | O(VE)
-|Add edge                   | O(1)                   | O(1)              | O(VE)
-|Remove edge                | O(V+E) / digraph O(a)  | O(1)              | O(VE)
-|Are two vertices adjacent? | O(a)                   | O(1) ☺            | O(E)
-|Get adjacent vertices      | O(a) ☺                | O(V)              | O(E)
-|======
-
-✝) To remove vertex itself from outer collection: O(V) for array, O(1) for hash table. To remove incident edges of vertex u: For directed graph O(a), for undirected graph O(V+E) (for each vertex v in Adj(u), remove u from in Adj(v)).
-
-References:
-
-- Book "Introduction to algorithms", chapter "Representations of graphs"
-
-- https://www.ics.uci.edu/~eppstein/161/960201.html
-
-- https://en.wikipedia.org/wiki/Graph_(abstract_data_type)#Representations
-
-- MIT course 6.006 Introduction to Algorithms, lecture 13. Breadth-First Search (BFS), https://www.youtube.com/watch?v=s-CYnVz-uh4&index=13&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=0s, starting 20:23
 
 
 [[binary_search_tree]]
@@ -3867,6 +3825,52 @@ A _binary tree_ is a tree where each node has at most two children.  A _full_ (a
 
 [[number_of_trees]]
 The number of possible trees of size n is given by the Catalan number.  An upper bound is 4^n^.  Informal proof for the upper bound: Encode a tree by an Euler Tour. Each edge traversal is encoded with one bit.  0 for going down, 1 for going up.  We do 2|E| edge traversals.  Thus 2^2n^.
+
+
+=== Graph representations / data structures
+
+==== Fundamental graph representations / data structures
+
+- _Adjacency list_: An ADT having the function Adj(u:vertex), which returns a linked list defining the vertices adjacent to vertex u.  E.g. an associative array (i.e. a collection) of linked lists.  It is left to the more concrete implementation, whether the collection element definitely defines a vertex with all its attributes, or whether the vertex is defined by yet another object and the collection element only defines its adjacent vertices.  Note that in an undirected graph, an edge appears twice.  Typically data structures for the outer collection:
+
+ * A (dynamic) array. Each slot represents a vertex.  Vertices are identified by theyr index in the array.  Only works well with the variant where vertices are separate objects, if these separate vertices objects store their array index as attribute.
+
+ * A hash table, the key being a vertice's hash.  A linked list node can define the adjacent vertex via a pointer, or its hash, or directly the slot index.
+
+ * A function which implicitely defines the adjacent vertices.
+
+- _Objects and pointers_: Can also be seen as a variant of the adjacency list representation.  A collection stores pointers to all vertices.  Each vertex stores its adjacent vertices via a collection of pointers.  Alternatively, each vertex stores a collection of outgoing edges.  An outgoing edge stores a pointer to the source and to the destination vertex, and possibly other edge attributes such as weight.  The other graph representations have the advantage, that with them you can have multiple graphs using the same vertex objects.
+
+- _Edge list_: A collection of edge objects, each edge object storing something to identify the start and end vertex, possibly additionally also the edge's weight.
+
+- _Adjacency matrix_ |V|×|V|:  Rows represent source vertices and columns represent destination vertices and cells the associated edge.  Data on vertices typically stored externally.  Typically for dense graphs, or when a quick way is needed to tell if two vertices are adjacent.  Does not work for multigraphs. *to-do* symetric for undirected graphs, inf for not adjacent vertexes, edge weights...
+
+- _Incidence matrix_ |V|×|E|: The rows represent the columns, the columns the edges, a cell is 1 if the associated vertex is an start point of the assiciated edge, -1 if it's the end point, and 0 otherwise.  In a weighted graph, the 1s are replaced by the edge's weight.
+
+The time complexities for adjacency list assume that Adj(u:vertex) takes O(1) time. a is the number of incident edges to the vertex in question.
+
+|======
+|                           | adjacency list         | adjacency matrix  | incidence matrix
+|Space requirements         | O(V+E) ☺ if sparse     | O(V²)             | O(VE)
+|Add vertex                 | O(1) ☺                | O(V²)             | O(VE)
+|Remove vertex and its edges| ✝                     | O(V²)             | O(VE)
+|Add edge                   | O(1)                   | O(1)              | O(VE)
+|Remove edge                | O(V+E) / digraph O(a)  | O(1)              | O(VE)
+|Are two vertices adjacent? | O(a)                   | O(1) ☺            | O(E)
+|Get adjacent vertices      | O(a) ☺                | O(V)              | O(E)
+|======
+
+✝) To remove vertex itself from outer collection: O(V) for array, O(1) for hash table. To remove incident edges of vertex u: For directed graph O(a), for undirected graph O(V+E) (for each vertex v in Adj(u), remove u from in Adj(v)).
+
+References:
+
+- Book "Introduction to algorithms", chapter "Representations of graphs"
+
+- https://www.ics.uci.edu/~eppstein/161/960201.html
+
+- https://en.wikipedia.org/wiki/Graph_(abstract_data_type)#Representations
+
+- MIT course 6.006 Introduction to Algorithms, lecture 13. Breadth-First Search (BFS), https://www.youtube.com/watch?v=s-CYnVz-uh4&index=13&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=0s, starting 20:23
 
 
 [[BFS]]
