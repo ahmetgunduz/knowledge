@@ -1657,7 +1657,7 @@ Where x ∈ ℝ^n^ is an input. f(x) : ℝ^n^ → ℝ is the _objectiv function_
 
 Let A be an consistent algorithm for an optimization problem, and OPT an optimal algorithm.  The _approximation ratio_ of A on x is defined as Ratio~A~(x) = cost(A(x)) / cost(OPT(x)) for minimization problems, and the reciproce of it for maximization problems.
 
-We say A is a _δ-approximation algorithm_ if Ratio~A~(x) ≤ δ ∀ feasible x.
+We say A is a _δ-approximation algorithm_ if Ratio~A~(x) ≤ δ ∀ feasible x.  In other words, δ is an upper bound on the worst case approximation ratio.
 
 See also <<randomized_algs_for_optimization_problems>>.
 
@@ -1675,11 +1675,11 @@ References:
 [[linear_programming]]
 === Linear programming (LP)
 
-_standard form_ (aka _general form_, or _primal form_ (see LP duality)):
+The _standard form_ (aka _general form_, or _primal form_ (see LP duality)) is defined as follows:
 
 Maximize, by solving for x⃑, a linear objective function x⃑·c⃑ +
-subject to the linear inequalities A·x⃑≤b⃑ and to x⃑≥0. +
-A, c⃑ and b⃑ are constant.
+Subject to the linear inequalities A·x⃑≤b⃑ and to x⃑≥0. +
+Wheras A, c⃑ and b⃑ are constant.
 
 Any linear problem can be converted to the standard form. Original problem wants to minimize: switch signs of c⃑'s coefficients. Original problem has not a non-negative constraint on x~j~: Replace x~j~ by xʹ~j~-xʺ~j~.  Original problem has an equality constraint, say x~1~+x~2~=42: Replace that constraint by two constraints, x~1~+x~2~≤42 and -x~1~-x~2~≤-42.  Original problem has an ≥ constraint, say x~1~≥42 : Replace that constraint by -1 times the original constraint, e.g. -x~1~≤-42.
 
@@ -1692,6 +1692,8 @@ _Integer linear programming_ (_ILP_) adds the additional constraint that numbers
 
 LP is in P, while ILP and 0-1 LP are NP-hard. The reason is that the constraints requiring integer or Boolean solutions cannot be formulated as linear equations.  The linearity of LP is really substential, because then we can start at an arbitrary edge of the described polytype, a convex multidimensional object, and move along edges to find the optimum.
 
+Trivia: My personal guess where the term linear programming comes from: In british English, `programming' means optimize, see also dynamic programming.
+
 Applications:
 
 - Many <<optimization_problem,optimization problems>> can be reduced to LP, or ILP in case of discrete optimization problems.
@@ -1699,13 +1701,6 @@ Applications:
 References:
 
 - MIT course 6.046J, Design and Analysis of Algorithms (Spring 2015), Lecture 15: "Linear Programming: LP, reductions, Simplex":  https://www.youtube.com/watch?v=WwMz2fJwUCg&t=603s[video], https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-046j-design-and-analysis-of-algorithms-spring-2015/lecture-notes/MIT6_046JS15_lec15.pdf[lecture notes]
-
-
-==== Relaxation to linear programming
-
-References:
-
-- Book "Design and Analysis of Randomized Algorithms", chapter "7.2 Relaxation to Linear Programming"
 
 
 [[edit_distance]]
@@ -3563,9 +3558,34 @@ MC-AIgorithmen?" and then explains. But I didn't got the final conclusion. 2) Pr
 
 See also <<optimization_problem>>.
 
-Let A be a randomized algorithm for an optimization problem, and let OPT be an optimal algorithm. A is a __randomized E[δ]-approximation algorithm__ if for every feasible input x it a) returns a feasible solution and b) E[Ratio~A~(x)] ≤ δ.
+Let A be a randomized algorithm for an optimization problem, let OPT be an optimal algorithm for the same problem, and let Ratio~A~(x) denote the approximation ratio of A on input x.  A is a __randomized E[δ]-approximation algorithm__ if for every feasible input x there exists an δ > 1 such that a) it returns a feasible solution and b) E[Ratio~A~(x)] ≤ δ.
 
-With the same context, A is a __randomized δ-approximation algorithm__ if b) is replaced by Pr[Ratio~A~(x) ≤ δ] ≥ 1/2.  Note that such an algrithm can be repeated arbitrary many times to make Pr[Ratio~A~(x) ≤ δ] arbitrarily close to 1.
+With the same context, A is a __randomized δ-approximation algorithm__ if b) is replaced by Pr[Ratio~A~(x) ≤ δ] ≥ 1/2.  Note that such an algorithm can be repeated arbitrary many times to make Pr[Ratio~A~(x) ≤ δ] arbitrarily close to 1.
+
+*to-do*: I forgot. Why exactly 1/2? Why not >0?
+
+If A is a randomized E[δ]-approximation-algorithm for an optimization problem U, then A is a randomized (2E[δ])-approximation for U.  Note that an randomized E[δ]-approximation algorithm for U is not necessairly a randomized δ-approximation algorithm for U, and vice versa.
+
+References:
+
+- Book "Design and Analysis of Randomized Algorithms", chapters "2.5 Classification of Randomized Algorithms for Optimization Problems" and "7 Optimization and Random Rounding"
+
+
+==== Relaxation to LP and random rounding
+
+Many discrete optimization problem are NP-hard. Many of those are reducable to ILP.  We want to reduce the cost by trading in accuracy: We relax the ILP to an LP, solve that in polynomial time resulting in a fractional solution, and then convert that fractional solution to an integer one in polynomial time using some approximation strategy costing polynomial time.
+
+The 1st step is to reduce the discrete optimization problem to <<ILP>> or O-1 LP.  This is often quite easy doable in a natural way.
+
+The 2nd step is the _relaxation to LP_ and solving that LP, costing polynomial time, resulting in a fractional solution.  Relaxation to LP means removing the constraints which require integer or Boolean solutions respectively.  Note an optimal solution to this LP is as good or better than an optimum solution to the original problem U, because LP's constraints are a proper subset of U's constraints.
+
+The 3rd step is converting the found optimal fraction solution to a reasonably good feasible solution to the original ILP or 0-1 LP.  One possible conversion strategy is random rounding which uses the fractional part as probability with which we round up opposed to round down.
+
+Note that the fractional optimal solution to LP of step two can serve as an bound for the optimal solution of the original problem U.  An lower bound for minimization problems, and an upper bound for maximization problems respectively.
+
+*to-do* What other convertion strategies than random rounding are there for step three?
+
+*to-do* It seems to me that the term `random rounding' sometimes is used for the whole idea, i.e. all three steps together (e.g. wikipedia), and sometimes only for the third step (e.g. our book).
 
 
 [[online_algorithms]]
