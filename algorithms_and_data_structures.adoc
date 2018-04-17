@@ -1642,6 +1642,36 @@ Functionally equivalent to quickselect, but runs faster in practice on average.
 *to-do*
 
 
+[[optimization_problem]]
+=== Optimization problem
+
+Given a (feasible) input x, an _optimization problem_ is the problem of finding the best solution, according so some objective function f(x), for x from the set of feasible solutions for x.  A feasible solution for x is called _optimal_ if its the best solution for x.  We say that an algorithm _solves_ an optimization problem if it finds the optimal solution for every input.  An optimization problem with discrete variables is called a _discrete optimization problem_.  An optimization problem with continuous variables is called a _continuous optimization problem_.
+
+The _standard form_ of a continous optimzatio problem is:
+
+Minimize~x~ f(x) +
+subject to g~i~(x) ≤ 0, i ∈ [m] +
+subject to h~j~(x) = 0, j ∈ [p]
+
+Where x ∈ ℝ^n^ is an input. f(x) : ℝ^n^ → ℝ is the _objectiv function_. g~i~(x) ≤ 0 are inequality constraints, h~j~(x) = 0 are equality constraints.
+
+Let A be an consistent algorithm for an optimization problem, and OPT an optimal algorithm.  The _approximation ratio_ of A on x is defined as Ratio~A~(x) = cost(A(x)) / cost(OPT(x)) for minimization problems, and the reciproce of it for maximization problems.
+
+We say A is a _δ-approximation algorithm_ if Ratio~A~(x) ≤ δ ∀ feasible x.
+
+See also <<randomized_algs_for_optimization_problems>>.
+
+Solution techniques:
+
+- Many discrete optimization problems can be reduced to <<ILP>>.
+
+References:
+
+- https://en.wikipedia.org/wiki/Optimization_problem[wikipedia]
+
+- Book "Design and Analysis of Randomized Algorithms", chapter "2.5 Classification of Randomized Algorithms for Optimization Problems"
+
+
 [[linear_programming]]
 === Linear programming (LP)
 
