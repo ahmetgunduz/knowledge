@@ -1963,11 +1963,21 @@ Is <<k_wise_independent_hash_functions,3-wise independent>>, but no 4-wise indep
 [[simple_uniform_hash_function]]
 ====  Simple uniform hash function
 
-A hash function is called _totally random_ (or _uniform_ or _ideal_) it satisfies the _simple uniform hashing assumption_ (_SUHA_), which is:
+A hash function is called _totally random_ (or _uniform_) it satisfies the _simple uniform hashing assumption_ (_SUHA_), which is:
 
-Pr(h(x) = t) = 1/m, for all keys x ∈ U and every slot t ∈ [m] and independend of all y ≠ x ∈ U.
+Pr~h~(h(x) = t) = 1/m, independend of h(y), for all keys y ≠ x ∈ U and every slot t ∈ [m]
 
 In plain English, that says each key is equally likely to to be hashed to any slot, independent of where any other key is hashed to.  I.e. all keys must be mutually independent, opposed to 2-wise independent as it is the case for universal hashing.
+
+Another view point is that each time h is given a key which it didn't see before, it uniformily at randomly chooses a slot t ∈ [m].  This holds independent of all the previous seen keys.
+
+*to-do* is still a deterministic hash function. as explained in chapter universal hashing, every deterministic hash function is prone to an attack in which adversary gives keys which he knows map to the same slot.
+
+Another view point is that h is choosen uniformily at random from the set of all possible hash functions (*to-do* really? I thought that this is universal hashing. But then again universal hashing is a subset of uniform hashing, no? Imagine the |U| keys in row, below each the slot where it maps to. we have thus a |U| digit number base m. Choosing each digit uniformily at random is the same as choosing one number out of the universe of |U| digit numbers base m)
+
+*to-do*: With both of the above view points, every possible hash function qualifies as being totally random.  What's the point of such a definition if every possibly hash function fulfills it.  Also from this purely mathematical standpoint, the stupid hash function mapping every key to slot 0 is equaly good as one which distributes the key uniformely in a way we would intuitively label as ideal.  I'm sooooooo confused.  Hint: Indeed, many texts hint that its difficult/imposible to know whether a given hash function is totally random or not.
+
+*to-do* Should't an ideal hash function defined some thing like this. The hash function is based on a ⌈|U|/m⌉ ⨯ m matrix.  The columns represent the hash table's slots. Then cell by cell in any order, pick uniformily at random without replacement a key from the remaining univiverse of keys and put it into the cell.  I guess this theoretically would be perfect since it guarantees a min(⌈|U|/m⌉,n) upper bound on chain lengths, whereas uniform hashings upper bound is n.  As in uniform hashing keys are mutually independent.  I guess the drawback is that mathematically its much harder to be used than the definition of uniform hash functions.  Also |U|/m might often be larger than n.
 
 Note that ideal hash function and <<perfect_hash_function>> are different things.  Perfect hashing guarantees no collisions, ideal hashing guarantees certain probabilities about collisions.
 
@@ -2008,7 +2018,7 @@ At the creation of a given hash table, we select a hash function h at random and
 
 A family H of hash functions is called a _universal familiy_ (or just _universal_) if
 
-Pr~h~[h(x) = h(y)] = O(1/m) for a randomly chosen h ∈ H and for all x ≠ y ∈ U.
+Pr~h∈H~[h(x) = h(y)] = O(1/m) for a randomly chosen h ∈ H and for all x ≠ y ∈ U.
 
 Alternatively: For for all x ≠ y ∈ U, the number of hash functions h ∈ H for which h(x) = h(y) is O(|H|/m).  Note that in other definitions, the rhs is ``≤ 1/m'' opposed to ``= O(1/m)''.
 
