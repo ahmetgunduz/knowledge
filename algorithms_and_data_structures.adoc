@@ -3555,9 +3555,14 @@ For the case of decision problems, a randomized algorithm A is called _false-bia
 MC-AIgorithmen?" and then explains. But I didn't got the final conclusion. 2) Probably the same question: why 1/2, opposed to some other constant?
 
 
-=== Classification of Randomized Algorithms for Optimization Problems
+[[randomized_algs_for_optimization_problems]]
+=== Randomized Algorithms for Optimization Problems
 
+See also <<optimization_problem>>.
 
+Let A be a randomized algorithm for an optimization problem, and let OPT be an optimal algorithm. A is a __randomized E[δ]-approximation algorithm__ if for every feasible input x it a) returns a feasible solution and b) E[Ratio~A~(x)] ≤ δ.
+
+With the same context, A is a __randomized δ-approximation algorithm__ if b) is replaced by Pr[Ratio~A~(x) ≤ δ] ≥ 1/2.  Note that such an algrithm can be repeated arbitrary many times to make Pr[Ratio~A~(x) ≤ δ] arbitrarily close to 1.
 
 
 [[online_algorithms]]
