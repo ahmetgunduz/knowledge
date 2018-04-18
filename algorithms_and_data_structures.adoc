@@ -2678,7 +2678,7 @@ Given a set P of points, find the points in range [f, t].
 
 Data structure: A 1D range tree is actually just a BBST which stores its values in its leaves, see also <<data_in_leaves>>.  If you really only have a 1D problem, storing the values only in the leaves might not be necessairy, but in higher dimensions it becomes really convenient, see the general <<range_tree>>.
 
-Query: Search f and t in the tree, resulting in the nodes nf = predecessor(f) and nt = successor(b).  There is one search path until a node, often called the split node, where the search splits in two paths.  The leafes of all the subtrees `enclosed' by the two paths (splitnode, nf) and (splitnode, nt) are the result.  In text book examples, typically these subtrees are reported on the fly while descenting from the split node.  On the left search path, the right subtree when descending left, and nothing when descending right.  Analogously for the right search path.
+Query: Search f and t in the tree, resulting in the nodes nf = predecessor(f) and nt = successor(b).  There is one search path until a node, often called the split node, where the search splits in two paths.  The leafes of all the subtrees `enclosed' by the two paths (splitnode, nf) and (splitnode, nt) are the result.  In text book examples, typically these subtrees are reported on the fly while descenting from the split node.  On the left search path, the right subtree when descending left, and nothing when descending right.  Analogously for the right search path.  See also <<range_tree>>, which does a similar thing.
 
 --------------------------------------------------
            o root     given range [f, t], search pred(f) and succ(t)
@@ -2900,7 +2900,7 @@ References:
 [[interval_tree]]
 === Interval tree / interval search tree
 
-Augments a binary search tree to store a set of intervals.  In case a BBST is augmented, each operation can be done in O(log n) time.  See also <<range_tree>>, <<segment_tree>> and <<binary_indexed_tree>>.
+Augments a binary search tree to store a set of intervals.  In case a BBST is augmented, each operation can be done in O(log n) time.
 
 Each node stores the values low, high and max, where low is used as the BST's search key. The pair (low, high) represents an interal, thus semantically each node stores an interval. Max is the maximal high value stored in the node's subtree.
 
@@ -2919,12 +2919,12 @@ References:
 - https://www.geeksforgeeks.org/interval-tree/
 
 
-[[segment_tree]]
-=== Segment tree
+[[segment_tree_for_intervals]]
+=== Segment tree for intervals
 
-Stores intervals. Optimized for finding intervals containing a given point.
+A <<segment_tree>> storing intervals and optimized for finding the intervals containing a given point.  Note that many authors use the term segment tree for the segment tree specialized towards intervals.
 
-Given a set V of n intervals, stores the end points of these intervals in the leaves of a complete (*to-do* ?) BST. Each node v stores the min and max among all the leaves in its subtree, which represents an interval I~v~ = [min, max] (*to-do* proper distinction open/closed). Also each node v stores a subset of V according to the folling rules: an interval I ∈ V is stored iff I contains I~v~ completely and I does not contain I~parent(v)~. Followingly each interval I ∈ V might be associated to more than one node, but never to more than O(log n) nodes.
+Data structure: Given a set V of n intervals, stores the end points of these intervals in the leaves of a BST. Each node v stores the min and max among all the leaves in its subtree, which represents an interval I~v~ = [min, max] (*to-do* proper distinction open/closed).  Also each node v stores a subset of V according to the folling rules: an interval I ∈ V is stored iff I contains I~v~ completely and I does not contain I~parent(v)~.  Followingly each interval I ∈ V might be associated to more than one node, but never to more than O(log n) nodes.
 
 --------------------------------------------------
               o
@@ -2942,8 +2942,6 @@ Given a set V of n intervals, stores the end points of these intervals in the le
 --------------------------------------------------
 
 query(point:p): Return all intervals which contain given point p.  Search p in BST (*to-do* what to do if p is not one of the end points?). For each node on the search path, return the intervals I ∈ V which are associated with that node.
-
-*to-do* 1) Often stored similarily to a heap? 2) there's this more general definition of a segment tree. In Prof's view it's a class like BBST, the boundaries between BBST and segment tries being vague. 3) I think the same is this general definition where a segment tree is optimized for a given associative operation on intervals over an given array, the leaves store array values.
 
 See also <<comparison_between_dss_involving_intervals>>.
 
@@ -3002,19 +3000,95 @@ References:
 == Ranges
 
 [[range_query]]
-=== Range query (data structures)
+=== Range query
 
-A _range query_ consists of preprocessing some input data into a data structure to efficiently answer any number of queries on any subset of the input.  For example a query might be we might want to compute the sum of all elements in a given range, or the find the minimum element in a given range.  Don't confuse range query with <<orthogonal_range_search>>.
+The term _range query_ seems to apply both to the operation / problem and to the data structure being optimized for that query, both of which are explained in the following.  Given an array A and a function f taking any number of elements as input, a range query operation ask for applying function f on a range [i,j] of elements of A.  A range query datas tructure stores the input data such that it can efficiently answer range query operations.  A similar problem is <<orthogonal_range_search>>.
 
-More formally, a q~f~(A, i, j) range query on an array A of n elements takes two array indices i and j, an implied function f whose domain is a set of array elements, and outputs f(A[i,j]) = f(a~i~, ..., a~j~).
+A range query in it's most general form doesn't require the input to be an array.  The input can be a set and the query can ask to apply f on any subset.  But we won't look into that variant here.
+
+More formally, a q~f~(A, i, j) range query on an array A of n elements takes two array indices i and j, an implied function f whose domain is a set of array elements, and returns f(A[i,j]) = f(A[i], ..., A[j]).
 
 Solutions:
 
-- When the function f has an well defined inverse f^-1^: Have an auxillary array B of size n, B[i] storing the result of f(A[0,i]).  Then q~f~(A, i, j) = f(A[i,j]) = f^-1^(B[j], B[i-1]).  Costs O(n) auxillary space, O(n²) preprocessing time, O(1) query time.
+- brute force: O(n) query
 
-- *to-do* order statistics in a range: https://en.wikipedia.org/wiki/Range_query_(data_structures)#Median
+- Naive loopkuptable storing the answer to all possible queries: O(n²) auxillary space, update and preprocessing. O(1) query time.
 
-- In case the function f asks for the minimum, i.e. the range minimum query (RMQ) problem, see <<RMQ>>.
+- f has inverse f^-1^: <<0_i_lookup_table>> O(1) query, O(n) auxillary space, O(n²) update and preprocessing.
+
+- f is based on an associative operator: <<segment_tree>>, O(log n) query and update, O(n) auxillary space and preprocessing.
+
+- f asks for the some order statistic. minimum/maximum: see <<RMQ>>, median *to-do* see https://en.wikipedia.org/wiki/Range_query_(data_structures)#Median, general order statistic *to-do*
+
+- f ask for the mode: *to-do* see https://en.wikipedia.org/wiki/Range_mode_query
+
+
+[[0_i_lookup_table]]
+=== [0,i] Lookup table
+
+A <<range_query>> data structure.
+
+Constraint: f has an well defined inverse f^-1^.
+
+Data structure & preprocessing: Have an auxillary array B of size n, B[i] storing the result of f(A[0,i]).
+
+Query: q~f~(A, i, j) = f(A[i,j]) = f^-1^(f(A[0,j]), f(A[0,i])) = f^-1^(B[j], B[i-1])
+
+Analysis for all f: Costs O(n) auxillary space, O(1) query time
+
+Analysis for f based on binary associative function: O(n) preprocessing and update
+
+Analysis for other f: O(n²) preprocessing and update
+
+
+[[segment_tree]]
+=== Segment tree
+
+A data strucure answering <<range_query,range queries>>.  Is more a concept than a concrete data structure.  Thus there are many variations presented here.  Note that many authors use the term segment tree for <<segment_tree_for_intervals>>.
+
+Constraints: f must be based on an associative operator.
+
+Data structure overview: Basically a full binary tree storing data in leaves.  Each element of the input set is stored in a single leaf.  Array elements and tree leaves are in the same order.  Each internal node v is augmented by storing f(left(v), right(v)).
+
+There are multiple ways for more concrete data structures:
+
+1) Since its a full binary tree, we can store the tree implicitely using a single array, the same way a binary heap does it.  But then updates are O(n).
+
+2) As binary tree, but not as search tree, i.e. no search keys.
+
+3) BBST storing data in leaves, the key being the index in A.
+
+Query(i,j):  The task is to find all the maximaly height subtrees that have all their leaves fully in A[i,j].  There are O(log n) of them.  Call f over all the roots given by these subtrees.
+
+1) Imagine LCA of A[i-i] and A[j+1].  The two paths (LCA, A[i-1]) and (LCA, A[j+i) enclose all the subtrees we want.  While walking on the two paths whe can on the fly call f on the root of each found enclosed subtree.  See also <<1D_range_tree>>, which has the same basic idea.  We can circumvent border cases when we add a sentinel leaf at the beginning and at the end.
+
+1.1) Walk down the tree to the two leaves corresponding to A[i-i] and A[j+1].  The node at which the two search paths diverge is the LCA, also called split node.
+
+2.2) Compute LCA(A[i-1], A[j+1]). We can directly access the leaves A[i-1] and A[j+1] for example if the leaves are stored in an array, or if we have an array of pointers to the leaves.
+
+2) The data structure is such that each node knows which range in A its leaves cover, see more concrete propositions below. Recursively do, starting at root, where v denotes current node, foo the recursive function and f' a wrapper around f which accepts nil as argument and ignores an nil argument.
+
+if v.range within [i,j]: return v.value +
+else if v.range doesnt intersect [i,j]: return nil +
+else return f'(foo(v.left,i,j), foo(v.right, i,j))
+
+2.1) Each node knows that implicitely because it knows its position in the full binary tree, e.g. in case the tree is implicitely store in an array as a heap does it. *to-do* formula to derive index in A of min and max child given node index in array storing the tree.
+
+2.2) Each node stores the index within A of its min leaf and of its max leaf.
+
+Analysis: Recall there there are O(log n) subtrees having all their leaves within A[i,j]. Both presented query algorithms have O(log n) query time.
+
+Applications:
+
+- <<RMQ>>
+
+- <<interval_tree>>, sort of
+
+- <<segment_tree_for_intervals>>
+
+References:
+
+- https://www.geeksforgeeks.org/segment-tree-set-1-sum-of-given-range/
 
 
 [[RMQ]]
@@ -3031,6 +3105,8 @@ Solutions:
 - Reduce to LCA and solve there, see <<RMQ_LCA_equivalence>>.
 
 - Brute force. O(n) query time.
+
+- <<segment_tree>>.  O(n) auxillary space, O(log n) query time, O(log n) update time.
 
 - Naive loopkuptable storing the answer to all possible queries. O(n²) auxillary space, O(1) query time.
 
