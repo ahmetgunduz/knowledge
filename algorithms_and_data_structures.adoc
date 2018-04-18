@@ -3821,19 +3821,23 @@ Example: For the <<ski_rental_probblem>> there exist an online algorithm with ad
 
 === Randomized vs with advice
 
-- Given an online randomized algorithm, we can trivially turn it into an online algorithm with advice by overtaking the algorithm as is and the oracle provides the best possible advice string.  I.e. best possible sequence of now no longer `random' bits.
+Given an online randomized algorithm, we can trivially turn it into an online algorithm with advice by overtaking the algorithm as is and the oracle provides the best possible advice string.  That is the best possible sequence of now no longer `random' bits.
 
-  * If there is a randomized online algorithm for any online problem ∏ that is c-competitive in expectation and uses at most b(n) random bits, then there is also an online algorithm with advice for ∏ that is c-competitive and that uses at most b(n) advice bits.
+If there is a randomized online algorithm for any online problem ∏ that is c-competitive in expectation and uses at most b(n) random bits, then there is also an online algorithm with advice for ∏ that is c-competitive and that uses at most b(n) advice bits.  Proof: Because we can just turn the randomized online algorithm into an online algorithm with advice.
 
-  * If there is no online algorithm with advice that is c-competitive while using at most b(n) advice bits for ∏, then there is also no randomized nonline algorithm for ∏ that is c-competitive in expectation and that uses at most b(n) random bits.
+If there is no online algorithm with advice that is c-competitive while using at most b(n) advice bits for ∏, then there is also no randomized nonline algorithm for ∏ that is c-competitive in expectation and that uses at most b(n) random bits. *to-do* why?
 
-- The advice string can depend on the input I, the random string is the same for all inputs I ∈ 𝓘.
+The advice string can depend on the input I, the random string is the same for all inputs I ∈ 𝓘.
 
-- Given an input I of length n.  Both an online algorithm with advice ADV and a randomized algorithm RAND can be viewed as a set of of 2^b(n)^ deterministic algorithms.  Both read at most b(n) bits from their respective string.  Only that ADV always chooses the best from the set, while RAND chooses one uniformely at random.
+Given an input I of length n.  Both an online algorithm with advice ADV and a randomized algorithm RAND can be viewed as a set of of 2^b(n)^ deterministic algorithms.  Both read at most b(n) bits from their respective string.  Only that ADV always chooses the best from the set, while RAND chooses one uniformely at random.
+
+Let ∏ be an online minimization problem with m(n) different instances of length n.  Suppose there is a randomized online algorithm for ∏ that is c-competitive in expectation.  Then, for any ε > 0, there is a (1+ε)-competitive online algorithm with advice for ∏ that uses at most so many advice bits:
+
+2⌈log~2~⌈log~2~n⌉⌉ + ⌈log~2~⌉ + log~2~(⌊log~2~(m(n)) / log~2~(1+ε)⌋ + 1)
 
 References:
 
-- Scipt ``Eine Einiführung in Online-Algorithmen'', chapter ``6 Advice und Randomisierung''
+- Scipt ``Eine Einführung in Online-Algorithmen'', chapter ``6 Advice und Randomisierung''
 
 - Book ``An Introduction to Online Computation'', chapter ``3.5 Advice and Randomization''.
 
