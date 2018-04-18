@@ -776,7 +776,9 @@ Usually each set chooses one of its elements as the representative; that represe
 Main operations:
 
 - make-set(v): Adds element / vertex v to the collection, as a new set containing only that element.
+
 - find-set(v): Returns the id of the set / connected-component element / vertex v is in. To see if elements / vertices u and v are in same set / connected: find-set(u)==find-set(v).
+
 - merge-sets(u,v): Merges the sets of elements u and v / adds edge between vertex u and vertex v. It is undefined what the id of the new set is.
 
 Implementations: <<disjoint_set_linked_list>>, <<disjoint_set_forest>>
