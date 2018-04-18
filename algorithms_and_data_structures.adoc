@@ -4026,6 +4026,34 @@ References:
 - MIT course 6.006 Introduction to Algorithms, lecture 13. Breadth-First Search (BFS), https://www.youtube.com/watch?v=s-CYnVz-uh4&index=13&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=0s, starting 20:23
 
 
+[[link_cut_tree]]
+==== Link-Cut Tree
+
+An implementation of the <<dynamic_connectivity>> ADT. *to-do* but offers more ops, right?
+
+*to-do*
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 19 Dynamic Graphs I: https://courses.csail.mit.edu/6.851/spring12/scribe/L19.pdf[lecture notes], https://www.youtube.com/watch?v=XZLN6NxEQWo&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&index=19[video]
+
+
+[[euler_tour_tree]]
+==== Euler-Tour Tree
+
+An implementation of the <<dynamic_connectivity>> ADT. *to-do* but offers more ops, right?
+
+*to-do* why not store the represented tree in the obvious way? Because it might be a path and then many ops would be O(n) but we want O(log n)?
+
+Note that the represented tree might not be an binary tree.  Imagine an Euler Tour of the represented tree as a curved line, make a mark on the line every time you visit a node, then pull that line straight.  The marks on the straight line define the leaves of an BBST.  I.e. the root of the represented tree corresponds to the leftmost and and the rightmost leaf in the BBST.  Each node of the represented tree has a pointer to the leaf in the BBST representing its first visit, and likewise a pointer to its last visit.
+
+*to-do* Erik said "remember that we are dealing really with forests". Do we?
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 20 Dynamic Graphs II: https://courses.csail.mit.edu/6.851/spring12/scribe/L20.pdf[lecture notes], https://www.youtube.com/watch?v=L7ywsci9ujo&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&index=20[video]
+
+
 [[BFS]]
 === Breadth-first search (BFS) / traversal
 
