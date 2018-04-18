@@ -963,6 +963,105 @@ This chapter is about common building blocks or common topics of BSTs and BBSTs.
 [[data_in_leaves]]
 Some implementations store _data only in the leaves_.  Each non-leaf node stores the min and max of the leaves in its subtrees; alternatively, we can store the max value in the left subtree if we want to store just one value per node.  An advantage is that keys are closer together, i.e. there are less page misses.  An advantage of storing values also in internal nodes is that often accessed keys are found in less hops.
 
+
+[[split_tree]]
+==== Split tree
+
+Given a (B)BST and a value v, split original tree into a left and a right tree, the left tree having keys smaller than v, and the right tree having keys larger than v.  Depending on the exact problem statement, keys equal to v belong to left or right result.  For BST, keep the original structure, i.e. if a a node v and its parent p in the original tree are both in the same tree after the split, then p should still be the parent of v.
+
+Algorithm informally: Find splitval in the tree.  Make its left and right child the tentative right and left resulting tree.  Walk up the tree from the found splitter node.  When having walked up left, i.e. now being at a node whose key is larger than v, and also i.e. comming from a subtree with smaller keys, stick the tentative right tree to current as its left child and make current node the new root of the tentative right tree.
+
+--------------------------------------------------
+         R
+       // \\
+      //   RA
+      x   
+      L         
+     / \            L,R  nodes on path from splitter to root
+    LA  \                R belong to resulting right tree
+         .               L belong to resulting left tree
+         L               
+        / \       LA,RA  subtrees belonging to right/left result
+       LA  \      
+            x
+            R      /,\   edge in left result
+          // \\   //,\\  edge in right result 
+         //   RA  
+         .        (R|A)A edge is both in original tree and in right/left
+         R          .    same, but note that alg. below re-attaches same child
+       // \\        x    child is replaced
+      //   RA     
+      x
+      L
+     / \
+    LA  .
+        splitter
+--------------------------------------------------
+
+Algorithm pseude code:
+
+--------------------------------------------------
+split(splitval) : pair<node,node>
+   // left/right are the root of the tentative right and left tree,
+   // which will eventually be the results.
+   splitter = find(splitval)
+   left = splitter.left
+   right = splitter.right
+
+   // walk up tree from splitter node to root
+   current = splitter
+   while (current.parent not NIL)
+     current = current.parent
+
+     // Any of {splitter.key, right.key, left.key} is smaller than current.key
+     // <=> all of {splitter.key, right.key, left.key} are smaller than current.key
+     // <=> we walked up comming from the left
+     //
+     // splitter.key < current.key means current should be part of final right
+     // tree, so make tentative right tree the left child of current and then
+     // current the new root of the tentative right tree.  It must be the left
+     // child because right.key < current.key.
+     if (splitter.key < current.key)
+        current.left = right
+        if (right not NIL) right.parent = current
+        right = current
+
+     // analogous
+     else             
+        current.right = left
+        if (left not NIL) left.parent = current
+        left = current
+
+   // depending on whether problem statement says that splitter
+   // belongs to right or left tree
+   [insert(splitter,[left/right])]
+
+   left.parent = nil
+   right.parent = nil
+   return pair(left,right)
+--------------------------------------------------
+
+*to-do* a BBST, if current is now unbalanced, needs to do a rotation somehow
+
+*to-do* if there is no node with splitval in the original tree, details have to be taken care of
+
+Analysis: O(log n) time. We walked up the tree, which is O(log n) steps, and each step costs O(1) time.
+
+References:
+
+- https://www.youtube.com/watch?v=ADun2n_ueZQ
+
+
+[[concatenate_trees]]
+==== Concatenate trees
+
+Given two (B)BSTs, denoted left and right, where all keys in left are smaller than the smallest key in right, return a new tree containing all keys.
+
+Algorithm informally: Create new dummy root node with key = (max(left)+min(right))/2, make left its left child and right its right child. Delete the node, using the regular delete algorithm.
+
+Analysis: O(1) amortized time due to the regular delete algorithm.
+
+
 [[rotations]]
 ==== Rotations
 
