@@ -745,8 +745,6 @@ A _search tree_ is a specialized tree used store a set of compareable keys or ke
 
 A _binary search tree_ (_BST_) is a specialized search tree based on a binary tree and where each node satisfies the _binary-search-tree property_: Each node has a comparable key, and the key of the left child, if child present, is smaller than the node's key, and the key of the right child, if child present, is larger than the node's key.  Be n the number of stored elements.  The height h of the tree is h >= log n.  The expected height is h = log n for a randomly built binary tree.
 
-Some implementations store _data only in the leaves_.  Each non-leaf node stores the min and max of the leaves in its subtrees; alternatively, we can store the max value in the left subtree if we want to store just one value per node.  An advantage is that keys are closer together, i.e. there are less page misses.  An advantage of storing values also in internal nodes is that often accessed keys are found in less hops.
-
 On _duplicates_: 1) disallow them 2) Adapt the binary search tree property such that either the left or the right subtree includes equal keys. 3) Each node can store a collection of elements with that key, or store the number of times the key occures.
 
 _search_ key k: Say x is the current node. If x.key = k then the node is found and returned, else if k < x.key then continue with left subtree, else with right subtree.  Stop when reaching a null pointer and return null. O(h) time.
@@ -760,15 +758,6 @@ _min_/_max_: Follow left/right subtree until the leaf is reached. O(1) time.
 _successor_: The successor is the next node in inorder traversl.  Thus if there's a right child, return min of the right subtree.  Otherwise, travel up the tree following the parent pointers until coming up from a left child. O(h) time.
 
 _predecessor_: Symmetric to Successor.
-
-[[rotation]]_left/right rotation_: Swaps the heights of the subtrees while preserving the order of elements of an in-order traversal.  Note that thus, in case of an BST, also the binary-search-tree property is preserved.  O(1) time.  The following visualizes left/rifght rotation. x/y are nodes, A/B/C are subtrees.
-
-----------------------------------------------------------------------
-   x      left       y
-A     y     →     x    C
-     B C    ←    A B
-          right    
-----------------------------------------------------------------------
 
 Implementations of binary search trees: <<avl_tree>>, <<red_black_tree>>
 
@@ -966,12 +955,37 @@ Is an implementation of the ADT <<associative_array>>.
 *to-do*
 
 
+[[BST_common]]
+=== (Balanced) binary search tree (BST / BBST), common
+
+This chapter is about common building blocks or common topics of BSTs and BBSTs.
+
+[[data_in_leaves]]
+Some implementations store _data only in the leaves_.  Each non-leaf node stores the min and max of the leaves in its subtrees; alternatively, we can store the max value in the left subtree if we want to store just one value per node.  An advantage is that keys are closer together, i.e. there are less page misses.  An advantage of storing values also in internal nodes is that often accessed keys are found in less hops.
+
+[[rotations]]
+==== Rotations
+
+_left/right rotation_: Swaps the heights of the subtrees while preserving the order of elements of an in-order traversal.  Note that thus, in case of an BST, also the binary-search-tree property is preserved.
+
+Algorithm informally: The following visualizes left/rifght rotation. x/y are nodes, A/B/C are subtrees.
+
+----------------------------------------------------------------------
+   x      left       y
+A     y     →     x    C
+     B C    ←    A B
+          right    
+----------------------------------------------------------------------
+
+Analysis: O(1) time.
+
+
 [[naive_BST]]
-=== Binary search tree (data structure)
+=== Naive binary search tree
 
 A data structure implementing the binary search tree ADT. When inserting, the elements are always inserted as leaves, whithout changing previous nodes.
 
-*to-do*
+Analysis: In the worst case the tree becomes a path, and thus O(n) for most operations. *to-do*
 
 
 [[random_binary_tree]]
@@ -2527,7 +2541,7 @@ References:
 
 Given a set P of points, find the points in range [f, t].
 
-Data structure: A 1D range tree is actually just a BBST which stores its values in its leaves, see also <<naive_BST>>.  If you really only have a 1D problem, storing the values only in the leaves might not be necessairy, but in higher dimensions it becomes really convenient, see the general <<range_tree>>.
+Data structure: A 1D range tree is actually just a BBST which stores its values in its leaves, see also <<data_in_leaves>>.  If you really only have a 1D problem, storing the values only in the leaves might not be necessairy, but in higher dimensions it becomes really convenient, see the general <<range_tree>>.
 
 Query: Search f and t in the tree, resulting in the nodes nf = predecessor(f) and nt = successor(b).  There is one search path until a node, often called the split node, where the search splits in two paths.  The leafes of all the subtrees `enclosed' by the two paths (splitnode, nf) and (splitnode, nt) are the result.  In text book examples, typically these subtrees are reported on the fly while descenting from the split node.  On the left search path, the right subtree when descending left, and nothing when descending right.  Analogously for the right search path.
 
