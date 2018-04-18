@@ -768,7 +768,8 @@ Implements these more general ADTs: <<associative_array>>
 
 [[disjoint_set]]
 === Disjoint-set (aka union-find, merge-find set)
-A collection of n elements, partitioned into a number of disjoint sets. Or from another point of view: Given an undireced graph of n vertices, keeps track of connected components, and thus can answer which vertices are connected.
+
+A collection of n elements, partitioned into a number of disjoint sets. Or from another point of view: Given an undireced graph of n vertices, keeps track of connected components, and thus can answer which vertices are connected.  Note that disjoint-set corresponds to incremental <<dynamic_connectivity>>.
 
 Usually each set chooses one of its elements as the representative; that representative element identifies the set. It is undefined which element is chosen, but it stays the same as long as the data structure is not modified.
 
@@ -800,6 +801,39 @@ Applications:
 References:
 
 - Book "Introduction to algorithms", chapter "21.1 Disjoint-set operations"
+
+
+[[dynamic_connectivity]]
+=== Dynamic connectivity
+
+A _dynamic connectivity_ structure is a data structure that dynamically maintains information about the connected components of a graph.
+
+A _fully dynamic_ structure is one where you can do inserts and deletes, a _partially dynamic_ structure is one where you can do inserts or deletes, an _incremental_ structure is one where you can only do only insertions, a _decremental_ structure is one where you only can do deletes.  Incremental dynamic connectivity corresponds to <<disjoint_set>>.
+
+Supported operations:
+
+_insert/delete_(v:vertex): Inserting a new vertex v means a inserting a vertex with 0 degree.
+
+_insert/delete_(e:edge):
+
+_connectivity_(v:vertex, w:vertex): Returns true if v and w are connected
+
+_connectivity_(): Returns true if the graph is connected. Is more or less equivalent to connectivity(v,w) in terms of asympotic analysis.
+
+
+Implementations / Overview of results. n = |V|, m = |E|.
+
+- trees: O(log n) amortized for all ops using <<link_cut_tree>>
+
+- trees, decremental: O(1) amortized *to-do*
+
+- incremental: Θ(α(m,n)) amortized using <<disjoint_set_forest>>
+
+- See more in https://courses.csail.mit.edu/6.851/spring12/scribe/L20.pdf, Chapter ``2.1 Results in Dynamic Connectivity''.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 20 Dynamic Graphs II: https://courses.csail.mit.edu/6.851/spring12/scribe/L20.pdf[lecture notes]
 
 
 == Misc. Data structures
@@ -4964,20 +4998,16 @@ References:
 
 
 [[finding_connected_components]]
-==== Finding connected components in undirected graphs
+==== Finding (strongly) connected components
 
-Algorithms:
+See also the <<dynamic_connectivity>> ADT, and the list of concrete data structures listed there.
 
-- Using an disjoint-set data structure, put each vertex into its own set. Then iterate over all edges, and join the two sets associated with the two end points.  Each remaining set represents a connected component.  Runs in O(V+E·α(V)) time and needs O(V) auxillary space, assuming an disjoint set forest is used.  α is the very slowly growing inverse function of the Ackermann function.
+Algorithms for finding connected components (in undirected graphs):
 
-References:
-
-- Book ``Introduction to algorithms'', subchapter ``21.1 Disjoint-set operations'', section ``An application of disjoint-set data structures'', p. 562.
+- Using a fast <<disjoint_set>> data structure, put each vertex into its own set. Then iterate over all edges, and join the two sets associated with the two end points.  Each remaining set represents a connected component.  Runs in O(V+E·α(V)) time and needs O(V) auxillary space, assuming an disjoint set forest is used.  α is the very slowly growing inverse function of the Ackermann function.
 
 
-==== Finding strongly connected components
-
-Algorithms:
+Algorithms for finding strongly connected components (in directed graphs):
 
 - <<kosaraju_sharir_algorithm>> in O(V+E) time.  Two DFS passes.  Simple to implement, rather difficult to understand why it works.
 
@@ -4991,6 +5021,8 @@ Algorithms:
 References:
 
 - https://www.quora.com/Is-there-any-difference-or-advantages-or-disadvantages-between-Kosarajus-algorithm-and-Tarjans-algorithm-for-finding-strongly-connected-component-Which-one-is-most-useful
+
+- Book ``Introduction to algorithms'', subchapter ``21.1 Disjoint-set operations'', section ``An application of disjoint-set data structures'', p. 562.
 
 
 [[kosaraju_sharir_algorithm]]
