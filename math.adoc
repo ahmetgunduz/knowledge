@@ -488,13 +488,15 @@ _Chebyshev's inequality_: Pr(|R-E[R]| ≥ a) ≤ Var[R]/a². Derived from Markov
 
 _Pairwise independent sampling_: Let R~1~, ..., R~n~ be pairwise independent random variables with the same mean μ and same deviation σ, and let S be their sum: Pr(|S/n-μ| ≥ x) ≤ 1/n σ²/x².
 
-Given a sequence X~1~, ..., X~n~ of random variables.  X~n~, the last of the sequence, _converges in distribution_ (or _converges weakly_ or _converge in law_) towards the random variable X, denoted X~n~ D→ X (D above the arrow) or X~n~ ⇝ X, if lim~n→∞~ CDF~Xn~(x) = CDF~X~(x) ∀ x ∈ ℝ at which CDF~X~ is continuous.
+Given a sequence X~1~, ..., X~n~ of random variables.  X~n~, the last of the sequence, _converges in distribution_ (or _converges weakly_ or _converge in law_) towards the random variable X, denoted X~n~ D→ X (D above the arrow) or X~n~ ⇝ X, if lim~n→∞~ CDF~Xn~(x) = CDF~X~(x) ∀ x ∈ ℝ at which CDF~X~ is continuous.  An estimator is said _asymptotically Normal_ if (θ̂-θ)/se[θ] ⇝ N(0,1).  (*to-do* Is the term "asymptotically" as used in this sense really restricted to "assymptotically normal" and to estimators? I.e. can I say "assymptotically exponential" and most statisticans will feel confortable by such an usage. Def is from all of statistics, p. 92)
 
 Given a sequence X~1~, ..., X~n~ of random variables.  X~n~, the last of the sequence, _converges in probability_ towards the random variable X, denoted X~n~ P→ X (P above the arrow) or plim~n→∞~ X~n~ = X, if for all ε > 0 lim~n→∞~ Pr(|X~n~ - X| > ε) = 0. Convergence in probability implies convergence in distribution.
 
-_Weak Law of Large Numbers_ (or _WLNN_ or _Khintchine's law_): Let X~1~, ..., X~n~ be iid random variables with the same finite mean μ and same (possibly infinite) deviation σ, and let X̄~n~ denote their sample mean X̄~n~ = 1/n ∑X~i~. WLNN states that X̄~n~ P→ μ. Interpretation: The distributionh of X̄~n~ becomes more concentrated around μ as n gets large. Note E[X̄~n~] = μ and Var[X̄~n~] = σ²/n are also true, but different statements.
+_Weak Law of Large Numbers_ (or _WLNN_ or _Khintchine's law_): Let X~1~, ..., X~n~ be iid random variables with the same finite mean μ and same (possibly infinite) deviation σ, and let X̄~n~ denote their sample mean X̄~n~ = 1/n ∑X~i~. WLNN states that X̄~n~ P→ μ. Interpretation: The distributionh of X̄~n~ becomes infinitely concentrated, i.e. 0 variance, around μ as n gets large.  The sample mean is a consistent estimator for the population mean μ.  Note E[X̄~n~] = μ and Var[X̄~n~] = σ²/n are also true, but are different statements.
 
-_central limit theorem_ (_CLT_):  Let the random variables X~1~, ..., X~n~ be independent, each X~i~ with some arbitrary unknown distribution but with known mean μ~i~ and finite variance σ²~i~.  Then (∑X~i~ - ∑μ~i~) / √∑σ²~i~ has a limiting CDF which approaches a normal distribution. If additionally X~1~, ..., X~n~ are identically distributed with mean μ and variance σ², then the sample average X̄ = 1/n ∑X~i~ ⇝ N(μ, σ²/n).  (*to-do* 1) better understand what http://mathworld.wolfram.com/CentralLimitTheorem.html says more 2) relation to `converges in distribution'?  See all of statistics p 72)
+_central limit theorem_ (_CLT_):  Let the random variables X~1~, ..., X~n~ be independent, each X~i~ with some arbitrary unknown distribution but with known mean μ~i~ and finite variance σ²~i~.  Then (∑X~i~ - ∑μ~i~) / √∑σ²~i~ ⇝ N(0, 1), or formulated differently: 1/n ∑X~i~ ⇝ N(1/n ∑μ~i~, 1/n² ∑σ²~i~).  If additionally X~1~, ..., X~n~ are identically distributed with mean μ and variance σ², this simplifies to sample mean X̄ = 1/n ∑X~i~ ⇝ N(μ, σ²/n).  (*to-do* 1) better understand what http://mathworld.wolfram.com/CentralLimitTheorem.html says more 2) relation to `converges in distribution'? See all of statistics p 72 3) How do you call this thing on the lhs of ⇝? 4) Is it correct that I shouldn't use the term sample mean and thus also not the conventional X̄ = 1/n ∑X~i~ in the first general case, since the term sample is reserved for the case of taking a sample from a population, and by the definition, population means that its members have the same distribution. How you call 1/n ∑X~i~ in the first/general case? How you call (∑X~i~ - ∑μ~i~) / √∑σ²~i~ ?)
+
+__WLNN vs CLT__: WLNN gives sample mean's value provided iid Xs.  CLT gives distribution of 1/n ∑X~i~ only provided independent Xs.  CLT gives distribution of sample mean provided iid Xs. (*to-do* But then CLT is a proper superset of WLNN, since knowing the distribution implies knowing the mean. So the question remains, whats the real difference between CLT and WLNN?)
 
 References:
 
@@ -507,10 +509,19 @@ References:
 
 *to-do*
 
+The _Student's t-distribution_ (or _t-distribution_) is the distribution of the sample mean where the population is normally distributed.  It is denoted t~ν~, where ν is its single parameter, the degrees of freedom.  More precisely: Let μ denote the population mean, X̄ the sample mean and S² the unbiased sample variance, then (X̄-μ)/(S/√n) \~ t~n-1~, where t~n-1~ denotes a Student's t-distribution with n-1 degrees of freedom. *to-do* 1) I think that is not quite correct. It's just one of more possible use cases. After all many other statistics also have a t distribution 2) list common statistics which follow a t-distribution (e.g.when statistic g1 follows a normal distribution and a scaling parameter depends on the data, e.g estimator sd̂[g1], then, under certain conditions, g2=g1/sd̂[g1] follows a student's distribution)
+
+References:
+
+- http://blog.cloudera.com/blog/2015/12/common-probability-distributions-the-data-scientists-crib-sheet/
 
 === Models, statistical inference and learning
 
-A _statistical model_ 𝔉 is a set of distributions or regression functions (*to-do* but regression functions are quite a different thing than distributions; I don't understand). A _parametric model_ is set 𝔉 that can be parameterized by a finite number of parameters: 𝔉 = { f(x;θ) : θ ∈ 0}, where θ is an _parameter_ (or vector of parameters) that can take values in the _parameter space_ 0. f is a function of x, parameterized by θ.
+A _statistical model_ 𝔉 is a set of distributions or regression functions (*to-do* but regression functions are quite a different thing than distributions; I don't understand). A _parametric model_ is set 𝔉 that can be parameterized by a finite number of parameters: 𝔉 = { f(x;θ) : θ ∈ 0}, where θ is an _parameter_, or vector of parameters, that can take values in the _parameter space_ 0. f is a function of x, parameterized by θ.
+
+There's an loose distinction between parameters determined during fitting the model and _hyper-parameters_ which are determined before fitting the model, e.g by the user or during the higher level process of model selection.  You may think of splitting complete set of parameters into two subsets.  The values of the subset labeled parameters is computable cheaply when being provided with the values of the subset labeled hyper-parameters. References: https://stats.stackexchange.com/questions/149098/what-do-we-mean-by-hyperparameters?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa (*to-do* isn't a further difference that hyper-paremeters can influence the number of parameters, such as in polynomial regression?)
+
+A _tuning parameter_  if the parameter's job is primarily a transient parameter of the learning algorithm.  Tuning parameters are also called hyper-parameters, conflicting somewhat the previous definition.  (*to-do* 1) But in this sence, a hyper 2) Clean up that parameter - hyper-parameter - tuning parameter mess)
 
 The notations Pr~θ~[·],  E~θ~[·] and Var~θ~[·] mean that the probability is with respect to PDF/PMF f(x;θ), i.e. averaging over all possible observations x, the generating PDF/PMF being f(x;θ). (*to-do* in the context of an estimator θ̂, what if θ is not a parameter of a model, but some other population parameter)
 
@@ -518,13 +529,13 @@ In a gneral context, μ denotes the _population mean_ and is derived from observ
 
 Similarily, σ² denotes the _population variance_ and is defined analogously.  The unbiased sample variance can be used as an unbiased estimator for the population variance, i.e. σ² = S².
 
-The _sample mean_ (or _empirical mean_) is derived from observing a sample subset of the population or by taking samples of a random variable and is defined by x̄ = 1/n ∑x~i~.  Note that some authors, e.g. ``all of statistics'', define sample mean not by the arithmetic mean over a set of observations, but as a random variable defined the analogous way over a set of random variables.
+The _sample mean_ (or _empirical mean_) is derived from observing a sample subset of the population or by taking samples of a random variable and is defined by x̄ = 1/n ∑x~i~.  Note that some authors, e.g. ``all of statistics'', define sample mean not by the arithmetic mean over a set of observations, but as a random variable defined the analogous way over a set of random variables.  The sample mean is a consistent estimator for the population mean, by the LLN.
 
-The _unbiased sample variance_ (or _Bessel-corrected sample variance_) is derived analogously to the sample mean and is definied by S² = 1/(n-1) ∑(x~i~-x̄)².  Can be used as unbiased estimator for the population variance.  Similarily, the _biased sample variance_ is defined by 1/n ∑(x~i~-x̄)².  Note that some authors define sample variance on the basis of random variables, see also sample mean.
+The _unbiased sample variance_ (or _Bessel-corrected sample variance_) is derived analogously to the sample mean and is definied by S² = 1/(n-1) ∑(x~i~-x̄)².  Can be used as unbiased estimator for the population variance.  Similarily, the _biased sample variance_ is defined by 1/n ∑(x~i~-x̄)².  Note that some authors define sample variance on the basis of random variables, see also sample mean.  (*to-do* but then the unbiased sample variance of a complete sample is not equal to the population variance, which is not what we wanted in my eyes)
 
-A _population parameter_ (or _statistical parameter_) is a numeric characteristic of a population or statistical model.
+A _population parameter_ (or _statistical parameter_) is a numeric characteristic of a population or statistical model.  Often not computable because the population is to large to evaluate every member.
 
-A _stastic_ is the result of invoking function g on a random sample X~1~, ..., X~n~ of the population: g(X~1~, ..., X~n~).  In other words, a statistic is a single measure of some attribute of a sample using some function g on the sample data.  Is a random variable since it depends on a random sample X~1~, ..., X~n~ of the population.
+A _stastic_, often denoted T (or T~n~), is a function, often denoted g, which has a sample X~1~, ..., X~n~ as its domain. Formally: T = g(X~1~, ..., X~n~).  Thus a statistic is a random variable since it depends on the random sample X~1~, ..., X~n~ of the population.  In other words, a statistic is an attribute of a sample.  Sadly the term statistic can mean two things.  The term statistic can mean the random variable as described bevore, in which case it's often denoted uppercase T.  The term statistic can also mean the _realized value_ (or _observed value_) of that random variable, in which case it's often denoted lowercase t (or t~obs~).
 
 The _sampling distribution_ (or _finite-sample distribution_) is the probability distribution of a given statistic based on a single random sample from the population.  If we would take infinitly many same sized samples and calculate the statistic each time, we would get the sampling distribution.
 
@@ -544,7 +555,9 @@ The _mean squared error_ (or _MSE_) of an estimator θ̂ with respect to an unkn
 
 MSE[θ̂] = Bias²~θ~[θ̂] + Var~θ~[θ̂]
 
-A 1-α _confidence interval_ C~n~ for an unknown parameter θ, where 1-α is called the _confidence level_, means that in (1-α)·100% of the times you make an 1-α confidence interval for some parameter,  possibly each time for another parameter, the interval contains the true parameter.  Note that a 1-α confidence interval does _not_ mean that given a realized interval there is a 1-α probability that it contains the true parameter.  θ is an unknown parameter, and no probability statement concerning its value may be made. (*to-do* I don't get the difference. If you are given a 1-α confidence interval and the game is to predict whether it contains the true parameter, what percentage of your bet must the casino give you in order for the game to be fair?)
+Let C~n~ = (a,b) denote a 1-α _confidence interval_ for an unknown parameter θ, where a and b are statistics, and where 1-α is called the _confidence level_ (or _coverage_ of the interval).  A 1-α confidence interval is an interval such that in (1-α)·100% of the times you make an 1-α confidence interval for some parameter,  possibly each time for another parameter, the interval contains the true parameter.  See next paragraph for further explanations.  Common choices for the confidence level are 95% or 1%.
+
+Note that a 1-α confidence interval does _not_ mean that given a realized interval there is a 1-α probability that it contains the true parameter.  The probability statement is about the interval which is defined by the statistics a and b, i.e. random parameters.  The probability statement is not about the fixed unknown parameter θ.  No probability statement concerning its value may be made.  (*to-do* 1) I don't get the difference.  What's the consequence whether (a,b) are random and θ is fixed or vice versa?  If you are given a 1-α confidence interval and the game is to predict whether it contains the true parameter, what percentage of your bet must the casino give you in order for the game to be fair?  At least in this example, I think it doesn't make a difference.  2) See forumula (6.9) on p. 92 in book "all of statistics". I'd say its _not_ P~θ~, its P~a,b~  3) See also Example 6.14 p. 93 in Book "All of statistics")
 
 _prediction interval_: *to-do*
 
@@ -577,11 +590,71 @@ Let random variables {X~i~|i∈[n]} iid \~ 𝓝(μ, σ²). Then (X̄-μ)/se(X̄)
 |=====
 
 
-=== Hypothesis Testing and p-values
+=== Testing
 
-In essence, a claim (the alternative hypothesis) is assumed valid if its counter-claim (the null hypothesis) is improbable.
 
-The _null hypothesis_ (the hypothesis to be nullified), denoted H~0~, is a statement usually along the lines ``there is no relationship'' or ``there is no effect''.  The _alternative hypothesis_, denoted H~a~ (or H~1~), is the complementary statement.  Compute from the observations the observed value t~obs~ of some test statistic T.  The _p-value_ (or _probability value_ or _asymptotic significance_) is defined as Pr("test statistic is as at least as extreme as t~obs~"|H~0~).  Choose a _significance level_ α.  Typically the significance level is chosen to be 5 or 1 %.  Reject the null hypothesis, in favor of the alternative hypothesis, iff p-value < α.  A _type I error_ (or _false positive_) is the incorrect rejection of H~0~.  A _type II error_ (or _false negative_) is the incorrect retaining of H~0~.
+unpaired two-sample tests:
+
+- parametric unpaired two-sample tests:
+
+  * Z-test (assumes normal distr. with known variance) *to-do*
+
+  * T-test (assumes normal distr. with unknown variance) *to-do*
+
+- nonparametric unpaired two-sample tests:
+
+  * Randomization/permutation tests *to-do*
+
+    ** <<Wilcoxon_rank_sum_test>>
+
+
+
+==== Introduction to hypothesis testing
+
+A _statistical hypothesis test_ is a method of statistical inference.  In essence, a claim (the alternative hypothesis) is assumed valid if its counter-claim (the null hypothesis) is improbable.
+
+- Define the null hypothesis.  The _null hypothesis_ (the hypothesis to be nullified), denoted H~0~, is a statement usually along the lines ``there is no relationship'' or ``there is no effect''.
+
+- Define the alternative hypothesis. The _alternative hypothesis_, denoted H~a~ (or H~1~), is the complementary statement to the null hypothesis. (*to-do* not always complementary. But what to do in the following when it's not complementary?)
+
+- Choose a suitable test statsistic T.  Compute its observed value t~obs~.
+
+- Compute the p-value.  The _p-value_ (or _probability value_ or _asymptotic significance_) is informally defined as Pr(making observation t~obs~|H~0~).  defined as Pr(T is as at least as extreme as t~obs~|H~0~).  Or even less formally: .
+
+- Choose a _significance level_ α.  Typically the significance level is chosen to be 5 or 1 %.
+
+- Reject the null hypothesis, in favor of the alternative hypothesis, iff p-value < α.
+
+A _type I error_ (or _false positive_) is the incorrect rejection of H~0~.  A _type II error_ (or _false negative_) is the incorrect retaining of H~0~.
+
+A _Student's t-test_ (or simply _t-test_) is any statistical hypothesis test in which the test statistic follows a Student's t-distribution under the null hypothesis.
+
+
+==== The Wald test
+
+*to-do*
+
+
+==== Permutation/randomization test
+
+- Pick a test statistic T (*to-do* denotation?) that measures some difference between the groups
+
+-
+
+
+*to-do*
+
+Specializations: <<Wilcoxon_rank_sum_test>>
+
+
+[[Wilcoxon_rank_sum_test]]
+==== Wilcoxon rank sum test (or Mann-Whitney U test)
+
+Special case of permutation/randomization test.
+
+
+
+*to-do*
 
 
 [[misc_statistics]]
@@ -589,7 +662,8 @@ The _null hypothesis_ (the hypothesis to be nullified), denoted H~0~, is a state
 
 p denotes the number of predictors and n the number of data points.  Predictors and data points will be defined shortly.  Given is a n ⨯ p matrix X of where each column represents a _predictor_ (or _covariable_ or _covariate_ or _input variable_ or _independent variable_ or _feature_ or _regressor_ or just _variable_) and a n ⨯ 1 vector Y of _response variables_ (or just _reponse_ or _output variables_ or _dependent varables_).  The tuple (Y[i], X[i-th row]) represents the i-th _observation_ (or _data point_).  We assume that there is some fixed but unknown relationship between the response Y and the predictors X.  We model that by the _regression function_ f (or _population regression function_ or _PRF_) by writing Y ≈ f(X). This can be read as ``__is approximately modeled as__'' or Y _is regressed_ on X.  f represents the _systematic_ information that the predictors provide about the response.  ε is a n ⨯ 1 vector of a random _error terms_, which are independent of X and have no systematic error (i.e. E[ε~i~] = 0 ∀ ε~i~).  We like to estimate f and use it like so Ŷ = f̂(X).  f̂ is our _estimate for f_, and Ŷ is the resulting _prediction_ for Y.  The elements ŷ~i~ of Ŷ are called _fitted values_ (or _predicted values_).
 
-_Estimating f by paramtetric methods_: We assume f to be a parameterized function.  The parameters of f are called _unknown parameters_ (or _coefficients_).  The problem of estimating f reducues now to estimating these paramters.  For example the linear model has f̂(X) = Xβ, where β is a p ⨯ 1 vector constituting the unknown parameters.  We use the training data to _fit_ (or _train_) our model, i.e. to compute estimates β̂ of the unknown parameters.  There are multiple approaches for fitting the model, the most common approach being (ordinary) least squares.
+[[model_training]]
+_Estimating f by paramtetric methods_: We assume f to be a parameterized function.  The parameters of f are called _unknown parameters_ (or _coefficients_).  The problem of estimating f reducues now to estimating these paramters.  For example the linear model has f̂(X) = Xβ, where β is a p ⨯ 1 vector constituting the unknown parameters.  We use the training data to _fit_ (or _train_ or _estimate_) our model, i.e. to compute estimates β̂ of the unknown parameters.  Phrased as noun, this is _model fitting_ (or _model training_ or _model estimation_).  There are multiple approaches for fitting the model, the most common approach being (ordinary) least squares.
 
 In general, we can use regression only for prediction of a response variable given new predictors.  In general the observiations on which the regression is based do not allow for conclusions about causal relations. (*to-do* Some reference to a trusted source which concisely accurately states this)
 
@@ -603,7 +677,7 @@ The _residual sum of squares_ (or _RSS_) is defined as RSS = ∑~1≤i≤n~e²~i
 
 The _total sum of squares_ (or _TSS_) is defined as TSS = ∑~1≤i≤n~(y~i~-ȳ)².  Can be thought of as the amount of variability inherent in the response before the regression is performed.
 
-Given the estimator β̂ of parameter β of some statistical model.  The _t-statistic_ is commonly used (*to-do* are there other uses than what I describe here?) in hypothesis testing, where the null hypothesis is that  be β = β~0~.  Typically β~0~ is 0.  The t-statistic for β̂ is defined as t~β̂~ = (β̂ - β~0~) / se(β̂).  If β̂ is an ordinary least squares estimator in the classical linear regression model, and if the true value of parameter β is equal to β~0~, then t~β̂~ \~ t~n-p~ where n is the number of observations, and p is the number of predictors (including the intercept).  Etymology: the term ``t-statistic'' is abbreviated from ``hypothesis test statistic''.
+The _t-statistic_ for an estimator β̂ of unknown parameter β is defined as t~β̂~ = (β̂ - β~0~) / se[β̂], where β~0~ is a fixed value which may or may not match β.  The t-statistic is commonly used in hypothesis testing, where the null hypothesis is that  be β = β~0~.  Typically β~0~ is 0.  If β̂ is an ordinary least squares estimator in the classical linear regression model, and if the true value of parameter β is equal to β~0~, then t~β̂~ \~ t~n-p~ where n is the number of observations, and p is the number of predictors (including the intercept).  Etymology: the term ``t-statistic'' is abbreviated from ``hypothesis test statistic''.
 
 The _residual standard error_ (or _RSE_) is given by RSE = √(RSS/(n-p)).  The RSE is considered an absolute measure of the lack of fit of the model to the data.  Roughly speaking RSE is the average amount that the response will deviate from the true regression hyperplane.  Even if the model were absolutely correct and the parameters of the model were known exactly, any prediction Ŷ is still off by RSE.  RSE is often used as an estimator for the variance Var(ε~i~) ≈ σ̂² = RSE² of the error terms ε~i~. *to-do* derive given formula from √Var[e] or whatever is the basis, and then write RSE = √Var[e] = √(RSS/(n-p)).
 
@@ -625,34 +699,6 @@ The _Cook's distance_ D~i~ is a commonly used estimate of the <<influencial_data
 
 _Least squares_ is a method of fitting a model which tries to minimize the RSS.  In other words, its an estimation technique.  There are two categories: _Ordinary least squares_ (or _OLS_ or _linear least squares_) and _non-linear least squares_.  Linear least squares has a closed-form solution.  The nonlinear prblem is usually solved by iterativie refinement.
 
-The _bias_ of estimate f̂ with respect to f at x~0~ is defined analogous to the bias for an estimator θ̂, see there. f̂(x~0~) is a random variable since f̂, i.e. its internal parameters, depends on its training data.
-
-Bias~f,training data~[f̂(x~0~)] = E~training data~[f̂(x~0~)] - f(x~0~)
-
-Regarding `the' _MSE_, there are multiple variants, depending on what exactly we want to describe.  The basic idea is always the same, but depending on the specific MSE variant, it is calculated over different data and the used estimate f̂ is either fixed or varies by repeteadly training it with some data. See also MSE for an estimator θ̂, which is analogously defined.
-
-The _training MSE_ is calculated using the training data and a fixed estimate f̂ which was trained using that training data: trainingMSE = RSS/n.
-
-The _expected test MSE_ is conceptually calculated in two levels. One level iterates over all possible training data sets, each iteration training a new estimate f̂.  For each of those f̂, the other level iterates over all possible test data sets.
-
-expectedTestMSE = E~training data~[E~test data~[(y~test~ - f̂(x~test~))² | f̂ trained by training data]]
-
-The __expected test MSE at x~0~__ is analogous, but here we only look at a fixed x~0~. Note that the corresponding y~0~ is still random due to the error term ε.
-
-expectedTestMSE(x~0~) = E~training data~[E~y0~[(y~0~ - f̂(x~0~))² | f̂ trained by training data]]
-
-The _bias-variance trade-off_ states that that the expected test MSE at x~0~ can always be decomposed into three parts as follows.
-
-expectedTestMSE(x~0~) = (Bias~f,training data~[f̂(x~0~)])² + Var~training data~[f̂(x~0~)] + Var[ε]
-
-*to-do* why do we have a Var[ε] summand here, but not in the more general formula MSE[θ̂] = Bias²~θ~[θ̂] + Var~θ~[θ̂].  I vaguely intuitively understand it, but I cannot accurately phrase it.
-
-*to-do*: What is "test MSE" (opposed to expected test MSE)?
-
-*to-do*: Is all of the above about MSE & bias truly acurate? Be picky! E.g. I suspect I use non-standard / unusual notation.
-
-*to-do*: I can't exactly phrase why in the bias variance tradeoff formula, we're no longer directly dependend on the test data. Or in other words, I can't exactly phrase the connection between Var[ε] and the test data.
-
 
 |=====
 | n | Number of samples
@@ -662,7 +708,7 @@ expectedTestMSE(x~0~) = (Bias~f,training data~[f̂(x~0~)])² + Var~training data
 | ε | Error terms. Unknown.
 | Often: Var[ε] = const = σ² | σ is in general not known. Often assumed to be constant.
 | Often: Var̂[ε] = σ̂² = RSE² | Common estimator
-| f | Regression function. Guessed, unknown parameters.
+| f | Regression function. Is guessed.
 | Y ≈ f(X) | ``Approximately modeled as'' or ``X is regressed on Y''.
 | Y = f(X) + ε |
 | f̂ | Estimate for f
@@ -675,7 +721,6 @@ expectedTestMSE(x~0~) = (Bias~f,training data~[f̂(x~0~)])² + Var~training data
 | D~i~ > 1 or D~i~ > 4/n | Rules of thumb for identifying influencial data points.
 | TSS = ∑(y~i~ - ȳ)² | Total sum of squares. ȳ is the sample mean, see there.
 | RSS = ∑e²~i~ | Residual sum of squares
-| trainingMSE = RSS/n |
 | RSE = √(RSS/(n-p)) | Residual standard error
 | (unadjusted) R² = (TSS - RSS) / TSS = 1 - RSS/TSS |
 | adjusted R² = 1 - RSE² / (TSS/(n-1)) |
@@ -766,7 +811,7 @@ _Choosing predictors_: The individual variabilities for each coefficient sum up 
 | sê[β̂] = √Var̂[β̂] | Usual definition
 | β̂ \~ 𝓝~p~(E[β̂], Var[β̂]) |
 | (β̂~j~ - β~j~)/sê[β̂~j~] \~ t~n-p~ | *to-do* valid always or only under some hypothesis?
-| β̂~j~ ± sê[β̂~j~]t~1-α/2,n-p~ | (1-α)100% confidence interval for β~j~
+| β̂~j~ ± sê[β̂~j~]t~1-α/2,n-p~ | 1-α confidence interval for β~j~
 | (β̂~j~ - β~j~)/se[β̂~j~] ~ 𝓝(0, 1) | *to-do* valid always or only under some hypothesis?
 | t-value of β̂~j~: β̂~j~ / se[β̂~j~] | *to-do* se[β̂~j~] typically not known, so I can use sê[β̂~j~], no? But then, when I want to be precisise, I have to distinguish between "t-value of β~j~" and "estimated t-value of β~j~", where as the latter is more often used?
 | p-value of β~j~: pseudo R-code: 2*pt(abs(t.value.beta), df=n-p, lower=FALSE) |
@@ -799,19 +844,133 @@ Generalization of KNN which is smoother.  KNN can be thought of as a rectangle f
 
 
 
-=== Model selection, model validation, cross validation
+=== Model selection, model validation
 
-_Model selection_ is the task of selecting a statistical model from a set of candiate models and determining the parameters of the choosen model.
+==== Bias, Error
 
-The _performance_ of a model is a measure of how `good' a model is, most often in respect to its predictive power.  For example, one could use the expected test MSE, that is, an estimate thereof.  (*to-do* is it always a property of the model, or can it also be a property of a concrete already trained estimate f̂?)
+The _bias_ of estimate f̂ with respect to regressino function f at x~0~ is defined analogous to the bias for an estimator θ̂, see there. f̂(x~0~) is a random variable since f̂, i.e. its parameters, depends on the random training data.
 
-_Model validation_ is the task of calculating the performance a given model (whose parameter are already determined) is.  Note that it's about a model, as opposed to a single given already trained estimate f̂.  For a meaningfull model validation we usually also need to calculate the bias and the variance of the calculated performence.  The problem of model validation is that for most ways to perfectly calculate a performance we often would need all possible test data to train multiple estimates f̂ and for each of those f̂ all possible test data.  See also definition of expected test MSE.
+Bias~f,training data~[f̂(x~0~)] = E~training data~[f̂(x~0~)] - f(x~0~)
 
-_Cross-validation_ (or _rotation estimation_) is a coarse model validation technique having multiple more concrete instanciations, such as <<validation_set_approach>>, <<LOOCV>> and <<k_fold_CV>>.  It tries to mitigate the problem of only having one data set of finite size by partitioning it once or multiple times into a training set and a test set, and then calculate an estimate of the performance of the model using the set of training/test-set-pairs.
+A _loss function_ L(Y, Ŷ) measures the error between Y and Ŷ = f̂(X). Typical choices are squared error (Y - Ŷ)² or absolute error |Y - Ŷ|.
 
-Given one data set, <<double_cross_validation>> does model selection and model validation. It basically is two level of cross validation, one for each of these two tasks.
+The _training error_ of a model is the average loss over the training sample.  Can theoretically be used as estimator for the expected test error, but it generally would be a rather bad one since rather biased, see also *to-do*.
+
+Err~training~ = 1/|trainingsample| ∑L(y~training,i~, f̂(x~training,i~))
+
+The _test error_ (or _generalization error_) of a model is the expected loss given a training sample.  It is defined as follows.  f̂ is fixed and was trained by the given training sample.  The stated two variants are equivalent.  In the 1st variant the randomness lies in repeatedly randomly picking a test sample from the population.  y~test,i~ and x~test,i~ correspond to the i-th observation in that random sample set and thus are fixed values.  In the 2nd variant the randomness lies in X and Y being random variables.
+
+Err~trainingsample~ = +
+E~testsample~[1/|testsample| ∑L(y~test,i~, f̂(x~test,i~))|f̂] +
+or +
+E[L(Y, f̂(X))|f̂]
+
+[[expected_test_error]]
+The _expected test error_ (or _expected prediction error_) is the expected loss.  For a concrete example see <<expected_test_mse>>.  In respect to test error, now also the training sample is choosen at random from the population.
+
+Err = E~trainingsample,testsample~[Err~traininsample~]
+
+Regarding `the' _MSE_, there are multiple variants, depending on what exactly we want to describe.  The basic idea is always the same, but depending on the specific MSE variant, it is calculated over different data and the used estimate f̂ is either fixed or varies by repeteadly training it with some data. See also MSE for an estimator θ̂, which is analogously defined.
+
+The _training MSE_ is calculated using the training data and a fixed estimate f̂ which was trained using that training data: trainingMSE = RSS/n.
+
+[[expected_test_mse]]
+The _expected test MSE_ is conceptually calculated in two levels. One level iterates over all possible training data sets, each iteration training a new estimate f̂.  For each of those f̂, the other level iterates over all possible test data sets. See also <<expected_test_error>> for the more general concept.
+
+expectedTestMSE = E~training data~[E~test data~[(y~test~ - f̂(x~test~))² | f̂ trained by training data]]
+
+The __expected test MSE at x~0~__ is analogous, but here we only look at a fixed x~0~. Note that the corresponding y~0~ is still random due to the error term ε.
+
+expectedTestMSE(x~0~) = E~training data~[E~y0~[(y~0~ - f̂(x~0~))² | f̂ trained by training data]]
+
+The _bias-variance trade-off_ states that that the expected test MSE at x~0~ can always be decomposed into three parts as follows.
+
+expectedTestMSE(x~0~) = (Bias~f,training data~[f̂(x~0~)])² + Var~training data~[f̂(x~0~)] + Var[ε]
+
+*to-do* why do we have a Var[ε] summand here, but not in the more general formula MSE[θ̂] = Bias²~θ~[θ̂] + Var~θ~[θ̂].  I vaguely intuitively understand it, but I cannot accurately phrase it.
+
+*to-do*: What is "test MSE" (opposed to expected test MSE)?
+
+*to-do*: Is all of the above about MSE & bias truly acurate? Be picky! E.g. I suspect I use non-standard / unusual notation.
+
+*to-do*: I can't exactly phrase why in the bias variance tradeoff formula, we're no longer directly dependend on the test data. Or in other words, I can't exactly phrase the connection between Var[ε] and the test data.
+
+*to-do* table below:
+
+|=====
+| trainingMSE = RSS/n |
+|=====
+
+
+[[model_selection]]
+==== Model selection
+
+_Model selection_ (or _model tuning_) is the task of selecting a statistical model from a set of candiate models.  That may include determining the hyper-parameters of the choosen model and it may include determining the tuning parameters of the learning algorithm.  (*to-do* clean up this terminolgy mess)
+
+Whether or not model selection shall additionally also train the selected model is not clearly defined (*to-do* really?)
+
+Model selection is typically done by computing the estimated expected test error of a candidate model on _validation data_.  Validation data is the same as test data, but in the context of model selection instead model validation.
+
+
+==== Feature selection
+
+_Feature selection_ (or _variable selection_, _attribute selection_, _variable subset selection_) is the task of selecting a subset of the available predictors (aka features).
+
+
+==== Model validation
+
+The _performance_ of a model is a measure of how `good' a model models a given population, most often in respect to its predictive power, i.e. its prediction capability on independent unseen test data.  For example, one could use the expected test MSE, that is, an estimate thereof.  (*to-do* is it always a property of the model, or can it also be a property of a concrete already trained estimate f̂? In what way does the difference between prediction and inference influence the topic of model performance)
+
+_Model validation_ (or _model assessment_ or _assessing performance (of a model)_) is the task of calculating the performance of a final model.  Final model means one whose hyper-parameter are already determined, e.g. by model selection.  Note that it's about a model, as opposed to a single given already trained estimate f̂.  For a meaningfull model validation we usually also need to calculate the bias and the variance of the calculated performence.
+
+The problem of model validation is that for most ways to perfectly calculate a performance we often would need all possible test data to train multiple estimates f̂ and for each of those f̂ all possible test data.  See also definition of expected test MSE.
+
+.Use previously unseen data for model validation or model selection
+
+This is not realistic.  Even so, in that case we could combine the original data and the newly available data into one data set, and be logically at the same point as in the beginning of the problem statement.
+
+.Use original data for model validation or model selection
+
+When we use the original data for model assessment, the retreived performance will be biased. That's because we trained the model with exactly the same data as we measured the model's performance with.  It was the model trainings job to fit the model to the original data, so obviously the model will have a high performance on the original data.
+
+When we use the original data for model selection, then (*to-do* Claude said that overfitting occures - but the term overfitting applies only to a single model training, no?).  The procedure would be: Calculate the performance for each of the m candidate models using the complete original data and then choose the candidate model which had the best performance.
+
+
+[[validation_set_approach]]
+==== Validation set approach
+
+The _validation set approach_ is a technique for model assessment or model selection.
+
+Partition data randomly in two equaly sized partitions, one constituting the training data and the other constituting the test data (or validation data).
+
+Pro: Simple
+
+Pro: Fair estimate of test MSE (*to-do* but below we say the estimate will be biased, isn't that a contradiction?)
+
+Contra: Fewer training data always always means a worse fit of the model.  In particular it typically means more bias.  In other words, it's too pessimistic: we get a biased estimate (e.g of expected test MSE).
+
+Contra: Large variance of the validation estimate (e.g. estimated expected test MSE) because the validation estimate might depend a lot on how the partition turned out to be.
+
+References:
+
+- Book ``An introduction to statistical learning'', chapter ``5.1.1 The Validation Set Approach''
+
+- ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``4.3.1 Leave-one-out cross-validation''
+
+
+==== Cross Validation
+
+_Cross-validation_ (or _rotation estimation_) is a coarse technique for model assessment or model selection.  It's a coarse technique in the sense that it has multiple more concrete instanciations, such as <<validation_set_approach>>, <<LOOCV>> and <<k_fold_CV>>.  It tries to mitigate the problem of only having one data set (aka sample of the population) of finite size, altough we actually would like infinitely many training sets and test sets, each set of infinite size.
+
+_CV for model validation_: Repeatedly partition the original data set into a training set and a test set, each time doing the partition in a different way.  In each iteration, calculate an estimate of the performance of the model using the training set and the test set of that iteration. At the end, average the results, delivering the (final) estimate of the model's performance.
+
+_CV for model selection_: Analogous to before.  In each of the iterations we calculate the estimate of the performance for each of the candidate models.  At the end, we select the candidate model with the best averaged estimate of the performance.  As noted in chapter model selection, whether or not the selected model shall also be trained is not clearly defined.  If we want to train, we can train it on the complete original data set, or just take the already trained model which was trained on a subset.  The former is computationally more expensive, but larger training sets are generally better.  Note that we cannot use the optain performance estimates also for model validation, see also <<double_cross_validation>>. (*to-do* are the statements about training true?)
 
 *to-do* define terms overfitting, underfitting.
+
+*to-do* Chapter/paragraph about choosing a statistic for model performance. e.g. why exactly is training MSE not good.
+
+*to-do* compare and contrasts these terms: (statistical) learning method, model, estimate f̂ of f, systematic information f. More usually used terms, especially for f̂ and f?
 
 *to-do* Is all of the this chapter correct, inclusive following subchapters? Be picky!
 
@@ -827,27 +986,15 @@ References:
 [[double_cross_validation]]
 ==== Double cross validation
 
-Use two layers of cross validation.  We use the inner CV for model selection, and the outer for model assessment.  I.e. in the inner CV, after the respective CV approach gives us a training set and test set, we multiple times train the model with the training set, each time with different model parameters.  At the end choose the best parameter based on which parameter lead to the model with the best test MSE.  Then use the outer CV to (*to-do* HOLY DAMN SHIT!!! GIVE AN CONCRETE **DETAILED** EXAMPLE!!!!!!!!!! THERE'S JUST TOO MUCH FUCKING HAND-WAVING FOR CHRIST SAKE!!!! WITH WHAT DATA IS THE FINALLY USED MODEL TRAINED? CAN I CHOOSE THE CONCRETE CROSS-VALIDATION METHOD (LOOCV, ...) FOR BOTH LEVELS????)
+_Double cross validation_ (or _nested cross validation_) lets you do model selection _and_ model validation using a single original data set in a reasonable way.  Note that here `model' validation delivers the performance of the following procedure, _not_ the performance of a model.  The procedure is: given a data set, do model selection on that data set via cross validation.
 
+Note that we cannot do model selection with cross validation and then use the same data set for model assessment, because the assessment would test a model with data that the model already has seen.  We would thus get a biased, i.e. too optimistic, i.e. too small estimated expected test error.
 
-[[validation_set_approach]]
-==== Validation set approach
+Outer cross validation: `Model' assessment: Repeatedly partition the original data set into a test set and a training-valiation set.  In each of these outer iterations, pass the training-valiation set to the the inner CV which returns a trained model.  Calculate the estimated test error of that trained model using the test set.  At the end, averaging all those delivers the estimated expected test error of the precedure.  Recall that each trained model the outer layer sees was trained using different training data.
 
-Partition data randomly in two equaly sized partitions, one constituting the training data and the other constituting the test data (or validation data).
+Inner cross validation: Model selection: Do normal model selection via cross validation on the training-validation set received from the outer CV.  Return the trained selected model received from model selection.
 
-Pro: Simple
-
-Pro: Fair estimate of test MSE
-
-Contra: Fewer training data always always means a worse fit of the model.  In particular it typically means more bias.  In other words, it's too pessimistic: we get a biased estimate (e.g of expected test MSE).
-
-Contra: Large variance of the validation estimate (e.g. estimated expected test MSE) because the validation estimate might depend a lot on how the partition turned out to be.
-
-References:
-
-- Book ``An introduction to statistical learning'', chapter ``5.1.1 The Validation Set Approach''
-
-- ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``4.3.1 Leave-one-out cross-validation''
+Note that different inner cross validations may select different models.  That's ok, since as said at the beginning of this chapter, we asses the performance of the procedure, not of some model.
 
 
 [[LOOCV]]
@@ -888,51 +1035,67 @@ References:
 
 === Bootstrap
 
-The _bootstrap_ is a tool that can be used to quantify the uncertainty associated with a given estimator.  Given an unknown distribution P and the original data set Z~1~, ..., Z~n~ iid \~ P.  E.g. in regression problems, Z~i~ = (X~i~, Y~i~), X~i~ ∈ ℝ^p^, Y~i~ ∈ ℝ.  Also given a function g and an estimator θ̂~n~ = g(Z~1~, ..., Z~n~) of some unknown Value θ.  The problem is to find the distribution of the estimator θ̂~n~.  If we had P, we could simulate using P.  The key idea is to simulate using an estimate P̂~n~ of P.  P̂~n~ is an empirical distribution of Z~1~, ..., Z~n~ which places mass 1/n at each data point.  It is a discrete distribution on the data points, and each point is equally likely.  To sample from P̂~n~ means uniform sampling with replacement from {Z~1~, ..., Z~n~}.
+Given an unknown distribution P and a sample Z~1~, ..., Z~n~ iid \~ P, an estimator θ̂ (or θ̂~n~) of an unknown parameter θ.  Using the given sample we can calculate an realization of θ̂, but we don't yet know anything about the involved uncertainty.  The _bootstrap_ is a tool that can be used to quantify the uncertainty associated with the estimator θ̂.  E.g. calculate an estimation of θ̂'s variance.  If we had P, we could simulate using P.  The key idea is to simulate using an estimate P̂ (or P̂~n~) of P.  P̂ is an empirical distribution of Z~1~, ..., Z~n~ which places mass 1/n at each data point.  It is a discrete distribution on the data points, and each point is equally likely.  To sample from P̂ means uniform sampling with replacement from {Z~1~, ..., Z~n~}.
 
-Bootstrapping an estimator can be done as follows by B times doing the following, i denoting the iteration:
+_Bootstrapping an estimator_ can be done as follows by B times doing the following, i denoting the iteration:
 
-- Generate the i-th _bootstrap sample_ Z~1~^∗i^, ..., Z~n~^∗i^ iid \~ P̂~n~. Here, the size of the boot strap sample is also n for convenience.
+- Generate the i-th _bootstrap sample_ Z~1~^∗i^, ..., Z~n~^∗i^ iid \~ P̂. Here, the size of the boot strap sample is also n for convenience.
 
-- Compute the i-th _bootstrapped estimator_ θ̂~n~^∗^ = θ̂~n~^∗i^ = g(Z~1~^∗i^, ..., Z~n~^∗i^)
+- Compute the i-th _bootstrapped estimator_ θ̂^∗^ = θ̂^∗i^ = g(Z~1~^∗i^, ..., Z~n~^∗i^).  See θ̂^∗^ as a random variable and θ̂^∗i^ as its i-th realization.
 
-Real world: P ⇒ (Z~1~, ..., Z~n~) ⇒  θ̂~n~ = g(Z~1~, ..., Z~n~) +
-Boostrap world: P̂~n~ ⇒ (Z~1~^∗^, ..., Z~n~^∗^) ⇒  θ̂~n~^∗^ = g(Z~1~^∗^, ..., Z~n~^∗^)
+Real world: P ⇒ (Z~1~, ..., Z~n~) ⇒  θ̂ = g(Z~1~, ..., Z~n~) +
+Boostrap world: P̂ ⇒ (Z~1~^∗^, ..., Z~n~^∗^) ⇒  θ̂^∗^ = g(Z~1~^∗^, ..., Z~n~^∗^)
 
-The _bootstrap distribution_ P^∗i^ is the distribution of the _bootstrapped estimator_ θ̂~n~^∗^.  It is a conditional distribution given the data.  Induced by sampling from P̂~n~.  The _bootstrap expectation_ E^∗^[·] is a conditional expectation given the data.  Likewise the _bootstrap variance_ Var^∗^[·] is a conditional variance given the data.
+The _bootstrap distribution_ P^∗i^ is the distribution of the bootstrapped estimator θ̂^∗^.  It is a conditional distribution given the (random) sample.  Induced by sampling from P̂~n~.  The _bootstrap expectation_ E^∗^[·] is a conditional expectation given the (random) sample.  Likewise the _bootstrap variance_ Var^∗^[·] is a conditional variance given the (random) sample.
 
-Recall that we already computed the estimator θ̂~n~ = g(Z~1~, ..., Z~n~), whe now liked to compute its expectation and variance.  The bootstraped estimators θ̂~n~^∗i^ can be used to approximate the bootstrap expectation E^∗^[·] and the boostrap variance Var^∗^[·] of the bootstrapped estimator θ̂~n~^∗^ as defined in the table below.
+E^∗^[θ̂^∗^] ≈ Ê^∗^[θ̂^∗^] = 1/B ∑^B^ θ̂^∗i^ +
+Var^∗^[θ̂^∗^] ≈ Var̂^∗^[θ̂^∗^] = 1/(B-1) ∑^B^(θ̂^∗i^ - Ê^∗^[θ̂^∗^])²
+
+(*to-do* can I now say that Ê[θ̂] = Ê^∗^[θ̂^∗^] and likewise for variance? I thought that's one of the main points, having an estimator Var̂[θ̂])
 
 Note that the script on p. 41 talks about boostrap expectation.  Instead of saying that we want to apprixmate E^∗^[...], we could say that we estimate it and write Ê^∗^[...] = .... Analgous for Var.
 
-The boostrap is called to be _consistent_ for θ̂~n~ if for an increasing sequence a~n~, for all x:
 
-Pr[a~n~(θ̂~n~-θ)≤x] - Pr*[a~n~(θ̂~n~^∗^-θ̂~n~)≤x] P→ 0 (n→∞)
+==== Bootstrap consistency
 
-In the left Pr[...], θ̂~n~ is a random variable which is centered around the fixed value θ. In the right Pr*[...], θ̂~n~^∗^ is random variable which is centered around the fixed value θ̂~n~.  Typically a~n~ = √n. Consistency of the boostrap typically holds if the limiting distribution of θ̂~n~ is Normal, and if the original data Z~1~, ..., Z~n~ are iid.
+The boostrap is called to be _consistent_ with rate a~n~ for estimator θ̂ if for an increasing sequence a~n~, for all x:
+
+Pr[a~n~(θ̂-θ)≤x] - Pr*[a~n~(θ̂^∗^-θ̂)≤x] P→ 0 (as n→∞)
+
+In the left Pr[...], the estimator θ̂ is a random variable which is centered around the fixed unknown parameter θ. In the right Pr*[...], the bootstrap estimator θ̂^∗^ is random variable which is centered around the fixed realization of estimator θ̂ using the sample.  Typically a~n~ = √n.  Consistency of the boostrap typically holds if the limiting distribution of θ̂ is Normal, and if the original data Z~1~, ..., Z~n~ are iid.
 
 Consistency of the boostrap implies consistent variance and bias estimation, i.e.:
 
-Var^∗^[θ̂~n~^∗^] / Var[θ̂~n~] P→ 1
+(E^∗^[θ̂^∗^]-θ̂) / (E[θ̂]-θ) P→ 1
 
-(E^∗^[θ̂~n~^∗^]-θ̂~n~) / (E[θ̂~n~]-θ) P→ 1
+Var^∗^[θ̂^∗^] / Var[θ̂] P→ 1
+
+
+==== Bootstrap confidence intervals
+
+
+
+
+
+==== Bootstrap summary
 
 [cols="1,3"]
 |=====
 | B                          | Number of bootstrap iterations
 | P                          | The unknown distribution of Z~1~, ..., Z~n~
-| P̂~n~                      | Estimate of P. Empirical distribution of Z~1~, ..., Z~n~ which places probability mass 1/n on very data point Z~i~.
-| P^∗^                       | Bootstrap distribution / distribution of θ̂~n~^∗^.  Is a conditional distribution given the data.
-| Z~1~, ..., Z~n~ iid ~ P    | Original data set
-| Z~1~^∗^, ..., Z~n~^∗^ iid \~ P̂~n~ |  Bootstrap sample or simulated data.
-| g                          | Some function to calculate θ̂~n~, see there
-| θ or θ~0~                  | Some unkown value
-| θ̂~n~ = g(Z~1~, ..., Z~n~) | Estimator for θ with unknown distribution (which depends on g and P)
-| θ̂~n~^∗^                   | Boostraped estimator
-| E^∗^[θ̂~n~^∗^] ≈ 1/B ∑^B^ θ̂~n~^∗i^ | Approximation for bootstrap expectation of θ̂~n~^∗^
-| (E^∗^[θ̂~n~^∗^]-θ̂~n~) / (E[θ̂~n~]-θ) P→ 1 |
-| Var^∗^[θ̂~n~^∗^] ≈ 1/(B-1) ∑^B^(θ̂~n~^∗i^ - 1/B ∑^B^ θ̂~n~^∗i^)² | Approximation for bootstrap variance of θ̂~n~^∗^.
-| Var^∗^[θ̂~n~^∗^] / Var[θ̂~n~] P→ 1 |
+| P̂                         | Estimate of P. Empirical distribution of Z~1~, ..., Z~n~ which places probability mass 1/n on very data point Z~i~.
+| Z~1~, ..., Z~n~ iid ~ P    | (Original) sample
+| Z~1~^∗^, ..., Z~n~^∗^ iid \~ P̂ |  Bootstrap sample (or simulated data)
+| θ (or θ~0~)                  | Unknown parameter
+| g                          | Function underlying the estimator θ̂
+| θ̂ (or θ̂~n~)              | Estimator for θ.  θ̂'s distribution is unknown, but we would like to know it.
+| P^∗^                       | Bootstrap distribution. Distribution of θ̂^∗^.  Is a conditional distribution given the data.
+| θ̂^∗^                      | Boostraped estimator
+| Ê^∗^[θ̂^∗^] = 1/B ∑^B^ θ̂^∗i^     | Estimator for E^∗^[θ̂^∗^]
+| E^∗^[θ̂^∗^] ≈ Ê^∗^[θ̂^∗^]         | Bootstrap expectation of θ̂^∗^
+| (E^∗^[θ̂^∗^]-θ̂) / (E[θ̂]-θ) P→ 1 | 
+| Var^∗^[θ̂^∗^] ≈ 1/(B-1) ∑^B^(θ̂^∗i^ - 1/B ∑^B^ θ̂^∗i^)² | Approximation for bootstrap variance of θ̂~n~^∗^.
+| Var^∗^[θ̂^∗^] / Var[θ̂] P→ 1 |
 |=====
 
 
