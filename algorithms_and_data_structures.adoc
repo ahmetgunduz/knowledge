@@ -1,7 +1,6 @@
 // The markup language of this document is AsciiDoc
 :encoding: UTF-8
-:toc:
-:toclevels: 4
+:toc::toclevels: 4
 
 = Algorithms and data structures
 
@@ -82,7 +81,7 @@ _worst case_ / _average case_ / _best case_ refers to the worst / average / best
 
 _Asymptotic efficiency_: Only look at rate of growth.  An algorithm is said to be _asymptotically optimal_ if, roughly speaking, its big-oh is equal to the big-oh of the best possible algorithm.
 
-_amortized time_: `amortized +O(f)+' for operation o: In a sequence of length L of such o operations, the overall time is +O(L*f)+.  I.e. one of those o operations might use a particular large amount of time compared to the average case, but that time is amortized in the large.  A typical example is appending to an array; if the capacity is full, a new array of larger capacity needs to be allocated, and the data has to be copied.
+_amortized time_: `amortized +O(f)+' for operation o: In a sequence of length L of such o operations, the overall time is +O(L*f)+.  I.e. one of those o operations might use a particular large amount of time compared to the average case, but that time is amortized in the large.  A typical example is appending to an array; if the capacity is full, a new array of larger capacity needs to be allocated, and the data has to be copied.  *to-do* <<potential_function>>, bankers method, aggregate method http://web.stanford.edu/class/archive/cs/cs166/cs166.1146/lectures/05/Small05.pdf , https://www.cs.cornell.edu/courses/cs3110/2013sp/lectures/lec21-amortized/lec21.html
 
 An event E occures _with high probability_ (or __w.h.p.__ or _WHP_) if Pr(E) ≥ 1 - n^-c^ for any constant c.  I.e. we can make Pr(E) as close to 1 as we want by making c large enough.
 
@@ -140,6 +139,11 @@ References:
 - https://www.saylor.org/site/wp-content/uploads/2011/06/Master-theorem.pdf
 
 
+=== Generating functions for solving recurrences
+
+*to-do*
+
+
 === Computational complexity classes
 
 The field of computational _complexity classes_ categorizes decidable decision problems by how difficult they are to solve. "Difficult", in this sense, is described in terms of the needed computational resources.  A _decision problem_ is a problem with a binary answer, e.g. yes or no.  A _function problem_ can have answers that are more complex than a simple `yes' or `no'.  Function problems can be transformed into decision problems and vice versa.  Thus computational complexity can focus on decision problems. An _intractable problem_ is one that can be solved in theory (i.e. which is in R), but which in practice takes too long to be usefull. There's no exact definition, but in general problems not in P (but in R) are considered intractable.
@@ -154,7 +158,7 @@ Equivalently: (Decision) problems where the a given yes-answer (e.g. yes, this s
 +
 Is a nondeterministic computation model.  It's not a realistic model, but it's still a usefull model.
 
-EXP:: (Decision) problems solvable in at most exponential tyme (2^n^).
+EXP:: (Decision) problems solvable in at most exponential time (2^n^).
 
 R (recursive):: (Decision) problems solvable in finite time. Etymology: R stands for recursive, which in the old days stood for `will terminate'.
 
@@ -444,6 +448,54 @@ jmp funAddr        addr = FunEntry              | addr = addrStack.pop()
 --------------------------------------------------
 
 
+[[optimization_problem]]
+=== Optimization problem
+
+Given a (feasible) input x, an _optimization problem_ is the problem of finding the best solution, according so some objective function f(x), from the set of feasible solutions for x.  A feasible solution for x is called _optimal_ if its the best solution for x.  We say that an algorithm _solves_ an optimization problem if it finds the optimal solution for every input.  An optimization problem with discrete variables is called a _discrete optimization problem_.  An optimization problem with continuous variables is called a _continuous optimization problem_.
+
+An algorithm A is called _consistent_ for optimization problem U if A(x) is a feasible solution for all feasible x.
+
+The _standard form_ of a continous optimzatio problem is:
+
+Minimize~x~ f(x) +
+subject to g~i~(x) ≤ 0, i ∈ [m] +
+subject to h~j~(x) = 0, j ∈ [p]
+
+Where x ∈ ℝ^n^ is an input. f(x) : ℝ^n^ → ℝ is the _objectiv function_. g~i~(x) ≤ 0 are inequality constraints, h~j~(x) = 0 are equality constraints.
+
+See also:
+
+- A <<linear_programming>> problem is a special case of a optimization problem, where the constraints are linear relationships.
+
+- <<approximation_algorithms>> efficiently find approximate solutions to hard optimization problems.
+
+References:
+
+- https://en.wikipedia.org/wiki/Optimization_problem[wikipedia]
+
+- Book "Design and Analysis of Randomized Algorithms", chapter "2.5 Classification of Randomized Algorithms for Optimization Problems"
+
+
+[[approximation_algorithms]]
+=== Approximation algorithms
+
+_Approximation algorithms_ efficiently (i.e. in polynomial time) find approximate solutions to NP-hard <<optimization_problem>>s with _proveable_ approximation ratios.  From a theoritical computer science perspective, problems in P are considered solvable fast enough, such that developing an approximation algorithm for them is not interesting.
+
+Let A be an consistent algorithm for an optimization problem, and OPT an optimal algorithm.  The _approximation ratio_ (or _approximation factor_ or _performance ratio_) of A on x is defined as Ratio~A~(x) = cost(A(x)) / cost(OPT(x)) for minimization problems, and the reciproce of it for maximization problems.
+
+We say A is a _δ-approximation algorithm_ if Ratio~A~(x) ≤ δ ∀ feasible x.  In other words, δ is an upper bound on the worst case approximation ratio.
+
+For any x, the _relative error_ of A is defined as ε~A~(x) = R~A~(x) - 1.
+
+An approximation algorithm A is called a _polynomial-time approximation scheme_ (or _PTAS_) for optimization problem U if for ε > 0 and for all feasible x R~A~(x) ≤ 1 + ε and Time~A~(x, 1/ε) is bounded polynomial in |x| and unbounded in 1/ε.  A is called _fully polynomial-time approximation scheme_ (or _FPTAS_) if additionally Time~A~(x, 1/ε) is bounded polynimial also in 1/ε.  Intuition: PTAS lets you decrease approximation ratio by paying with computation time.  FPTAS guarantees you that computation time does not grow too quickly.
+
+See also <<randomized_algs_for_optimization_problems>>, which could also have been a subchapter of ``Approximation algorithms'', but was made a subchapter of ``Randomized algorithms'' instead.  I thought I'll put concrete approximation algorithms close to the problem as always in this document, so the umbrella (sub)chapter for approximation agorithms is just this small one.  Online problems are relatively special compared to offline ones, and thus all online problems are within chapter online algorithms.
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``4 Approximation Algorithms'' and subchapter ``4.2 Fundamentals''.
+
+
 [[data_structures]]
 == Data structures
 
@@ -566,6 +618,14 @@ A _persistent data structure_ is a data structure that always preserves the prev
   |      |
   o <--- o
 --------------------------------------------------
+
+
+[[dynamic_data_structures]]
+=== Dynamic data structures / static data structures
+
+A _static_ data structure is one which cannot be updated / modified.  Is interesting compared to a dynamic data structure, because often you can do queries faster if you don't have to support updates.
+
+A _fully dynamic_ structure is one where you can do inserts and deletes, a _partially dynamic_ structure is one where you can do inserts or deletes, an _incremental_ structure is one where you can only do only insertions, a _decremental_ structure is one where you only can do deletes (i.e. you start out with a given graph).
 
 
 [[ADT]]
@@ -798,7 +858,7 @@ Applications:
 
 - <<cycle_detection>>
 
-- <<finding_connected_components>>
+- <<graph_connectivity_problem>>
 
 References:
 
@@ -808,9 +868,9 @@ References:
 [[dynamic_connectivity]]
 === Dynamic connectivity
 
-A _dynamic connectivity_ structure is a data structure that dynamically maintains information about the connected components of a graph.
+*to-do*: Move to Graph chapter
 
-A _fully dynamic_ structure is one where you can do inserts and deletes, a _partially dynamic_ structure is one where you can do inserts or deletes, an _incremental_ structure is one where you can only do only insertions, a _decremental_ structure is one where you only can do deletes.  Incremental dynamic connectivity corresponds to <<disjoint_set>>.
+A _dynamic connectivity_ structure is a dynamic data structure that maintains an undirected graph and can answer <<graph_connectivity_problem,graph connectivity queries>> efficiently.  Incremental dynamic connectivity corresponds to <<disjoint_set>>.
 
 Supported operations:
 
@@ -818,24 +878,29 @@ _insert/delete_(v:vertex): Inserting a new vertex v means a inserting a vertex w
 
 _insert/delete_(e:edge):
 
-_connectivity_(v:vertex, w:vertex): Returns true if v and w are connected
+_isconnected_(v:vertex, w:vertex) (or _connectivity_): Returns true if v and w are in same connected component.
 
-_connectivity_(): Returns true if the graph is connected. Is more or less equivalent to connectivity(v,w) in terms of asympotic analysis.
+_isconnected_() (or _connectivity_): Returns true if the graph is connected. Is more or less equivalent to connectivity(v,w) in terms of asympotic analysis.
 
+_link-cut tree vs Euler tour tree_: Euler tour tree is simpler.  Link-cut trees naturally store aggregate information about paths, Euler tour trees naturally store aggregate information about subtrees.
 
 Implementations / Overview of results. n = |V|, m = |E|.
 
-- trees: O(log n) amortized for all ops using <<link_cut_tree>>
+- forest: O(log n) amortized for all ops using <<link_cut_tree>> or <<euler_tour_tree>>.
 
-- trees, decremental: O(1) amortized *to-do*
+- forest, decremental: O(1) amortized using <<micro_macro_tree_decomposition>>
 
 - incremental: Θ(α(m,n)) amortized using <<disjoint_set_forest>>
+
+- dynamic: <<dynamic_connectivity_in_log2_n,Dynamic connectivity in O(log² n)>>. Delete in O(log² n) amortized, insert in O(log n), isconnected in O(log n / log log n).
 
 - See more in https://courses.csail.mit.edu/6.851/spring12/scribe/L20.pdf, Chapter ``2.1 Results in Dynamic Connectivity''.
 
 References:
 
 - MIT course 6.851 Advanced Data Structures, spring 2012, lecture 20 Dynamic Graphs II: https://courses.csail.mit.edu/6.851/spring12/scribe/L20.pdf[lecture notes]
+
+- Stanford University course CS 166 Data Structures, http://web.stanford.edu/class/archive/cs/cs166/cs166.1146/lectures/04/Small04.pdf
 
 
 == Misc. Data structures
@@ -1749,40 +1814,10 @@ Functionally equivalent to quickselect, but runs faster in practice on average.
 *to-do*
 
 
-[[optimization_problem]]
-=== Optimization problem
-
-Given a (feasible) input x, an _optimization problem_ is the problem of finding the best solution, according so some objective function f(x), for x from the set of feasible solutions for x.  A feasible solution for x is called _optimal_ if its the best solution for x.  We say that an algorithm _solves_ an optimization problem if it finds the optimal solution for every input.  An optimization problem with discrete variables is called a _discrete optimization problem_.  An optimization problem with continuous variables is called a _continuous optimization problem_.
-
-The _standard form_ of a continous optimzatio problem is:
-
-Minimize~x~ f(x) +
-subject to g~i~(x) ≤ 0, i ∈ [m] +
-subject to h~j~(x) = 0, j ∈ [p]
-
-Where x ∈ ℝ^n^ is an input. f(x) : ℝ^n^ → ℝ is the _objectiv function_. g~i~(x) ≤ 0 are inequality constraints, h~j~(x) = 0 are equality constraints.
-
-Let A be an consistent algorithm for an optimization problem, and OPT an optimal algorithm.  The _approximation ratio_ of A on x is defined as Ratio~A~(x) = cost(A(x)) / cost(OPT(x)) for minimization problems, and the reciproce of it for maximization problems.
-
-We say A is a _δ-approximation algorithm_ if Ratio~A~(x) ≤ δ ∀ feasible x.  In other words, δ is an upper bound on the worst case approximation ratio.
-
-See also <<randomized_algs_for_optimization_problems>>.
-
-Solution techniques:
-
-- Many discrete optimization problems can be reduced to <<ILP>>.
-
-References:
-
-- https://en.wikipedia.org/wiki/Optimization_problem[wikipedia]
-
-- Book "Design and Analysis of Randomized Algorithms", chapter "2.5 Classification of Randomized Algorithms for Optimization Problems"
-
-
 [[linear_programming]]
 === Linear programming (LP)
 
-The _standard form_ (aka _general form_, or _primal form_ (see LP duality)) is defined as follows:
+A _linear programming_ (or _LP_ or _linear optimization_) problem is a special case of a <<optimization_problem>>s, where the constraints are linear relationships.  The _standard form_ (aka _general form_, or _primal form_ (see LP duality)) is defined as follows:
 
 Maximize, by solving for x⃑, a linear objective function x⃑·c⃑ +
 Subject to the linear inequalities A·x⃑≤b⃑ and to x⃑≥0. +
@@ -1937,8 +1972,18 @@ pack any amount less than that per material into the knapsack. Solution: sort
 materials descendinding by value/weight, then greedely take of each material
 as much as possible until the knapsack is full. O(n*lg(n)).
 
+online knapsack problem:: <<online_knapsack_problem>>
 
-Solution for the 0-1 knapsack problem using <<dynamic_programming>>:
+Applications:
+
+*to-do*
+
+*to-do* process https://en.wikipedia.org/wiki/List_of_knapsack_problems
+
+
+==== 0-1 knapsack via DP
+
+Solution for the 0-1 knapsack problem using <<dynamic_programming>>.
 
 Put the items in some sequence.
 
@@ -2001,12 +2046,6 @@ Analysis: Time complexity is Θ(1) for one DP call. Thus the overall running tim
 is +Θ(n*S)+, i.e. <<pseudo_polynomial>>. It's exponential, since +Θ(n*S)+ is
 exponential relative to the input size which is +O(n*lg S)+ (think how many bits
 you need to represent the input).
-
-Applications:
-
-*to-do*
-
-*to-do* process https://en.wikipedia.org/wiki/List_of_knapsack_problems
 
 
 === Consumer producer
@@ -3731,7 +3770,7 @@ MC-AIgorithmen?" and then explains. But I didn't got the final conclusion. 2) Pr
 [[randomized_algs_for_optimization_problems]]
 === Randomized Algorithms for Optimization Problems
 
-See also <<optimization_problem>>.
+See also <<approximation_algorithms>>.
 
 Let A be a randomized algorithm for an optimization problem, let OPT be an optimal algorithm for the same problem, and let Ratio~A~(x) denote the approximation ratio of A on input x.  A is a __randomized E[δ]-approximation algorithm__ if for every feasible input x there exists an δ > 1 such that a) it returns a feasible solution and b) E[Ratio~A~(x)] ≤ δ.
 
@@ -3746,6 +3785,7 @@ References:
 - Book "Design and Analysis of Randomized Algorithms", chapters "2.5 Classification of Randomized Algorithms for Optimization Problems" and "7 Optimization and Random Rounding"
 
 
+[[relax_LP_random_rounding]]
 ==== Relaxation to LP and random rounding
 
 Many discrete optimization problem are NP-hard. Many of those are reducable to ILP.  We want to reduce the cost by trading in accuracy: We relax the ILP to an LP, solve that in polynomial time resulting in a fractional solution, and then convert that fractional solution to an integer one in polynomial time using some approximation strategy costing polynomial time.
@@ -3758,13 +3798,37 @@ The 3rd step is converting the found optimal fraction solution to a reasonably g
 
 Note that the fractional optimal solution to LP of step two can serve as an bound for the optimal solution of the original problem U.  An lower bound for minimization problems, and an upper bound for maximization problems respectively.
 
-*to-do* What other convertion strategies than random rounding are there for step three?
+*to-do* What other convertion strategies than random rounding are there for step three? Answer: random rounding = irgendwie
 
 *to-do* It seems to me that the term `random rounding' sometimes is used for the whole idea, i.e. all three steps together (e.g. wikipedia), and sometimes only for the third step (e.g. our book).
 
 
+==== A randomized approximation algorithm for the max-sat problem
+
+A randomized approximation algorithm for the max-sat problem.  It makes use of the ``<<relax_LP_random_rounding,Relaxation to LP and random rounding>>'' technique.
+
+*to-do*
+
+*to-do* one chapter about sat problem and one chapter about the max-sat problem
+
+References:
+
+- Book "Design and Analysis of Randomized Algorithms", chapter "7.3 Random Rounding and MAX SAT"
+
+
+==== Efficient amplification by repeating critical computation parts
+
+*to-do*
+
+Its not about approximation, see my lecture notes. So we calc prob of success. We don't calc approx ratio.
+
+References:
+
+- Book "Design and Analysis of Randomized Algorithms", chapter "5.2 Efficient amplification by repeating critical computation part"
+
+
 [[online_algorithms]]
-== Online algorithms
+== Online algorithms & problems
 
 An _online problem_ ∏(𝓘, 𝓞, sol, quality goal) consists of a set 𝓘 of instances I, a set 𝓞 of solutions, and three functions sol quality and goal.  An _instance_ (or _input_) I ∈ 𝓘 is a sequence of _requests_ I = (x~1~, ..., x~n~).  A _solution_ (or _output_) O ∈ 𝓞 is a sequence of _answers_ O = (y~1~, ..., y~n~).  We assign the i-th request x~i~ and the i-th anser y~i~ the _timestep_ T~i~.  An online algorithm is called _c-competitive_ if there is a constant c for which the following conditition holds:
 
@@ -3834,6 +3898,8 @@ References:
 
 - Extracts of the above book as lectures notes: http://www.ita.inf.ethz.ch/~dkomm/lectures/online-algorithmen.pdf
 
+
+[[potential_function]]
 
 === Potential Functions and Amortized Costs
 
@@ -3989,6 +4055,94 @@ References:
 - Book ``An Introduction to Online Computation'', chapter ``4.4 k-Server on the Line''
 
 
+[[online_knapsack_problem]]
+=== Online knapsack problem
+
+Online version of the <<knapsack>> problem, where the algorithm is presented an object in each timestep, and the algorithm has to make a final decision whether to pack it or not.
+
+Definition: The input I = {w~1~, ..., w~n~} is a sequence of weights, where w~i~≤1.  A feasible solution is a set of indicies S ⊆ {1, ..., n} such that ∑~i∈S~w~i~≤1.  The goal is to minimize the sum.  In each timestep T~i~ the algorithm must make a final decision whether to pack w~i~ or not.
+
+References:
+
+- Book ``An Introduction to Online Computation: Determinism, Randomization, Advice'', chapter ``6 The Knapsack problem''
+
+
+==== Comparison of solutions
+
+References to theorems are with respect to book ``An Introduction to Online Computation: Determinism, Randomization, Advice''. There you find also the proofs.
+
+- Any deterministic algorithm (i.e 0 advice or random bits):
+
+  * general: arbitrily high competitive ratio (theorem 6.1)
+
+  * w~i~ ≤ β ≤ 1: gain ≥ 1-β or it's optimal (theorem 6.2)
+
+- With advice:
+
+  * One advice bit: strictly two competitive (theorem 6.6, <<KN_ONE>>)
+
+  * Fewever than log~2~(n-1) advice bits: No o-Alg-w-A is better than strictly (2-ε)-competitive. (theorem 6.7)
+
+  * O(log n) advice bits: Strictly (1+ε)-competitive  (theorem 6.8, <<KN_LOG>>)
+
+  * Any optimal online algorithm with advice has to use at least n-1 advice bits (theorem 6.5)
+
+  * n advice bits: (trivially) optimal (theorem 6.4)
+
+--------------------------------------------------
+ c-competitive
+      ^                 X    no alg exists = lower bound 
+ 1/ε  +X                     on competitive ratio
+      |X                
+      |X                o--  an existing alg
+      |X
+      |X
+   2  +Xo--------------------------------- KNONE
+ 2-ε  +XXXXXXXXXXXXXX
+      |XXXXXXXXXXXXXX
+      |XXXXXXXXXXXXXX
+ 1+ε  +XXXXXXXXXXXXXX o------------------- KNLOG
+opt=1 +XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXo--- trivial
+      +++-----------+-+--------------++------>
+       01  log2(n-1)   O(log n)   n-1  n  advice bits
+--------------------------------------------------
+
+
+==== Deterministic Algorithms
+
+No deterministic online algorithm for the simple knapsack problem is better than strictly 1/ε competitive, for any ε>0.
+
+Proof: The adversary first offers object with weight ε. Case I: ALG packs it. Adversary now offers an object of weight 1, which doesn't fit into the knapsack. The OPT would have been to just pack the object with weight 1. The input dependent cost factor is 1/ε. Case II: ALG doesn't pack it. Adversary now doesn't offer any more objects.  The gain of ALG is 0, the gain of OPT is ε.
+
+References:
+
+- Book ``An Introduction to Online Computation: Determinism, Randomization, Advice'', chapter ``6.2 Deterministic Algorithms''
+
+
+[[KN_ONE]]
+==== KN_ONE
+
+An online algorithm with advice using 1 advice bit. The advice bit tells whether all weights are smaller or equal than 1/2.  If they all are, a greedy strategy is used.  If there is at least one larger than 1/2, the algorithm waits until such an object is offered, packs it, and then does anything.
+
+KN_ONE is strictly two comptetitive
+
+Proof: Follows from theorem 6.2, see overview.
+
+References:
+
+- Book ``An Introduction to Online Computation: Determinism, Randomization, Advice'', chapter ``6.3.2 Small Advice''
+
+
+[[KN_LOG]]
+==== KN_LOG
+
+*to-do*
+
+References:
+
+- Book ``An Introduction to Online Computation: Determinism, Randomization, Advice'', chapter ``6.3.3 Logarithmic Advice''
+
+
 [[graph_theory]]
 == Graph theory
 
@@ -4013,7 +4167,19 @@ A _simple graph_ is an undirected graph that has no loops (mind: a loop is not a
 
 A _vertex cover_ is a set of vertices such that each edge of the graph is incident to at least one vertex of the set.  An _independent set_ (aka _stable set_) is a set of vertices, no two of which are adjacent.  Given a simple Graph G, it's _complement_ graph has the same vertices, but only an edge between any two vertices iff they are not adjacent in G.
 
-A _walk_ is a set of consecutive edges.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a walk with distinct edges.  A _circuit_ is a closed trail.  A _path_ is a walk with distinct vertices (which implies distinct edges), except possibly the first and the last.  Some authors call that a _simple path_, and use the term path as a synonym to walk.  Given a subgraph H of graph G, we call a path P an _H-path_ if it meets H only exactly at its two end vertices, i.e. no other common vertices, and no common edges.  A _cycle_ is a path in which the first and last vertex are adjacent.  An _open path_ is a path in which the first and last vertex are not adjacent.  Two paths are _vertex-independent_ (aka _vertex-disjoint_) if they do not have any vertices in common (*to-do* some sources are clear that they only mean inner vertices, other sources seem to include also end vertices).  Two paths are _edge-independent_ (aka _edge disjoint_) if they do not have any edges in common.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The [[shortest_path]]_shortest path_ from vertex u to v is any path with minimal path weight.  See also <<shortest_path_problem>>.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path, and often defined as -infinite it contains a negative-weight cycle.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
+A _walk_ is a sequence of consecutive edges.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a walk with distinct edges.  A _circuit_ is a closed trail.  A _path_ is a walk with distinct vertices (which implies distinct edges), except possibly the first and the last.  Some authors call that a _simple path_, and use the term path as a synonym to walk.  Given a subgraph H of graph G, we call a path P an _H-path_ if it meets H only exactly at its two end vertices, i.e. no other common vertices, and no common edges.  A _cycle_ is a path in which the first and last vertex are adjacent.  An _open path_ is a path in which the first and last vertex are not adjacent.  Two paths are _vertex-independent_ (aka _vertex-disjoint_) if they do not have any vertices in common (*to-do* some sources are clear that they only mean inner vertices, other sources seem to include also end vertices).  Two paths are _edge-independent_ (aka _edge disjoint_) if they do not have any edges in common.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The [[shortest_path]]_shortest path_ from vertex u to v is any path with minimal path weight.  See also <<shortest_path_problem>>.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path, and often defined as -infinite it contains a negative-weight cycle.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
+
+summary:
+
+walk = sequence of consecutive edges +
+trail = walk w. distinct edges +
+circuit = closed trail +
+Eulerian trail/path/walk = trail visiting all edges +
+Eulerian cycle/circuit/tour = circuit visiting all edges +
+path = walk w. distinct vertices, except possibly first & last +
+cycle = closed path +
+Hamiltonian path = path visiting all vertices +
+Hamiltonian cycle/circuit = cycle visiting all vertices
 
 A graph is _edge-maximal_ with a given graph property if G has the property, but no Graph resulting from adding an (non-parallel) edge does.
 
@@ -4103,9 +4269,9 @@ References:
 
 
 [[link_cut_tree]]
-==== Link-Cut Tree
+==== Link-Cut Tree (LC tree)
 
-An implementation of the <<dynamic_connectivity>> ADT. *to-do* but offers more ops, right?
+An implementation of the <<dynamic_connectivity>> ADT, for a (undirected) graph being contstrained to a forest.
 
 *to-do*
 
@@ -4115,19 +4281,109 @@ References:
 
 
 [[euler_tour_tree]]
-==== Euler-Tour Tree
+==== Euler tour tree (ET tree)
 
-An implementation of the <<dynamic_connectivity>> ADT. *to-do* but offers more ops, right?
+An implementation of the <<dynamic_connectivity>> ADT, for a (undirected) graph being constrained to a forest.  Each of the represented trees is stored using an Euler tour tree.  O(log n) time for all query and update operations and O(n) space.
 
-*to-do* why not store the represented tree in the obvious way? Because it might be a path and then many ops would be O(n) but we want O(log n)?
+*to-do* I learned the ET tree as an way to implement dynamic connectivity. I don't know other applications, especially ones where the tree is directed opposed to undirected.  Some sources explain Euler Tree tree where the represented tree is directed, and others where its undirected, the directed version being much simpler, but not really solving dynamic connectivity.
 
-Note that the represented tree might not be an binary tree.  Imagine an Euler Tour of the represented tree as a curved line, make a mark on the line every time you visit a node, then pull that line straight.  The marks on the straight line define the leaves of an BBST.  I.e. the root of the represented tree corresponds to the leftmost and and the rightmost leaf in the BBST.  Each node of the represented tree has a pointer to the leaf in the BBST representing its first visit, and likewise a pointer to its last visit.
+Note that the represented tree might not be an binary tree.  Also note that depending on the context, the represented tree is an undirected, i.e. there is no parent child direction.
 
-*to-do* Erik said "remember that we are dealing really with forests". Do we?
+The core idea of an ET tree is to store the Euler tour of the represented tree. Recall that strictly speaking tree doesn't have an Euler Tour.  So figuratively double each edge in the represented tree for a Euler tour to become possible.
+
+Aribitrarily pick any node of the represented (undirected) tree as its root.  Instead root you might also say as its representative, as we did in <<disjoint_set>>.  Imagine the Euler Tour as a curved line.  Make a mark on the line every time you visit a node, then pull that line straight.  The marks on the straight line define the leaves of a complete balanced binary tree.  I.e. the (arbitrarily picked) root of the represented tree corresponds to the leftmost and and the rightmost leaf in that balanced binary tree.  Note that the subtree rooted at v corresponds to a consecutive sequence in the Euler Tour, starting at v's first visit and ending at v's last visit.
+
+We maintain three data structures:
+
+- Represented tree as regular tree using objects and pointers.  Each node v has each a pointer to the leaves in the ET tree representing it's first and it's last visit.  Actually this data structure is not strictly required, but it makes things easier to explain.
+
+- The Euler-tour tree, stored as a balanced binary tree.  Does not need to be an search tree, i.e. does not need to have keys.  Can also be a B-tree with fanout Θ(log n).  Can also be a <<segment_tree>>, so we can support O(log n) aggregate queries, see below.
+
+- A BBST tree storing the edges of the Euler Tour, i.e. the `edges' between two consecutive leaves in the ET tree. *to-do* why do we need that?
+
+
+_findrepresentative(v)_ / _findroot(v)_: Returns the representative, i.e. the arbitrily choosen root, of the represented tree containing v.  That corresponds to the minimum leaf of the ET tree containing v.  Alternatively you could also choose the maximum leaf.  Analysis: O(log n) time since we walk up ET Tree to its root, and then down to either minimum/leftmost (or maximum/rightmost) leaf.
+
+_isconnected(v:vertex, w:vertex)_: findroot(v)==findroot(w).  Analysis: O(log n) since that's the complexity of findroot.
+
+_cut(v:vertex)_: Cut the subtree rooted at v from the rest of the represented tree.  That corresponds to the contiguous sequence of ET tree leaves starting at firstvisit(v) and ending at lastvisit(v).  We find those two via the aformentioned pointers in the represented tree.  Split Euler-tour tree at firstvisit(v) and at lastvisit(v), see <<split_tree>>, and then concatenate the tree before firstvisit(v) and the tree after lastvisit(v), see <<concatenate_trees>>.  Analysis: Split uses O(log n), concatenate O(1) amortized, so O(log n) overall. *to-do* standford does it differently
+
+_link(u:vertex, v:vertex)_:  Adds edge {u, v}. Make u and v the representative of their respective represented tree.  Concatenate u's ET tree, v' Euler toor tree, u.  Analysis: O(log n), see cut and setrepresentative.
+
+_Aggregate over subtree rooted at v_: Example for aggregate queries would be sum, min, max etc.  Do a range query in the leaves [firstvisit(v), lastvisit(v)], see also the notes about how to store the Euler-tour tree above. *to-do* this only makes sense when it's a directed graph, which by problem statement we don't have. ok, if we use ET trees in another context than dynamic connectivity for forest.
+
+_setrepresentative(v:vertex)_ / _setroot(v:vertex)_: Make v the representative, i.e. the arbitrarily choosen root, of the represented tree containing v. Split tour before firstvisit(v) and after lastvisit(v), resulting in the three parts S1, V, S2.  Delete first node in S1. Concatenate V, S2, S1, v. *to-do* what happens to represented tree and its pointers
 
 References:
 
+- Much better than MIT's: http://web.stanford.edu/class/archive/cs/cs166/cs166.1146/lectures/04/Small04.pdf plus !! bugfixes: http://web.stanford.edu/class/archive/cs/cs166/cs166.1146/lectures/05/Small05.pdf
+
 - MIT course 6.851 Advanced Data Structures, spring 2012, lecture 20 Dynamic Graphs II: https://courses.csail.mit.edu/6.851/spring12/scribe/L20.pdf[lecture notes], https://www.youtube.com/watch?v=L7ywsci9ujo&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&index=20[video]
+
+
+[[micro_macro_tree_decomposition]]
+==== Micro-Macro tree decomposition
+
+A data structure implementing the <<dynamic_connectivity,decremental dynamic connectivity>> ADT, for a graph being constrained to a forest. O(1) amozertized per operation, assuming all edges eventually get deleted.
+
+*to-do*
+
+Trivia: I think the term `micro-macro tree decomposition' was just made up by our prof. *to-do* Maybe I am even totally wrong and prof's micro-macro tree decomposition is something else than MIT's chapter 3.1 decremental connectivity in trees.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 20 Dynamic Graphs II: https://courses.csail.mit.edu/6.851/spring12/scribe/L20.pdf[lecture notes] chapter 3.1 Decremental Connectivity in Trees, https://www.youtube.com/watch?v=L7ywsci9ujo&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&index=20[video]
+
+
+[[dynamic_connectivity_in_log2_n]]
+==== Dynamic connectivity in O(log² n)
+
+A data structure implementing the <<dynamic_connectivity>> ADT, the most expensive operation being delete by using O(log² n) amortized.
+
+Initial introductory idea: Maintain a spanning forest of the graph G, each spanning tree of the forest stored as an ET tree (Euler tour tree).  We can do insertions and isconnected queries pretty similar to how we did it in <<euler_tour_tree>>, where we solved dynamic connectivity where the graph is restricted to a forest.  Recall that each spanning tree in the spanning forest represents a connected component.  Deleting an edge is also easy if its not part of a spanning forest; in that case it's definitely not a bridge, i.e. we don't disconnect a component by removing the edge.  However when deleting an edge being part of a spanning tree, that spanning tree is now broken into two, and we need to find an replacement edge, if there is any, to restablish the spanning tree.  If there is no such edge, it was a bridge, and the previous spanning tree really needs to be broken up into two. We don't know yet how to efficiently find the replacement edge, but we will solve that problem in the follwing.
+
+Idea more formal: The core idea is to decompose G's spanning forest into a `growing' spanning forest.  Each edge e of G has a level attribute, which is initialized to log n at the time of the edge's creation, and which can only decrease over time.  It's minimum value is 0.  We decompose G in log n subgraphs G~0~ ⊆ ... ⊆ G~log n~ = G.  G~i~ contains edges e.level ≤ i.  Let F~i~ be the spanning forest of G~i~.  We maintain two invariants: _invariant 1_: Every connected component in G~i~, thus also every spanning tree in F~i~, has at most 2^i^ vertices, i.e. is `small'.  _invariant 2_: F~i~ = F~log n~ ∩ G~i~ or equivalently F~0~ ⊆ ... ⊆ F~log n~.
+
+--------------------------------------------------
+         max component
+  level  size           e.level ∈
+  0      1              0
+  1      2              {0,1}
+  2      4              {0,2}
+  3      8              {0,3}
+  ...    ...            ...
+  log n  n = 2^log n    {0,log n}
+--------------------------------------------------
+
+Intuition: G~i-i~ ⊆ G~i~ and F~i~ = F~log n~ ∩ G~i~ mean that the forest F~i~, relative to F~i-1~, attaches some vertices (grows existing tress/components or adds new trees/components) or adds edges between existing vertices (combines existinging trees/components).  All the edges have level i.  G~i~ then adds the remaining edges having level i.  These edges only connect allready existing vertices within a tree/component.  If you figuratively think of edges with level 0 having a `heavy' color, and edges with high level having a `light' color, then F~log n~ is a forest having a tiny heavy colored core forest, which grows by growing ever lighter colored edges.  Likewise for G = G~log n~, which say uses the same color for its additional edges but say dashed lines.  No dashed line is a bridge.  Note however that the disadvantage of this mental picture is that `grows' implies that vertices with smaller level are older than vertices with higher level, which is not true.
+
+Data structure 1 of 2: Log n Euler Tour forests, one per F~i~.  Augment each Euler Tour tree, storing for each node of the represented tree its subtree size.  During deletion of an edge, we will need that to compare |T~u~| with |T~v~|, see there.  Also augment each Euler Tour tree, say of F~i~, storing for each node of the represented tree whether its subtree has incident non-tree edges of level i.  We need that during deletion of an edge to efficiently find a replacement edge, see there.
+
+Data structure 2 of 2: Store graph G using adjacency list or objects and pointers. *to-do* but with hash tables? nothing can cost more than O(log n)
+
+_isconnected(u:vertex, v:vertex)_: Delegate to F~log n~.
+
+_Insert(e:edge)_: Insert edge e = (u,v) into graph:  Set e.level to log n.  Insert e into data structure storing G.  Also insert e into F~log n~ unless that would create a cycle.  I.e. we insert e into F~log n~ if !isconnected(u, v), which in case we do insert will result in combining two spanning trees.
+
+_delete(e:edge)_: Remove edge e = (u,v) from graph:  Remove e from data structure storing G.
+
+If e is _not_ in F~log n~: F~log n~ is the complete spanning forest, so if e is not there,  we're sure removing e doesn't disconnect any component.  Done.  Terminate.
+
+Delete e in all Euler Tour Forests where it is part of, that is F~e.level~ (incl.) up to F~log n~ (incl.).
+
+Search a replacement edge for e.  Start searching in F~e.level~, then up to F~log n~. If found in F~j~, insert it in F~j~ (incl.) upto F~log n~ (incl).  If there was no replacement edge, it simply means e was a bridge and thus really disconnected a component, and there is nothing to do.
+
+The search for a replacement edge in F~i~ works as follows:  Recall that e is already removed.  As a consequence of our rules, the replacement edge's level must be i.  Let T~u~ and T~v~ denote the subtrees of F~i~ rooted at u and v respectively, and WLOG let |T~v~| ≤ |T~u~|.  For each vertex x ∈ T~v~, and for each of x's incident edges (in G~i~) eʹ with level i, if eʹ's other vertex y ∈ T~w~, eʹ is a replacement edge and we can stop the search.  If eʹ was not a replacement edge and eʹ.level > 0, decrement eʹ's level by one.
+
+Analysis delete: Removing e from G is (*to-do*).  Removing e from F~e.level~ upto F~log n~ means O(log n) deletions costing O(log n) each. (*to-do* 1:17:32 in video)
+
+Trivia: As a consequence of the rules, the spanning trees are actually minimum spanning trees with respect to edge levels.
+
+Variants: Make F~log n~ Euler Tour forest based on B trees for O(log n / log log n) connectivity queries, see <<euler_tour_tree>>.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 20 Dynamic Graphs II: https://courses.csail.mit.edu/6.851/spring12/scribe/L20.pdf[lecture notes] chapter 3.2 Dynamic Connectivity in O(log² n), https://www.youtube.com/watch?v=L7ywsci9ujo&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&index=20[video]
 
 
 [[BFS]]
@@ -4902,7 +5158,9 @@ the set {v~1~, ..., v~k~}. It's value is the min of:
 [[hamiltonian_path]]
 === Hamiltonian path / cycle
 
-An _Hamiltonian path_ (aka _traceable path_) is a path in an undirected or directed graph that visits each vertex exactly once.  A _Hamiltonian cycle_ (aka _Hamiltonian circuit_, _vertex tour_ or _graph cycle_) is a Hamiltonian path that is a cycle.  A graph that contains a Hamiltonian path is called a _traceable graph_.  A graph is _Hamiltonian-connected_ if for every pair of vertices there is a Hamiltonian path between the two vertices. A graph that contains a Hamiltonian cycle is called a _Hamiltonian graph_.  The _Hamiltonian path problem_ and the _Hamiltonian cycle problem_ are problems of determining whether a Hamiltonian path or a Hamiltonian cycle exists in a given graph (whether directed or undirected).  Both problems are NP-complete.
+An _Hamiltonian path_ (aka _traceable path_) is a path in an undirected or directed graph that visits each vertex exactly once.  A _Hamiltonian cycle_ (aka _Hamiltonian circuit_, _vertex tour_ or _graph cycle_) is a Hamiltonian path that is a cycle.  A graph that contains a Hamiltonian path is called a _traceable graph_.  A graph is _Hamiltonian-connected_ if for every pair of vertices there is a Hamiltonian path between the two vertices. A graph that contains a Hamiltonian cycle is called a _Hamiltonian graph_.
+
+The _Hamiltonian path problem_ and the _Hamiltonian cycle problem_ are problems of determining whether a Hamiltonian path or a Hamiltonian cycle exists in a given graph (whether directed or undirected).  Both problems are NP-complete.  See also <<TSP>>, which asks for the hamiltonian cycle with minimum weight.
 
 Properties:
 
@@ -4944,17 +5202,19 @@ Trivia: Was first discussed by Leonhard Euler while solving the famous _Seven Br
 
 [[TSP]]
 === Travelling salesman problem (TSP)
-In an weighted graph (directed or undirected), the TSP is finding the path with mimimum weight visiting each vertex exactly once and start vertex being the end vertex.
 
-TSP is a special case of the travelling purchaser problem.  
+In an weighted graph (directed or undirected), the TSP is finding the hamiltonian cycle with minimum weight. TSP is NP-complete.
 
-TSP is NP-complete.
+TSP is a special case of the travelling purchaser problem.  See also the Hamiltonian Cycle Problem which asks for any Hamiltonian cycle.
 
 Algorithms:
 
 - Exact: Held–Karp, a dynamic programming algorithm.
+
 - Exact: Various branch-and-bound algorithms
+
 - Exact: ... linear programming ...
+
 - Approximations: *to-do*
 
 Applications: *to-do*
@@ -4971,11 +5231,13 @@ The problem of finding the <<MST>>, actually minimum spanning forest, in an undi
 
 Both Kruskal's algorithm and Prim's algorithm rely on the fact that adding a light edge to a partial MST is safe.  Both algorithms essentially start with an empty partial MST, and iteratively greedely add a light edge until the MST is finished.
 
-Algorithms:
+Solutions:
 
 - <<kruskals_algorithm>>
 
 - <<prims_algorithm>> (restricted to connected graphs)
+
+- dynamic minimum spanning tree data structures: *to-do* See ETH Advanced Data Structures, Exercise Set 8: http://www.cadmo.ethz.ch/education/lectures/FS18/ADS/exercises/list08.pdf
 
 References:
 
@@ -5107,17 +5369,18 @@ References:
 - https://www.slideshare.net/TraianRebedea/algorithm-design-and-complexity-course-8, beginning at slide 27
 
 
-[[finding_connected_components]]
-==== Finding (strongly) connected components
+[[graph_connectivity_problem]]
+==== Graph connectivity problem
 
-See also the <<dynamic_connectivity>> ADT, and the list of concrete data structures listed there.
+The _graph connectivity problem_ (or just _connectivity_) ask for whether two given vertices are belong to the same (strongly) connected component.
 
-Algorithms for finding connected components (in undirected graphs):
+undirected graphs:
 
-- Using a fast <<disjoint_set>> data structure, put each vertex into its own set. Then iterate over all edges, and join the two sets associated with the two end points.  Each remaining set represents a connected component.  Runs in O(V+E·α(V)) time and needs O(V) auxillary space, assuming an disjoint set forest is used.  α is the very slowly growing inverse function of the Ackermann function.
+- The <<dynamic_connectivity>> ADT, which maintains an undirected graph and answers graph connectivity queries efficiently.
 
+- Using a temporary fast <<disjoint_set>> data structure, put each vertex into its own set. Then iterate over all edges, and join the two sets associated with the two end points.  Each remaining set represents a connected component.  Runs in O(V+E·α(V)) time and needs O(V) auxillary space, assuming an disjoint set forest is used.  α is the very slowly growing inverse function of the Ackermann function.
 
-Algorithms for finding strongly connected components (in directed graphs):
+directed graphs:
 
 - <<kosaraju_sharir_algorithm>> in O(V+E) time.  Two DFS passes.  Simple to implement, rather difficult to understand why it works.
 
@@ -5727,7 +5990,7 @@ closest_dist_strip(min, AllPointsXS: points, middle_index:int, PointsYS: point_p
   return min
 --------------------------------------------------
 
-Informal proof that closest_dist_strip's inner loop needs to check at most 7 points ahead: In the worst case, i.e. where the points are packed as dense as possible, the situation looks like in the following diagram. ❍ is the currently checked point as determined by the outer loop, ➊ is the point one ahead, ➌ is three ahead and so on.  Recall that the points are sorted in y.  In this worst case scenario, the 1st and 2nd point coincide; 1st being part of the left partition, 2nd being part of the right partition.  Likewise for 5th and 6th.  We don't need to consider points further ahead, because their y distance to ❍ would be larger than min.  Thus at most 7 points are ahead with a y distance smaller than min.  Personal note:  As far as I understand it, 7 is an upper bound, but maybe not tight.  With more complicated math, we might be able to prove that there are even less considerable points ahead.  But it's really only about proving that it is a constant number of points we have to consider at most.  That results in O(n) for closest_dist_strip.  If we didn't had this proof, it would be O(n²), since we had to assume having to compare every point in the strip with every other in the worst case.
+Informal proof that closest_dist_strip's inner loop needs to check at most 7 points ahead: In the worst case, i.e. where the points are packed as dense as possible, the situation looks like in the following diagram. ❍ is the currently checked point as determined by the outer loop, ➊ is the point one ahead, ➌ is three ahead and so on.  Recall that the points are sorted in y.  In this worst case scenario, the 1st and 2nd point coincide; 1st being part of the left partition, 2nd being part of the right partition.  Likewise for 5th and 6th.  We don't need to consider points further ahead, because their y distance to ❍ would be larger than min.  Thus at most 7 points are ahead with a y distance smaller than min.
 
 --------------------------------------------------
      vertical
@@ -5742,6 +6005,7 @@ Informal proof that closest_dist_strip's inner loop needs to check at most 7 poi
        ‖
 --------------------------------------------------
 
+*to-do* As far as I understand it, 7 is an upper bound, but maybe not tight.  With more complicated math, we might be able to prove that there are even less considerable points ahead.  But it's really only about proving that it is a constant number of points we have to consider at most.  That results in O(n) for closest_dist_strip.  If we didn't had this proof, it would be O(n²), since we had to assume having to compare every point in the strip with every other in the worst case.
 
 References:
 
