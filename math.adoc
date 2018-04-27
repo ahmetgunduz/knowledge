@@ -1,5 +1,7 @@
-:encoding: UTF-8
 // The markup language of this document is AsciiDoc
+:encoding: UTF-8
+:toc:
+:toclevels: 4
 
 
 = Mathematics
@@ -346,21 +348,21 @@ References:
 
 === Random variables and expectations
 
-The name ``random variable'' is a misnomer.  A random variable is a function, as we will define in the following.  The sample space associated to a random variable is rarely explicitelly mentioned, but keep in mind that it really is there.  Random variables can be interpreted as link between data and sample spaces.
+Formally a random variable is a function mapping from sample space to measure space, as defined in the following.  In practice, we often think of a random variable like a random number.  In practice, the sample space associated to a random variable is rarely explicitelly mentioned, but keep in mind that it really is there.  Random variables can be interpreted as link between data and sample spaces.
 
 --------------------------------------------------
  probability space := (sample space S, events 𝓕, probability function Pr)
 
-           probability
- set of    function Pr
- events 𝓕 ==========> [0,1]
-  |  
+            probability
+ set of     function Pr
+ events 𝓕 =============> [0,1]
+  ^
   |set of
-  |subsets    random      measure 
-  V           variable R  space,      CDF_R(x) := Pr(R≤x)
+  |subsets  random        measure
+  |         variable R    space,      CDF_R(x) := Pr(R≤x)
  sample  ===============> mostly ℝ    ================> [0,1]  
  space S
-                                      E[R] := ∫x·CDF_Rʹ(x) 
+                                              E[R] := ∫x· CDF_Rʹ(x)
                                       ----------------> measure space
 
                                       Var[R] := E[R-E[R]]²
@@ -402,7 +404,9 @@ Given a random variable R with measure space ℝ, its _cumulative distribution f
 
 Given a random variable R with measure space ℝ, its _inverse CDF_ (or _quantile function_) is defined by CDF~R~^-1^(q) = inf{r: CDR~R~(x) > 1} for q ∈ [0, 1].
 E.g. CDF~R~^-1^(1/2) tells you the x at which CDR(x) equals 1/2.
-We call CDF~R~^-1^(1/4) the _first quartile_, CDF~R~^-1^(1/2) the _median_ (or _second quartile_) and CDF~R~^-1^(3/4) the _third quantile_.
+We call CDF~R~^-1^(1/4) the _first quartile_, CDF~R~^-1^(1/2) the _median_ (or _second quartile_) and CDF~R~^-1^(3/4) the _third quartile_.
+
+_percentile_ is the same as quantile, only that it is in %, that is 100 times larger.
 
 Given a continuos random variable R with measure space ℝ, its _probability density function_ (or _PDF_) PDF~R~ (or f~R~) : ℝ ⟶ [0, 1] is a function satisfying:
 1) Pr(a ≤ R ≤ b) = ∫~a~^b^PDF~R~(x)·dx for every a ≤ b.
@@ -419,6 +423,8 @@ PDF~R~(x) = CDFʹ~R~(x) at all points x at which CDF~R~ is differentiable.
 CDF~R~(x) = ∫~−∞~^x^PDF~R~(x)·dx.
 
 In sloppy notation, CDF~R~(-∞) = 0 and CDF~R~(∞) = 1.
+
+A _univariate distribution_ is a probability distribution of only one random variable.  A _multivariate distribution_ is the _joint probability distribution_ of two or more random variables.
 
 Two random variables R~1~ and R~2~ are _equal_ if R~1~(ω) = R~2~(ω) for all outcomes ω ∈ S.
 
@@ -492,9 +498,9 @@ Given a sequence X~1~, ..., X~n~ of random variables.  X~n~, the last of the seq
 
 Given a sequence X~1~, ..., X~n~ of random variables.  X~n~, the last of the sequence, _converges in probability_ towards the random variable X, denoted X~n~ P→ X (P above the arrow) or plim~n→∞~ X~n~ = X, if for all ε > 0 lim~n→∞~ Pr(|X~n~ - X| > ε) = 0. Convergence in probability implies convergence in distribution.
 
-_Weak Law of Large Numbers_ (or _WLNN_ or _Khintchine's law_): Let X~1~, ..., X~n~ be iid random variables with the same finite mean μ and same (possibly infinite) deviation σ, and let X̄~n~ denote their sample mean X̄~n~ = 1/n ∑X~i~. WLNN states that X̄~n~ P→ μ. Interpretation: The distributionh of X̄~n~ becomes infinitely concentrated, i.e. 0 variance, around μ as n gets large.  The sample mean is a consistent estimator for the population mean μ.  Note E[X̄~n~] = μ and Var[X̄~n~] = σ²/n are also true, but are different statements.
+_Weak Law of Large Numbers_ (or _WLNN_ or _Khintchine's law_): Let X~1~, ..., X~n~ be iid random variables with the same mean μ and same variance σ², and let X̄ = 1/n ∑X~i~ denote their sample mean. WLNN states that X̄ P→ μ. Interpretation: The distributionh of X̄ becomes infinitely concentrated, i.e. 0 variance, around μ as n gets large.  The sample mean is a consistent estimator for the population mean μ.  Note that while E[X̄] = μ and Var[X̄] = σ²/n are also true, they are different statements.
 
-_central limit theorem_ (_CLT_):  Let the random variables X~1~, ..., X~n~ be independent, each X~i~ with some arbitrary unknown distribution but with known mean μ~i~ and finite variance σ²~i~.  Then (∑X~i~ - ∑μ~i~) / √∑σ²~i~ ⇝ N(0, 1), or formulated differently: 1/n ∑X~i~ ⇝ N(1/n ∑μ~i~, 1/n² ∑σ²~i~).  If additionally X~1~, ..., X~n~ are identically distributed with mean μ and variance σ², this simplifies to sample mean X̄ = 1/n ∑X~i~ ⇝ N(μ, σ²/n).  (*to-do* 1) better understand what http://mathworld.wolfram.com/CentralLimitTheorem.html says more 2) relation to `converges in distribution'? See all of statistics p 72 3) How do you call this thing on the lhs of ⇝? 4) Is it correct that I shouldn't use the term sample mean and thus also not the conventional X̄ = 1/n ∑X~i~ in the first general case, since the term sample is reserved for the case of taking a sample from a population, and by the definition, population means that its members have the same distribution. How you call 1/n ∑X~i~ in the first/general case? How you call (∑X~i~ - ∑μ~i~) / √∑σ²~i~ ?)
+_central limit theorem_ (_CLT_):  Let the random variables X~1~, ..., X~n~ be independent, each X~i~ with some arbitrary unknown distribution but with known mean μ~i~ and finite variance σ²~i~.  Then (∑X~i~ - ∑μ~i~) / √∑σ²~i~ ⇝ N(0, 1), or formulated differently: 1/n ∑X~i~ ⇝ N(μ̄, σ̄²/n)  where μ̄ = 1/n ∑μ~i~ and σ̄² = 1/n ∑σ²~i~.  If additionally X~1~, ..., X~n~ are identically distributed with mean μ and variance σ², this simplifies to X̄ = 1/n ∑X~i~ ⇝ N(μ, σ²/n).  (*to-do* 1) better understand what http://mathworld.wolfram.com/CentralLimitTheorem.html says more 2) relation to `converges in distribution'? See all of statistics p 72 3) How do you call this thing on the lhs of ⇝? 4) Is it correct that I shouldn't use the term sample mean and thus also not the conventional X̄ = 1/n ∑X~i~ in the first general case, since the term sample is reserved for the case of taking a sample from a population, and by the definition, population means that its members have the same distribution. How you call 1/n ∑X~i~ in the first/general case? How you call (∑X~i~ - ∑μ~i~) / √∑σ²~i~ ?)
 
 __WLNN vs CLT__: WLNN gives sample mean's value provided iid Xs.  CLT gives distribution of 1/n ∑X~i~ only provided independent Xs.  CLT gives distribution of sample mean provided iid Xs. (*to-do* But then CLT is a proper superset of WLNN, since knowing the distribution implies knowing the mean. So the question remains, whats the real difference between CLT and WLNN?)
 
@@ -509,6 +515,44 @@ References:
 
 *to-do*
 
+
+==== Uniform distribution
+
+X ~ Uniform(a, b), where a < b, if
+
+PDF(x) = { +
+1/(b-a) for x ∈ [a, b]
+0 otherise
+
+CDF(x) = { +
+0 for x < a +
+(x-a)/(b-a) for x ∈ [a, b] +
+1 for x > 0
+
+==== Normal distribution / Gaussian distribution
+
+X ~ N(μ, σ²), where μ∈ℝ is the mean and σ>0 the standard deviation, if
+
+PDF(x) = 1/(σ√(2π)) exp(-1/(2σ²) (x-μ)²)
+
+CDF(x) = Φ((x-μ)/σ)
+
+We say that X has _standard Normal distribution_ if μ=0 and σ=1. Tradition dictates that a standard Normal random variable is denoted by Z.  The PDF and the CDF of Z are denoted by 𝜙(z) and Φ(z) respectively.
+
+Φ(z) = 1/√(2π) ∫~-∞ to x~exp(-t²/2)dt = +
+1/2 + 1/2 erf(x/√2)
+
+erf(x) = 2/√π ∫~0 to x~exp(-t²)dt
+
+Same useful facts:
+
+X \~ N(μ,σ²) ⇒ (X-μ)/σ ~ N(0,1)
+
+Z \~ N(0,1) ⇒ X = μ + σZ ~ N(μ, σ²)
+
+
+==== Student's t-distribution
+
 The _Student's t-distribution_ (or _t-distribution_) is the distribution of the sample mean where the population is normally distributed.  It is denoted t~ν~, where ν is its single parameter, the degrees of freedom.  More precisely: Let μ denote the population mean, X̄ the sample mean and S² the unbiased sample variance, then (X̄-μ)/(S/√n) \~ t~n-1~, where t~n-1~ denotes a Student's t-distribution with n-1 degrees of freedom. *to-do* 1) I think that is not quite correct. It's just one of more possible use cases. After all many other statistics also have a t distribution 2) list common statistics which follow a t-distribution (e.g.when statistic g1 follows a normal distribution and a scaling parameter depends on the data, e.g estimator sd̂[g1], then, under certain conditions, g2=g1/sd̂[g1] follows a student's distribution)
 
 References:
@@ -517,7 +561,7 @@ References:
 
 === Models, statistical inference and learning
 
-A _statistical model_ 𝔉 is a set of distributions or regression functions (*to-do* but regression functions are quite a different thing than distributions; I don't understand). A _parametric model_ is set 𝔉 that can be parameterized by a finite number of parameters: 𝔉 = { f(x;θ) : θ ∈ 0}, where θ is an _parameter_, or vector of parameters, that can take values in the _parameter space_ 0. f is a function of x, parameterized by θ.
+A _statistical model_ 𝔉 is a set of distributions or regression functions (*to-do* but regression functions are quite a different thing than distributions; I don't understand). A _parametric model_ is set 𝔉 that can be parameterized by a finite number of parameters: 𝔉 = { f(x;θ) : θ ∈ Θ}, where θ is an _parameter_, or vector of parameters, that can take values in the _parameter space_ Θ. f is a function of x, parameterized by θ.
 
 There's an loose distinction between parameters determined during fitting the model and _hyper-parameters_ which are determined before fitting the model, e.g by the user or during the higher level process of model selection.  You may think of splitting complete set of parameters into two subsets.  The values of the subset labeled parameters is computable cheaply when being provided with the values of the subset labeled hyper-parameters. References: https://stats.stackexchange.com/questions/149098/what-do-we-mean-by-hyperparameters?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa (*to-do* isn't a further difference that hyper-paremeters can influence the number of parameters, such as in polynomial regression?)
 
@@ -532,6 +576,9 @@ Similarily, σ² denotes the _population variance_ and is defined analogously.  
 The _sample mean_ (or _empirical mean_) is derived from observing a sample subset of the population or by taking samples of a random variable and is defined by x̄ = 1/n ∑x~i~.  Note that some authors, e.g. ``all of statistics'', define sample mean not by the arithmetic mean over a set of observations, but as a random variable defined the analogous way over a set of random variables.  The sample mean is a consistent estimator for the population mean, by the LLN.
 
 The _unbiased sample variance_ (or _Bessel-corrected sample variance_) is derived analogously to the sample mean and is definied by S² = 1/(n-1) ∑(x~i~-x̄)².  Can be used as unbiased estimator for the population variance.  Similarily, the _biased sample variance_ is defined by 1/n ∑(x~i~-x̄)².  Note that some authors define sample variance on the basis of random variables, see also sample mean.  (*to-do* but then the unbiased sample variance of a complete sample is not equal to the population variance, which is not what we wanted in my eyes)
+
+[[pooled_variance]]
+Given k samples of k populations with common variance σ² and possibly different means.  Let s²~i~ denote the unbiased sample variance of the i-th sample, and n~i~ the size of the i-th sample.  The _pooled variance_ (or _combined variance_ or _composite variance_ or _overall variance_) is the weighed average of the individual unbiased sample variances, weighed by (n~i~-1): s²~p~ = (∑^k^(n~i~-1)s²~i~) / (∑^k^(n~i~-1)).  In the special case of k=2 and n~1~ = n~2~,  s²~p~ = (s²~1~+s²~2~)/2.  The pooled variance s²~p~ can be used as unbiased estimator for the common populaton variance σ².
 
 A _population parameter_ (or _statistical parameter_) is a numeric characteristic of a population or statistical model.  Often not computable because the population is to large to evaluate every member.
 
@@ -551,7 +598,7 @@ An estimator θ̂ with respect to an unknown parameter θ is said to be _consist
 
 If bias→0 and se→0 as n→∞, then estimator θ̂ is consistent.
 
-The _mean squared error_ (or _MSE_) of an estimator θ̂ with respect to an unknown parameter θ is defined as MSE[θ̂] = E~0~[(θ̂-θ)²]. The MSE can be used to assess the quality of the estimator θ̂. Note that there's also an analogously defined MSE for the estimate f̂ of an regression function f, see there.
+The _mean squared error_ (or _MSE_) of an estimator θ̂ with respect to an unknown parameter θ is defined as MSE[θ̂] = E~θ~[(θ̂-θ)²]. The MSE can be used to assess the quality of the estimator θ̂. Note that there's also an analogously defined MSE for the estimate f̂ of an regression function f, see there.
 
 MSE[θ̂] = Bias²~θ~[θ̂] + Var~θ~[θ̂]
 
@@ -565,7 +612,7 @@ Let random variables {X~i~|i∈[n]} iid \~ 𝓝(μ, σ²). Then (X̄-μ)/se(X̄)
 
 [cols="1,3"]
 |=====
-| 𝔉 = { f(x;θ) : θ ∈ 0 }  | Parametric model
+| 𝔉 = { f(x;θ) : θ ∈ Θ }  | Parametric model
 | Pr~θ~[·],  E~θ~[·],Var~θ~[·]  | Probability is with respect to PDF/PMF f(x;θ)
 | N | Size of population
 | n | Size of sample
@@ -583,7 +630,7 @@ Let random variables {X~i~|i∈[n]} iid \~ 𝓝(μ, σ²). Then (X̄-μ)/se(X̄)
 | θ̂ or θ̂~n~ | Estimator for quantity θ. Estimator = a statistic plus stating which quantity is estimated.
 | Bias~θ~[θ̂] = E~θ~[θ̂] - θ = E~θ~[θ̂ - θ] | Bias of estimator θ̂ with respect to θ
 | θ̂ is said to be consistent if θ̂ P→ θ |
-| MSE[θ̂] = E~0~[(θ̂-θ)²] |
+| MSE[θ̂] = E~θ~[(θ̂-θ)²] |
 | MSE[θ̂] = Bias²~θ~[θ̂] + Var~θ~[θ̂] |
 | (X̄-μ) / se[X̄] ~ 𝓝(0,1) | For random variables {X~i~:i∈[n]} iid ~ 𝓝(μ, σ²)
 | (X̄-μ) / sê[X̄] \~ t~n-1~ | For random variables {X~i~:i∈[n]} iid ~ 𝓝(μ, σ²)
@@ -592,42 +639,194 @@ Let random variables {X~i~|i∈[n]} iid \~ 𝓝(μ, σ²). Then (X̄-μ)/se(X̄)
 
 === Testing
 
+==== Introduction to hypothesis testing
 
-unpaired two-sample tests:
+A _statistical hypothesis test_ is a method of statistical inference.
 
-- parametric unpaired two-sample tests:
+A _two sided test_ (or _two tailed test_) is concerned with both regions of rejection, of the distribution.  A _one sided test_ (or _one tailed test_) is concerned with the region of rection for only one of the two tails of the distribution, and it states which one it is concerned with.
+
+pro one sided test: higher power, i.e. less type II error rate.
+
+- Choose a suitable test statsistic T.  Compute its observed value t~obs~.
+
+- Define the _null hypothesis_ and the complementary _alternate hypothesis_.  The null hypothesis (the hypothesis to be nullified), denoted H~0~, is a statement usually along the lines ``there is no relationship'' or ``there is no effect''.  The complementary alternate hypothesis is denoted H~a~ (or H~1~).  Note that in a one side test, H~0~ should not use =, but ≤ or ≥, while the complementary H~a~ then uses > or < respectively.  However it's mathematically still correct for the H~0~ to use = (*to-do* why is that?)
+
+- Compute the p-value, a value based upon the _assumption_ that H~0~ is true.  The _p-value_ (or _probability value_ or _asymptotic significance_) for a two sided test is Pr(T≥|t~obs~-E[T]| | H~0~), for a one sided test it is Pr(T≥t~obs~|H~0~) or Pr(T≤t~obs~|H~0~) respectively.  The interpretation of the p-value is: _Given_ H~0~ is true, then in (p-value)·100% of any hypothesis tests we see an result as extrem or more extrem than t~obs~.  I.e. _given_ H~0~ is true, in (p-value)·100% of these tests we would incorrectly reject the null hypothesis.  The p-value is _not_ the probability that either hypothesis is correct.  Regarding the case of a one sided H~a~, where the very unlikely case occures that t~obs~ is of on the `other' side of H~0~'s distribution:  then the p-value will be very large, and we will retain the H~0~, which is correct in that we didn't accept H~a~.
+
+- Choose a _significance level_ α.  Typically the significance level is chosen to be 5% or 1%.  α corresponds to the area below the H~0~ distribution in the critical region, see critical region below.
+
+- Reject H~0~ iff p-value < α.  Otherwise, don't reject H~0~, but don't accept it either.
+
+Hypothesis testing really is ``proof by conradiction'', only that we can't really proof or disprove anything,  since we only work with probabilities.  We only can gather evidence.  We start out assuming H~0~ is true.  If we then observe an t~obs~ such that p-value < α, then that is a `contradiction' to our assumption.  It's not a contradiction in a hard sense, but its evidence that our assumption was incorrect.  If if p-value > α, we simply do not reject H~0~.  We do not accept H~0~.  No conclusion can be drawn if you failed to build a contradiction.  The evidence is insufficient to support any conclussion about either H~0~ or H~a~.  Recall that we optained the p-value by assuming H~0~ is true, so we certainly can't follow from a p-value that H~0~ is true.
+
+An equivalent alternative criterion, relative to p-value < α, is to reject H~0~ when t~obs~ lies within the _critical region_ (or _rejection region_).  In a two sided test the critical region is [-∞,t~crit_a~] ∪ [t~crit_b~,∞],  where crit_a and crit_b are defined via Pr(T≤t~crit_a~|H~0~) = α/2 and Pr(T≥t~crit_b~|H~0~) = α/2.  Or equivalently via the H~0~ distribution's quantile: t~crit_a~ = H0_dist_quantile(α/2) and t~crit_b~ = H0_dist_quantile(1-α/2).  In a onesided test its [-∞,t~crit~] where Pr(T≤t~crit~|H~0~) = α, or the other way round.  See also definition of significance level.
+
+The _acceptance region_ is the complement to the critical region.
+
+A _type I error_ (or _false positive_ or _false discovery_) is the incorrect rejection of H~0~.  A _type II error_ (or _false negative_) is the incorrect retaining of H~0~.
+
+|=====
+|                       | H~0~ really true | H~a~ really true
+| failed to reject H~0~ | true positive | false negative, type I error, β
+| H~0~ rejected         | false postive, type II error, false discovery, significance level α | true negative, true discovery, power
+|=====
+
+The _power_ of a test equals the area below the distribution of H~a~ inside the critical region.  Thus β equals the area below the distribution of H~a~ inside the acceptance region.
+
+_paramtetric test_: Assumes distribution family of the test statistics
+
+_non-parametric test_ (aka _distribution free_): No assumpotions on the distribution of the test statistic.
+
+
+==== One sample test
+
+_one sample test_: Only one sample, only one test statistic, treat every member of the sample the same way. (*to-do* what is a accurate consice definition?)
+
+
+==== Unpaired two sample test
+
+_unpaired two sample test_ (or _independent two sample test_): Randomly partition the sample into two sets.  Or from an alternative viewpoint, start out with two independent samples.  Test treatment A on one set and treatment B (which might be `no treatment at all') on the other.
+
+Disadvantage:
+
+- The groups need to be really similar.  E.g. by chance the elements in either group might have something in common which has nothing to do with their treatment, but still influences the outcome of the test statistic.
+
+- There might be a big variance in the test static.  E.g. if we measure how long people sleep, after treatment A and after treatment B: there is anyway a rather large variance in how long people sleep.   We don't want that variance to have an influence on our result.  In the paired two sample test, that variance cancels out in the step of building the difference.
+
+Examples:
+
+- parametric unpaired two sample tests:
 
   * Z-test (assumes normal distr. with known variance) *to-do*
 
   * T-test (assumes normal distr. with unknown variance) *to-do*
 
-- nonparametric unpaired two-sample tests:
+- non-parametric unpaired two sample tests:
 
   * Randomization/permutation tests *to-do*
 
-    ** <<Wilcoxon_rank_sum_test>>
+  * <<Wilcoxon_rank_sum_test>>
 
 
+==== Paired two sample test
 
-==== Introduction to hypothesis testing
+_paired two sample test_  (or _paired difference test_ or _paired sample test_): Treat every element in the sample with treatment A and with treatment B (again, can be `no treatent at all').  The final test static is the difference of the `actual' test static static after treatment A and after treatment B.
 
-A _statistical hypothesis test_ is a method of statistical inference.  In essence, a claim (the alternative hypothesis) is assumed valid if its counter-claim (the null hypothesis) is improbable.
+Alternatively, we can match _match_ every element in the treatment group with an element of the control group, the control group and the matching in a way that the matched pair shares similat observable characteristics.  Matching is however prominently critized.
 
-- Define the null hypothesis.  The _null hypothesis_ (the hypothesis to be nullified), denoted H~0~, is a statement usually along the lines ``there is no relationship'' or ``there is no effect''.
+*to-do* I don't see how the term two sample test still applies here -- the whole point is that its _not_ two samples
 
-- Define the alternative hypothesis. The _alternative hypothesis_, denoted H~a~ (or H~1~), is the complementary statement to the null hypothesis. (*to-do* not always complementary. But what to do in the following when it's not complementary?)
+*to-do* Are the terms "paired difference test" and "unpaired two sample test" really refering to exactly the same thing?
 
-- Choose a suitable test statsistic T.  Compute its observed value t~obs~.
+*to-do* In case of matching, what is then the difference to unpaired two sample test?
 
-- Compute the p-value.  The _p-value_ (or _probability value_ or _asymptotic significance_) is informally defined as Pr(making observation t~obs~|H~0~).  defined as Pr(T is as at least as extreme as t~obs~|H~0~).  Or even less formally: .
 
-- Choose a _significance level_ α.  Typically the significance level is chosen to be 5 or 1 %.
+==== Permutation test / randomization test
 
-- Reject the null hypothesis, in favor of the alternative hypothesis, iff p-value < α.
+A non-parametric test.
 
-A _type I error_ (or _false positive_) is the incorrect rejection of H~0~.  A _type II error_ (or _false negative_) is the incorrect retaining of H~0~.
+General idea: use permutations to destroy the relationship that is to be tested under H~0~ while keeping all other relevant structure.
+
+*to-do*: Also the lecture scripts list "Paired two sample test / one-sample test for symmetry" as an example (or examples?) for perumatation test.  I don't understand that.
+
+t-test is an approximation to a permutation test.  Permutatin tests are known since long, but for a long time we didn't had the computational power to make them feasible, and as a consequence were forced to use approximations like t-test.  Nowadays permutation tests are feasible.
+
+Pro: No parametric assumptions
+
+Pro: Free to use any test statistic (as input to building the difference)
+
+Pro: p-values and type I error control are exact if all permutations are considered. *to-do*: I don't understand. Also I can't make any sense out of what the slides from the lecture say: When the data come from H~0~, then the permutation distribution is the null distribution of the test statistic, and the permutation p‐value is the usual p‐value of the test statistic. This is all we need for type I error control, since we need to control the probability of a false
+decision under H~0~.
+
+Contra: Computationally expensive
+
+Contra: Not everything can be formylated as permutation test. E.g. in linear regression, there is no straightforward permutation test for individual coefficients.
+
+
+===== As unpaired two sample test
+
+Given population F~1~ and F~2~, and a sample from each, Y~1~^(1)^,...Y~n1~^(1)^ \~ F~1~ and Y~1~^(2)^,...Y~n2~^(2)^ \~ F~2~. H~0~: F~1~ = F~2~ (i.e. treatment has no effect), H~a~ : F~1~ is a shifted version of F~2~ (either in a two tailed or one tailed way).
+
+- *to-do* What are properties of a good test statistics? Concrete examples from lecture where ranks sum of group1, median(group1) - median(group2).  It seems often to be same sort of difference.  Note that rank sum of group1 is also sort of a difference.  It must be a function where the following permutation has no effect under H~0~.
+
+- For all possible permutations, or repeatedly for a permutation selected uniformely at random from all possible permutations: compute t~obs,i~, where i denotes the i-th iteration.  We can permute since under H~0~, i.e. F~1~ == F~2~, permuting doesn't make a difference.
+
+- The set of t~obs,i~ s form the conditional distribution of test statistic T given the data, also calle the _permutation distribution_.  Compute t~obs~ using the (original) sample.  Compute the p-value using t~obs~ and the obtained permutation distribution.
+
+*to-do* add or replace with alternative version where instead an combinedsample we have sample1 and sample2 seperately.
+
+*to-do* why those + 1 in calculating pvalue?
+
+------------------------------------------------------------
+  combinedsample <- ... # sample1 concatenate sample2
+  n1 <- ... # size of sample1
+  repetitioncount <- ... #
+
+  # function underlying test statistic T
+  g <- function(combinedsample, n1) { ... }
+
+  g_on_permuted_sample <- function(combinedsample, n1) {
+    n <- nrow(combinedsample)
+    permutedcombinedsample <- combinedsample[sample(1:n, n, replace=F)]
+    return(g(permutedcombinedsample));
+  }
+
+  t.obs.all <- replicate(repetitioncount, g_on_permuted_sample(combinedsample, n1))
+  t.obs <- g(combinedsample)
+  pvalue <- (sum(t.obs.all<=t.obs)+1) / (repetitioncount+1)
+
+  hist(t.obs.all)
+  abline(v=t.obs)
+------------------------------------------------------------
+
+
+===== As paired two sample test
+
+Same concept as before. However as in any paired two sample test, we no longer have two populations and thus two samples.  We have one single sample from one population.  As in any paired two sample test, let test statistic T be the difference between test statistic U~1~ and U~2~. H~0~
+
+Pick a test statistic T that measures some difference between the groups. E.g. by underlying test statics U~1~ and U~2~, T = U~1~ - U~2~, where as U~1~ and U~2~ share the same underlying function.  U~1~ is applied to sample from population F~1~, U~2~ to sample from population F~2~ respectively.
+
+------------------------------------------------------------
+  g <- function(sample) { ... }
+
+  g_on_permuted_sample <- function(sample, n1) {
+    n <- nrow(sample)
+    signs <- sample(c(-1,1), n, replace=T)
+    sample.new <- signs * sample
+    return(g(sample.new));
+  }
+------------------------------------------------------------
+
+
+===== Example: Correlation
+
+H~0~: no relationship between X and Y. Thus under H~0~, we can permute the Y-values (or the X-values).
+
+As test statistic, we can for example use a rank correlation test statistic, for example Spearman's rank correlation coefficient.
+
+
+===== Example: Correlation / Linear regression
+
+Y = β~0~ + β~1~X~1~ + ... + β~p~X~p~ + ε
+
+H~0~: β~0~ = ... = β~p~ = 0
+
+Under H~0~, we can permute the Y-values to destroy the relationship between Y and X~1~, ..., X~p~.
+
+*to-do* more detailed
+
+
+==== Student's t-test
 
 A _Student's t-test_ (or simply _t-test_) is any statistical hypothesis test in which the test statistic follows a Student's t-distribution under the null hypothesis.
+
+As one sample test: *to-do*
+
+As unpaired two sample test: Given two samples, both of equal size n and equal population variance.  Let s~p~ denote the <<pooled_variance>>.  The t-statistic is t = (X̄~1~ - X̄~2~) / s~p~√(2/n).  It's distribution is t~2n-2~.
+
+As paired two sample test:
+
+*to-do* See also Wilcoxon
 
 
 ==== The Wald test
@@ -635,26 +834,22 @@ A _Student's t-test_ (or simply _t-test_) is any statistical hypothesis test in 
 *to-do*
 
 
-==== Permutation/randomization test
-
-- Pick a test statistic T (*to-do* denotation?) that measures some difference between the groups
-
--
-
-
-*to-do*
-
-Specializations: <<Wilcoxon_rank_sum_test>>
-
-
 [[Wilcoxon_rank_sum_test]]
-==== Wilcoxon rank sum test (or Mann-Whitney U test)
+==== Wilcoxon rank sum test (or Mann-Whitney U test) as permutation test
 
-Special case of permutation/randomization test.
+A non-parametric unpaired two sample test.
 
+Set-up: Given population F~1~ and F~2~, and a sample from each, Y~1~^(1)^,...Y~n1~^(1)^ \~ F~1~ and Y~1~^(2)^,...Y~n2~^(2)^ \~ F~2~. H~0~: F~1~ = F~2~, H~a~ : F~1~ is a shifted version of F~2~ (either in a two tailed or one tailed way).  Let the test statistic U be the sum of ranks of group 1 (or group 2, doesn't matter).  The distribution of U under H~0~ is well known, the same way say the Student's distribution is known.  For small sample sizes, it's given by tables, for large sample sizes it can be approximated by a Normal distribution.
 
+Procedure: Regular hypothesis test. Compute u~obs~ from the given sample, and from u~obs~, using the known distribution of U, the p-value.
 
-*to-do*
+Pro: No parametric assumptions
+
+Pro: Robust, because the sum of ranks of group 1 statistic is robust.  E.g. if the largest value in a sample gets even larger, the mean would change, but the sum of ranks doesn't.
+
+Neutral-Pro: Better than t-test if distributions are non-Normal. Power almost identical to that of t-test if distributions are Normal.
+
+Pro: The null distribution (i.e. U under H~0~) is independent of F~1~ and F~2~.
 
 
 [[misc_statistics]]
@@ -848,21 +1043,20 @@ Generalization of KNN which is smoother.  KNN can be thought of as a rectangle f
 
 ==== Bias, Error
 
-The _bias_ of estimate f̂ with respect to regressino function f at x~0~ is defined analogous to the bias for an estimator θ̂, see there. f̂(x~0~) is a random variable since f̂, i.e. its parameters, depends on the random training data.
+The _bias_ of estimate f̂ with respect to regression function f at x~0~ is defined analogous to the bias for an estimator θ̂, see there. f̂(x~0~) is a random variable since f̂, i.e. its parameters, depends on the random training data.
 
-Bias~f,training data~[f̂(x~0~)] = E~training data~[f̂(x~0~)] - f(x~0~)
+Bias~f,trainingdata~[f̂(x~0~)] = E~trainingdata~[f̂(x~0~)] - f(x~0~)
 
 A _loss function_ L(Y, Ŷ) measures the error between Y and Ŷ = f̂(X). Typical choices are squared error (Y - Ŷ)² or absolute error |Y - Ŷ|.
 
-The _training error_ of a model is the average loss over the training sample.  Can theoretically be used as estimator for the expected test error, but it generally would be a rather bad one since rather biased, see also *to-do*.
+The _training error_ Err~training~ of a model is the average loss over the training sample.  Can theoretically be used as estimator for the expected test error, but it generally would be a rather bad one since rather biased, see also *to-do*.
 
-Err~training~ = 1/|trainingsample| ∑L(y~training,i~, f̂(x~training,i~))
+Err~training~ = 1/|trainingsample| ∑L(y~trainingdata,i~, f̂(x~trainingdata,i~))
 
 The _test error_ (or _generalization error_) of a model is the expected loss given a training sample.  It is defined as follows.  f̂ is fixed and was trained by the given training sample.  The stated two variants are equivalent.  In the 1st variant the randomness lies in repeatedly randomly picking a test sample from the population.  y~test,i~ and x~test,i~ correspond to the i-th observation in that random sample set and thus are fixed values.  In the 2nd variant the randomness lies in X and Y being random variables.
 
 Err~trainingsample~ = +
-E~testsample~[1/|testsample| ∑L(y~test,i~, f̂(x~test,i~))|f̂] +
-or +
+E~testsample~[1/|testsample| ∑L(y~test,i~, f̂(x~test,i~))|f̂] or +
 E[L(Y, f̂(X))|f̂]
 
 [[expected_test_error]]
@@ -916,6 +1110,8 @@ Model selection is typically done by computing the estimated expected test error
 
 _Feature selection_ (or _variable selection_, _attribute selection_, _variable subset selection_) is the task of selecting a subset of the available predictors (aka features).
 
+*to-do* pros & cons of choosing more / less predictors. Is there already something in this document?
+
 
 ==== Model validation
 
@@ -960,11 +1156,11 @@ References:
 
 ==== Cross Validation
 
-_Cross-validation_ (or _rotation estimation_) is a coarse technique for model assessment or model selection.  It's a coarse technique in the sense that it has multiple more concrete instanciations, such as <<validation_set_approach>>, <<LOOCV>> and <<k_fold_CV>>.  It tries to mitigate the problem of only having one data set (aka sample of the population) of finite size, altough we actually would like infinitely many training sets and test sets, each set of infinite size.
+_Cross-validation_ (or _rotation estimation_) is a coarse technique for model assessment or model selection.  It's a coarse technique in the sense that it has multiple more concrete instanciations, such as <<LOOCV>> and <<k_fold_CV>>.  It tries to mitigate the problem of only having one data set (aka sample of the population) of finite size, altough we actually would like infinitely many training sets and test sets, each set of infinite size.
 
 _CV for model validation_: Repeatedly partition the original data set into a training set and a test set, each time doing the partition in a different way.  In each iteration, calculate an estimate of the performance of the model using the training set and the test set of that iteration. At the end, average the results, delivering the (final) estimate of the model's performance.
 
-_CV for model selection_: Analogous to before.  In each of the iterations we calculate the estimate of the performance for each of the candidate models.  At the end, we select the candidate model with the best averaged estimate of the performance.  As noted in chapter model selection, whether or not the selected model shall also be trained is not clearly defined.  If we want to train, we can train it on the complete original data set, or just take the already trained model which was trained on a subset.  The former is computationally more expensive, but larger training sets are generally better.  Note that we cannot use the optain performance estimates also for model validation, see also <<double_cross_validation>>. (*to-do* are the statements about training true?)
+_CV for model selection_: Analogous to before.  In each of the iterations we calculate the estimate of the performance for each of the candidate models.  At the end, we select the candidate model with the best averaged estimate of the performance.  As noted in chapter model selection, whether or not the selected model shall also be trained is not clearly defined.  If we want to train, we can train it on the complete original data set, or just take the already trained model which was trained on a subset.  The former is computationally more expensive, but larger training sets are generally better.  Note that we cannot use the optained performance estimates also for model validation, see also <<double_cross_validation>>. (*to-do* are the statements about training true?)
 
 *to-do* define terms overfitting, underfitting.
 
@@ -986,11 +1182,11 @@ References:
 [[double_cross_validation]]
 ==== Double cross validation
 
-_Double cross validation_ (or _nested cross validation_) lets you do model selection _and_ model validation using a single original data set in a reasonable way.  Note that here `model' validation delivers the performance of the following procedure, _not_ the performance of a model.  The procedure is: given a data set, do model selection on that data set via cross validation.
+_Double cross validation_ (or _nested cross validation_) lets you do model selection _and_ model validation using a single original data set in a reasonable way.  Note that here `model' validation delivers the performance of the following procedure, _not_ the performance of a model.  The procedure is: given a data set, model selection is done on that data set via cross validation.
 
 Note that we cannot do model selection with cross validation and then use the same data set for model assessment, because the assessment would test a model with data that the model already has seen.  We would thus get a biased, i.e. too optimistic, i.e. too small estimated expected test error.
 
-Outer cross validation: `Model' assessment: Repeatedly partition the original data set into a test set and a training-valiation set.  In each of these outer iterations, pass the training-valiation set to the the inner CV which returns a trained model.  Calculate the estimated test error of that trained model using the test set.  At the end, averaging all those delivers the estimated expected test error of the precedure.  Recall that each trained model the outer layer sees was trained using different training data.
+Outer cross validation: `Model' assessment: Repeatedly partition the original data set into a test set and a training-valiation set.  In each of these outer iterations, pass the training-valiation set to the the inner CV which returns a trained model.  Calculate the estimated test error of that trained model using the test set.  At the end, averaging all those delivers the estimated expected test error of the precedure.  Recall that each trained model the outer layer sees was trained with slightly different training data than every other, thus overall we get this E~trainingdata,testdata~[...] the estimated expected test error demands.
 
 Inner cross validation: Model selection: Do normal model selection via cross validation on the training-validation set received from the outer CV.  Return the trained selected model received from model selection.
 
@@ -1000,7 +1196,7 @@ Note that different inner cross validations may select different models.  That's
 [[LOOCV]]
 ==== Leave one out cross validation (LOOCV)
 
-Do n iterations. In each iteration, make the i-th observation the test set, and the rest the training set.
+A specialization of cross validation.  Do n iterations. In each iteration, make the i-th observation the test set, and the rest the training set.
 
 MSE~i~ = (y~i~ - f̂^(-i)^(x~i~))².  LOOCV estimate of expected test MSE is 1/n ∑MSE~i~.
 
@@ -1022,7 +1218,7 @@ References:
 [[k_fold_CV]]
 ==== k-fold cross validation
 
-Split observation randomly in k equaly sized partitions.
+A specialization of cross validation.  Split observation randomly in k equaly sized partitions.
 
 *to-do*
 
@@ -1035,39 +1231,57 @@ References:
 
 === Bootstrap
 
-Given an unknown distribution P and a sample Z~1~, ..., Z~n~ iid \~ P, an estimator θ̂ (or θ̂~n~) of an unknown parameter θ.  Using the given sample we can calculate an realization of θ̂, but we don't yet know anything about the involved uncertainty.  The _bootstrap_ is a tool that can be used to quantify the uncertainty associated with the estimator θ̂.  E.g. calculate an estimation of θ̂'s variance.  If we had P, we could simulate using P.  The key idea is to simulate using an estimate P̂ (or P̂~n~) of P.  P̂ is an empirical distribution of Z~1~, ..., Z~n~ which places mass 1/n at each data point.  It is a discrete distribution on the data points, and each point is equally likely.  To sample from P̂ means uniform sampling with replacement from {Z~1~, ..., Z~n~}.
+The _bootstrap_ is a method for estimating the distribution of an estimator θ̂ derived from on a population with unknown distribuation, primarily for estimating se[θ̂] and computing confidence intervals for θ̂.  Let P be an unknown distribution, Z~1~, ..., Z~n~ iid \~ P a sample, and θ̂ (or θ̂~n~) an estimator of an unknown parameter θ.  Using the given sample we can calculate a realization of θ̂.  But the problem that the bootstrap will solve is that we don't yet know the distribution of θ̂.  I.e. we don't yet know the uncertainty involved with the estimator θ̂.
 
-_Bootstrapping an estimator_ can be done as follows by B times doing the following, i denoting the iteration:
+If we had P, we could simply simulate using P.  The key idea of bootstrap is to estimate P, denoted P̂ (or P̂~n~), and then use P̂ to simulate.  Estimating P is simple.  The estimate P̂ is an empirical distribution of Z~1~, ..., Z~n~ which places mass 1/n at each data point.  It is a discrete distribution on the data points, and each point is equally likely.  To sample from P̂ means to uniformily sample with replacement from {Z~1~, ..., Z~n~}.
 
-- Generate the i-th _bootstrap sample_ Z~1~^∗i^, ..., Z~n~^∗i^ iid \~ P̂. Here, the size of the boot strap sample is also n for convenience.
+Sampling from P̂ yields a so called _bootstrap sample_ Z~1~^∗i^, ..., Z~n~^∗i^ iid\~ P̂.  Typically the bootstrap sample size is choosen to be the same size as the original sample size n.  Note that Z~1~^∗i^, ..., Z~n~^∗i^ are still random variables.
 
-- Compute the i-th _bootstrapped estimator_ θ̂^∗^ = θ̂^∗i^ = g(Z~1~^∗i^, ..., Z~n~^∗i^).  See θ̂^∗^ as a random variable and θ̂^∗i^ as its i-th realization.
+The _bootstrapped estimator_ θ̂^∗^ is is then simply θ̂^∗^ = g(Z~1~^∗i^, ..., Z~n~^∗i^).  Is an estimator for θ̂; the point being that θ̂^∗^'s distribution can be simulated and so we can estimate θ̂'s distribution, expectation, variance etc.  Note that θ̂^∗^ is still a random variable, the (probability) sample space being the original sample, opposed to usual (probability) sample space being the population.
 
-Real world: P ⇒ (Z~1~, ..., Z~n~) ⇒  θ̂ = g(Z~1~, ..., Z~n~) +
-Boostrap world: P̂ ⇒ (Z~1~^∗^, ..., Z~n~^∗^) ⇒  θ̂^∗^ = g(Z~1~^∗^, ..., Z~n~^∗^)
+The _bootstrap distribution_ P^∗^ is the distribution of the bootstrapped estimator θ̂^∗^.  It is a conditional distribution given the (random) original sample.  P^∗^ is induced by sampling from P̂.
 
-The _bootstrap distribution_ P^∗i^ is the distribution of the bootstrapped estimator θ̂^∗^.  It is a conditional distribution given the (random) sample.  Induced by sampling from P̂~n~.  The _bootstrap expectation_ E^∗^[·] is a conditional expectation given the (random) sample.  Likewise the _bootstrap variance_ Var^∗^[·] is a conditional variance given the (random) sample.
+From now on its hard to use good terms.  One one side literature also uses only a few terms, and the few terms that are used are far from universal agreement.  And on the other side, when I tried to come up with a coherent set of terms, the individual terms become a so long sequence of words, that they become too unpractical.  I gave up and will mostly just symbols.  The terms I do use I more or less liked, but they are not at all in universally used in literature.
 
-E^∗^[θ̂^∗^] ≈ Ê^∗^[θ̂^∗^] = 1/B ∑^B^ θ̂^∗i^ +
-Var^∗^[θ̂^∗^] ≈ Var̂^∗^[θ̂^∗^] = 1/(B-1) ∑^B^(θ̂^∗i^ - Ê^∗^[θ̂^∗^])²
+_Bootstrapping an estimator_ θ̂ means sampling from P̂, delivering B bootstrap sample realization, the i-th denoted z~1~^∗i^, ..., z~n~^∗i^.  That then delivers B bootstrap estimator realizations (or _bootstrap replications_): θ̂^∗i^ = g(z~1~^∗i^, ..., z~n~^∗i^).  These B bootstrap estimator realizations then constitute the bootstrap distribution P^∗^.
 
-(*to-do* can I now say that Ê[θ̂] = Ê^∗^[θ̂^∗^] and likewise for variance? I thought that's one of the main points, having an estimator Var̂[θ̂])
+Pr^∗^[·] is a conditional probability given the original sample.  The (probability) sample space is the original sample, as opposed to the usual (probability) sample space being the population.
 
-Note that the script on p. 41 talks about boostrap expectation.  Instead of saying that we want to apprixmate E^∗^[...], we could say that we estimate it and write Ê^∗^[...] = .... Analgous for Var.
+The _bootstrap expectation_ E^∗^[·] (or E~P^∗^~[·]) is a conditional expectation given the original sample; the (probability) sample space is the original sample, as opposed to the usual (probability) sample space being the population.  I.e. changing the original sample will change the value of E^∗^[·].
+
+Likewise the _bootstrap variance_ Var^∗^[·] (or Var~P^∗^~[·]) is a conditional variance given the (random) original sample.
+
+The original problem included that we liked to know E[θ̂].  We can estimate E[θ̂] using E^∗^[θ̂^∗^] as an estimator. E^∗^[θ̂^∗^] is a consistent estimator for E[θ̂] if n is large, i.e. when <<bootstrap_consistency>> kicks in.  However we don't know that one either.  We can estimate E^∗^[θ̂^∗^] by averaging over the bootstrap replications θ̂^∗i^.  Ê^∗^[θ̂^∗^] is a good estimator for E^∗^[θ̂^∗^] if B is large. (*to-do* 1) is E^∗^[θ̂^∗^] ≈ Ê^∗^[θ̂^∗^] due to WLNN? 2) is Ê^∗^[θ̂^∗^] a consistent estimator for E^∗^[θ̂^∗^] -- or what is a a better term than `good' in ``Ê^∗^[θ̂^∗^] is a good estimator for E^∗^[θ̂^∗^] if B is large'')
+
+E[θ̂] ≈(large n) Ê[θ̂] = E^∗^[θ̂^∗^] ≈(large B) Ê^∗^[θ̂^∗^] = 1/B ∑^B^ θ̂^∗i^
+
+Likewise for variance:
+
+E[θ̂] ≈(large n) Ê[θ̂] = E^∗^[θ̂^∗^] ≈(large B) Ê^∗^[θ̂^∗^] = 1/(B-1) ∑^B^(θ̂^∗i^ - Ê^∗^[θ̂^∗^])²
+
+And for bias:
+
+bias[θ̂] = E[θ̂] - E[θ] ≈(large n) E^∗^[θ̂^∗^] - θ̂ ≈(large B) Ê^∗^[θ̂^∗^] - θ̂
+
+The _bootstrap quantile_ *to-do*
 
 
+[[bootstrap_consistency]]
 ==== Bootstrap consistency
 
 The boostrap is called to be _consistent_ with rate a~n~ for estimator θ̂ if for an increasing sequence a~n~, for all x:
 
-Pr[a~n~(θ̂-θ)≤x] - Pr*[a~n~(θ̂^∗^-θ̂)≤x] P→ 0 (as n→∞)
+Pr[a~n~(θ̂-θ)≤x] - Pr^∗^[a~n~(θ̂^∗^-θ̂)≤x] P→ 0 (as n→∞)
 
-In the left Pr[...], the estimator θ̂ is a random variable which is centered around the fixed unknown parameter θ. In the right Pr*[...], the bootstrap estimator θ̂^∗^ is random variable which is centered around the fixed realization of estimator θ̂ using the sample.  Typically a~n~ = √n.  Consistency of the boostrap typically holds if the limiting distribution of θ̂ is Normal, and if the original data Z~1~, ..., Z~n~ are iid.
+Explaining the formula:  For Pr^∗^[·] see previous chapter.  In the left Pr[...], the estimator θ̂ is a random variable and θ is fixed.  In the right Pr^∗^[...], the bootstrap estimator θ̂^∗^ is a random variable and θ̂ is the fixed realization of estimator θ̂ using the original sample.  Typically a~n~ = √n.  An oversimplified way is to think that θ̂-θ and θ̂^∗^-θ̂ must have the same CDF.
+
+Bootstrap consistency is important because it makes things work.  Consistency of the boostrap typically holds if the limiting distribution of θ̂ is Normal, and if the original data Z~1~, ..., Z~n~ are iid. (*to-do* 1) What is exactly meant with `the bootstrap'? Isn't it more precise to say that the bootsraped estimator θ̂^∗^ is consistent under the following condition - but then why use another formula than that of an consistent estimator? 2) Which things in the context of our lecture do work only due to bootstrap consistency? The estimators for E[θ̂], Var[θ̂] etc (the first approximation/estimation) 3) Why is the bootstrap usefull if I almost only can use it when θ̂ is asymptotically normal -- the problem statement was that I don't know θ̂'s distribution)
+
+Implication of bootstrap consistency: The shape of P^∗^ is that of θ̂. So they have same expectation, i.e. centered around same point, and same variance.  (*to-do* correctly phrased? see lecture slide5)
 
 Consistency of the boostrap implies consistent variance and bias estimation, i.e.:
 
-(E^∗^[θ̂^∗^]-θ̂) / (E[θ̂]-θ) P→ 1
-
+(E^∗^[θ̂^∗^]-θ̂) / (E[θ̂]-θ) P→ 1 +
 Var^∗^[θ̂^∗^] / Var[θ̂] P→ 1
 
 
@@ -1079,23 +1293,42 @@ Var^∗^[θ̂^∗^] / Var[θ̂] P→ 1
 
 ==== Bootstrap summary
 
+_Real world_: +
+sampling from P delivers sample (Z~1~, ..., Z~n~) +
+estimator θ̂ = g(Z~1~, ..., Z~n~) \~ unknown-distribution +
+θ̂'s value known since g(Z~1~, ..., Z~n~) can be computed
+
+_Boostrap world_: +
+sampling from P̂ delivers bootstrap sample (Z~1~^∗^, ..., Z~n~^∗^) +
+bootstraped estimator θ̂^∗^ = g(Z~1~^∗^, ..., Z~n~^∗^) ~ P^∗^ +
+Distribution P^∗^ given by the B bootstrap sample realizations
+
 [cols="1,3"]
 |=====
-| B                          | Number of bootstrap iterations
-| P                          | The unknown distribution of Z~1~, ..., Z~n~
+| B                          | Number of bootstrap samples
+| P                          | The unknown distribution of the (original) sample Z~1~, ..., Z~n~
 | P̂                         | Estimate of P. Empirical distribution of Z~1~, ..., Z~n~ which places probability mass 1/n on very data point Z~i~.
 | Z~1~, ..., Z~n~ iid ~ P    | (Original) sample
-| Z~1~^∗^, ..., Z~n~^∗^ iid \~ P̂ |  Bootstrap sample (or simulated data)
-| θ (or θ~0~)                  | Unknown parameter
+| Z~1~^∗^, ..., Z~n~^∗^ iid ~ P̂ |  Bootstrap sample (or simulated data)
+| z~1~^∗i^, ..., z~n~^∗i^    | i-th bootstrap sample realization
+| θ (or θ~0~)                | Unknown parameter
 | g                          | Function underlying the estimator θ̂
-| θ̂ (or θ̂~n~)              | Estimator for θ.  θ̂'s distribution is unknown, but we would like to know it.
-| P^∗^                       | Bootstrap distribution. Distribution of θ̂^∗^.  Is a conditional distribution given the data.
-| θ̂^∗^                      | Boostraped estimator
-| Ê^∗^[θ̂^∗^] = 1/B ∑^B^ θ̂^∗i^     | Estimator for E^∗^[θ̂^∗^]
-| E^∗^[θ̂^∗^] ≈ Ê^∗^[θ̂^∗^]         | Bootstrap expectation of θ̂^∗^
-| (E^∗^[θ̂^∗^]-θ̂) / (E[θ̂]-θ) P→ 1 | 
-| Var^∗^[θ̂^∗^] ≈ 1/(B-1) ∑^B^(θ̂^∗i^ - 1/B ∑^B^ θ̂^∗i^)² | Approximation for bootstrap variance of θ̂~n~^∗^.
-| Var^∗^[θ̂^∗^] / Var[θ̂] P→ 1 |
+| θ̂ (or θ̂~n~) = g(Z~1~, ..., Z~n~) | Estimator for θ.  θ̂'s distribution is unknown, but we would like to know it.
+| Pr^∗^[·]                   | Conditional probability given the original sample.
+| E^∗^[·] (or E~P^∗^~[·])    | Bootstrap expectation. Conditional expectation given the original sample
+| Var^∗^[·] (or Var~P^∗^~[·])| Bootstrap variance. Conditional variance given the original sample
+| θ̂^∗^                      | Boostraped estimator. Random variable, the (probability) sample space being the original sample.
+| θ̂^∗i^ = g(z~1~^∗i^, ..., z~n~^∗i^) | i-th bootstraped estimator realisation
+| P^∗^                               | Bootstrap distribution. Distribution of θ̂^∗^.  Is a conditional distribution given the original sample.
+| E[θ̂] ≈ Ê[θ̂] | large n
+| Ê[θ̂] = E^∗^[θ̂^∗^] ≈ Ê^∗^[θ̂^∗^] | ≈ large B
+| Ê^∗^[θ̂^∗^] = 1/B ∑^B^ θ̂^∗i^ |
+| Var[θ̂] ≈ Var̂[θ̂] | large n
+| Var̂[θ̂] = Var^∗^[θ̂^∗^] ≈ Var̂^∗^[θ̂^∗^] | ≈ large B
+| Var̂^∗^[θ̂^∗^] = 1/(B-1) ∑^B^(θ̂^∗i^ - Ê^∗^[θ̂^∗^])² |
+| bias[θ̂] = E[θ̂] - E[θ] ≈ biaŝ[θ̂] | large n
+| biaŝ[θ̂] = E^∗^[θ̂^∗^] - θ̂ ≈ biaŝ^∗^[θ̂^∗^] | ≈ large B
+| biaŝ^∗^[θ̂^∗^] = Ê^∗^[θ̂^∗^] - θ̂ |
 |=====
 
 
@@ -1221,7 +1454,7 @@ A _metric space_ M is an ordered pair (S, d) where S is a set and d is a metric 
 d(x,y) ≥ 0 [small]#(non-negatity)# +
 d(x,y) = 0 ⇔ x = y [small]#(identity of indiscernibles)# +
 d(x,y) = d(y,x) [small]#(symmetry)# +
-d(d,z) ≤ d(d,y) + d(dy,z) [small]#(triangle inequality)#
+d(x,z) ≤ d(x,y) + d(y,z) [small]#(triangle inequality)#
 
 A _right angle_ is an angle of exactly 90° (π/2 radians).  Two vectors are _perpendicular_ iff their angle is a right angle, or equivalently, if their scalar product is zero.  A set of vectors is _orthogonal_ iff they are pairwise perpendicular.  A _normal_ vector of a point on a smooth surface is any vector perpendicular to the plane.
 
