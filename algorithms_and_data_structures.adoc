@@ -25,22 +25,73 @@ Output-sensitive algorithm:: An algorithm whose running time depends on the size
 
 A _model of computation_ formally scpecifies what a computer can do and what each operation costs (e.g. in terms of running time or space).
 
-*to-do* turing macine, state automaton
+--------------------------------------------------
+              cell probe              stronger
+                  |
+          Transdichotomous RAM (Word RAM or AC0 RAM)
+                  |
+            Pointer Machine
+                  |
+                 BST                  weaker
+--------------------------------------------------
+
+*to-do* turing machine, state automaton
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2007, lecture 12 integers: https://courses.csail.mit.edu/6.851/spring07/scribe/lec12.pdf[lecture notes]
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 11 Integer: https://courses.csail.mit.edu/6.851/spring12/scribe/L11.pdf[lecture notes], https://www.youtube.com/watch?v=u-HHY1ylhHY&index=11&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
+
+- pointer machine model: MIT course 6.851 Advanced Data Structures, spring 2012, lecture 1 Persistent data structres: https://courses.csail.mit.edu/6.851/spring12/scribe/lec1.pdf[lecture notes], https://www.youtube.com/watch?v=T0yzrZL1py0&t=0s&index=1&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf[video]
+
+- Word RAM, AC^0^ RAM: An In-Depth Analysis of Data Structures Derived from van-Emde-Boas-Trees, chapter 2.1 w-bit Word RAM and the AC^0^ Instruction Set: http://www.mi.fu-berlin.de/inf/groups/ag-ti/theses/download/Ehrhardt15.pdf
+
+
+[[cell_probe_model]]
+==== Cell probe model
+
+Memory consists of a set of cells / words which have word size w.  Word size w is a parameter of the model.  In this model, we just count number of word loads and stores to memory; computation is free.
+
+Used for lower bounds. If you can proof you need to do that many loads, then you also need to do at least that many operations.
+
 
 [[RAM_model]]
 ==== Random Access Machine (RAM) model
 
-Random access memory modeled by huge array of words. The size of the array is left undefined.  A _word_ is defined has having w bits.  Since a word should be able to be used as an index into the big array, we usually want w ≥ log~2~(arraysize). The CPU has O(1) _registers_, each being able to store one word.  In O(1) time, we can _load_ O(1) words from that array into registers, do O(1) _computations_ with registers, and _store_ O(1) words from registers into that array.
+A specialization of the cell probe model.  Memory is now random access and modeled by an array S, opposed to a set, of cells / words.  The array size S as well as the word size w are parameters of the model.  The CPU has O(1) _registers_, each being able to store one word.  In O(1) time, we can _load_ O(1) words from that array into registers and _store_ O(1) words from registers into that array.  Nothing is yet said about cost of computation with registers.
 
-Note that RAM is also used to mean Random Access Memory, which is not quite the same thing.
+Note that the term RAM is also used to mean Random Access Memory, which is not quite the same thing.
+
+
+[[transdichtomous_RAM_model]]
+==== Transdichotomous RAM model
+
+A specialization of the RAM model. The word size w ≥ log~2~ n matches the problem size n.  Also the memory is large enough to hold the problem size, so memory array size S ≥ n.  The goal in this model is to find time bounds which depend only on n and not on w or the size of the individual elements of the problem.  Still, nothing is yet said about cost of computation with registers, see the instanciations of this model, word RAM and AC^0^ RAM.
+
+Trivia: Term was choosen because with w ≥ log~2~ n, the dichotomy (cuting in half) between the machine model using words of size w and the problem size n is crossed in a reasonable manner.
+
+
+[[word_RAM_model]]
+==== (w-bit) Word RAM model
+
+Is an instanciation of the transdichotomous RAM model.  We can do ``C-Style'' operations (basic arithmetic, boolean logic and bitwise operations) with the registers in O(1) time.
+
+Is the standard model of computation. If you don't use this one, you have to say so.
+
+
+[[AC0_RAM]]
+==== AC^0^ RAM model
+
+Is an instanciation of the transdichotomous RAM model.  The operations with the registers must have an implementation by a constant-depth, unbounded fan-in, polynomial-size (in w) circuit. Practically, it allows all the operations of word RAM except for multiplication in constant time.
 
 
 [[pointer_machine_model]]
 ==== Pointer machine model
 
-We have dynamically allocated _objects_ (or _nodes_).  An object has O(1) fields.  A _field_ is either a word or pointer.  A _pointer_ (or _reference_) either refers to an object or has the special value null (or nil).  All the elementary things you can do with pointers / words cost O(1) time.
+We have dynamically allocated _objects_ (or _nodes_).  An object has O(1) fields.  A _field_ is either a word or pointer.  In other words, in this model data structures are described by a directed graph with constant branching factor.  A _pointer_ (or _reference_) either refers to an object or has the special value null (or nil).  All the elementary things you can do with pointers / words cost O(1) time.
 
-The pointer machine model is weaker than the RAM model, i.e. it can be implemented on RAM.
+The pointer machine model is weaker than the RAM model, i.e. it can be implemented on RAM. However in order to implement pointers, i.e. in order to be able to index every memory array element, we need w ≥ log~2~ S, where w is the word size and S the memory array size.
 
 
 === Asymptotic notation / big O notation
