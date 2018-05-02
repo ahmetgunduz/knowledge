@@ -1011,6 +1011,58 @@ References:
 - Stanford University course CS 166 Data Structures, http://web.stanford.edu/class/archive/cs/cs166/cs166.1146/lectures/04/Small04.pdf
 
 
+[[predecessor_problem]]
+=== Predecessor problem
+
+A data structure solving the _predecessor problem_ .  Given a universe U of integers, where |U| = u ≤ 2^w^, and where w is the word size.  Maintain a subset S of U, |S| = n, and provide predecessor and successor queries.
+
+static predecessor operations:
+
+_predecessor(x)_: max{y∈S|y<x}. Note that it's x ∈ U, opposed to x ∈ S.
+
+_successor(x)_: Analogous to predecessor.
+
+_find(x)_: Return x if x∈S, and NIL otherwise.
+
+dynamic predecessor adds these operations:
+
+_insert(x)_: Insert integer x ∈ U
+
+_delete(x)_: Delete integer x ∈ S
+
+The problem is typically analyzed in a transdichotomous model of computation such as word RAM.
+
+Applications:
+
+- Integer sorting *to-do*
+
+- Special case of nearest neighbor *to-do*
+
+Y-Fast tree vs van Emde Boas tree with hash tables: *to-do* Y-fast tree is simpler?
+
+Solutions / Implementations:
+
+|=====
+|                    | predecessor query| update                     | space      | notes
+| hash table         | O(n) ☹           | O(1) whp ☺                | O(n)       |
+| BBST               | Θ(log n)         | O(log n)                   | Θ(n)       |
+| <<basic_vEB_tree>> | O(log log u) ☺  | O(log log u) ☺             | Θ(u) ☹    |
+| <<vEB_tree_with_hash_tables>>| O(log log u) ☺ | O(log log u) whp    | Θ(n)       |
+| <<x_fast_tree>>    | O(log log u) ☺  | O(log u) whp               | O(n log u) |
+| <<x_fast_trie>>    | *to-do*          |                            |            |
+| <<y_fast_tree>>    | O(log log u) ☺  | O(log log u) whp amortized | Θ(n)       |
+| <<y_fast_trie>>    | *to-do*          |                            |            |
+| <<fusion_tree>>    | O(log n / log log u) whp | O(log n / log log u) whp   | Θ(n)       |
+|=====
+
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 11 Integer: https://courses.csail.mit.edu/6.851/spring12/scribe/L11.pdf[lecture notes], https://www.youtube.com/watch?v=u-HHY1ylhHY&index=11&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
+
+- An In-Depth Analysis of Data Structures Derived from van-Emde-Boas-Trees, chapters 1.1 The Predecesor Problem -- chapter 1.3 Known Lower and Upper Bounds: http://www.mi.fu-berlin.de/inf/groups/ag-ti/theses/download/Ehrhardt15.pdf
+
+
 == Misc. Data structures
 
 This chapter is about miscellaneous concrete data structures.  Further concrete data structures are spread all over chapters discussing specific areas, such as <<computational_geometry>> or <<strings>> for example.  See also chapter <<data_structures>>, which is about topics related to data structures in general.
@@ -1418,13 +1470,249 @@ A variant of a B tree which stores all values in the leave nodes, never in inter
 
 
 [[vEB_tree]]
-=== Van Emde Boas tree (aka vEB tree)
+=== van Emde Boas tree (aka vEB tree)
 
-Is a tree data structure implementing the ordered <<associative_array>> ADT with m-bit integer keys. It performs all operations in O(lg m) time. The vEB tree has good space efficiency when it contains a large number of elements
+Is a tree data structure solving the <<predecessor_problem>>.  Quick refresher: Given universe U of integers, word size w, maintain subset S of U. |U| = u ≤ 2^w^, |S| = n.  In its basic variant it performs all operations in O(log log u) time but uses Θ(u) space, which is a hell lot.  In its hashing table variant it uses O(log log u) time w.h.p per operation and Θ(n) space.
+
+Idea: Recursively split U into √u clusters (or chunks). An integer x can be decomposed into x = <c, i>, where c denotes its chunk index and i the index within that chunk.  The following defines the transformations, where the 2nd = is for the usual case where u = 2^w^.
+
+c = ⌊x / √u⌋ = x >> (w/2) = the rigth half of x's bits +
+i = x mod √u = x & (1<<(w/2) - 1) = the left half of x's bits +
+x = c·√u + i = c << (w/2) | i = concatenate bits
+
+Another viewpoint, which, as written here, only becomes clear once you understand the van Emde Boas tree.  We want to build a data structure such that the time T(u) per operation can be given by the recurence relation T(u) = 1·T(√u) + O(1) = O(log log u), where the later equal sign is due to the master theorem.  Thus we can only afford one (the factor before T(√u)) further recursive call per recursion.
+
+Applications:
+
+- solves <<predecessor_problem>>
+
+- *to-do* alternative to bst. google for more applications
+
+- network routers
+
+In the cell probe model, van Emde Boas tree is optimal when w = O(poly log n).
 
 References:
 
 - MIT Course 6.046J Design and Analysis of Algorithms, Spring 2015, Lecture 4 Divide & Conquer: van Emde Boas Trees: https://www.youtube.com/watch?v=hmReJCupbNU&list=PLUl4u3cNGP6317WaSNfmCvGym2ucw3oGp&index=6
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 11 Integer: https://courses.csail.mit.edu/6.851/spring12/scribe/L11.pdf[lecture notes], https://www.youtube.com/watch?v=u-HHY1ylhHY&index=11&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
+
+- Book "Introduction to algorithms" aka CLRS (3rd Edition), chapter "20 van Emde Boas Trees"
+
+- Stanford university course CS166 Data Structures, Lecture 14, van Emde Boas Trees: http://web.stanford.edu/class/archive/cs/cs166/cs166.1166/lectures/14/Slides14.pdf
+
+- An In-Depth Analysis of Data Structures Derived from van-Emde-Boas-Trees: http://www.mi.fu-berlin.de/inf/groups/ag-ti/theses/download/Ehrhardt15.pdf
+
+
+[[basic_vEB_tree]]
+==== Basic van Emde Boas tree
+
+Data structure: We solve the predecessor problem in a divide and conquer approach.  We use a n-ary tree.  A node v at depth d stores a set of integers from a universe of size u~d~ = 2^w~d~^ and uses a word size w~d~ = w / 2^d^.  Node v has 1 + √u~d~ children.  One child is v's summary, the other √u~d~ children are v's clusters.  The summary child stores the indicies of v's non-empty clusters.  So if node v stores the integer x = <c, i>, and x is not the minimum element stored by v, then the child v.summary stores c while the child v.clusters[c] stores i.  This is the recursion part.  If x is the minimum element stored by v, then its directly stored in v.min and nowhere else.  This is the main base case of the recursion.  A copy of the maximum element stored by v is stored in v.max, besides being stored within one of v's clusters or as v.min.  On the lowest tree level with u~d~ = 2,  there is no summary and there are no clusters, and thus if v.max ≠ v.min, the value stored in max is stored nowhere else.  This is the other base case of the recursion.  Thus the min attribute in every node together with the max attribute of some nodes on the lowest level are the only places where the tree actually stores elements.
+
+To handle the special case of an empty node, most authors set the min attribute to NIL.  That potentially results in large `unused' subtrees, where all nodes in the subtree have their min attribute set to NIL.  From a conceptual point of view I personally find it simpler to omit storing a subtree storing the empty set by making the parent point to NULL.  However a small caveat is that it introduces a new special case, namely when the complete structure is empty.  However that can be dealt with one single top level flag.  From a asymptotic complexity analysis point of view the two variants are equivalent.
+
+--------------------------------------------------
+ S = {2,3,4,5,7,14,15}     (...) elements/integers in original S
+                           <...> elements/integers in a original summary
+                           $     nodes of a summary subtree
+
+ depth 0, u=16, w=4 depth 1, u=4, w=2        depth 2, u=2, w=1
+
+ [S = {2,3|4,5,7||14,15}]
+ min=2
+ max=15
+ c[0]-- 0---------> [S = {|3} (|3)]
+ c[1]-- 4-------+   min=3 (3)
+ c[2]-- 8->NULL |   max=3 (3)
+ c[3]--12----+  |   c[0]--0 ( 0)-->NULL
+ summary--+  |  |   c[1]--2 ( 2)-->NULL
+          |  |  |   summary------->NULL
+          |  |  |
+          |  |  +-> [S = {0,1|3} (4,5|7)] +-> [S = {1} (5)]
+          |  |      min=0 (4)             |   min = 1 (5)
+          |  |      max=3 (7)             |   max = 1 (5)
+          |  |      c[0]--0 ( 4)----------+   
+          |  |      c[1]--2 ( 6)------------> [S = {1} (7)]
+          |  |      summary---------------+   min = 1 (7)
+          |  |                            |   max = 1 (7)
+          |  |                            |
+          |  |                            +->$[S = {0,1}]
+          |  +----> [S = {|2,3} (|14,15)]     min = 0
+          |         min=2 (14)                max* = 1
+          |         max=3 (15)                       
+          |         c[0]--0 (12)-->NULL                       
+          |         c[1]--2 (14)------------> [S = {1} (15)]
+          |         summary---------------+   min = 1 (15)
+          |                               |   max = 1 (15)
+          |                               |
+          |                               +->$[S = {1}]
+          +------->$[S = {0,1|3}]             min = 1
+                    min=0                     max = 1
+                    max=3                      
+                    c[0]--0----------------->$[S = {1} <1>]
+                    c[1]--2---------------+   min = 1 <1>
+                    summary------------+  |   max = 1 <1>
+                                       |  |
+                                       |  +->$[S = {1} <3>]
+                                       |      min = 1 <3>
+                                       |      max = 1 <3>
+                                       |
+                                       +--->$$[S = {0,1}]
+                                              min = 0
+                                              max* = 1
+--------------------------------------------------
+
+Operations: *to-do*
+
+Time analysis for all operations: O(log log u) *to-do*
+
+Space analysis: Θ(u) *to-do*
+
+Trivia: van Emde Boas originally presented the data structure in a different, more complicated way, with slightly different bounds.  See also <<vEB_tree_simple_tree_view>>, which presents a data structure closer to his first idea.
+
+
+[[vEB_tree_with_hash_tables]]
+==== van Emde Boas tree with hash tables
+
+The goal is to reduce the exorbitant Θ(u) space usage.  Indeed we can reach the optimal space bound Θ(n).  We pay with that updates are now w.h.p. instead worst-case.
+
+The idea is that we no longer store empty clusters.  v.clusters is no longer an array of size √u containing pointers to childs, it is now a dynamic perfect hash table containing up to √u pointers to childs.
+
+Query analysis: O(log log u). This follows from hash table's O(1) and the O(log log u) of the basic van Emde Boas tree.
+
+Update analysis: O(log log u) w.h.p. This follows from hash table's O(1) w.h.p and the O(log log u) of the basic van Emde Boas tree.
+
+Size Analysis: Θ(n). We're doing amortized analysis, looking at node v.  Charge the cost of storing the hash table entry v.cluster[c] to v.cluster[c].min. Also charge the cost of storing c within v.summary's subtree to v.cluster[c].min.  Each element of S is stored in one min atttribute, ignoring that some elements of S might be stored in the max attribute of leaves. Thus there are Θ(n) min attributes storing elements from S.  Each of those min attributes is charged with at most two amortized cost units, because the charge can only come from the parent in two ways, and there is only one parent.  Thus the overal cost is Θ(n).
+
+
+[[vEB_tree_simple_tree_view]]
+==== van Emde Boas tree, simple tree view
+
+This chapter is primarily meant as a building block for <<x_fast_tree>> and <<y_fast_tree>>. It also roughly presents van Emde Boas' original idea.  He still originally presented it in a different way.  He was using way more pointers.  He called his data structure  _stratified tree_.
+
+Data structure: We conceptually have a bit vector of size u. The i-th bit indicates wether or not integer i is in S.  The bit vector is taken as the leaves of a complete binary segment tree.  Each internal node is the logic or of its children.  Followingly any path from leaf to root is a monoton sequence of 0s and 1s.  I.e. there is only one transition, and it's a transition from 0 to 1.  The leaves being 1, i.e. the elements of S, are connected via a doubly linked list, i.e. each element of S knows its successor and predecessor.  Also, each internal node stores a pointer to the min and max leaf of its subtree.  The complete binary tree is stored in an array like a binary heap.
+
+--------------------------------------------------
+                1                internal nodes
+        1               1        = logic of children
+    1       0       1       1
+  1   0   0   0   1   1   0   1
+ 0 1 0 0 0 0 0 0 0 1 1 0 0 0 0 1 leaves = bit vector of size u
+                                 1's are in doubly linked list
+--------------------------------------------------
+
+predecessor(x∈U): If x ∉ S, i.e. bitvector[x] = 0: In path x to root, find first 0-1 transition using binary search.  We can do a binary search since the complete binary tree is stored in an array like a binary heap.  Let node v denoting the found 1. If we came from the right, i.e. v.right = 0, then we return v.left.max.  Otherwise, we return predecessor of v.right.min, which we can do since the 1 leaves are linked by a doubly linked list. If x ∈ S, i.e. bitvector[x] = 1: thanks to the doubly linked list of 1 leaves we directly can return the predecessor.
+
+successor(x∈U): Analogous
+
+insert(x∈U) / delete(x∈S): See binary heap to insert/delete nodes, see segment tree to update internal nodes.
+
+query time analysis: O(log log u). Being a complete binary tree, the max path length is log u.  We can jump to the 2^i^-th ancestor in O(1) time, because we store the complete binary tree like a binary heap.  A binary search in a path is thus O(log log u). The rest are O(1) nuisance steps.
+
+update time analysis: O(log u).  Comes from cost of updating internal nodes on the path from leaf to root.  See also segment tree, and binary heap.
+
+space analysis: O(u), since it's a complete binary tree having u leaves.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 11 Integer: https://courses.csail.mit.edu/6.851/spring12/scribe/L11.pdf[lecture notes], https://www.youtube.com/watch?v=u-HHY1ylhHY&index=11&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
+
+
+[[x_fast_tree]]
+=== X-fast tree
+
+Don't confuse with <<x_fast_trie>>.
+
+This chapter is only intended as a preliminary step towards <<y_fast_tree>>.  Is a tree data structure solving the <<predecessor_problem>>.  Quick refresher: Given universe U of integers, word size w, maintain subset S of U. |U| = u ≤ 2^w^, |S| = n.
+
+Motivation: Reduce the terrible O(u) space complexity of <<vEB_tree_simple_tree_view>>, without making any operation slower.
+
+Core idea: Mentally start out with <<vEB_tree_simple_tree_view>>, but cherry pick only the 1 nodes, and store them in a hash table.
+
+Data structure:  Imagine the tree as presented in <<vEB_tree_simple_tree_view>>.  Recall that integer x was figuratively stored in bitvector[x], and the bitvector constitutes the leaves of the tree.  Imagine that each left outgoing edge is labeled 0, each outgoing right edge is labeled 1.  A path from the root to the leaf containing integer x is then directly the binary representation of x.  Recall that each internal node stores the logical or of its two children.  The idea is to store only the 1 nodes of the tree in a dynamic perfect hash table.  We keep the additional information of those nodes.  Namely that the 1 leaves form a doubly linked list, and that each internal 1 nodes has a pointer to its min leaf and to its max leaf.  As key for the hash table we use the binary string given by the edge labels on the path from root to v.  In other words, for each integer x ∈ S stored by this data structure, all w = log u prefixes of x's binary representation are stored in the hash table.
+
+predecessor(x∈U): Same algorithm as before. The binary search in principle still works the same way.  Starting with x's full binary representation string, we can half it in each iteration and query the hash table.  If the hash table doesn't have such an key/node, it means it was a 0 node.
+
+query time analysis: O(log log u). From a asymptotic complexity point of view, nothing changed relativ to <<vEB_tree_simple_tree_view>>.
+
+update time analysis: O(log u) w.h.p. As in <<vEB_tree_simple_tree_view>>, except it's now w.h.p.
+
+space analysis: O(nw) = O(n log u).  For each stored element x, we store all w = log u prefixes of x's binary representation.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 11 Integer: https://courses.csail.mit.edu/6.851/spring12/scribe/L11.pdf[lecture notes], https://www.youtube.com/watch?v=u-HHY1ylhHY&index=11&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
+
+- MIT course 6.897 Advanced Data Structures, spring 2003, lectur 2, chapter 5 y-fast Trees: https://courses.csail.mit.edu/6.897/spring03/scribe_notes/L2/lecture2.pdf[lecture notes]
+
+
+[[x_fast_trie]]
+=== X-fast trie
+
+Don't confuse with <<x_fast_tree>>.
+
+*to-do* Is this really different from X-fast tree? I think we don't need the trie at all, we just need to store the nodes in a hash table, as explained in X-fast tree.
+
+- Stanford University course CS 166 Data Structures, lecture 15 x-Fast and y-Fast Tries: http://web.stanford.edu/class/archive/cs/cs166/cs166.1166/lectures/15/Slides15.pdf
+
+- An In-Depth Analysis of Data Structures Derived from van-Emde-Boas-Trees: http://www.mi.fu-berlin.de/inf/groups/ag-ti/theses/download/Ehrhardt15.pdf
+
+
+[[y_fast_tree]]
+=== Y-fast tree
+
+Don't confuse with <<y_fast_trie>>.
+
+Is a tree data structure solving the <<predecessor_problem>>.  Quick refresher: Given universe U of integers, word size w, maintain subset S of U. |U| = u ≤ 2^w^, |S| = n.  Achieves the same bounds as <<vEB_tree_with_hash_tables>>, namely Θ(n) space and O(log log u) w.h.p. per operation (update is amortized).
+
+Motivation: Modify an X-fast tree in order to reach the same time and space complexity as <<vEB_tree_with_hash_tables>>.
+
+Core idea: Indirection: The top tree is an X-fast tree, the bottom trees are BBSTs. Each bottom tree chooses an representative, which is stored by the top tree.
+
+Data structure: Concptually we start with an X-fast tree.  Then we apply indirection: We partition the consecutive n elements to be stored by the complete data structure into O(n / log u) clusters of size Θ(log u) each.  Each cluster is stored using a BBST.  Each cluster chooses an representative element.  Given a cluster, its representative can be any integer x such that max(cluster) ≤ x < min(cluster.nextcluster).  Note that the representative does not need to be one of the integers stored by the complete data structure.  The parent tree, implemented using an X-fast tree, stores these O(n / log u) representatives.
+
+predecessor(x∈U): In top tree find predecessor of x, giving us a representative of a bottom tree t.  Now query t's next bottom tree.
+
+insert(x∈U) / delete(x∈S):  Find cluster / bottom tree where x should fit in or is.  Insert or delete x from that bottom tree.  Now we need to ensure that the bottom tree's size remains Θ(log u).  To be more specific, say we want the size to be within [1/2 log u, 2 log u].  If its too large, split in two.  If its too small, merge with a neighbor, which then might result in a split.  Of course each merge split also has to update the top tree.
+
+query analysis: O(log log u).  Query in the top tree costs O(log log u).  A bottom tree stores nʹʹ = Θ(log u) elements, thus a query costs O(log nʹʹ) = O(log log u).
+
+update analysis: O(log log u) w.h.p. amortized. The query to find the element costs O(log log u) w.h.p, see query analysis.  <<split_tree,Spliting>> a bottom tree costs O(log nʹʹ) = O(log log u), <<concatenate_trees,concatenating>> two bottom trees costs O(1).  Any time we split or merge, we only have to update a constant number of representatives in the top tree, each update costing O(log u) w.h.p.  So one split or merge costs O(log u) w.h.p overall.  However, each cluster is only ever splitted or merged after Ω(log u) updates.  Recall that cluster size is Θ(log u), i.e. independent of n.  So one split or merge costs O(log u / log u) = O(1) w.h.p. amortized.  The bottom line is that the update cost is dominated by the O(log log u) query time.
+
+space analysis: O(n). The top tree stores nʹ = O(n / log u) representatives, which needs O(nʹ log u) = O(n) space.  Each bottom tree needs also needs linear space.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2007, lecture 12 integers: https://courses.csail.mit.edu/6.851/spring07/scribe/lec12.pdf[lecture notes]
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 11 Integer: https://courses.csail.mit.edu/6.851/spring12/scribe/L11.pdf[lecture notes], https://www.youtube.com/watch?v=u-HHY1ylhHY&index=11&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
+
+
+[[x_fast_trie]]
+=== Y-fast trie
+
+Don't confuse with <<y_fast_tree>>.
+
+*to-do* See same considerations in X-fast trie.
+
+References:
+
+- Stanford University course CS 166 Data Structures, lecture 15 x-Fast and y-Fast Tries: http://web.stanford.edu/class/archive/cs/cs166/cs166.1166/lectures/15/Slides15.pdf
+
+- An In-Depth Analysis of Data Structures Derived from van-Emde-Boas-Trees: http://www.mi.fu-berlin.de/inf/groups/ag-ti/theses/download/Ehrhardt15.pdf
+
+
+[[fusion_tree]]
+=== Fusion tree
+
+Is a tree data structure solving the <<predecessor_problem>>.  Quick refresher: Given universe U of integers, word size w, maintain subset S of U. |U| = u ≤ 2^w^, |S| = n.
+
+*to-do*
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 12 ? *to-do*
 
 
 [[cartesian_tree]]
