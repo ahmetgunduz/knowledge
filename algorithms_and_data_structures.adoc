@@ -133,8 +133,6 @@ _worst case_ / _average case_ / _best case_ refers to the worst / average / best
 
 _Asymptotic efficiency_: Only look at rate of growth.  An algorithm is said to be _asymptotically optimal_ if, roughly speaking, its big-oh is equal to the big-oh of the best possible algorithm.
 
-_amortized time_: `amortized +O(f)+' for operation o: In a sequence of length L of such o operations, the overall time is +O(L*f)+.  I.e. one of those o operations might use a particular large amount of time compared to the average case, but that time is amortized in the large.  A typical example is appending to an array; if the capacity is full, a new array of larger capacity needs to be allocated, and the data has to be copied.  *to-do* <<potential_function>>, bankers method, aggregate method http://web.stanford.edu/class/archive/cs/cs166/cs166.1146/lectures/05/Small05.pdf , https://www.cs.cornell.edu/courses/cs3110/2013sp/lectures/lec21-amortized/lec21.html
-
 An event E occures _with high probability_ (or __w.h.p.__ or _WHP_) if Pr(E) ≥ 1 - n^-c^ for any constant c.  I.e. we can make Pr(E) as close to 1 as we want by making c large enough.
 
 Common functions ordered after order of growth:
@@ -165,6 +163,62 @@ References:
 - http://stackoverflow.com/questions/1364444/difference-between-big-o-and-little-o-notation
 
 - http://stackoverflow.com/questions/2986074/algorithm-analysis-orders-of-growth-question
+
+
+[[amortized_analysis]]
+==== Amortized analysis
+
+Operation o costs O(f(n)) _amortized_ means that the cost is O(f(n)) on average over time.  Recall that usually when we talk about average costs or worst case costs, we mean it with respect to possible input.  The motivation for amortized analysis is that traditional worst-case per operation analysis can be too pessimistic.  E.g. appending to an dynamic array is O(n) worst case per operation, but O(1) amortized.
+
+*to-do* In amortized analysis, we average over time, but then always look at worst case input each time? E.g. never at average case or worst case input?
+
+*to-do* at least in the banker's method, there seem to be two use cases. One is for e.g. that dynamic array insertions is O(1) amortized, i.e. n insers cost O(n) all together, i.e. most inserts really only cost O(1), but some really cost O(n).  The other use case seem to be to proof that actually the worst case is such an such, that is the bound that I get is worst case, not amortized.
+
+References:
+
+- Stanford University course CS 166 Data Structures: http://web.stanford.edu/class/archive/cs/cs166/cs166.1146/lectures/05/Small05.pdf
+
+- http://www.cs.cmu.edu/afs/cs/academic/class/15750-s01/www/notes/lect0123
+
+
+===== Aggregate method
+
+*to-do*
+
+
+===== Banker's Method
+
+At certain times we conceptually put tokens (aka amortized cost) on an entity of an data structure.  We do this e.g. in cheap operations.  The tokens we invest must apear as costs in the amortized analysis of those otherwise cheap operations.  Later, we conceptually can use those tokens in expensive operations by withdrawing them from the entity.  So in the analysis of those otherwise expensive operations the costs don't appear because the costs where already paid with tokens.  This is purely a technique for complexity analysis, e.g. to prove lower or upper bounds.
+
+Exampmle: Table doubling of dynamic arrays.  We say that each insert costs at most three tokens. One token is immediately used for the actual insertion.  Here the concept of a token might be slightly overkill, it's just the usual cost analysis.  If the new element is in the 2nd half of the array, we put two tokens on it.  Here we really make use of the concept.  Once we have to do a table doubling, we pay the cost of that table doubling using the tokens on the elements in the 2nd half.  So in asympototic complexity analysis the cost of doubling is now O(0), because we already paid for earlier.  So the cost of an insertion is O(3) amortized = O(1) amortized.
+
+--------------------------------------------------
+          $$$$
+          $$$$
+  A: |xxxxxxxx|
+      01234567
+  capacity 8            we use tokens to pay
+                        cost of doubling
+
+  A: |xxxxxxxx........|
+      0123456789012345
+  capacity 16
+
+              $         we pay two tokens for
+              $         inserting elements
+  A: |xxxxxxxxx.......| (exclusive potential doubling)
+      0123456789012345  after capacity/2
+  capacity 16
+--------------------------------------------------
+
+*to-do* however sometimes we actually do modify the data structure, see e.g. <<dynamic_connectivity_in_log2_n>>
+
+
+===== Potential function (Physicist's method)
+
+Is just a more formal version of banker's method
+
+*to-do* move <<potential_function>> (aka physicist's method) to here
 
 
 [[master_theorem]]
@@ -3955,6 +4009,8 @@ References:
 
 [[potential_function]]
 === Potential Functions and Amortized Costs
+
+*to-do* move to <<amortized_analysis>>
 
 In what follows, we consider online minimization problems and deterministic online algorithms. Let C~ALG~ denote the set of configurations of an online algorithm ALG, and likewise C~OPT~ for an arbitrary optimal algorithm OPT.  A _potential function_ Φ is a function Φ : C~ALG~ ⨯ C~OPT~ → ℝ or Φ : 𝓘 → ℝ.  We call Φ(x~i~) the _potential_ of ALG in time step T~i~.  Figuratively, the potential is a bank account with which we can pay future high costs.  We call cost(ALG(x~i~)) the _real cost_ of ALG on request x~i~.  The _amortized cost_ of ALG on request x~i~ is defined as amcost(ALG(x~i~)) = cost(ALG(x~i~)) + Φ(x~i~) - Φ(x~i-1~).  It can be interpreted as the average cost per request that is caused by processing some instance.
 
