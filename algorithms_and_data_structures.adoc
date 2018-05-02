@@ -1,6 +1,7 @@
 // The markup language of this document is AsciiDoc
 :encoding: UTF-8
-:toc::toclevels: 4
+:toc:
+:toclevels: 4
 
 = Algorithms and data structures
 
@@ -670,6 +671,10 @@ A _persistent data structure_ is a data structure that always preserves the prev
   o <--- o
 --------------------------------------------------
 
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 1 Persistent data structres: https://courses.csail.mit.edu/6.851/spring12/scribe/lec1.pdf[lecture notes], https://www.youtube.com/watch?v=T0yzrZL1py0&t=0s&index=1&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf[video]
+
 
 [[dynamic_data_structures]]
 === Dynamic data structures / static data structures
@@ -919,8 +924,6 @@ References:
 [[dynamic_connectivity]]
 === Dynamic connectivity
 
-*to-do*: Move to Graph chapter
-
 A _dynamic connectivity_ structure is a dynamic data structure that maintains an undirected graph and can answer <<graph_connectivity_problem,graph connectivity queries>> efficiently.  Incremental dynamic connectivity corresponds to <<disjoint_set>>.
 
 Supported operations:
@@ -937,9 +940,9 @@ _link-cut tree vs Euler tour tree_: Euler tour tree is simpler.  Link-cut trees 
 
 Implementations / Overview of results. n = |V|, m = |E|.
 
-- forest: O(log n) amortized for all ops using <<link_cut_tree>> or <<euler_tour_tree>>.
+- forest (i.e. no cycles): O(log n) amortized for all ops using <<link_cut_tree>> or <<euler_tour_tree>>.
 
-- forest, decremental: O(1) amortized using <<micro_macro_tree_decomposition>>
+- forest (i.e. no cycles), decremental: O(1) amortized using <<micro_macro_tree_decomposition>>
 
 - incremental: Θ(α(m,n)) amortized using <<disjoint_set_forest>>
 
@@ -1707,7 +1710,7 @@ Terminology: Often heap is used as a synonym for binary heap, altough heap actua
 
 ++decrease_key(i, new_value)++: Since binary heaps are mostly used to impement priority queues or heap sort, this operation is typically not needed.  As in max_heapify, tickle down the node until the heap proprty is restored.
 
-General anlysis: Height is h = Θ(log n) since it's a complete binary tree.
+General analysis: Height is h = Θ(log n) since it's a complete binary tree.
 
 
 ==== Fibonacci heap
@@ -1769,7 +1772,7 @@ Trivia: Was invented specifically to make Kruskal's algorithm more efficient.
 
 References:
 
-- https://web.stanford.edu/class/cs166/lectures/16/Small16.pdf
+- Stanford University course CS 166 Data Structures: https://web.stanford.edu/class/cs166/lectures/16/Small16.pdf
 
 - Book "Introduction to algorithms", subchapter "21.3 Disjoint-set forests"
 
@@ -3951,7 +3954,6 @@ References:
 
 
 [[potential_function]]
-
 === Potential Functions and Amortized Costs
 
 In what follows, we consider online minimization problems and deterministic online algorithms. Let C~ALG~ denote the set of configurations of an online algorithm ALG, and likewise C~OPT~ for an arbitrary optimal algorithm OPT.  A _potential function_ Φ is a function Φ : C~ALG~ ⨯ C~OPT~ → ℝ or Φ : 𝓘 → ℝ.  We call Φ(x~i~) the _potential_ of ALG in time step T~i~.  Figuratively, the potential is a bank account with which we can pay future high costs.  We call cost(ALG(x~i~)) the _real cost_ of ALG on request x~i~.  The _amortized cost_ of ALG on request x~i~ is defined as amcost(ALG(x~i~)) = cost(ALG(x~i~)) + Φ(x~i~) - Φ(x~i-1~).  It can be interpreted as the average cost per request that is caused by processing some instance.
@@ -6183,6 +6185,8 @@ https://www.youtube.com/playlist?list=PLxc4gS-_A5VDvP_9W8JJ04zk6m1qTolzG
   * Unknown date: https://www.youtube.com/playlist?list=PLXzW9t1q_fb_3k_KzBfBnw0NXjvq45-bf[videos]
 
 - https://www.cs.usfca.edu/~galles/visualization/
+
+- Standford university course CS166 Data Structures: http://web.stanford.edu/class/archive/cs/cs166/cs166.1166/
 
 - https://www.quora.com/What-are-the-very-basic-algorithms-that-every-Computer-Science-student-must-be-aware-of
 
