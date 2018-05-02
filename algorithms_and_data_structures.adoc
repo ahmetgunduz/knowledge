@@ -1143,11 +1143,15 @@ Analysis: Assumes uniform hashing, as opposed to just simple uniform hashing. Ho
 
 Make collisions impossible by using a perfect hash function.
 
-The concrete variation described here is also called _FKS hashing_ after Fredman, Komlos and Szemeredi.  The way it is described here and probably done in practice is that the hash table data structure as a whole and the perfect hash function as a whole are intertwined.  We use two levels of hash tables.  The first level is a hash table of size m=n using a hash function randomly chosen from a universal class of hash functions.  This will map n~j~ keys to the j-th slot.  Each slot is then a hash table of size m~j~ = n~j~², constituting the second level.  Recall that the set of actual keys K is static and known.  For each secondary hash table, we try at random a hash function from a universal class of hash functions until we find one which doesn't produce any collision in that secondary hash table.  It can be prooven that given this setup, only a few tries are required.  It can also be proven that the overall space requirement is O(n).
+The concrete variation described here is also called _FKS hashing_ after Fredman, Komlos and Szemeredi.  The way it is described here and probably done in practice is that the hash table data structure as a whole and the perfect hash function as a whole are intertwined.
 
-Applications: Efficient lookup (O(1) worst-case) for a set of keys which is known in advance.
+As a static data structure: We use two levels of hash tables.  The first level is a hash table of size m=n using a hash function randomly chosen from a universal class of hash functions.  This will map n~j~ keys to the j-th slot.  Each slot is then a hash table of size m~j~ = n~j~², constituting the second level.  Recall that the set of actual keys K is static and known.  For each secondary hash table, we try at random a hash function from a universal class of hash functions until we find one which doesn't produce any collision in that secondary hash table.  It can be prooven that given this setup, only a few tries are required.  It can also be proven that the overall space requirement is O(n).
 
-*to-do* The above describes a static data structure. You can make it dynamic, when you rebuild the second level hashtable when an insert does create a collision in that second level hash table.
+As a dynamic data structure:  Use table doubling as usual.  Also rebuild the second level hashtable when any insert does create a collision in that second level hash table. This won't happen very often, so amortized cost is low.
+
+References:
+
+- MIT course 6.897 Advanced Data Structures, spring 2003, lectur 2, chapter 4.1 Dynamic Perfect Hashing: https://courses.csail.mit.edu/6.897/spring03/scribe_notes/L2/lecture2.pdf
 
 
 [[cockoo_hashing]]
