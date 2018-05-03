@@ -22,12 +22,15 @@ With high probability (w.h.p.):: An event E occurs with high probability if Pr[E
 Output-sensitive algorithm:: An algorithm whose running time depends on the size of the output, in addition to, or instead of, the size of the input.
 
 
+[[models_of_computation]]
 === Models of computation
 
-A _model of computation_ formally scpecifies what a computer can do and what each operation costs (e.g. in terms of running time or space).
+A _model of computation_ formally scpecifies what a computer can do and what each operation costs in terms of running time and space.
 
 --------------------------------------------------
               cell probe              stronger
+                  |
+                 RAM
                   |
           Transdichotomous RAM (Word RAM or AC0 RAM)
                   |
@@ -92,7 +95,7 @@ Is an instanciation of the transdichotomous RAM model.  The operations with the 
 
 We have dynamically allocated _objects_ (or _nodes_).  An object has O(1) fields.  A _field_ is either a word or pointer.  In other words, in this model data structures are described by a directed graph with constant branching factor.  A _pointer_ (or _reference_) either refers to an object or has the special value null (or nil).  All the elementary things you can do with pointers / words cost O(1) time.
 
-The pointer machine model is weaker than the RAM model, i.e. it can be implemented on RAM. However in order to implement pointers, i.e. in order to be able to index every memory array element, we need w ≥ log~2~ S, where w is the word size and S the memory array size.
+The pointer machine model is weaker than the transdichotomous RAM model, i.e. it can be implemented on a transdichotomous RAM.
 
 
 === Asymptotic notation / big O notation
