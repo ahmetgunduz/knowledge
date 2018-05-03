@@ -2346,16 +2346,31 @@ Applications:
 [[knapsack]]
 === Knapsack
 
-0-1 knapsack problem:: Given a set of n items, each item i with a weight w[i]
-(an integer) and a value v[i], determine the items to include in a collection
-so that the total weight is less than or equal to a given limit S (an integer)
-and the total value is maximal.
+A NP-hard optimization problem.
+
+simple 0-1 knapsack problem:: Given a set of n items, each item i with a weight
+w[i] ∈ ℕ^+^, determine the items to include in a collection (i.e. the knapsack),
+constrained to that the total weight is less than or equal to a given limit S ∈
+ℕ^+^. The goal is to maximize total weight.
+
+0-1 knapsack problem:: Now each item has a value v[i] ∈ ℕ^+^, and the goal
+is now to maximize total value.
 
 Bounded knapsack problem (BKP):: Removes the restriction that there is only
 one of each item, but restricts the number of copies of each item i to c[i].
 
 Unbounded knapsack problem (UKP):: Places no upper bound on the number of
 copies of each kind of item.
+
+Fractional/continuous knapsack problem:: Instead of items we think of
+materials.  There is an certain amount (weight) of each material, and we can
+pack any amount less than that per material into the knapsack. Solution: sort
+materials descendinding by value/weight, then greedely take of each material
+as much as possible until the knapsack is full. O(n*lg(n)).
+
+online knapsack problem:: <<online_knapsack_problem>>
+
+Notable problems reducable easily to the knapsack problem, but not notable enough to give them their own chapter:
 
 Change-making problem:: How can a given amount of money be made with the least
 number of coins of given denominations. Similar to UKP, however capacity of
@@ -2365,14 +2380,6 @@ coin', and `value of item' is always -1.
 [[rod_cutting_problem]]
 Rod cutting problem:: Same as UKP. rod length -> knapsack capacity, length i
 -> item i having a weight of i, value of length i -> value of item i.
-
-Fractional/continuous knapsack problem:: Instead of items we think of
-materials.  There is an certain amount (weight) of each material, and we can
-pack any amount less than that per material into the knapsack. Solution: sort
-materials descendinding by value/weight, then greedely take of each material
-as much as possible until the knapsack is full. O(n*lg(n)).
-
-online knapsack problem:: <<online_knapsack_problem>>
 
 Applications:
 
@@ -2396,6 +2403,8 @@ current/front item) or ② shall I not?
 _Recurence_: DP is defined as following:
 
 -------------------------------------------------------
+# i: we only look at items[i:]
+# X: remaining capacity
 DP(i,X) =
   if i=n: ③ 0
   else: max(
@@ -2442,10 +2451,9 @@ for i in [0,n)
     X -= w[i]
 --------------------------------------------------
 
-Analysis: Time complexity is Θ(1) for one DP call. Thus the overall running time
-is +Θ(n*S)+, i.e. <<pseudo_polynomial>>. It's exponential, since +Θ(n*S)+ is
-exponential relative to the input size which is +O(n*lg S)+ (think how many bits
-you need to represent the input).
+Analysis: Θ(n·S). Time complexity is Θ(1) for one DP call. Thus the overall
+running time is Θ(n·S), i.e. <<pseudo_polynomial_time>>. It's actually exponential,
+since Θ(n·S) is exponential relative to the input size S which is O(log S) bits.
 
 
 === Consumer producer
