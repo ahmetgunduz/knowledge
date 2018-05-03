@@ -193,7 +193,7 @@ References:
 
 At certain times we conceptually put tokens (aka amortized cost) on an entity of an data structure.  We do this e.g. in cheap operations.  The tokens we invest must apear as costs in the amortized analysis of those otherwise cheap operations.  Later, we conceptually can use those tokens in expensive operations by withdrawing them from the entity.  So in the analysis of those otherwise expensive operations the costs don't appear because the costs where already paid with tokens.  This is purely a technique for complexity analysis, e.g. to prove lower or upper bounds.
 
-Exampmle: Table doubling of dynamic arrays.  We say that each insert costs at most three tokens. One token is immediately used for the actual insertion.  Here the concept of a token might be slightly overkill, it's just the usual cost analysis.  If the new element is in the 2nd half of the array, we put two tokens on it.  Here we really make use of the concept.  Once we have to do a table doubling, we pay the cost of that table doubling using the tokens on the elements in the 2nd half.  So in asympototic complexity analysis the cost of doubling is now O(0), because we already paid for earlier.  So the cost of an insertion is O(3) amortized = O(1) amortized.
+Example: Table doubling of dynamic arrays.  We say that each insert costs at most three tokens. One token is immediately used for the actual insertion.  Here the concept of a token might be slightly overkill, it's just the usual cost analysis.  If the new element is in the 2nd half of the array, we put two tokens on it.  Here we really make use of the concept.  Once we have to do a table doubling, we pay the cost of that table doubling using the tokens on the elements in the 2nd half.  So in asympototic complexity analysis the cost of doubling is now O(0), because we already paid for earlier.  So the cost of an insertion is O(3) amortized = O(1) amortized.
 
 --------------------------------------------------
           $$$$
@@ -478,9 +478,14 @@ Such algorithms include local search, tabu search, simulated annealing, and gene
 
 *to-do*
 
+
 ==== Branch and bound
 
 *to-do*
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``3.4 Branch-and-Bound''.
 
 
 === Recursion vs iteration
@@ -1715,7 +1720,7 @@ Data structure: Concptually we start with an X-fast tree.  Then we apply indirec
 
 predecessor(x∈U): In top tree find predecessor of x, giving us a representative of a bottom tree t.  Now query t's next bottom tree.
 
-insert(x∈U) / delete(x∈S):  Find cluster / bottom tree where x should fit in or is.  Insert or delete x from that bottom tree.  Now we need to ensure that the bottom tree's size remains Θ(log u).  To be more specific, say we want the size to be within [1/2 log u, 2 log u].  If its too large, split in two.  If its too small, merge with a neighbor, which then might result in a split.  Of course each merge split also has to update the top tree.
+insert(x∈U) / delete(x∈S):  Find cluster / bottom tree where x should fit in or is.  Insert or delete x from that bottom tree.  Now we need to ensure that the bottom tree's size remains Θ(log u).  To be more specific, say we want the size to be within [1/2 log u, 2 log u].  If its too large, split in two.  If it's too small, concatenate it with a neighbor, which then might result in a split.  Of course each merge / split also has to update the top tree.
 
 query analysis: O(log log u).  Query in the top tree costs O(log log u).  A bottom tree stores nʹʹ = Θ(log u) elements, thus a query costs O(log nʹʹ) = O(log log u).
 
