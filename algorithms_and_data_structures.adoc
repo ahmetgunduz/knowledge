@@ -98,11 +98,11 @@ We have dynamically allocated _objects_ (or _nodes_).  An object has O(1) fields
 The pointer machine model is weaker than the transdichotomous RAM model, i.e. it can be implemented on a transdichotomous RAM.
 
 
-=== Asymptotic notation / big O notation
+=== Asymptotic computational complexity / Assymptotic Analysis
 
-In computer science, big _asymptotic notation_ (or _big O notation_) is used to classify algorithms by how they respond to changes in input size, typically regarding running time and space (memory/disk/...).
+_(Asymptotic) computational complexity_ of an algorithm or data structure is an asymptotic bound, typically an asymptotic upper bound, on how much computational ressources it uses, depending on the input size in bits, as defined in the following.  Typical computational ressources that we are interested in are computation time and memory space, resulting in _asymptotic time complexity_ and _asymptotic space complexity_ respectively.  Computational complexity is always with respect to a certain <<models_of_computation,model of computation>>, which defines formally what the atomic units of the computational ressources are.  If not stated otherwise, the Word RAM model is assumed.  _Assymptotic analysis_ is the action of determining the asymptotic computational complexity of an algorithm or data structure.
 
-In the following +n+ is the _input size_, +f(n)+ is the _number of steps_ needed by an algorithm.
+As defined above, computational complexity is dependend on _input size_ *in bits*, often denoted n.  See <<input_size>> for a formal definition.  Most of the times however we allow us to be a bit sloppy and as input size n we take the number of entities in the input, opposed to the number of bits required.  Most of the times that is ok, since the resulting assymptotic complexity doesn't change.  See <<pseudo_polynomial_time>> for cases, where we can't do that.
 
 Recall definitions from math:
 
@@ -116,7 +116,7 @@ Recall definitions from math:
 | _lower bound_ | f(x) ≥ c ∀ x | f has lower bound c. f is bounded from below by c.
 |====
 
-Types of asymptotic notations:
+Asymptotic computational complexity bounds are usually written using the following notation, called _asymptotic notation_ (or _big O notation_):
 
 [cols="3,2,2,6,6"]
 |====
@@ -259,7 +259,7 @@ The field of computational _complexity classes_ categorizes decidable decision p
 
 Common complexity classes:
 
-P:: (Decision) problems solvable in at most polynomial tyme (n^c^).  If you can establish a problem as not in P, you provide good evidence for its intractability.  You'd better spend your time developing an approximation algorithm or solve a tractable special case.
+P (polynomial):: (Decision) problems solvable in at most polynomial tyme (n^c^).  If you can establish a problem as not in P, you provide good evidence for its intractability.  You'd better spend your time developing an approximation algorithm or solve a tractable special case.  Note that some algorithms are not polynomial in input size, i.e. they are _not_ in P, but are polynomial in numeric input value and thus appear to be polynomial at a first glance, see <<pseudo_polynomial_time>>.
 
 NP (non-determiniatic polynomial):: (Decision) problems solveable in polynomial time via a ``lucky'' algorithm: Like in dynamic programm the algorithm makes a guess at each branch points where it could follow multiple paths.  However, if the overall answer of the decision problem is yes, it magically (being an awsome cool fairy tale computer) always guesses the path that ultimatively leads to the yes.
 +
@@ -267,7 +267,7 @@ Equivalently: (Decision) problems where the a given yes-answer (e.g. yes, this s
 +
 Is a nondeterministic computation model.  It's not a realistic model, but it's still a usefull model.
 
-EXP:: (Decision) problems solvable in at most exponential time (2^n^).
+EXP (exponential):: (Decision) problems solvable in at most exponential time (2^n^).
 
 R (recursive):: (Decision) problems solvable in finite time. Etymology: R stands for recursive, which in the old days stood for `will terminate'.
 
@@ -275,8 +275,7 @@ NP-hard (or X-hard in general):: At least as hard as every element in NP (X in g
 
 NP-complete (or X-complete in general):: Intersection of NP and NP-hard.
 
-[[pseudo_polynomial]]
-Pseudo-polynomial:: A numeric algorithm runs in pseudo-polynomial time if its running time is polynomial in the numeric value of the input, but is exponential in the length of the input – the number of bits required to represent it.  E.g. <<knapsack>>, <<ford_fulkerson_algorithm>>.
+Strongly NP-hard / NP-complete:: See <<strongly_NP_hard>>
 
 Visualization of complexity classes, ordered on a line after hardness:
 
@@ -308,6 +307,45 @@ Examples of NP-complete problems:
 - _minimum vertex cover_
 - _maximum independent set problem_
 - _Graph coloring_ regarding vertices (edges): Coloring the vertices (edges) of a graph such that no two adjacent vertices (edges) share the same color.
+
+
+[[pseudo_polynomial_time]]
+=== Pseudo polynomial time
+
+[[integer_valued_problem]]
+An _integer-valued problem_ is one whose input x can be viewed as a collection of n integers x~i~ i∈[n].  Max-Int(x) denotes the largest input integer, i.e. Max-Int(x) = max{x~i~|i∈[n]}.  Max-Int(x) is also called _numeric value of input_ (*to-do* the term seems to be nowhere precisely defined).
+
+[[input_size]]
+The _input_ x to an algorithm is formally defined as x = x~1~\#x~2~\#...\#x~n~ = \{0,1,\#}^∗^, where # denotes a seperator.  The _input size_ is |x|.  Or in words, input size is the number of bits required to write out that input, including the seperators,
+
+*to-do* There are other definitions of input and input size. using unary. or using strictly binary. Especially when using unary, running times change, which is another way to define pseudo-polynomial time algorithm. https://disopt.epfl.ch/webdav/site/disopt/shared/IntPoints2009/algorithms.pdf
+
+We say that algorithm A is a _pseudo-polynomial-time algorithm_ for an integer-valued problem if its running time is O(p(Max-Int(x), |x|)), where p is some polynomial of two variables.  Simplified, an algorithm is a pseudo-poynomial time algorithm if its running time is polynomial either in the numeric value of input or in input size.
+
+*to-do* Isn't then every algorithm in P a pseudo-polynomial algorithm? If yes, the wording `pseudo' is a bit special. It _truly_ is polynomial, but technically still also a _pseudo_-polynomial algorithm.  E.g. insertion sort O(n^2^): x = n \# e1 \# e2 # .... Running time depends now polynomically on the value of an input integer.
+
+*to-do* is counting sort pseudo-polynomial?
+
+Let U be an integer-valued problem, and let h be a non-decreasing function ℕ → ℕ.  The __h-value-bounded subproblem__ of U, denoted Value(h)-U, is the sub problem of U by restricting the set of U's input instances to those satisfying Max-Int(x) ≤ h(|x|).
+
+[[strongly_NP_hard]]
+An integer-valued problem U is called _strongly NP-hard_ if there exists a polynomial p such that the problem Value(p)-U is NP-hard.
+
+Givn integer-valued problem U, and assuming P≠NP:
+
+U is not strongly NP-hard ⇔ +
+U allows pseudo-polynomial time algorithm ⇔ +
+U allows FPTAS
+
+Examples of pseudo-polynomial algorithms: <<knapsack>>, <<ford_fulkerson_algorithm>>.
+
+Examples of
+
+References:
+
+- https://stackoverflow.com/questions/19647658/what-is-pseudopolynomial-time-how-does-it-differ-from-polynomial-time
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``3.2 Pseudo-Polynomial-Time Algorithms'' and chapter ``3.2.4 Limits of Applicability''
 
 
 == Algorithms
