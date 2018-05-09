@@ -1765,13 +1765,139 @@ References:
 [[fusion_tree]]
 === Fusion tree
 
-Is a tree data structure solving the <<predecessor_problem>>.  Quick refresher: Given universe U of integers, word size w, maintain subset S of U. |U| = u ≤ 2^w^, |S| = n.
+Is a tree data structure solving the <<predecessor_problem>> providing O(log~w~ n) query time and using O(n) space.  The version presented here is static.  Quick refresher: Given universe U of integers, word size w, maintain a subset S of U. |U| = u ≤ 2^w^, |S| = n.
 
-*to-do*
+Basic idea: A B-tree with a degree of k = w^1/5^, i.e. a height of O(log~w~ n).  We compress, which we will call _sketching_, all the node's key such that they all fit into one w-bit word.  We will then be able to perform all the per-node-operations we care about in O(1).
+
+Data structure: A B-tree with a degree of k = w^1/5^.  Let ∘ denote concatenation of bitstrings.  Each node stores all its k keys x~0~, ..., x~k-1~ in one w-bit word nodesketch = 1 ∘ sketch(x~0~) ∘ ... ∘ 1 ∘ sketch(x~k-1~), see <<approximate_sketch,sketch>>.  It additionally stores the keys unchanged in an array.  Note that instead of 1/5 in k = w^1/5^ we could choose any small exponent; see <<approximate_sketch>> why 1/5 is an nice choice.
+
+Operations:
+
+_predecessor(q ∈ S)_: Traverse the tree as normal.  Given a node n and query q, to find the next key / child, see <<desketch>>.
+
+_successor(q ∈ S)_: Analogous to predecessor
+
+Variants:
+
+- Dynamic variant via exponential trees: O(log~w~ n + log log n) update time
+
+- Dynamic variant via hashing: O(log~w~ n) expected update time
+
+Fusion tree vs B-tree:  A plain vanilla B-tree with a degree of w^1/c^ needs O(w^1/c^ · w) = O(w^1+1/c^) bits per node to store all keys, and thus requires ω(1) for per-node-operations.
 
 References:
 
-- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 12 ? *to-do*
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 12 Fusion Tree: https://courses.csail.mit.edu/6.851/spring12/scribe/lec12.pdf[lecture notes], https://www.youtube.com/watch?v=xSGorVW8j6Q&index=12&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
+
+
+[[perfect_sketch]]
+==== Perfect sketch
+
+perfectsketch(x) perfectly sketches (compresses) key x of a node in a way that preserves order, i.e. x < y ⇔ perfectsketch(x) < perfectsketch(y).
+
+Algorithm conceptually: We throw all k w-bit keys of a node in a bitwise trie.  Then we select the levels where there is at least one branching node.  The trie has k leaves, and thus there are at most k-1 branching nodes.  Thus we select at most k-1 levels.  Let r denote the number of levels we select, and let b be a vector of length r storing the selected levels.  The _perfect sketch of key x_ is the the r-bit string were the i-th bit is the b[i]-th bit of x.
+
+--------------------------------------------------
+ o  non-branching node            level  interesting levels
+ B  branching node                       = has a branching node
+                     o               0   
+                   0/                 
+                   o                 1
+                    \1
+                     B               2   x
+                   0/ \1
+                   /   \
+                  o     o            3   
+                 /       \1
+               0/         \
+               B           o         4   x
+              / \           \1
+            0/   \1          \
+            B     o           o      5   x
+          0/ \1    \1        /0          interesting levels
+          /   \     \       /            b = [2,4,5]   r = |b| = 3
+         o     o     o     o         
+   012345  012345  012345   012345   levels
+     x xx    x xx    x xx     x xx   interesting levels marked
+   010000  010001  010011   011110   w-bit keys
+      000     001     011      110   r-bit perfect sketches
+--------------------------------------------------
+
+Note that the above diagram is slightly misleading in that k=4 and w=6 do _not_ fulfill Fusion tree's requirement that k = w^1/5^.  However it still correctly visualizes the algorithm of computing a perfect sketch.
+
+Each setch is r ≤ k = w^1/c^ bits long, and we have k = w^1/c^ of them, so we need only O(k·k) = O(w^2/c^) = o(w) bits in total.
+
+
+[[approximate_sketch]]
+==== Approximate sketch
+
+sketch(x) is analogous to perfectsketch(x), only that it only approximately sketches, in the sense that the result will require more bits.
+
+We can't compute a perfect sketch in O(1), so we resort to computing an approximate sketch, which we can compute in O(1).  With perfect sketching, we use O(w^2/c^) bits per node to store all the node's keys, see perfect sketch.  I.e. we have plenty of slack, i.e. each sketch could actually use O(w^(c-1)/c^) bits.
+
+--------------------------------------------------
+sketch(x:key) =
+  x' = x & MASK1
+  return ((m * x') & MASK2) >> (b[0]+im[0])
+--------------------------------------------------
+
+MASK1 = ∑~0≤i<r~2^b[i]^, MASK2 =  ∑~0≤i<r~2^b[i]+im[i]^, b, m and im can be precomputed per node; recall that we here present the static version of a Fusion tree.  m is a w-bit word.  How to compute m is currently out of this document's scope.  b is as before an array of size r containing bit indicies into x.  im is an array of size r containing the indicies of the 1's in m.  First we mask the interesting bits, i.e. zero-out the uninteresting bits, resulting in xʹ.  Due to the way we computed m, the 1's we care about in the result will be within the rightmost r^4^  = w^4/5^ bits.  That will consist of r = w^1/5^ sequences of length r^3^ = w^3/5^.  The i-th sequence stores the b[i]-th bit of x, i.e. the i-th bit of the perfect sketch, at position (within the complete result) (b[i]+m[i])-(b[0]+m[0]).  Note that its due to this r^3^ that we did set k = w^1/5^, because now all k = w^1/5^ keys fit into one w-bit word.
+
+*to-do* show how to compute m.
+
+Note: In the the AC^0^ RAM model, a perfect sketch would be computable in O(1).
+
+
+[[desketch]]
+==== Desketch
+
+Given query key q and a node n, the goal is to find the predecessor key of q among the node's keys.
+
+Algorithm: Recall that each node stores all its k keys x~0~, ..., x~k-1~ in one w-bit word nodesketch = 1 ∘ sketch(x~0~) ∘ ... ∘ 1 ∘ sketch(x~k-1~), and additionally unchanged in an array.  Compute sq = sketch(q).  Using <<parallel_comparison>>, find the index i such that sketch(x~i~) ≤ sketch(q).  Compute the longest common prefix, see below for how to do it, of (x~i-1~, q) and of (x~i~, q).  WLOG, assume (x~i~, q) had the longer common prefix.  Let p denote that prefix, and let l = |p|.  If q[l+1]=1, then e = p ∘ 0 ∘ 1^w-(l+1)^, otherwise e = p ∘ 1 ∘ 0^w-(l+1)^.  Again using parallel comparison, find index j such that sketch(x~j~) ≤ sketch(e).  Return x~j~.
+
+*to-do* double check the details
+
+Explanation: First visualize again the bitwise trie and its branching nodes that defined the perfect sketches of the nodes' keys, see <<perfect_sketch>>.  Node that the branching nodes and thus the sketches are determined by the node's keys.  Now when we figuratively add a query key q to that trie, it might have a branching node on a level which had no branching nodes before.  As a consequence, from sketch(x~i-1~) ≤ sketch(q) < sketch(x~i~) does not at all follow that x~i~ ≤ q < x~i+1~.  In fact, q could fit somewhere far away in the sequence x~0~, ..., x~k-1~.  Let P denote the node reached by the longest common prefix p as described above.  In other words, P is the node where the path to q falls off the bitwise trie given by the node's keys.  WLOG assume q is in P's right subtree.  Then q's predecessor is the max in P's other subtree, i.e. left subtree.  Let e be the largest possible key of that left subtree; e doesn't need to be the value of an existing key.  We find the max of the left subtree by a parallel comparision search of e.
+
+*to-do* what happens exactly when q is in the left subtree
+
+--------------------------------------------------
+ o  non-branching node            level  interesting levels
+ B  branching node                       = has a branching node
+ P  longest common prefix
+    leads to this node
+
+                     o               0
+                   0/                 
+                   o                 1
+                    \1
+                     B               2   x
+                   0/ \1
+                   /   \
+                  P     o            3
+                 / .1    \1
+               0/   .     \
+               B     o     o         4   x
+             0/ \1   0.     \1
+             /   \     .     \
+            B     o     o     o      5   x
+          0/ \1  0|     0.     \1
+          /   \   |       .     \
+         o     o  o        o     o    
+   012345  012345 012345  012345  012345   levels
+     x xx    x xx   x xx    x xx    x xx   interesting levels marked
+   010000  010001 010010  010100  011111   w-bit keys / q
+      000     001    010     000     111   r-bit perfect sketches
+     x~i~   x~i+1~       query q
+
+                          010111           alternative example
+                             011           (P would also be different)
+                     x~i~         x~i+1~
+--------------------------------------------------
+
+Longest common prefix of two bitstrings x and y: <<most_significant_set_bit>> of (x bitxor y)
+
+Analysis: O(1), since there are O(1) operations, each using O(1) time.
 
 
 [[cartesian_tree]]
@@ -1965,68 +2091,6 @@ In contrast to the level order representation, now we can also answer subtree si
 References:
 
 - MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
-
-
-[[bit_vector]]
-=== Bit vector
-
-Often used as building block for <<succinct_data_structures>>.
-
-Solutions:
-
-- Brute force / trivial: Many succinct applications of bit vectors depend on fast rank and select, thus the trivial implementation is often not feasible.
-
-- Auxillary data structure for rank query in O(1)
-
-- Auxillary data structure for select query in O(1)
-
-- <<rrr>>: Rank and select in O(1) and implicit compression
-
-Applications: <<sbt_level_order,succinct binary tree>>
-
-
-==== Auxillary data structure for rank query in O(1)
-
-Given a bit vector, determine number of ones upto index i.  
-
-*to-do* Using auxillary a data structure besides bit vector, query in O(1) time.
-
-References:
-
-- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
-
-
-==== Auxillary data structure for select query in O(1)
-
-Given a bit vector, determine index of i-th 1. 
-
-*to-do* Using auxillary a data structure besides bit vector, query in O(1) time.
-
-References:
-
-- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
-
-
-[[rrr]]
-==== RRR
-
-Stores a bitvector of length m (the universe) containing n ones (the stored set).  Answers rank and select queries in O(1) and provides implicit compression resulting in B(n, m) + o(n) + O(log log m) bits space.
-
-Divide bitvector in p = m/u blocks of length u = 1/2 log~2~ m.  Each block stores the number of ones it contains, denoted n~i~ where i is the block's index.  So each block is u bits long and contains n~i~ ones.  Given a block, there are C(u n~i~) possible ways to arrange its n~i~ ones.  So for each block, we only have to store which of the C(u n~i~) variants equals the block's content, denoted O~i~.  So each block at the core stores the tuple (n~i~, O~i~).  Note that O~i~ is variable width, given by B~i~ = ⌈log~2~C(u, n~i~)⌉ bits.
-
-Note the sequence of O~i~s is what we want to store at the core.  That contains the entropy.  Everything else is auxillary house keeping.
-
-rank(x): In order not being forced to sequencially read all the n~i~ of every block until their sum reaches x, group every log^2^m blocks into a superblock.  Each superblock stores the tuple (sum of n~i~ of all blocks from the very beginning until inclusive this superbock, index into the bitvector of (n~i~, O~i~) tuples). *to-do* did I got this right?
-
-select(x): Not in the scope of this document.
-
-Analysis: O~i~ needs B~i~ bits.  Thus, regarding O~i~s, in total ∑B~i~ = ... = p + log~2~C(m n) bits. *to-do* be more thorough
-
-Trivia: Named after inventors Raman, Raman, Rao.
-
-References:
-
-- http://alexbowe.com/rrr/
 
 
 [[heap]]
@@ -2640,7 +2704,7 @@ Is <<k_wise_independent_hash_functions,3-wise independent>>, but no 4-wise indep
 
 
 [[simple_uniform_hash_function]]
-====  Simple uniform hash function
+==== Simple uniform hash function
 
 A hash function is called _totally random_ (or _uniform_) it satisfies the _simple uniform hashing assumption_ (_SUHA_), which is:
 
@@ -6659,7 +6723,9 @@ References:
 - MIT course 6.006 "Introduction to Algorithms", Fall 2011, Lecture 12. Square Roots, Newton's Method: https://www.youtube.com/watch?v=2YeJ-5UAke8&t=1400s
 
 
-=== Bit manipulation
+[[bit_manipulation]]
+== Bit manipulation
+
 A _nibble_ is a four bit aggregation (aka _halb-byte_ or quartet).
 
 --------------------------------------------------
@@ -6671,7 +6737,205 @@ test:   x &   y
 
 In C / C&plus;&plus;, +CHAR_BIT+ is the number of bits in a byte.
 
+References:
+
 - http://graphics.stanford.edu/~seander/bithacks.html
+
+
+[[bit_vector]]
+=== Bit vector
+
+Often used as building block for <<succinct_data_structures>>.
+
+Implementations:
+
+- trivial
+
+- See <<rank_and_select>> for those tailored towards rank and/or select queries
+
+- <<RRR>> offers implicit compression and O(1) rank and select queries.
+
+
+[[count_ones]]
+=== Count ones
+
+Returns the number of ones in a bit vector/string.  See also <<rank_and_select,rank(i)>>, which counts ones upto index i.
+
+*to-do* Reference to C&plus;&plus;, common CPU architectures already implementing this
+
+
+[[count_equidistant_ones]]
+==== Count equidistant ones in a word
+
+Let ∘ denote concatenation of bitstrings, and let x^k^ denote concatenating x k times.  Given a w-bit word s of the form x~0~ ∘ 0^r^ ∘ ... ∘ x~k-1~ ∘ 0^r^, where x~0~, ..., x~k-1~ are bits.  I.e. there are k chunks of size r+1, the MSB of each chunk i being x~i~.  k(r+1) ≤ w, else the chunks wouldn't fit into the w-bit word s.  ⌈log~2~ k⌉ ≤ r+1.  Return the number of ones in s.  Or equivalentely, in the sequence x~0~, ..., x~k-1~.
+
+Let M = (0^r^ ∘ 1)^k^ be a constant.
+
+number_of_ones = ( (s · M) >> (k-1)(r+1) ) bitand 1^r+1^
+
+Explanation: It works because the multiplication, due to the way M is defined, at the right position in the product, sums up all the chunks, and by that all the bits x~0~, ..., x~k-1~.  The sum can maximally be k, since in the worst case every of the k bits is set. We need ⌈log~2~ k⌉ bits to store the maximal sum.  Since ⌈log~2~ k⌉ ≤ r+1, the sum will not spill over into the next chunk.  The following visualizes the process:
+
+--------------------------------------------------
+ s = 1 2 3 4   each digit represents a chunk
+
+ s * K = 
+ -------------
+      |1|2 3 4
+     1|2|3 4 -    
+   1 2|3|4 - -
+ 1 2 3|4|- - -
+ =============
+ x x x|x|x x x
+--------------------------------------------------
+
+Analysis: O(1). Since we did only O(1) many O(1) operations.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 12 Fusion Tree: https://courses.csail.mit.edu/6.851/spring12/scribe/lec12.pdf[lecture notes], https://www.youtube.com/watch?v=xSGorVW8j6Q&index=12&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
+
+
+[[rank_and_select]]
+=== Rank & Select
+
+Given a bit vector, _rank(i)_ returns number of ones upto index i, and _select(i)_ returns the index of the i-th one.  See also <<count_ones>>, which returns the number of ones in total.
+
+Solutions:
+
+- Brute force / trivial: Many succinct applications of bit vectors depend on fast rank and select, thus the trivial implementation is often not feasible.
+
+- <<bit_vector_for_rank>>: data structure for rank query in O(1)
+
+- <<bit_vector_for_select>>: data structure for select query in O(1)
+
+- <<rrr>>: Rank and select in O(1) and implicit compression
+
+Applications: <<sbt_level_order,succinct binary tree>>
+
+
+[[bit_vector_for_rank]]
+==== Bit vector for rank query in O(1)
+
+Given a bit vector, determine number of ones upto index i.  
+
+*to-do* Using auxillary a data structure besides bit vector, query in O(1) time.
+
+*to-do* is this static or dynamic?
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
+
+
+[[bit_vector_for_select]]
+==== Bit vector for select query in O(1)
+
+Given a bit vector, determine index of i-th 1. 
+
+*to-do* Using auxillary a data structure besides bit vector, query in O(1) time.
+
+*to-do* is this static or dynamic?
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 17. Succinct Structures I: https://www.youtube.com/watch?v=3Y2weLDiUWw&t=3901s[video], https://courses.csail.mit.edu/6.851/spring14/scribe/L17.pdf[lecture notes]
+
+
+[[rrr]]
+==== RRR
+
+Stores a bitvector of length m (the universe) containing n ones (the stored set).  Answers rank and select queries in O(1) and provides implicit compression resulting in B(n, m) + o(n) + O(log log m) bits space.
+
+Divide bitvector in p = m/u blocks of length u = 1/2 log~2~ m.  Each block stores the number of ones it contains, denoted n~i~ where i is the block's index.  So each block is u bits long and contains n~i~ ones.  Given a block, there are C(u n~i~) possible ways to arrange its n~i~ ones.  So for each block, we only have to store which of the C(u n~i~) variants equals the block's content, denoted O~i~.  So each block at the core stores the tuple (n~i~, O~i~).  Note that O~i~ is variable width, given by B~i~ = ⌈log~2~C(u, n~i~)⌉ bits.
+
+Note the sequence of O~i~s is what we want to store at the core.  That contains the entropy.  Everything else is auxillary house keeping.
+
+rank(x): In order not being forced to sequencially read all the n~i~ of every block until their sum reaches x, group every log^2^m blocks into a superblock.  Each superblock stores the tuple (sum of n~i~ of all blocks from the very beginning until inclusive this superbock, index into the bitvector of (n~i~, O~i~) tuples). *to-do* did I got this right?
+
+select(x): Not in the scope of this document.
+
+Analysis: O~i~ needs B~i~ bits.  Thus, regarding O~i~s, in total ∑B~i~ = ... = p + log~2~C(m n) bits. *to-do* be more thorough
+
+*to-do* is this static or dynamic?
+
+Trivia: Named after inventors Raman, Raman, Rao.
+
+References:
+
+- http://alexbowe.com/rrr/
+
+
+[[parallel_comparison]]
+==== Parallel comparison
+
+Let ∘ denote concatenation of bitstrings, and let x^k^ denote concatenating x k times.  Given a w-bit word s of the form 1 ∘ x~0~ ∘ 1 ∘ x~2~ ∘ ... ∘ 1 ∘ x~k-1~, where x~0~, ..., x~k~ is a sequence in increasing order of k r-bit subbitstrings, and where k(r+1) ≤ w.  I.e. conceptually the word consists of k (r+1)-bit blocks/chunks.  Actually, the ordered sequence x~0~, ..., x~k-1~ is not required to appear in that order in the word s, any order is fine.  Also given a r-bit bitstring q.  Return the index i of the first x~i~ greater equal q.  In other words the index i such that x~i~ is q's successor.  If you want q's predecessor, its only O(1) further checks to find the j such that x~j~ is q's predecessor.
+
+Let Kr01 = (0^r^ ∘ 1)^k^ and K1r0 = (1 ∘ 0^r^)^k^ be constants.
+
+qʹ = (0 ∘ q)^k^ = q · Kr01 +
+diff = s - qʹ +
+masked_diff = diff bitand K1r0 +
+result = count_equidistant_ones(masked_diff)
+
+Explanation:  Recall that two integers can be compared by subtracting them and looking at the sign of the result.  I.e. in two's complement, if the MSB is set, the subtrahend was greater.  In the obve diff, we only care about the MSB of each chunk.  In chunk i, if the MSB is 1, then q ≤ x~i~.  If the MSB is 0, then q > x~i~.  Since the x~i~ are ordered, the number of ones in masked_diff delivers us the first i such that q ≤ x~i~, i.e. the answer to the problem statement.  See <<count_equidistant_ones>> how to count these ones.
+
+Analysis: O(1). Since we did only O(1) many O(1) operations.
+
+Applications: <<fusion_tree>>
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 12 Fusion Tree: https://courses.csail.mit.edu/6.851/spring12/scribe/lec12.pdf[lecture notes], https://www.youtube.com/watch?v=xSGorVW8j6Q&index=12&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
+
+
+[[most_significant_set_bit]]
+=== Most significant set bit / count leading zeros (clz) / find first set (ffs)
+
+Given word x, return index of most significant set bit.
+
+Note that most CPU's have this operation as an instruction: BSR (bit scan reverse) on x86/x64, CLZ (count leading zeros) on ARM (using only one cycle). GCC has the builtin __builtin_clz.
+
+*to-do* there's this other bit manipulation algorithm which is more practical, altough having a runtime dependend on w.
+
+References:
+
+- https://en.wikipedia.org/wiki/Find_first_set
+
+
+==== Most significant set bit in O(1)
+
+High level idea: Split word x into √w clusters of √w bits.  Then find first non-empty cluster, and within that cluster the first set bit.
+
+--------------------------------------------------
+  ~ = uninteresting, MSBoc = MSB of cluster, cluster' = cluster without its MSB
+
+                 √w   √w   √w   √w
+                -^-- -^-- -^-- -^--  cluster
+                 ---  ---  ---  ---  cluster' = cluster w/o MSB
+            x = 0101 0000 1000 1101
+            F = 1000 1000 1000 1000  F for first
+   t1 = x & F = 0000 0000 1000 1000  x with everything except MSBoc s cleared    
+  t2 = x ^ t1 = 0101 0000 0000 0101  x with MSBoc s cleared
+  t3 = F - t2 = 0~~~ 1~~~ 1~~~ 0~~~  MSBoc = 1/0 -> cluster' is empty/nonempty
+  tx = t3 & F = 0000 1000 1000 0000 
+  t4 = tx ^ F = 1000 0000 0000 1000  toggle logic
+                                     MSBoc = 1/0 -> cluster' is nonempty/empty
+  y = t4 | t1 = 1000 0000 1000 1000  combine .....
+                                     MSBoc = 1/0 -> cluster is nonempty/empty
+ s = y*m >> w = ~~~~ ~~~~ ~~~~ 1011  MSBoc s of y in one sequence
+--------------------------------------------------
+
+Explanation: Lets first solve the subproblem of finding the first set bit in a √w bit word, denoted s. We do a <<parallel_comparison>> of s in the sequence of the first √w powers of two, each element in the sequence being √w bits long.  E.g. for w = 16, i.e. √w = 4, the sequence would be {0001, 0010, 0100, 1000}.  The parallel comparison returns the first power of two, i.e. the sequence element's index, that is greater than s.  That directly delivers us the index of the first set bit. *to-do* off by one error?
+
+Side nodes: the t1 step is in order to make room to have √w bits to work with. I.e. we now can use the MSBoc s to do some work.
+
+*to-do* The variant how we did it in exercise class
+
+See also: This idea of dividing the problem into √w clusters of size √w is also done by <<vEB_tree>>, however the van Emde Boas tree does it recursively, we do it once.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, spring 2012, lecture 12 Fusion Tree: https://courses.csail.mit.edu/6.851/spring12/scribe/lec12.pdf[lecture notes] chapter 8 Most Significant set bit, https://www.youtube.com/watch?v=xSGorVW8j6Q&index=12&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video] at 1:11:18
 
 
 == Misc. related computer science
