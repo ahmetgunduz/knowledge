@@ -4738,40 +4738,66 @@ References:
 [[euler_tour_tree]]
 ==== Euler tour tree (ET tree)
 
-An _Euler tour tree_ (_ET tree_) represents an undirected tree.  This chapter is tailored towards the use case of implementing the <<dynamic_connectivity>> ADT for undirected forests (i.e. for graph with no cycles).  Each of the represented undirected trees is stored using an Euler tour tree.  O(log n) time for all query and update operations and O(n) space. *to-do* If the represented forest is directed (i.e. rooted trees), while connectity queries still solve the problem of finding connected components, opposed to strongly connected components, then everything gets much simpler; namly the way MIT presents it, see references.
+This chapter is tailored towards the use case of implementing a <<dynamic_connectivity>> data structure for undirected forests, i.e. for graph with no cycles.
 
-Note that the represented undirected tree might not be an binary tree, i.e. it might be a path. That's why we need a more complicated data structure than the naive tree: even if the represented trees are paths, we still want to provide O(log n) time for all operations.  Also the fact that it's an undirected tree means there is no obvious root.  This is a problem because connctivity problems are usually answered by choosing a representative node, and in an directed three that is typically the root..
 
-The core idea of an ET tree is to store the Euler tour of the represented tree. Recall that strictly speaking a tree doesn't have an Euler Tour.  So figuratively double each edge in the represented tree for a Euler tour to become possible.
+===== Euler tour tree core
 
-Aribitrarily pick any node of the represented undirected tree (component) as its root.  That node is  also called the tree's (components's) representative node, see also <<disjoint_set>>.  Imagine the Euler Tour as a curved line.  Make a mark on the line every time you visit a node, then pull that line straight.  The marks on the straight line define the leaves of a complete balanced binary tree.  I.e. the arbitrarily picked root of the represented tree corresponds to the leftmost and and the rightmost leaf in that balanced binary tree.  Note that the subtree rooted at v corresponds to a consecutive sequence in the Euler Tour, starting at v's first visit and ending at v's last visit.
+This subchapter describes an (single) Euler Tour as a stand alone entity.  A (single) _Euler Tour tree_ stores the Euler Tour of a given (single) undirected tree, the later called the represented tree.  Recall that a tree is a connected component.  That view point might be helpful when using Euler Tour Trees for dynamic connectivity.
 
-data structures: *to-do*
+Intuition:  First recall that strictly speaking a tree doesn't have an Euler Tour.  So figuratively double each edge in the represented tree for a Euler tour in the strict sense to become possible.  Now arbitrarily choose any node of the represented undirected tree (component) as its root.  That node is  also called the tree's (components's) representative node, see also <<disjoint_set>>.  Imagine the Euler Tour as a curved line.  Make a mark on the line every time you visit a node, then pull that line straight.  The marks on the straight line define the leaves of the Euler Tour tree, a complete balanced binary tree.
 
-_findrepresentative(v)_ / _findroot(v)_: Returns the representative, i.e. the arbitrily choosen root, of the represented tree containing v.  That corresponds to the minimum leaf of the ET tree containing v.  Alternatively you could also choose the maximum leaf.  Analysis: O(log n) time since we walk up ET Tree to its root, and then down to either minimum/leftmost (or maximum/rightmost) leaf.
+Resulting properties:  The arbitrarily picked root of the represented tree corresponds to the leftmost and and the rightmost leaf in that balanced binary tree.  Similarily, the subtree rooted at a node v corresponds to a consecutive sequence in the Euler Tour, starting at v's first visit and ending at v's last visit, with arbitrarily many visits to v inbetween.
 
-_isconnected(v:vertex, w:vertex)_: findroot(v)==findroot(w).  Analysis: O(log n) since that's the complexity of findroot.
+Core idea:  Because an Euler Tour tree is a balanced tree and has parent pointers, starting at any leaf, we can find a representative node in O(log n).  Note that the represented undirected tree might not be a complete tree, i.e. it might be a path. That's why we need a more complicated data structure than the naive tree.  With an Euler Tour tree, even if the represented tree is a path, we still can provide O(log n) time for all operations that we care about.
 
-_cut(v:vertex)_:
+Data structure: An Euler Tour tree is a complete balanced binary tree where the leaves represent the Euler Tour as described above.  Note that its _not_ a search tree.  Nodes have parent pointers.
 
-Variant for directed represented trees: Cut the subtree rooted at v from the rest of the represented tree.  That corresponds to the contiguous sequence of ET tree leaves starting at firstvisit(v) and ending at lastvisit(v).  We find those two via the aformentioned pointers in the represented tree.  Split Euler-tour tree at firstvisit(v) and at lastvisit(v), see <<split_tree>>, and then concatenate the tree before firstvisit(v) and the tree after lastvisit(v), see <<concatenate_trees>>.  Analysis: Split uses O(log n), concatenate O(1) amortized, so O(log n) overall. *to-do* standford does it differently
+Operations:
 
-_link(u:vertex, v:vertex)_:  As always, this operation is allowed to assume u and v are disconnected.  Make u and v the representative of their respective tree (component).  New Euler Tour is Eʹ = E~u~, E~v~, \{u\}.
+_findrepresentative(v)_ / _findroot(v)_: Returns the representative node.  We choose the minium (i.e. leftmost) leaf of the ET tree to be the representative.  That corresponds to the root of the represented tree.  We find that by walking up from v to the root of the ET tree, and then walk always left to the minimum leaf.  Analysis: O(log n) time since we walk up ET Tree to its root, and then down to minimum leaf.
 
-Variant for directed represented trees:  Remains the same.
+_setrepresentative(v:vertex)_ / _setroot(v:vertex)_: Split Euler tour E just before v, such that E = E~1~, E~2~, where E~2~ beginns with \{v}. Remove E~1~'s first node resulting in Eʹ~1~. Concatenate a new Euler tour Eʹ = E~2~, Eʹ~1~, \{v}.  Intuition: Look at concatenation building Eʹ and contemplate what E~2~ and Eʹ~1~ mean.  E~2~ means ``from (incl.) v upto (incl.) previous root v~old~'' and Eʹ~1~ means ``from just after previous root v~old~ to just before v''.
 
-_setrepresentative(v:vertex)_ / _setroot(v:vertex)_: Split Euler tour E just befor an arbitrary visit to v, so E = E~1~, E~2~, where E~2~ beginns with \{v}. Remove E~1~'s first node resulting in Eʹ~1~. New Euler tour is Eʹ = E~2~, Eʹ~1~, \{v}.  Intuition: Look at concatenation building Eʹ and contemplate what E~2~ and Eʹ~1~ mean.  E~2~ means ``from (incl.) v upto (incl.) previous root v~old~'' and Eʹ~1~ means ``from just after previous root v~old~ to just before v''. *to-do* mnemonic indicies to E, at the cost of being longer
+Operations in a context where there is a collection of Euler Tour trees, i.e. a Euler Tour forest:
 
-_Aggregate over subtree rooted at v_: _only for the use case of representing directed trees_: Example for aggregate queries would be sum, min, max etc.  Do a range query in the leaves [firstvisit(v), lastvisit(v)], see also the notes about how to store the Euler-tour tree above.
+_concatenatetour(v:vertex, u:vertex)_: u and v are leaves in the Euler tour tree.  See <<concatenate_trees>>. Analysis: O(1), see there.
 
-Applications: *to-do*
+__splittourbefore(v:vertex)__: v is a leaf in the Euler tour tree. See <<split_tree>>. Analysis: O(log n), see there.
+
+
+===== Euler tour forest for dynamic connectivity
+
+This subchapter presents a concrete dynamic connectivity data structure using Euler Tour trees.  It achieves O(log n) time for all query and update operations and O(n) space.
+
+data structure 1/2 variant 1/2: Represented forest using some tree or graph data structure which provides update and query of vertices and edges in O(log n) and which provides satelite data for both vertices and edges.  E.g. an adjacency list using hash tables on both levels.  Recall that an edge e = {u,v} appears exactly twice in the Euler Tour.  I.e. the Euler Tour will have two consecutive leafes (u, v) and two consecutive leafs (v, u).  Each edge e = {u,v} has two pointers, one to leaf v of (u, v) in the Euler Tour, and one to u in (v, u) of the Euler Tour.  Each node has a pointer, here called ETLeaf, to any one of its occurences in its corresponding ET tour.  I.e. it points to some leaf in the Euler Tour forest.
+
+Note despite each edge in the represented forest already points to `its' leaves in the Euler Tour, the nodes still have to point to any one leaf.  If not for simplicity, then because some nodes don't have incident edges.
+
+data structure 1/2 variant 2/2: If we really only need the operations of dynamic connectivity and none of the additional ones which are provided by a graph ADT, we might store the nodes and the edges of the represented forest both in each a collection providing O(log n) for query and update, say hash table or BBST.
+
+data structure 2/2: Euler tour forest, i.e. set of euler tour trees.  Their leaves are pointees of the above data structure storing the represented forest, so we don't need to store a collection of pointers to the roots of the Euler Tour trees.
+
+Operations:
+
+_findrepresentative(v)_ / _findroot(v)_: Returns the representative, i.e. the arbitrily choosen root, of the represented tree containing v.  Follow v's ET leaf pointer and delegate the call to the pointee, see Euler Tour tree core.  Note that the returned object is a node in the ET forest, not a node in the represented forest.  Analysis: O(log n), see Euler Tour tree core.
+
+_isconnected(v:vertex, w:vertex)_: Return findroot(v) == findroot(w).  Analysis: O(log n), since that's the asymptotic complexity of findroot.
+
+_link(u:vertex, v:vertex)_ / _insertedge(u:vertex, v:vertex)_:  As always, this operation is allowed to assume u and v are disconnected.  Make u.ETleaf and v.ETleaf the representative of their respective Euler Tour tree (component).  Concatenate a new Euler Tour Eʹ = E~u~, E~v~, \{u}.  Add an edge e = {u,v} in the data structure storing the represented forest.  Let edges's two pointers into the ET forest point to E~v~'s first node and to Eʹ's last node, i.e. the \{u} appended at the end.  See Euler Tour tree core for the basic operations.  Analysis: O(log n), see concatenating and spliting Euler Tours.
+
+_cut(u:vertex, v:vertex)_ / _removeedge(u:vertex, v:vertex)_: As always, this operation is allowed to assume u and v are connected.  Query the data structure storing the represented forest for the edge e = {u,v}.  As described above, each edge stores a pointer to leaf v of leaf sequence (u, v) and a pointer to leaf u of leaf sequence (v, u) in the Euler Tour.  Cut Euler Tour between the (u, v) sequence and between the (v, u) sequence, i.e. E = E~1~, E~2~, E~3~.  Remove last node of E~1~, resulting in Eʹ~1~, and concatenate Eʹ~1~ and E~3~.  The two new tours are then E~2~ and the concatenation of Eʹ~1~ and E~3~.  Remove edge e in the data structure storing the represented forest.  See Euler Tour tree core for the basic operations.  Analysis: O(log n), see concatenating and spliting Euler Tours.
+
+_insertvertex():vertex_, _createvertex():vertex_: Create a new Euler Tour tree containing one node.  In the data structure storing the represented forest create a new vertex v.  Let v.ETleaf point to the single leaf in the new Euler Tour tree.  Return v.  Analysis: Whatever data structure for represented tree needs.
+
+_removevertex(v:vertex)_: For simplicity we require that v has no incident edges.  Obviously v.ETleaf is the only remaining node in the Euler Tour, so we delete the v.ETleaf's Euler Tour tree.  Remove v from the data structure storing the represented forest.  Analysis: Whatever data structure for represented tree needs.
 
 References:
 
 - Stanford University course CS 166 Data Structures: http://web.stanford.edu/class/archive/cs/cs166/cs166.1146/lectures/04/Small04.pdf plus !! bugfixes: http://web.stanford.edu/class/archive/cs/cs166/cs166.1146/lectures/05/Small05.pdf
 
 
-===== Variant for directed trees
+===== Euler tour forest for dynamic connectivity on directed trees
 
 *to-do* I learned the ET tree as an way to implement dynamic connectivity. I don't know other applications, especially ones where the tree is directed opposed to undirected.  Some sources explain Euler Tree tree where the represented tree is directed, and others where its undirected, the directed version being much simpler, but not really solving dynamic connectivity.
 
@@ -4783,13 +4809,13 @@ We maintain three data structures:
 
 - A BBST tree storing the edges of the Euler Tour, i.e. the `edges' between two consecutive leaves in the ET tree. *to-do* why do we need that?
 
-
-_cut(v:vertex)_: Cut the subtree rooted at v from the rest of the represented tree.  That corresponds to the contiguous sequence of ET tree leaves starting at firstvisit(v) and ending at lastvisit(v).  We find those two via the aformentioned pointers in the represented tree.  Split Euler-tour tree at firstvisit(v) and at lastvisit(v), see <<split_tree>>, and then concatenate the tree before firstvisit(v) and the tree after lastvisit(v), see <<concatenate_trees>>.  Analysis: Split uses O(log n), concatenate O(1) amortized, so O(log n) overall. *to-do* standford does it differently
+_cut(v:vertex)_: Cut the subtree rooted at v from the rest of the represented tree.  That corresponds to the contiguous sequence of ET tree leaves starting at firstvisit(v) and ending at lastvisit(v).  We find those two via the aformentioned pointers in the represented tree.  Split Euler-tour tree at firstvisit(v) and at lastvisit(v), see <<split_tree>>, and then concatenate the tree before firstvisit(v) and the tree after lastvisit(v), see <<concatenate_trees>>.  Analysis: Split uses O(log n), concatenate O(1) amortized, so O(log n) overall.
 
 _setrepresentative(v:vertex)_ / _setroot(v:vertex)_: Make v the representative, i.e. the arbitrarily choosen root, of the represented tree containing v. Split tour before firstvisit(v) and after lastvisit(v), resulting in the three parts S1, V, S2.  Delete first node in S1. Concatenate V, S2, S1, v. *to-do* what happens to represented tree and its pointers
 
 _link(u:vertex, v:vertex)_:  Same as in the undirected tree variant.
 
+_Aggregate over subtree rooted at v_: _only for the use case of representing directed trees_: Example for aggregate queries would be sum, min, max etc.  Do a range query in the leaves [firstvisit(v), lastvisit(v)], see also the notes about how to store the Euler-tour tree above.
 
 References:
 
