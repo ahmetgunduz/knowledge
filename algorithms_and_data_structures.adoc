@@ -305,6 +305,7 @@ Examples of NP-complete problems:
  * Finding the maximum weight clique in a weighted graph
  * Listing all maximal cliques (cliques that cannot be enlarged)
 - _minimum vertex cover_
+- <<set_cover_problem>>
 - _maximum independent set problem_
 - _Graph coloring_ regarding vertices (edges): Coloring the vertices (edges) of a graph such that no two adjacent vertices (edges) share the same color.
 
@@ -2512,6 +2513,29 @@ for i in [0,n)
 Analysis: Θ(n·S). Time complexity is Θ(1) for one DP call. Thus the overall
 running time is Θ(n·S), i.e. <<pseudo_polynomial_time>>. It's actually exponential,
 since Θ(n·S) is exponential relative to the input size S which is O(log S) bits.
+
+
+[[set_cover_problem]]
+=== Set cover problem
+
+References:
+
+- http://www.cs.umd.edu/class/fall2017/cmsc451-0101/Lects/lect09-set-cover.pdf
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter cover problems p 106
+
+
+==== Greedy set cover algorithm
+
+A greedy ln(n)-approximation algorithm using O(n^3/2^) time.
+
+proof: maybe this is easier https://math.mit.edu/~goemans/18434S06/setcover-tamara.pdf
+
+References:
+
+- http://www.cs.umd.edu/class/fall2017/cmsc451-0101/Lects/lect09-set-cover.pdf
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``4.3.2 Cover Problems, Greedy Method, and Relaxation to Linear Programming'', algorithm 4.3.2.11 p 264
 
 
 === Consumer producer
