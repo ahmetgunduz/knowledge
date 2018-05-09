@@ -298,7 +298,7 @@ Examples of NP-complete problems:
 - <<TSP,Travelling salesman problem>>
 - <<knapsack>>
 - <<hamiltoninan_path_problem>>
-- _Boolean satisfiability_ (_SAT_) problem: *to-do*:
+- _Boolean satisfiability_ (_SAT_) problem
 - _Subset sum problem_: Given a set (or multiset) of integers, is there a non-empty subset whose sum is zero?
 - _clique problems_
  * Finding the maximum clique (a clique with the largest number of vertices)
@@ -329,13 +329,19 @@ We say that algorithm A is a _pseudo-polynomial-time algorithm_ for an integer-v
 Let U be an integer-valued problem, and let h be a non-decreasing function ℕ → ℕ.  The __h-value-bounded subproblem__ of U, denoted Value(h)-U, is the sub problem of U by restricting the set of U's input instances to those satisfying Max-Int(x) ≤ h(|x|).
 
 [[strongly_NP_hard]]
-An integer-valued problem U is called _strongly NP-hard_ if there exists a polynomial p such that the problem Value(p)-U is NP-hard.
+An integer-valued problem U is called _strongly NP-hard_ if there exists a polynomial p such that the problem Value(p)-U is NP-hard.  In other words, the problem remains NP-hard even if we restrict Max-Int(x) to Max-Int(x) ≤ p(|x|).
 
 Givn integer-valued problem U, and assuming P≠NP:
 
+U is strongly NP-hard ⇔ +
+U doesn't allow pseudo-polynomial time algorithm ⇔ +
+U doesn't allow <<FPTAS>>
+
+Or in the negated form:
+
 U is not strongly NP-hard ⇔ +
 U allows pseudo-polynomial time algorithm ⇔ +
-U allows FPTAS
+U allows <<FPTAS>>
 
 Examples of pseudo-polynomial algorithms: <<knapsack>>, <<ford_fulkerson_algorithm>>.
 
@@ -639,7 +645,12 @@ We say A is a _δ-approximation algorithm_ if Ratio~A~(x) ≤ δ ∀ feasible x.
 
 For any x, the _relative error_ of A is defined as ε~A~(x) = R~A~(x) - 1.
 
-An approximation algorithm A is called a _polynomial-time approximation scheme_ (or _PTAS_) for optimization problem U if for ε > 0 and for all feasible x R~A~(x) ≤ 1 + ε and Time~A~(x, 1/ε) is bounded polynomial in |x| and unbounded in 1/ε.  A is called _fully polynomial-time approximation scheme_ (or _FPTAS_) if additionally Time~A~(x, 1/ε) is bounded polynimial also in 1/ε.  Intuition: PTAS lets you decrease approximation ratio by paying with computation time.  FPTAS guarantees you that computation time does not grow too quickly.
+An approximation algorithm A is called a _polynomial-time approximation scheme_ (or _PTAS_) for optimization problem U if for ε > 0 and for all feasible x R~A~(x) ≤ 1 + ε and Time~A~(x, 1/ε) is bounded polynomial in |x| and unbounded in 1/ε.
+
+[[FPTAS]]
+A is called _fully polynomial-time approximation scheme_ (or _FPTAS_) if additionally Time~A~(x, 1/ε) is bounded polynimial also in 1/ε.  Intuition: PTAS lets you decrease approximation ratio by paying with computation time.  FPTAS guarantees you that computation time does not grow too quickly.
+
+If the problem is not strongly NP-hard, then there is an FPTAS.  See <<strongly_NP_hard>> for details.
 
 See also <<randomized_algs_for_optimization_problems>>, which could also have been a subchapter of ``Approximation algorithms'', but was made a subchapter of ``Randomized algorithms'' instead.  I thought I'll put concrete approximation algorithms close to the problem as always in this document, so the umbrella (sub)chapter for approximation agorithms is just this small one.  Online problems are relatively special compared to offline ones, and thus all online problems are within chapter online algorithms.
 
@@ -1101,6 +1112,7 @@ Solutions / Implementations:
 | <<fusion_tree>>    | O(log n / log log u) whp | O(log n / log log u) whp   | Θ(n)       |
 |=====
 
+*to-do* how does B-tree compare?
 
 References:
 
@@ -1526,7 +1538,7 @@ c = ⌊x / √u⌋ = x >> (w/2) = the rigth half of x's bits +
 i = x mod √u = x & (1<<(w/2) - 1) = the left half of x's bits +
 x = c·√u + i = c << (w/2) | i = concatenate bits
 
-Another viewpoint, which, as written here, only becomes clear once you understand the van Emde Boas tree.  We want to build a data structure such that the time T(u) per operation can be given by the recurence relation T(u) = 1·T(√u) + O(1) = O(log log u), where the later equal sign is due to the master theorem.  Thus we can only afford one (the factor before T(√u)) further recursive call per recursion.
+Another viewpoint, which, as written here, only becomes clear once you understand the van Emde Boas tree.  We want to build a data structure such that the time T(u) per operation can be given by the recurence relation T(u) = 1·T(√u) + O(1) = O(log log u), where the later equal sign is due to the master theorem.  In other words, we want an data structure which allows for making only one true recursive call per recursion.
 
 Applications:
 
@@ -1611,7 +1623,7 @@ To handle the special case of an empty node, most authors set the min attribute 
 
 Operations: *to-do*
 
-Time analysis for all operations: O(log log u) *to-do*
+Time analysis for all operations: O(log log u). Recall that the core idea is that we only ever do one (true) recursive call. *to-do*
 
 Space analysis: Θ(u) *to-do*
 
@@ -4681,7 +4693,7 @@ The number of possible trees of size n is given by the Catalan number.  An upper
 
 ==== Fundamental graph representations / data structures
 
-- _Adjacency list_: An ADT having the function Adj(u:vertex), which returns a linked list defining the vertices adjacent to vertex u.  E.g. an associative array (i.e. a collection) of linked lists.  It is left to the more concrete implementation, whether the collection element definitely defines a vertex with all its attributes, or whether the vertex is defined by yet another object and the collection element only defines its adjacent vertices.  Note that in an undirected graph, an edge appears twice.  Typically data structures for the outer collection:
+- _Adjacency list_: An ADT having the function Adj(u:vertex), which returns a linked list defining the vertices adjacent to vertex u.  E.g. an associative array (i.e. a collection) of linked lists.  It is left to the more concrete implementation, whether the collection element definitely defines a vertex with all its attributes, or whether the vertex is defined by yet another object and the collection element only defines its adjacent vertices.  Note that in an undirected graph, an edge appears twice.  Typical data structures for the outer collection:
 
  * A (dynamic) array. Each slot represents a vertex.  Vertices are identified by theyr index in the array.  Only works well with the variant where vertices are separate objects, if these separate vertices objects store their array index as attribute.
 
