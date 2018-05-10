@@ -4693,13 +4693,17 @@ The number of possible trees of size n is given by the Catalan number.  An upper
 
 ==== Fundamental graph representations / data structures
 
-- _Adjacency list_: An ADT having the function Adj(u:vertex), which returns a linked list defining the vertices adjacent to vertex u.  E.g. an associative array (i.e. a collection) of linked lists.  It is left to the more concrete implementation, whether the collection element definitely defines a vertex with all its attributes, or whether the vertex is defined by yet another object and the collection element only defines its adjacent vertices.  Note that in an undirected graph, an edge appears twice.  Typical data structures for the outer collection:
+- _Adjacency list_: An ADT providing the function Adj(u:vertex), which returns a collection defining the vertices adjacent to vertex u.  E.g. an associative array (i.e. a collection) of linked lists.  It is left to the more concrete implementation, whether the collection element definitely defines a vertex with all its attributes, or whether the vertex is defined by yet another object and the collection element only defines its adjacent vertices.  Typical data structures for the outer collection:
 
  * A (dynamic) array. Each slot represents a vertex.  Vertices are identified by theyr index in the array.  Only works well with the variant where vertices are separate objects, if these separate vertices objects store their array index as attribute.
 
  * A hash table, the key being a vertice's hash.  A linked list node can define the adjacent vertex via a pointer, or its hash, or directly the slot index.
 
  * A function which implicitely defines the adjacent vertices.
+
+Undirected graphs: Note that in a trivial implementation, an edge e = {u,v} appears in two adjacency lists.  Once in u's adjacency list, and once in v's adjacency list.  If the edges have satelite data, that redundancy is a problem.  Possible solutions:  1) One of the two stored edges has set its satelite data to a special value meaning `data is in other edge'.  To find the other stored edge is trivial.  2) In case vertices are orderable, only the stored edge in the adjacency list of the smaller vertex stores the satelite data.  Note that both solutions have self-loops as border cases, but handling them is trivial.  Also it would get messy in the presence of parallel edges.
+
+Directed graphs: In a trivial implementation the pointed to vertices don't know which vertices point to them. If that is needed, add a virtual back edge for real each edge.  That requires satelite data for each edge, namely a flag wether it's a real or an virtual edge.
 
 - _Objects and pointers_: Can also be seen as a variant of the adjacency list representation.  A collection stores pointers to all vertices.  Each vertex stores its adjacent vertices via a collection of pointers.  Alternatively, each vertex stores a collection of outgoing edges.  An outgoing edge stores a pointer to the source and to the destination vertex, and possibly other edge attributes such as weight.  The other graph representations have the advantage, that with them you can have multiple graphs using the same vertex objects.
 
@@ -4709,24 +4713,24 @@ The number of possible trees of size n is given by the Catalan number.  An upper
 
 - _Incidence matrix_ |V|×|E|: The rows represent the columns, the columns the edges, a cell is 1 if the associated vertex is an start point of the assiciated edge, -1 if it's the end point, and 0 otherwise.  In a weighted graph, the 1s are replaced by the edge's weight.
 
-The time complexities for adjacency list assume that Adj(u:vertex) takes O(1) time. a is the number of incident edges to the vertex in question.
+The time complexities for adjacency list assume that Adj(u:vertex) takes O(1) time. a is the out degree vertex in question, and likewise A is the sum of out degree and in degree.
 
 |======
-|                           | adjacency list         | adjacency matrix  | incidence matrix
-|Space requirements         | O(V+E) ☺ if sparse     | O(V²)             | O(VE)
-|Add vertex                 | O(1) ☺                | O(V²)             | O(VE)
-|Remove vertex and its edges| ✝                     | O(V²)             | O(VE)
-|Add edge                   | O(1)                   | O(1)              | O(VE)
-|Remove edge                | O(V+E) / digraph O(a)  | O(1)              | O(VE)
-|Are two vertices adjacent? | O(a)                   | O(1) ☺            | O(E)
-|Get adjacent vertices      | O(a) ☺                | O(V)              | O(E)
+|                             | adjacency list         | adjacency list w. hash table | adjacency matrix  | incidence matrix
+|Space requirements         2+| O(V+E) ☺ if sparse                                    | O(V²)             | O(VE)
+|Add vertex                 2+| O(1) ☺                                                | O(V²)             | O(VE)
+|Remove vertex and its edges  | ✝                      | O(A)                         | O(V²)             | O(VE)
+|Add edge                   2+| O(1)                                                  | O(1)              | O(VE)
+|Remove edge                  | O(V+E) / digraph O(a)  | O(1) ☺                       | O(1) ☺            | O(VE)
+|Are two vertices adjacent?   | O(a)                   | O(1) ☺                       | O(1) ☺            | O(E)
+|Get adjacent vertices      2+| O(a) ☺                                                | O(V)              | O(E)
 |======
 
 ✝) To remove vertex itself from outer collection: O(V) for array, O(1) for hash table. To remove incident edges of vertex u: For directed graph O(a), for undirected graph O(V+E) (for each vertex v in Adj(u), remove u from in Adj(v)).
 
 References:
 
-- Book "Introduction to algorithms", chapter "Representations of graphs"
+- Book "Introduction to algorithms", chapter "22.1 Representations of graphs"
 
 - https://www.ics.uci.edu/~eppstein/161/960201.html
 
