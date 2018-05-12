@@ -470,7 +470,9 @@ A set of random variables is called _homoscedastic_ if all of those random varia
 
 The _covariance_ between two random variables R~1~ and R~2~ is defined as Cov[R~1~, R~2~] = E[(R~1~-E[R~1~])(R~2~-E[R~2~])] = E[R~1~R~2~] - E[R~1~]E[R~2~].
 
-The _correlation_ between two random variables R~1~ and R~2~ is defined as ρ~R1,R2~[R~1~, R~2~] = Cov[R~1~, R~2~] / (√Var[R~1~]√Var[R~2~]). Note that the codomain is [-1,1].
+The _correlation_ between two random variables R~1~ and R~2~ is the standardized covariance and is defined as ρ~R1,R2~[R~1~, R~2~] = Cov[R~1~, R~2~] / (√Var[R~1~]√Var[R~2~]). Note that the codomain is [-1,1].
+
+Two random variables R~1~ and R~2~ are said to be _uncorrelated_ if Cov[R~1~, R~2~] = 0.
 
 E[a·R~1~ + b·R~2~] = a·E[R~1~] + b·E[R~2~] (_linearity of expectation_)
 
@@ -506,11 +508,11 @@ Given a sequence X~1~, ..., X~n~ of random variables.  X~n~, the last of the seq
 
 Given a sequence X~1~, ..., X~n~ of random variables.  X~n~, the last of the sequence, _converges in probability_ towards the random variable X, denoted X~n~ P→ X (P above the arrow) or plim~n→∞~ X~n~ = X, if for all ε > 0 lim~n→∞~ Pr(|X~n~ - X| > ε) = 0. Convergence in probability implies convergence in distribution.
 
-_Weak Law of Large Numbers_ (or _WLNN_ or _Khintchine's law_): Let X~1~, ..., X~n~ be iid random variables with the same mean μ and same variance σ², and let X̄ = 1/n ∑X~i~ denote their sample mean. WLNN states that X̄ P→ μ. Interpretation: The distributionh of X̄ becomes infinitely concentrated, i.e. 0 variance, around μ as n gets large.  The sample mean is a consistent estimator for the population mean μ.  Note that while E[X̄] = μ and Var[X̄] = σ²/n are also true, they are different statements.
+_Weak Law of Large Numbers_ (or _WLLN_ or _Khintchine's law_): Let X~1~, ..., X~n~ be iid random variables with the same mean μ and same variance σ², and let X̄ = 1/n ∑X~i~ denote their sample mean. WLLN states that X̄ P→ μ. Interpretation: The distributionh of X̄ becomes infinitely concentrated, i.e. 0 variance, around μ as n gets large.  The sample mean is a consistent estimator for the population mean μ.  Note that while E[X̄] = μ and Var[X̄] = σ²/n are also true, they are different statements.
 
 _central limit theorem_ (_CLT_):  Let the random variables X~1~, ..., X~n~ be independent, each X~i~ with some arbitrary unknown distribution but with known mean μ~i~ and finite variance σ²~i~.  Then (∑X~i~ - ∑μ~i~) / √∑σ²~i~ ⇝ N(0, 1), or formulated differently: 1/n ∑X~i~ ⇝ N(μ̄, σ̄²/n)  where μ̄ = 1/n ∑μ~i~ and σ̄² = 1/n ∑σ²~i~.  If additionally X~1~, ..., X~n~ are identically distributed with mean μ and variance σ², this simplifies to X̄ = 1/n ∑X~i~ ⇝ N(μ, σ²/n).  (*to-do* 1) better understand what http://mathworld.wolfram.com/CentralLimitTheorem.html says more 2) relation to `converges in distribution'? See all of statistics p 72 3) How do you call this thing on the lhs of ⇝? 4) Is it correct that I shouldn't use the term sample mean and thus also not the conventional X̄ = 1/n ∑X~i~ in the first general case, since the term sample is reserved for the case of taking a sample from a population, and by the definition, population means that its members have the same distribution. How you call 1/n ∑X~i~ in the first/general case? How you call (∑X~i~ - ∑μ~i~) / √∑σ²~i~ ?)
 
-__WLNN vs CLT__: WLNN gives sample mean's value provided iid Xs.  CLT gives distribution of 1/n ∑X~i~ only provided independent Xs.  (*to-do* But then CLT is a proper superset of WLNN, since knowing the distribution implies knowing the mean. So the question remains, whats the real difference between CLT and WLNN?)
+__WLLN vs CLT__: WLLN gives sample mean's value provided iid Xs.  CLT gives distribution of 1/n ∑X~i~ only provided independent Xs.  (*to-do* But then CLT is a proper superset of WLLN, since knowing the distribution implies knowing the mean. So the question remains, whats the real difference between CLT and WLLN?)
 
 References:
 
@@ -546,7 +548,7 @@ CDF(x) = { +
 
 ==== Normal distribution / Gaussian distribution
 
-X ~ N(μ, σ²), where μ∈ℝ is the mean and σ>0 the standard deviation, if
+X ~ 𝓝(μ, σ²), where μ∈ℝ is the mean and σ>0 the standard deviation, if
 
 PDF(x) = 1/(σ√(2π)) exp(-1/(2σ²) (x-μ)²)
 
@@ -557,9 +559,11 @@ We say that X has _standard Normal distribution_ if μ=0 and σ=1. Tradition dic
 Φ(z) = 1/√(2π) ∫~-∞ to x~exp(-t²/2)dt = +
 1/2 + 1/2 erf(x/√2)
 
-erf(x) = 2/√π ∫~0 to x~exp(-t²)dt
+Where erf(x) = 2/√π ∫~0 to x~exp(-t²)dt
 
-Same useful facts:
+A k-dimensional _multivariate normal distribution_ (or _k-variate normal distribution_) is denoted 𝓝~k~(μ, σ²).
+
+Some useful facts:
 
 X \~ N(μ,σ²) ⇒ (X-μ)/σ ~ N(0,1)
 
@@ -620,7 +624,7 @@ The _type II error rate_ β is the probability of not rejecting H~0~ given that 
 
 The _power_ (or _statistical power_) of a test is the probability of making a true discovery, given that H~a~ is true.  I.e. it is the probability of rejecting H~0~ given that H~a~ is true.  Or equivalently, power equals the area below the distribution of H~a~ in the critical region.  power = 1 - β.
 
-The _critical region_ (or _rejection region_):  In a two sided test the critical region is [-∞,t~crit_a~] ∪ [t~crit_b~,∞],  where crit_a and crit_b are defined via Pr(T≤t~crit_a~|H~0~) = α/2 and Pr(T≥t~crit_b~|H~0~) = α/2.  Or equivalently via the H~0~ distribution's quantile: t~crit_a~ = H0_dist_quantile(α/2) and t~crit_b~ = H0_dist_quantile(1-α/2).  In a onesided test its [-∞,t~crit~] where Pr(T≤t~crit~|H~0~) = α, or the other way round.  See also definition of significance level.
+The _critical region_ (or _rejection region_):  In a two sided test the critical region is [-∞,t~crit_a~] ∪ [t~crit_b~,∞],  where the _critical values_ crit_a and crit_b are defined via Pr(T≤t~crit_a~|H~0~) = α/2 and Pr(T≥t~crit_b~|H~0~) = α/2.  Or equivalently via the H~0~ distribution's quantile: t~crit_a~ = H0_dist_quantile(α/2) and t~crit_b~ = H0_dist_quantile(1-α/2).  In a onesided test its [-∞,t~crit~] where Pr(T≤t~crit~|H~0~) = α, or the other way round.  See also definition of significance level.
 
 The _acceptance region_ is the complement to the critical region.
 
@@ -750,7 +754,13 @@ Examples:
 
   * <<z_test>> (assumes normal distr. with known variance)
 
-  * <<t_test>> (assumes normal distr. with unknown variance)
+  * <<t_test>> (assumes normal distr. with unknown variance). In the following, s~p~ denotes the pooled variance.
+
+    ** equal sample sizes, equal variance: t = (X̄~1~ - X̄~2~) / (s~p~√(2/n)), df = 2n - 2
+
+    ** equal variance: t = (X̄~1~ - X̄~2~) / (ŝ~p~√(1/n~1~ + 1/n~2~)), df = n~1~ + n~2~ - 2
+
+    ** general: Welch's t-test *to-do*
 
 - non-parametric unpaired two sample tests:
 
@@ -908,7 +918,7 @@ _Linear regression_, testing wether a coefficient has an effect: see <<linear_re
 
 ===== As a non-parametric unpaired two sample permutation test
 
-Set-up: Given population F~1~ and F~2~, and a sample from each, Y~1~^(1)^,...Y~n1~^(1)^ \~ F~1~ and Y~1~^(2)^,...Y~n2~^(2)^ \~ F~2~. H~0~: F~1~ = F~2~, H~a~ : F~1~ is a shifted version of F~2~ (either in a two tailed or one tailed way).  Let the test statistic U be the sum of ranks of group 1 (or group 2, doesn't matter).  The distribution of U under H~0~ is well known, the same way say the Student's distribution is known.  For small sample sizes (~20), it's given by tables, for large sample sizes it can be approximated by a Normal distribution.
+Set-up: Given population F~1~ and F~2~, and a sample from each, Y~1~^(1)^, ..., Y~n1~^(1)^ \~ F~1~ and Y~1~^(2)^, ..., Y~n2~^(2)^ \~ F~2~. H~0~: F~1~ = F~2~, H~a~ : F~1~ is a shifted version of F~2~ (either in a two tailed or one tailed way).  Let the test statistic U be the sum of ranks of group 1 (or group 2, doesn't matter).  The distribution of U under H~0~ is well known, the same way say the Student's distribution is known.  For small sample sizes (~20), it's given by tables, for large sample sizes it can be approximated by a Normal distribution.
 
 Procedure: Regular hypothesis test. Compute u~obs~ from the given sample, and from u~obs~, using the known distribution of U, the p-value.
 
@@ -1060,7 +1070,7 @@ A _tuning parameter_  if the parameter's job is primarily a transient parameter 
 
 The notations Pr~θ~[·],  E~θ~[·] and Var~θ~[·] mean that the probability is with respect to PDF/PMF f(x;θ), i.e. averaging over all possible observations x, the generating PDF/PMF being f(x;θ). (*to-do* in the context of an estimator θ̂, what if θ is not a parameter of a model, but some other population parameter)
 
-p denotes the number of predictors and n the number of data points.  Predictors and data points will be defined shortly.  Given is a n ⨯ p matrix X where each column represents a _predictor_ (or _covariable_ or _covariate_ or _input variable_ or _independent variable_ or _feature_ or _regressor_ or _explanatory variables_ just _variable_).  Given is a n ⨯ 1 vector Y of _response variables_ (or just _reponse_ or _output variables_ or _dependent varables_).  The tuple (Y[i], X[i-th row]) represents the i-th _observation_ (or _data point_).  We assume that there is some fixed but unknown relationship between the response Y and the predictors X.  We model that by the _regression function_ f (or _population regression function_ or _PRF_) by writing Y ≈ f(X). This can be read as ``__is approximately modeled as__'' or Y _is regressed_ on X.  f represents the _systematic_ information that the predictors provide about the response.  ε is a n ⨯ 1 vector of a random _error terms_ (or _noise_ or _disturbance_), which are independent of X and have no systematic error (i.e. E[ε~i~] = 0 ∀ ε~i~).  We liked to have an estimate f̂ for f and use it like so Ŷ = f̂(X).  Ŷ is the resulting _prediction_ for Y.  The elements ŷ~i~ of Ŷ are called _fitted values_ (or _predicted values_).
+p denotes the number of predictors and n the number of data points.  Predictors and data points will be defined shortly.  Given is a n ⨯ p matrix X where each column represents a _predictor_ (or _covariable_ or _covariate_ or _input variable_ or _independent variable_ or _feature_ or _regressor_ or _explanatory variables_ just _variable_).  Given is a n ⨯ 1 vector Y of _response variables_ (or just _reponse_ or _output variables_ or _dependent varables_).  The tuple (Y[i], X[i-th row]) represents the i-th _observation_ (or _data point_).  We assume that there is some fixed but unknown relationship between the response Y and the predictors X.  We model that by the _regression function_ f (or _population regression function_ or _PRF_) by writing Y = f(X) + ε. This can be read as ``__is modeled as__'' or Y _is regressed_ on X.  f represents the _systematic_ information that the predictors provide about the response.  ε is a n ⨯ 1 vector of a _error terms_ (or _noise_ or _disturbance_), which are independent of X.  It is a catch-all for all we miss with our model f.  The true relationship might not according to model f, there might be other variables that cause variation in Y, and there may be measurement error..  If the model f is the correct model, then these error terms are random and have no systematic error (i.e. E[ε~i~] = 0 ∀ ε~i~).  We liked to have an estimate f̂ for f and use it like so Ŷ = f̂(X).  Ŷ is the resulting _prediction_ for Y.  The elements ŷ~i~ of Ŷ are called _fitted values_ (or _predicted values_).
 
 *to-do* better merge the above paragraph with the first few paragraphs of this chapter
 
@@ -1118,6 +1128,7 @@ References:
 | D~i~ = 1/p · t²~i~ · (P~ii~/(1-P~ii~)) = 1/(pσ̂²) · ∑~j~(ŷ~j~-ŷ~j(i)~)² | Cook's distance of i-th observation.  P is the projection matrix.  ŷ~j(i)~ excludes the i-th row.
 | D~i~ > 1 or D~i~ > 4/n | Rules of thumb for identifying influencial data points.
 | RSE = √(RSS/(n-p)) | Residual standard error
+| Var̂[ε~i~] = RSE | Common estimator for Var[ε~i~] = σ
 | (unadjusted) R² = (TSS - RSS) / TSS = 1 - RSS/TSS |
 | adjusted R² = 1 - RSE² / (TSS/(n-1)) |
 | trainingMSE = RSS/n |
@@ -1128,7 +1139,7 @@ References:
 
 The _performance_ of a model is a measure of how `good' a model models a given population, most often in respect to its predictive power, i.e. its prediction capability on independent unseen test data.  For example, one could use the expected test MSE, that is, an estimate thereof.  (*to-do* is it always a property of the model, or can it also be a property of a concrete already trained estimate f̂? In what way does the difference between prediction and inference influence the topic of model performance)
 
-The _residual standard error_ (or _RSE_) is given by RSE = √(RSS/(n-p)).  The RSE is considered an absolute measure of the lack of fit of the model to the data.  Roughly speaking RSE is the average amount that the response will deviate from the true regression hyperplane.  Even if the model were absolutely correct and the parameters of the model were known exactly, any prediction Ŷ is still off by RSE.  RSE is often used as an estimator for the variance Var(ε~i~) ≈ σ̂² = RSE² of the error terms ε~i~. *to-do* derive given formula from √Var[e] or whatever is the basis, and then write RSE = √Var[e] = √(RSS/(n-p)).
+The _residual standard error_ (or _RSE_) is given by RSE = √(RSS/(n-p)).  The RSE is considered an absolute measure of the lack of fit of the model to the data.  Roughly speaking RSE is the average amount that the response will deviate from the true regression hyperplane.  Even if the model were absolutely correct and the parameters of the model were known exactly, any prediction Ŷ is still off by RSE.  RSE is often used as an estimator for the variance Var[ε~i~] ≈ σ̂² = RSE² of the error terms ε~i~. *to-do* derive given formula from √Var[e] or whatever is the basis, and then write RSE = √Var[e] = √(RSS/(n-p)).
 
 The __R²__ statistic is defined as R² = (TSS - RSS) / TSS = 1 - RSS/TSS.  It provides an relative measure of the lack of fit of the model to the data.  TSS - RSS can be thought of as the amount of variability in the response that is explained by performing the regression.  R² then measures the proportion of variability in the response that can be explained using X.  R² ∈ [0,1], 1 meaning good, 0 meaning bad.  Small values might occur becaus the used model (e.g. linear) is wrong or the inherent error σ² is high, or both.  The advantage of R² over RSE is that the former is relative (lies in [0,1]) and the later is absolute.
 
@@ -1450,22 +1461,19 @@ References:
 [[linear_regression_models]]
 ==== Linear regression models
 
-<<misc_statistics>> introduces many terms and notations this subchapter is based upon.  In the linear multiple regression model the relation between the response and the predictors is linear, i.e. f(X) = Xβ.  Thus the estimated model is f̂(X) = Xβ̂ and thus Ŷ = f̂(X) + ε. Often the first column of X is all ones, which then makes β~0~ the _intercept_: the hyperplane described by f̂ intercepts the y-axis at β~0~.  _Simple linear regression_ is linear regression with only one predictor variable. f(X) = Xβ defines the _population regression hyperplane_, which is the best linear approximation to the true relationship between X and Y (recall that linearity was just an assumption). f̂(X) = Xβ̂ defines the _least square hyperplane_, which is an estimate based on the training data (*to-do* Is there are more general term which does not imply the fitting method).
+In the linear multiple regression model the relation between the response and the predictors is linear, i.e. f(X) = Xβ.  Thus the estimated model is f̂(X) = Xβ̂ and thus Ŷ = f̂(X) + ε. Often the first column of X is all ones, which then makes β~0~ the _intercept_: the hyperplane described by f̂ intercepts the y-axis at β~0~.  _Simple linear regression_ is linear regression with only one predictor variable. f(X) = Xβ defines the _population regression hyperplane_, which is the best linear approximation to the true relationship between X and Y (recall that linearity was just an assumption). f̂(X) = Xβ̂ defines the _least square hyperplane_, which is an estimate based on the training data (*to-do* Is there are more general term which does not imply the fitting method).
 
 The method to fit the model is commonly ordinary <<least_squares>>.  Other methods include <<ridge>> and <<lasso>>.
 
-*to-do*: the predictors can also be functions of actual predictors, i.e. with that the linear model is actually more general
+Assumptions of the linear model:
 
-Assumptions of the linear model (*to-do* of what exactly are these assumptions? Linear model and/or least squares fitting?), roughly ordered after importance: *to-do* how to verify?
+- E[ε] = 0, i.e. no systemtatic error, i.e. the linear model is the true model. Recall that we had Y = f(X) + ε.  The random variables Y and X are given indirectly via a sample.  If we take f to be linear, but the true relationship is not linear, then ε will have a systematic error.
 
-
-- E[ε] = 0, i.e. no systemtatic error. (the linear model is the correct model. *to-do* what has E[ε] = 0 to do with linear model being the correct model?)
-
-  * As a consequence, we have E[β̂] = β (unbiased).
+  * As a consequence, we have E[β̂] = β (i.e. unbiased estimator β̂ of coefficients). *to-do* this implies unbiased f̂, i.e. the expectedTestMSE is defined only by variance and ε?
 
   * If this assumption does not hold, we need other models than the linar model.
 
-- Predictors X are exact, i.e. observed without erors.
+- Predictors X are exact, i.e. observed without erors. *to-do* isn't that per definition catched by the error terms ε?
 
   * If this assumption does not hold, we may can use Errors-in-variables models.
 
@@ -1477,15 +1485,22 @@ Assumptions of the linear model (*to-do* of what exactly are these assumptions? 
 
   * If the error terms ε are correlated we may can use generalized least squares.
 
-- {ε~i~|∀i} iid \~ 𝓝(0, σ²).  This implies that Y~i~ ~ 𝓝 ∀ i, and it implies constant variance σ² of the error terms. (*to-do* since here we say they are independent, doesn't that imply they are also uncorrelated. I.e. the previous point is actually implied by this point? Ok, they are only uncorrelated given they are independent if second moments are finite (sais wikipedia in `uncorrelated random variables'), but is that really the point here?)
+- {ε~i~|∀i} iid \~ 𝓝(0, σ²).  (*to-do* since here we say they are independent, doesn't that imply they are also uncorrelated. I.e. the previous point is actually implied by this point? Ok, they are only uncorrelated given they are independent if second moments are finite (sais wikipedia in `uncorrelated random variables'), but is that really the point here?)
 
-  * As a consequence, we have β̂ ~ 𝓝(β, σ²(X^T^X)^-1^).
+  * As a consequence, we have
+    ** β̂ \~ 𝓝~p~(E[β̂], Var[β̂])
+    ** Ŷ \~ 𝓝~n~(E[Ŷ], Var[Ŷ])
+    ** e \~ 𝓝~n~(0, Var[e])
 
-  * If asummption does not hold, we may can use robust methods (*to-do* which ones?) instead least squars.
+  * If this asummption does not hold, we can rely on the CLT which implies that for large sample size n, the above distributions are still approximately true.  However we may should use robust methods (*to-do* which ones?) instead least squares.
 
 - The matrix has full rank p < n.
 
   * If that is not fulfilled, then we simply cannot solve the equations delivering β.
+
+*to-do* of what exactly are these assumptions? Linear model and/or least squares fitting?
+
+*to-do* how to verify?
 
 _Projection matrix_ (or _influence matrix_ or _hat matrix_), denoted P (or H), *to-do*
 
@@ -1504,25 +1519,36 @@ _Choosing predictors_: The individual variabilities for each coefficient sum up 
 | p~ii~ ∈ [1/n,1] |
 | Y = f(X) = Xβ + ε | β and ε unknown, see however assumptions on ε.
 | Ŷ = Xβ̂ = PY  |
-| e = Y - Ŷ = (I~n~ - P)Y | Residuals.
+| E[Ŷ] = Xβ |
+| Cov[Ŷ] = σ²P |
+| E[ε] = 0 | By assumption
+| Var[ε] = σ̂²  | By assumption
+| Var̂[ε] = σ̂² = RSE  |
+| e = Y - Ŷ = (I~n~ - P)Y | Residuals
+| E[e] = 0 |
 | Cov[e] = σ²(I~n~ - P) | Residuals e are correlated (error terms ε are not)
 | Var[e] = diag(Cov[e]) = σ²(1-diag(P)) | Variance of residuals is _not_ constant (unlike variance of error terms ε).
 | sê[e] = se[e] = √Var[e] | (*to-do* is this absolutely correct? why/proofs?)
 | e / sê[e] = e / (σ√(1-diag(P))) | Studentized residual (*to-do* from exercis-lecture, but really studentized or standardized?)
-| OLS: β̂ = argmin~β~(RSS(β)) = (X^T^X)^-1^X^T^Y | Coefficient estimates, computed using OLS. https://en.wikipedia.org/wiki/Proofs_involving_ordinary_least_squares#Least_squares_estimator_for_.CE.B2[Proof]
+| OLS: β̂ = argmin~β~(RSS(β)) = (X^T^X)^-1^X^T^Y | Coefficient estimates, computed using OLS. Note that this forumula is handy for theoretical purposes.  For numerical computatioin QR decomposition is mutch more stable. https://en.wikipedia.org/wiki/Proofs_involving_ordinary_least_squares#Least_squares_estimator_for_.CE.B2[Proof]
 | E[β̂] = β |
-| Cov[β̂] = σ²(X^T^X)^-1^ | Note that in some notations Var instead of Cov is used; since it's a matrix, it's implicit that the covariance matrix is meant. https://stats.stackexchange.com/questions/68151/how-to-derive-variance-covariance-matrix-of-coefficients-in-linear-r| Cov̂[β̂] = RSE²(X^T^X)^-1^ | σ is unknown, we estimate it as usual using RSE
+| Cov[β̂] = σ²(X^T^X)^-1^ | Note that in some notations Var instead of Cov is used; since it's a matrix, it's implicit that the covariance matrix is meant. https://stats.stackexchange.com/questions/68151/how-to-derive-variance-covariance-matrix-of-coefficients-in-linear-r
+| Cov̂[β̂] = RSE²(X^T^X)^-1^ | σ is unknown, we estimate it as usual using RSE
 | Var[β̂] = diag(Cov[β̂]) | Usual definition
 | Var̂[β̂] = diag(Cov̂[β̂]) | Usual definition
 | sê[β̂] = √Var̂[β̂] | Usual definition
 | β̂ \~ 𝓝~p~(E[β̂], Var[β̂]) |
-| (β̂~j~ - β~j~)/sê[β̂~j~] \~ t~n-p~ | *to-do* valid always or only under some hypothesis?
-| t-value of β̂~j~: β̂~j~ / se[β̂~j~] \~ t~n-p~ | *to-do* se[β̂~j~] typically not known, so I can use sê[β̂~j~], no? But then, when I want to be precisise, I have to distinguish between "t-value of β~j~" and "estimated t-value of β~j~", where as the latter is more often used?
-| β̂~j~ ± sê[β̂~j~]t~1-α/2,n-p~ | 1-α confidence interval for β~j~
-| (β̂~j~ - β~j~)/se[β̂~j~] ~ 𝓝(0, 1) | *to-do* valid always or only under some hypothesis?
-| p-value of β~j~: pseudo R-code: 2*pt(abs(t.value.beta), df=n-p, lower=FALSE) |
+| (β̂~j~ - β~j~)/se[β̂~j~] ~ 𝓝(0, 1) | See distribution of β̂.
+| t-value of β̂~j~: (β̂~j~ - β~j~)/sê[β̂~j~] \~ t~n-p~ | Commonly we set β~j~ = 0. See also distribution of β̂, t-statistic & t-distribution.
+| p-value of β̂~j~: *to-do* |
+| p-value of β̂~j~: pseudo R-code: 2*pt(abs(t.value.beta), df=n-p, lower=FALSE) |
+| β̂~j~ ± sê[β̂~j~]·qt~n-p;1-α/2~ | 1-α confidence interval for β~j~. qt~n-p;1-α/2~ denotes the 1-α/2 quantile of a t~n-p~ distribution.
 | F = [(TSS-RSS)/(p+1)] / [RSS/(n-p)]  | F-statistic. The null hypothesis is β~i~ = 0 for all i except 0.  F-statistic is 1 if there is no relationship between X and Y, larger otherwise.
 |=====
+
+*to-do* How to *correctly* interpret what the p-value of β̂~j~ really means. Not in the general sense, but the concrete context of linear regression. See script, box at bottom of page 10.
+
+*to-do* write out diag of Cov[β̂] and P explicitely
 
 References:
 
@@ -1577,7 +1603,7 @@ The _bootstrap expectation_ E^∗^[·] (or E~P^∗^~[·]) is a conditional expec
 
 Likewise the _bootstrap variance_ Var^∗^[·] (or Var~P^∗^~[·]) is a conditional variance given the (random) original sample.
 
-The original problem included that we liked to know E[θ̂].  We can estimate E[θ̂] using E^∗^[θ̂^∗^] as an estimator. E^∗^[θ̂^∗^] is a consistent estimator for E[θ̂] if n is large, i.e. when <<bootstrap_consistency>> kicks in.  However we don't know that one either.  We can estimate E^∗^[θ̂^∗^] by averaging over the bootstrap replications θ̂^∗i^.  Ê^∗^[θ̂^∗^] is a good estimator for E^∗^[θ̂^∗^] if B is large. (*to-do* 1) is E^∗^[θ̂^∗^] ≈ Ê^∗^[θ̂^∗^] due to WLNN? 2) is Ê^∗^[θ̂^∗^] a consistent estimator for E^∗^[θ̂^∗^] -- or what is a a better term than `good' in ``Ê^∗^[θ̂^∗^] is a good estimator for E^∗^[θ̂^∗^] if B is large'')
+The original problem included that we liked to know E[θ̂].  We can estimate E[θ̂] using E^∗^[θ̂^∗^] as an estimator. E^∗^[θ̂^∗^] is a consistent estimator for E[θ̂] if n is large, i.e. when <<bootstrap_consistency>> kicks in.  However we don't know that one either.  We can estimate E^∗^[θ̂^∗^] by averaging over the bootstrap replications θ̂^∗i^.  Ê^∗^[θ̂^∗^] is a good estimator for E^∗^[θ̂^∗^] if B is large. (*to-do* 1) is E^∗^[θ̂^∗^] ≈ Ê^∗^[θ̂^∗^] due to WLLN? 2) is Ê^∗^[θ̂^∗^] a consistent estimator for E^∗^[θ̂^∗^] -- or what is a a better term than `good' in ``Ê^∗^[θ̂^∗^] is a good estimator for E^∗^[θ̂^∗^] if B is large'')
 
 E[θ̂] ≈(large n) Ê[θ̂] = E^∗^[θ̂^∗^] ≈(large B) Ê^∗^[θ̂^∗^] = 1/B ∑^B^ θ̂^∗i^
 
