@@ -699,17 +699,27 @@ Controls FDR.  *to-do*
 [[westfall_young]]
 ===== Westfall Young permutation procedure
 
-Weak control of FWER. Strong control of FWER under some assumptions. (*to-do* what are these assumptions?)
+Weak control of FWER. Strong control of FWER under some assumptions.  Computes a significance level δ to be used for each test.
 
-Given data matrix X~1~, ..., X~m~.
+*to-do* what are these assumptions?
 
-*to-do*
+Two sample test based: m tests, n observations per test, two groups.  n ⨯ 1 vector Y = {0, 1}^n^ contains group assignment.  n ⨯ m matrix X contains observations.  Idea: under the global null y-values can be permuted.
 
-*to-do* https://en.wikipedia.org/wiki/Family-wise_error_rate#Resampling_procedures[wiki] says that pivotality must hold.
+Procedure:
+
+* Repeat many times:
+
+ ** For each test (i.e. for each X column), do a two sample test, compute p-value.
+
+ ** Find minimum p-value of these m p-values, throw that minimum p-value into a collection of minimal p-values.
+
+* Compute the empirical α quantile of the distribution given by the collection of minimal p-values, delivering δ.
+
+* Use δ as significance level for each of the m tests.
 
 References:
 
-- Slides7.dpf
+- Slides7.pdf
 
 
 ==== Misc. test properties / characteristics
