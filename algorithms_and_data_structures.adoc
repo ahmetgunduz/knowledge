@@ -261,9 +261,9 @@ Common complexity classes:
 
 P (polynomial):: (Decision) problems solvable in at most polynomial tyme (n^c^).  If you can establish a problem as not in P, you provide good evidence for its intractability.  You'd better spend your time developing an approximation algorithm or solve a tractable special case.  Note that some algorithms are not polynomial in input size, i.e. they are _not_ in P, but are polynomial in numeric input value and thus appear to be polynomial at a first glance, see <<pseudo_polynomial_time>>.
 
-NP (non-determiniatic polynomial):: (Decision) problems solveable in polynomial time via a ``lucky'' algorithm: Like in dynamic programm the algorithm makes a guess at each branch points where it could follow multiple paths.  However, if the overall answer of the decision problem is yes, it magically (being an awsome cool fairy tale computer) always guesses the path that ultimatively leads to the yes.
+NP (non-determiniatic polynomial):: (Decision) problems solveable in polynomial time via a ``lucky'' algorithm: The algorithm can make polynomially many guesses and magically, being an awsome cool fairy tale computer, gets the right answer every time if the overall decision problem answer is yes.
 +
-Equivalently: (Decision) problems where the a given yes-answer (e.g. yes, this sudoku has a solution), has a proof (can take more than polynomial time) (e.g. this solved sudoku) which can be checked in at most polynomial time (e.g. take the alleged solution / proof and verify it holds up to the sudoku rules).
+Equivalently: (Decision) problems where the a given yes-answer (e.g. yes, this sudoku has a solution), has a proof / certificate (e.g. a particular sudoku solution) which can be checked by a verification algorithm in polynomial time (e.g. take the alleged solution / proof / certificate and verify it holds up to the sudoku rules).  You can also think of that in the beginning, the oracle guesses all fields of the sudoku, as described in the first paragraph, and now a regular deterministic algorithm verifies that it's a feasible solution.
 +
 Is a nondeterministic computation model.  It's not a realistic model, but it's still a usefull model.
 
@@ -4308,7 +4308,7 @@ References:
 
 === Las Vegas algorithm
 
-Given a function F, a randomized algorithm A is called _Las Vegas algorithm_ if it can return `?' meaning ``I don't know the correct answer'' and it holds that CA = Pr(A(x)=F(x)) ≥ ε and Pr(A(x)=?) + CA = 1 for every input x and 0 < ε ≤ 1.  In plain English, it either returns the correct answer or optionally ?, but never an incorrect answer.  In other words, it gambles with resources used for computation, but not with correctness.  In the case that ? answers are _not_ allowed, i.e. ε = 1, definitions vary wether the algorithm is allowed to take infinite time or not.  If A is an Las Vegas Vegas Algorithm and lim~\|x\|→∞~ Pr(A(x)=F(x)) = 1, then it is called a _Las Vegas* algorithm_.
+Given a function F, a randomized algorithm A is called _Las Vegas algorithm_ if it can return `?' meaning ``I don't know the correct answer'' and it holds that CA = Pr(A(x)=F(x)) ≥ ε and Pr(A(x)=?) + CA = 1 for every input x and 0 < ε ≤ 1.  In plain English, it either returns the correct answer or optionally ?, but never an incorrect answer.  In other words, it gambles with resources used for computation, but not with correctness.  ``Probably fast'' is another catch phrase.  In the case that ? answers are _not_ allowed, i.e. ε = 1, definitions vary wether the algorithm is allowed to take infinite time or not.  If A is an Las Vegas Vegas Algorithm and lim~\|x\|→∞~ Pr(A(x)=F(x)) = 1, then it is called a _Las Vegas* algorithm_.
 
 If the algorithm is allowed to take infinite time, any Las Vegas algorithm which is allowed to return ? can be converted to one which is not allowed to return ? by executing it repeatedly until the answer is not ?.
 
@@ -4321,7 +4321,7 @@ Examples: quick sort, quick select
 
 === Monte Carlo algorithm
 
-Given a function F, a randomized algorithm A is called _Monte Carlo algorithm_ (or _MC algorithm_) if Pr(A(x)≠F(x)) < ε, for every input x and 0 < ε ≤ 1.  In plain English, it is allowed to return an incorrect answer with a certain bound on the probability.  In other words, it gambles with correctness,  and possibly also with ressources used for computation.
+Given a function F, a randomized algorithm A is called _Monte Carlo algorithm_ (or _MC algorithm_) if Pr(A(x)≠F(x)) < ε, for every input x and 0 < ε ≤ 1.  In plain English, it is allowed to return an incorrect answer with a certain bound on the probability.  In other words, it gambles with correctness,  and possibly also with ressources used for computation.  ``Probably correct'' is another catch phrase.
 
 For the case of decision problems, a randomized algorithm A is called _false-biased Monte Carlo algorithm_ (or _on-sided-error Monte Carlo algorithm_ or _1MC algorithm_) if Pr(A(x)=F(x)) = 1 for every false F(x) and Pr(A(x)=F(x)) ≥ 1/2 for every true F(x).  In other words, it's always correct when it returns false.  If A is an 1MC Algorithm and lim~\|x\|→∞~ Pr(A(x)=F(x)) = 1, then it is called a _1MC* algorithm_.
 
