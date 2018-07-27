@@ -470,7 +470,11 @@ A set of random variables is called _homoscedastic_ if all of those random varia
 
 The _covariance_ between two random variables R~1~ and R~2~ is defined as Cov[R~1~, R~2~] = E[(R~1~-E[R~1~])(R~2~-E[R~2~])] = E[R~1~R~2~] - E[R~1~]E[R~2~].
 
-The _correlation_ between two random variables R~1~ and R~2~ is the standardized covariance and is defined as ρ~R1,R2~[R~1~, R~2~] = Cov[R~1~, R~2~] / (√Var[R~1~]√Var[R~2~]). Note that the codomain is [-1,1].
+[[correlation]]
+_Correlation_ is a statistical relationship between random variables, though in common usage it most often refers to how close two variables are to having a linear relationship with each other.
+
+[[pearsons_correlation_coefficient]]
+The _Pearson's product moment correlation cofficient_ (or _Pearson's correlation coefficient_ _correlation coefficient_ or simply _correlation_ (but see also <<correlation>>)) between two random variables R~1~ and R~2~ is the standardized covariance and is defined as ρ~R1,R2~[R~1~, R~2~] = Cov[R~1~, R~2~] / (√Var[R~1~]√Var[R~2~]).  Note that the codomain is [-1,1].  Intuitively, it measures how linear the relationship is.  It is 1 for a perfect linear relationship with positive slope, -1 for a perfect linear relationship with negative , and 0 for no relationship at all.
 
 Two random variables R~1~ and R~2~ are said to be _uncorrelated_ if Cov[R~1~, R~2~] = 0.
 
@@ -579,13 +583,37 @@ The _Student's t-distribution_ (or _t-distribution_) is the distribution of the 
 *to-do* list common statistics which follow a t-distribution (e.g. when statistic g1 follows a normal distribution and a scaling parameter depends on the data, e.g estimator sd̂[g1], then, under certain conditions, g2=g1/sd̂[g1] follows a student's distribution)
 
 <<t_statistic>>
-The _(Student's) t-statistic_ for an estimator β̂ of unknown parameter β is defined as t~β̂~ = (β̂ - β~0~) / sê[β̂], where β~0~ is a fixed value which may or may not match β.  β̂ must be normally distributed, which in case of OLS is the case if E[epsiolon]=0.  The t-statistic is commonly used in hypothesis testing, where the null hypothesis is that  be β = β~0~.  Typically β~0~ is 0.  If β̂ is an ordinary least squares estimator for a coefficient in the classical linear regression model, and if the true value of parameter β is equal to β~0~, then t~β̂~ \~ t~n-p~ where n is the number of observations, and p is the number of predictors (including the intercept).
+The _(Student's) t-statistic_ for an estimator β̂ \~ 𝓝 of unknown parameter β is defined as t~β̂~ = (β̂ - β~0~) / sê[β̂], where β~0~ is a fixed value which may or may not match β.  β̂ must be normally distributed, which in case of OLS is the case if E[epsiolon]=0.  The t-statistic is commonly used in hypothesis testing, where the null hypothesis is that β = β~0~.  Typically β~0~ is 0.  If β̂ is an ordinary least squares estimator for a coefficient in the classical linear regression model, and if the true value of parameter β is equal to β~0~, then t~β̂~ \~ t~n-p~ where n is the number of observations, and p is the number of predictors (including the intercept).
 
 Etymology: the term ``t-statistic'' is abbreviated from ``hypothesis test statistic''.
 
 *to-do* I am confused. Here the denominator is se[β̂], in the t-distribution its sd̂[X̄] (the key point being that the later is an estimator).  Also apparently the Student's t-statstic is not guaranteed to be Student t-distributed, I find that confusing from a terminology point of view. How you call then the statistic used above in the definition of t-distribution?
 
 *to-do* Also in <<t_test>> there multiple examples of t-statistics, all of which have as denominator an estimator, not se[...].  Only when we wanted a t-statistic for a t-test for a estimator β̂ of a OLS model coefficient β, we used t~β̂~ = (β̂ - β~0~) / se(β̂).
+
+
+==== Chi-squared-distribution (𝜒²)
+
+Given random variables X~1~, ..., X~k~ iid~ 𝓝(0,1), then
+
+∑X~i~² \~ 𝜒~k~²
+
+*to-do* what if X~1~, ..., X~k~ iid~ 𝓝(μ, σ²)?
+
+
+==== F-distribution / Fisher-Snedecor distribution
+
+A random variable X having a F distribution with parameters d~1~ and d~2~ is denoted X \~ F(d~1~, d~2~).
+
+It is the distribution of X = (U~1~/d~1~) / (U~2~/d~2~), where U~1~ and U~2~ are independent and have distributions 𝜒²(d~1~) and 𝜒²(d~2~) respectively, where 𝜒² denotes the chi-squared distribution.
+
+Or equivalently, it's the distribution of X = ...
+
+*to-do*
+
+Independence of U~1~ and U~2~ might be demonstrated by applying Cochran's theorem.
+
+Applications: Appears often as the distribution of the test statistic in ANOVA.
 
 
 === Testing
@@ -618,7 +646,7 @@ Hypothesis testing really is ``__proof by contradiction__''.  Only that we can't
 
 The _p-value_ (or _probability value_ or _asymptotic significance_) for a two sided test is Pr(T≥|t~obs~-E[T]| | H~0~), for a one sided test it is Pr(T≥t~obs~|H~0~) or Pr(T≤t~obs~|H~0~) respectively.  The interpretation of the p-value is: _Given_ H~0~ is true, then in (p-value)·100% of any hypothesis tests we see an result as extrem or more extrem than t~obs~.  I.e. _given_ H~0~ is true, in (p-value)·100% of these tests we would incorrectly reject the null hypothesis.  The p-value is _not_ the probability that either hypothesis is correct.  Regarding the case of a one sided H~a~, where the very unlikely case occures that t~obs~ is of on the `other' side of H~0~'s distribution:  then the p-value will be very large, and we will not reject H~0~, which is correct in that we didn't accept H~a~.
 
-The _significance level_ (or _type I error rate_) α is the probability of rejecting H~0~ given that H~0~ is true.  Or equavilently, α is the area below the H~0~ distribution in the critical region.  α is choosen by the user, see algorithm above.
+The _significance level_ (or _type I error rate_) α is the probability of rejecting H~0~ given that H~0~ is true. Or in other words, the probability of a false discovery.  Or equavilently, α is the area below the H~0~ distribution in the critical region.  α is choosen by the user, see algorithm above.  Typically we want to control type I error rate, since a false discovery is worse than accidentaly not making a discovery.
 
 The _type II error rate_ β is the probability of not rejecting H~0~ given that H~a~ is true.  Or equivalently, β is the area below the H~a~ distribution in the acceptance region.  Note that the distribution of H~a~ is unknown. β = 1 - power.
 
@@ -628,15 +656,23 @@ The _critical region_ (or _rejection region_):  In a two sided test the critical
 
 The _acceptance region_ is the complement to the critical region.
 
-A _type I error_ (or _false positive_ or _false discovery_) is the incorrect rejection of H~0~.
-
-A _type II error_ (or _false negative_) is the incorrect retaining of H~0~.  Recall that we should say ``failed to reject H~0~'', opposed to ``retained H~0~'', but in the previous sentence the double negation that follows from that wording would become confusing.
-
 |=====
 |                       | H~0~ really true | H~a~ really true
 | failed to reject H~0~ | true positive | false negative, type I error, β
 | H~0~ rejected         | false postive, type II error, false discovery, significance level α | true negative, true discovery, power
 |=====
+
+
+==== Data snooping / selection effect
+
+[[data_snooping]]
+_Data snooping_ (or _data dredging_, _data snooping_, _p-hacking_) is searching patterns in data that then can be presented as statistically significant, without first devising a hypothesis.  The proper way is to first come up with a hypothesis, independently of the test data, and only afterwards test that hypothesis with test data.  Some patterns contained in large amounts of data (especially when number of predictors is huge and the number of observations is moderate) will be only due to chance.  When doing data snooping and actively searching for patterns, we are likely to find patterns, maybe ones that are there only due to chance (e.g. the few values of a predictor happen to correlate with the response by chance).  When then doing a hypothesis test with that same data, the p-value is meaningless, because the hypothesis is based on that data.
+
+[[selection_effect]]
+_Selection effect_: Any time we use the data to make a decision (e.g. select a model), we introduce a selection effect (bias). E.g. forward stepwise, lasso etc.
+
+
+See also <<inference_after_model_selection>>
 
 
 ==== Multiple testing
@@ -662,11 +698,12 @@ The _False discovery rate_ (_FDR_) is defined as FDR = E[Q] = E[V/R]. I.e. FDR i
 
 The _Famility wise error rate_ (_FWER_) is defined as FWER = Pr[V≥1].  I.e. FWER is the probability that we make an type I error (aka false discovery) at all.
 
-α ≤ FWER ≤ mα +
+δ = per test type I error rate +
 FWER ≥ FDR +
 FWER = FDR given global null +
-FWER = 1 - (1-α)^m^  given global null and independend tests +
-FWER ≈ αm given global null and independend tests and small α
+FWER = 1 - (1-δ)^m^  given global null and independend tests +
+FWER ≈ δm given global null and independend tests and small δ +
+δ ≤ FWER ≤ δm
 
 A procedure offers _weak control_ at level α if FWER ≤ α holds is guaranteed only under global null.  A procedure offers _strong control_ at level α if FWER ≤ α holds always.  Note that here α denotes not the same thing as the significance level α of an individual test; here, it's the ``overall significance level''.
 
@@ -685,7 +722,7 @@ Techniques which control FDR: <<bejamini_hochberg>>
 
 Control of the FWER: goal is to get an FWER ≤ α.  Do each of the m individual tests at a significance level δ = α / m. As a result we get FWER ≤ α.
 
-Neutral: Sensible if all tests are independent, because then FWER ≈ αm (assuming global null), see formulas after definition of FWER.
+Neutral: Sensible if all tests are independent, because then FWER ≈ δm (assuming global null), see formulas after definition of FWER.
 
 Contra: Can be too conservative (i.e. δ is smaller than needed), especially if the test statistics are positively correlated.  This is because the Boferroni correction assumes the worst case, which is mutually independent tests.  As an extreme example, under perfect positive dependence, there is effectively only one test, and thus we could choose δ = α and still have FWER = α, but instead we `needlessly' did choose δ = α / m.
 
@@ -707,19 +744,11 @@ Weak control of FWER. Strong control of FWER under some assumptions.  Computes a
 
 *to-do* what are these assumptions?
 
-Two sample test based: m tests, n observations per test, two groups.  n ⨯ 1 vector Y = {0, 1}^n^ contains group assignment.  n ⨯ m matrix X contains observations.  Idea: under the global null y-values can be permuted.
+For all (or some, to save time) permutations allowed under H~0~: Compute p-value for each test, and find the minimum p-value. Overall this gives us an empirical distribution D of the minimal p-values. Compute δ = quantile~D~(α). Use δ as significance level for each of the tests.
 
-Procedure:
+This works because: FWER = P(V≥1) = P(p~i~≤δ for some p~i~) = P(min(p~1~, ..., p~m~)≤δ)
 
-* Repeat many times:
-
- ** For each test (i.e. for each X column), do a two sample test, compute p-value.
-
- ** Find minimum p-value of these m p-values, throw that minimum p-value into a collection of minimal p-values.
-
-* Compute the empirical α quantile of the distribution given by the collection of minimal p-values, delivering δ.
-
-* Use δ as significance level for each of the m tests.
+*to-do* properly understand why this works; why does the formula for δ work. see my lecture notes.
 
 References:
 
@@ -735,30 +764,30 @@ _non-parametric test_ (aka _distribution free_): No assumpotions on the distribu
 
 ==== One sample test
 
-_one sample test_: Only one sample, only one test statistic, treat every member of the sample the same way. (*to-do* what is a accurate consice definition?)
+_one sample test_: Only one sample, only one test statistic, treat every member of the sample the same way.
 
 
 ==== Unpaired two sample test
 
-_unpaired two sample test_ (or _independent two sample test_): Randomly partition the sample into two sets.  Or from an alternative viewpoint, start out with two independent samples.  Test treatment A on one set and treatment B (which might be `no treatment at all') on the other.
+_unpaired two sample test_ (or _independent two sample test_): Two samples, e.g. one treated with treatment A and the other with treatment B (which might be `no treatment at all'). More formally, each of the two samples is drawn from another population, and the two populations have potentially diffrent distributions.  Often the test statistic is the difference between the two sample means, and the H~0~ then often is that that difference is 0.
 
 Disadvantage:
 
 - The groups need to be really similar.  E.g. by chance the elements in either group might have something in common which has nothing to do with their treatment, but still influences the outcome of the test statistic.
 
-- There might be a big variance in the test static.  E.g. if we measure how long people sleep, after treatment A and after treatment B: there is anyway a rather large variance in how long people sleep.   We don't want that variance to have an influence on our result.  In the paired two sample test, that variance cancels out in the step of building the difference.
+- There might be a big variance in the test static.  E.g. if we measure how long people sleep, after treatment A and after treatment B: there is anyway a rather large variance in how long different people sleep on average (opposed to how long a given person sleeps in a given night).   We don't want that variance to have an influence on our result.  In the paired two sample test, that variance cancels out in the step of building the difference.
 
 Examples:
 
-- parametric unpaired two sample tests:
+- parametric unpaired two sample tests: H~0~: X̄~1~ and X̄~2~ are equal
 
-  * <<z_test>> (assumes normal distr. with known variance)
+  * <<z_test>> (assumes normal distr. with known variance): z = (X̄~1~ - X̄~2~) / (σ√(1/n~1~ + 1/n~2~)) ~ N(0, 1)
 
-  * <<t_test>> (assumes normal distr. with unknown variance). In the following, s~p~ denotes the pooled variance.
+  * <<t_test>> (assumes normal distr. with unknown variance):
 
-    ** equal sample sizes, equal variance: t = (X̄~1~ - X̄~2~) / (s~p~√(2/n)), df = 2n - 2
+    ** equal sample sizes, equal variance: test statistic t = (X̄~1~ - X̄~2~) / (s~p~·√(2/n)) \~ t~2n-2~
 
-    ** equal variance: t = (X̄~1~ - X̄~2~) / (ŝ~p~√(1/n~1~ + 1/n~2~)), df = n~1~ + n~2~ - 2
+    ** equal variance: test statistic t = (X̄~1~ - X̄~2~) / (ŝ~p~√(1/n~1~ + 1/n~2~)) \~ t~n1+n2-2~, where s~p~ denotes the pooled variance.
 
     ** general: Welch's t-test *to-do*
 
@@ -771,7 +800,7 @@ Examples:
 
 ==== Paired two sample test
 
-_paired two sample test_  (or _paired difference test_ or _paired sample test_): Treat every element in the sample with treatment A and with treatment B (again, can be `no treatent at all').  The final test static is the difference of the `actual' test static static after treatment A and after treatment B.
+_paired two sample test_  (or _paired difference test_ or _paired sample test_): Treat every element in the sample with treatment A and with treatment B (again, can be `no treatent at all').  The final test statistic is the difference of the `actual' test statistic after treatment A and after treatment B.
 
 Alternatively, we can match _match_ (or _pair_) every element in the treatment group with an element of the control group, the control group and the matching in a way that the matched pair shares similat observable characteristics.  Matching is however prominently critized.
 
@@ -802,18 +831,22 @@ decision under H~0~.
 
 Contra: Computationally expensive
 
-Contra: Not everything can be formylated as permutation test. E.g. in linear regression, there is no straightforward permutation test for individual coefficients.
+Contra: Not everything can be formulated as permutation test. E.g. in linear regression, there is no straightforward permutation test for individual coefficients.
 
 
 ===== As unpaired two sample test
 
-Given population F~1~ and F~2~, and a sample from each, Y~1~^(1)^,...Y~n1~^(1)^ \~ F~1~ and Y~1~^(2)^,...Y~n2~^(2)^ \~ F~2~. H~0~: F~1~ = F~2~ (i.e. treatment has no effect), H~a~ : F~1~ is a shifted version of F~2~ (either in a two tailed or one tailed way).
+Given population F~1~ and F~2~, and a sample from each, Y~1~^(1)^, ..., Y~n1~^(1)^ \~ F~1~ and Y~1~^(2)^,...Y~n2~^(2)^ \~ F~2~. H~0~: F~1~ = F~2~ (i.e. treatment has no effect), H~a~ : F~1~ is a shifted version of F~2~ (either in a two tailed or one tailed way).  In the following the test statistic is a function of the combined sample, rather than of one sample.
 
-- *to-do* What are properties of a good test statistics? Concrete examples from lecture where ranks sum of group1, median(group1) - median(group2).  It seems often to be same sort of difference.  Note that rank sum of group1 is also sort of a difference.  It must be a function where the following permutation has no effect under H~0~.
+*to-do* What are properties of a good test statistics? Concrete examples from lecture where ranks sum of group1, median(group1) - median(group2).  It seems often to be same sort of difference.  Note that rank sum of group1 is also sort of a difference.  It must be a function where the following permutation has no effect under H~0~.
 
-- For all possible permutations, or repeatedly for a permutation selected uniformely at random from all possible permutations: compute t~obs,i~, where i denotes the i-th iteration.  We can permute since under H~0~, i.e. F~1~ == F~2~, permuting doesn't make a difference.
+- Compute t~obs~ using the (original) combined sample.  
 
-- The set of t~obs,i~ s form the conditional distribution of test statistic T given the data, also calle the _permutation distribution_.  Compute t~obs~ using the (original) sample.  Compute the p-value using t~obs~ and the obtained permutation distribution.
+- For all possible permutations (or, computationally cheaper, repeatedly for a permutation selected uniformely at random from all possible permutations): compute t~i~, where i denotes the i-th iteration.  We can permute since under H~0~, i.e. F~1~ == F~2~, permuting doesn't make a difference.
+
+- The set of t~i~ s form the emprical conditional distribution of test statistic T given the data, also calle the _permutation distribution_.
+
+- Compute the p-value using t~obs~ and the obtained permutation distribution.
 
 *to-do* add or replace with alternative version where instead an combinedsample we have sample1 and sample2 seperately.
 
@@ -844,9 +877,9 @@ Given population F~1~ and F~2~, and a sample from each, Y~1~^(1)^,...Y~n1~^(1)^ 
 
 ===== As paired two sample test
 
-Same concept as before. However as in any paired two sample test, we no longer have two populations and thus two samples.  We have one single sample from one population.  As in any paired two sample test, let test statistic T be the difference between test statistic U~1~ and U~2~.
+Same concept as before. However as in any paired two sample test, we no longer have two populations and thus two samples.  We have one single sample from one population, each element being the difference of a elementpair from sample A and sample B.  The test statistic t is on that sample consisting of differences.
 
-*to-do*
+Under H~0~, the signs of the observations are random, so we can permute them, which overall delivers the empircal distribution of t.  With that, we can conduct a normal hypothesis test.
 
 ------------------------------------------------------------
   g <- function(sample) { ... }
@@ -855,7 +888,7 @@ Same concept as before. However as in any paired two sample test, we no longer h
     n <- nrow(sample)
     signs <- sample(c(-1,1), n, replace=T)
     sample.new <- signs * sample
-    return(g(sample.new));
+    return(g(sample.new))
   }
 ------------------------------------------------------------
 
@@ -878,6 +911,11 @@ Under H~0~, we can permute the Y-values to destroy the relationship between Y an
 *to-do* more detailed
 
 
+==== Monte Carlo test
+
+We want to make an hypothesis test, but when the distribution of the test statistic is unknown or infeasible to work with, we may can simulate it instead.  For example number of duplicates in a set of n numbers choosen from [m].  We do a number of simulations.  Each simulation chooses n numbers out of [m] and we count the duplicates.  That delivers an empirical distribution, and we can then finaly conduct a hypothesis test using that empirical distribution.
+
+
 ==== Comparison of tests
 
 *to-do* flow chart with all the test: t-test, z-test, Wilcoxon, the Wald, .... Overview with pros and cons. E.g. http://health.uottawa.ca/biomech/courses/apa3381/hyp_test.pdf
@@ -898,9 +936,9 @@ A _Student's t-test_ (or simply _t-test_) is any statistical hypothesis test in 
 
 _As one sample test_:  Given one sample with sample mean x̄.  We hypothise that μ~0~ is the population mean and want to test that.  Let μ denote the (true) population mean and S² the unbiased sample variance.  H~0~: μ = μ~0~.  As test statistic we use the t-statistic t = (x̄ - μ~0~) / sd̂[x̄], where sd̂[x̄] = S/√n, see also estimator for standard error of the mean.  Under H~0~ it's distribution is t~n-1~.
 
-_As unpaired two sample test_:  Given two samples of equal size, one treated with treatment A and the other with treatment B (no effect / controll).  We want to test whether treatment A has an effect.  Let s~p~ denote the <<pooled_variance>>, X~A~ a statistic on sample A and X~A~ the same statistic on sample B.  H~0~: X~A~ = X~B~.  As test statistic we use the t-statistic t = (X~A~ - X~B~) / s~p~√(2/n).  Under H~0~ it's distribution is t~2n-2~.  *to-do* Is my H~0~ correct?
+_As unpaired two sample test_:  Given two samples of equal size n and equal variance, one treated with treatment A and the other with treatment B (no treatment at all, or different treatment).  We want to test whether treatment A has an effect.  Let s~p~ denote the <<pooled_variance>>, X̄~A~ and X̄~A~ are the sample means.  H~0~: X̄~A~ = X̄~B~.  As test statistic we use the t-statistic t = (X~A~ - X~B~) / s~p~√(2/n).  Under H~0~ it's distribution is t~2n-2~.
 
-_As paired two sample test_:  Given one sample, for each member, we calculate the difference of some test statistic after treatment A and after treatment B (no effect / controll), see also paire two sample test.  We want to test wether treatment A has an effect.  Let n denote the sample size, X~D~ the average of the differences and s²~D~ the variance of the differences.  H~0~: X~D~ = 0:  As test statistic we use the t-statistic t = (X~D~ - μ~0~) / sd̂[X~D~], where sd̂[X~D~] = s~D~/√n, see also estimator for standard error of the mean.  Under H~0~ its distsribution is t~n-1~.  *to-do* Is my H~0~ correct?
+_As paired two sample test_:  Given one sample, for each member, we calculate the difference of some test statistic after treatment A and after treatment B (no effect / controll), see also paire two sample test.  We want to test wether treatment A has an effect.  Let n denote the sample size, X~D~ the average of the differences and s²~D~ the variance of the differences.  H~0~: X~D~ = μ~0~ (often 0):  As test statistic we use the t-statistic t = (X~D~ - μ~0~) / sd̂[X~D~], where sd̂[X~D~] = s~D~/√n, see also estimator for standard error of the mean.  Under H~0~ its distsribution is t~n-1~.
 
 _Linear regression_, testing wether a coefficient has an effect: see <<linear_regression_models>>
 
@@ -913,12 +951,23 @@ _Linear regression_, testing wether a coefficient has an effect: see <<linear_re
 *to-do*
 
 
+==== F-Test & ANOVA
+
+An F-test is a generic name for a class of statistical tests that share the property that the test-statistic follows an F-distribution (given the null-hypothesis).
+
+One of the most common cases where a test-statistic `ends up' having an F-distribution, is when the ratio between two variances is calculated.
+
+An ANOVA is a specific type of procedure that produces an F-statistic, because it tests the ratio between systematic variance and error-variance.
+
+
 [[wilcoxon_rank_sum_test]]
 ==== Wilcoxon rank sum test (or Mann-Whitney U test)
 
-===== As a non-parametric unpaired two sample permutation test
+Don't confuse with <<wilcoxon_signed_rank_test>>.
 
-Set-up: Given population F~1~ and F~2~, and a sample from each, Y~1~^(1)^, ..., Y~n1~^(1)^ \~ F~1~ and Y~1~^(2)^, ..., Y~n2~^(2)^ \~ F~2~. H~0~: F~1~ = F~2~, H~a~ : F~1~ is a shifted version of F~2~ (either in a two tailed or one tailed way).  Let the test statistic U be the sum of ranks of group 1 (or group 2, doesn't matter).  The distribution of U under H~0~ is well known, the same way say the Student's distribution is known.  For small sample sizes (~20), it's given by tables, for large sample sizes it can be approximated by a Normal distribution.
+===== As a non-parametric unpaired two sample test
+
+Set-up: Given population F~1~ and F~2~, and a sample from each, Y~1~^(1)^, ..., Y~n1~^(1)^ \~ F~1~ and Y~1~^(2)^, ..., Y~n2~^(2)^ \~ F~2~. H~0~: F~1~ = F~2~, H~a~ : F~1~ is a shifted version of F~2~ (either in a two tailed or one tailed way).  Let the test statistic U be the sum of ranks (ranks with respect to the combined sample) of group 1 (or group 2, doesn't matter).  The distribution of U under H~0~ is well known (the same way e.g. the t-distribution is known).  For small sample sizes (~20), it's given by tables, for large sample sizes it can be approximated by a Normal distribution.
 
 Procedure: Regular hypothesis test. Compute u~obs~ from the given sample, and from u~obs~, using the known distribution of U, the p-value.
 
@@ -926,14 +975,34 @@ Pro: No parametric assumptions
 
 Pro: Robust, because the sum of ranks of group 1 statistic is robust.  E.g. if the largest value in a sample gets even larger, the mean would change, but the sum of ranks doesn't.
 
-Pro: Better than t-test if distributions are non-Normal.  Recall that t-test requires Normal distributions. (*to-do* bette in what sense? Because of less constraints? Or because of better power if t-test is used despide that distributions are not Normal?)
+Pro: Doesn't require the two populations to be normally distributed, which is an advantage over the t-test.
 
 Neutral: Power almost identical to that of t-test if distributions are Normal.
 
 Pro: The null distribution (i.e. U under H~0~) is independent of F~1~ and F~2~.
 
-
 *to-do* also present the other variants: paired two sample test, unpaired two sample test, repeated measurements on a single sample
+
+
+===== As unpaired two sample permutation test
+
+An unpaired two sample permuatation test where the test statistic on the combined sample is the sum of ranks (ranks with respect to the combined sample) of group 1.  Obviously it could be also of group 2, pick one.
+
+
+[[wilcoxon_signed_rank_test]]
+==== Wilcoxon signed rank test
+
+Don't confuse with <<wilcoxon_rank_sum_test>>. Is a non-parametric paired two sample permutation test.  Let X~1~, ..., X~m~ \~ F~X~ and Y~1~, ..., Y~m~ \~ F~Y~ be independent, where (X~i~, Y~i~) is measured on the same subject i. Let D~i~ = X~i~ - Y~i~.
+
+The null hypothesis H~0~: distribution of D is symetric around a = 0 (or equivalently, F~X~ = F~Y~).
+
+The test statistic is the following.  First remove all D~i~ = 0, resulting in a set of Dʹ~i~. The test statsitic is V = ∑rank~i~·H(Dʹ~i~), where rank~i~ is the rank of |Dʹ~i~| among all |Dʹ~j~|, and H(x) is the heavyside step function (0 for x < 0, 1 for x > 0).
+
+See <<permuatation_test>> how to conduct the test as a whole. In brief: Exercise all possible permutations (or exercise a subset of N of those permutations).  Permuting here means permute (X~i~, Y~i~) for any i (or alternatively, for each D~i~, at random flip sign).  For each permutation, compute the test statistic V~i~.  Overall this delivers a empirical permutation distribution of V.  With this distribution and v~obs~ we can compute the p-value.
+
+Pro: Doesn't require the two populations to be normally distributed, which is an advantage over the t-test.
+
+Sidenote: Under H~0~, the distribution of V is a known distribution, however with no simple expression.  As the sample size increases, it converges to a normal distribution.  Thus we could also conduct a non-permutation test, and use that known distribution instead of the permuatation distribution presented here.
 
 
 === Misc statistic
@@ -953,6 +1022,7 @@ Pro: The null distribution (i.e. U under H~0~) is independent of F~1~ and F~2~.
 | x̄ = 1/n ∑x~i~ | Sample mean
 | S² = 1/(n-1) ∑(x~i~-x̄)² | Unbiased sample variance
 | 1/n ∑(x~i~-x̄)² | Biased sample variance
+| s²~p~ = (∑^k^(n~i~-1)s²~i~) / (∑^k^(n~i~-1)) | Pooled variance
 | se[·] = sd[·] | Standard error of a statistic = standard deviation that statistic
 | SEM = se[x̄] = sd[x̄] = σ / √n | Standard error of the mean, assuming independence and same variance σ²
 | SEM̂ = sê[x̄] = S / √n | Common estimator for se[x̄]
@@ -1014,7 +1084,7 @@ A _statistic_, often denoted T (or T~n~), is a function, often denoted g, which 
 
 The _sampling distribution (of a statistic)_ (or _finite-sample distribution_) is the probability distribution of a given statistic.  Recall that a statistic is a random variable, and thus has a distribution.  If we would take infinitly many same sized samples and calculate the statistic each time, we would get the sampling distribution.
 
-The _standard error_ (or _SE_) of a statistic is defined by the standard deviation of that statistic, i.e. by the standard deviation of its distribution.  Standard error can be used to compute confidence intervals.  The 95% confidence interval for some variable a is approximately mean(a) ± 2SE(a), assuming a is normal distributed. (*to-do* verify those  numbers again / give more examples of confidence intervals, e.g. 1%)
+The _standard error_ (or _SE_) of a statistic is defined by the standard deviation of that statistic, i.e. by the standard deviation of its distribution.  Standard error can be used to compute confidence intervals.  The 95% confidence interval for some variable a is approximately mean(a) ± 2SE(a), assuming a is normal distributed. The _68-95-99.7_ rule says that those are the approximate percentage values of the confidence intervals for 1SE(a), 2SE(a) and 3SE(a) respectively.
 
 If the statistic is the mean, the standard error is called the _standard error of the mean_ (_SEM_) and is defined as follows.  However the population variance σ² is seldom known, thus the SEM is often estimated via estimating the population variance σ² by the unbiased sample variance S².
 
@@ -1055,7 +1125,9 @@ Let C~n~ = (a,b) denote a 1-α _confidence interval_ for an unknown parameter θ
 
 Note that a 1-α confidence interval does _not_ mean that given a realized interval there is a 1-α probability that it contains the true parameter.  The probability statement is about the interval which is defined by the statistics a and b, i.e. random parameters.  The probability statement is not about the fixed unknown parameter θ.  No probability statement concerning its value may be made.  (*to-do* 1) I don't get the difference.  What's the consequence whether (a,b) are random and θ is fixed or vice versa?  If you are given a 1-α confidence interval and the game is to predict whether it contains the true parameter, what percentage of your bet must the casino give you in order for the game to be fair?  At least in this example, I think it doesn't make a difference.  2) See forumula (6.9) on p. 92 in book "all of statistics". I'd say its _not_ P~θ~, its P~a,b~  3) See also Example 6.14 p. 93 in Book "All of statistics")
 
-_prediction interval_: *to-do*
+Note that confidence intervals are always for things we don't know (the unknown parameter θ), never for unknown things like an estimator θ̂.
+
+_prediction interval_: An estimate of an interval in which a realization of a random variable (in other words, a future observation) will fall with a given probability.  E.g. given X ~ 𝓝(μ, σ²), the 95% prediction interval [μ-1.96σ, μ+1.96σ] for X will contain the next realization of X with a probability of 95%.  Often used for regression, where it's often used for Ŷ.
 
 
 ==== Statistical Model
@@ -1070,7 +1142,10 @@ A _tuning parameter_  if the parameter's job is primarily a transient parameter 
 
 The notations Pr~θ~[·],  E~θ~[·] and Var~θ~[·] mean that the probability is with respect to PDF/PMF f(x;θ), i.e. averaging over all possible observations x, the generating PDF/PMF being f(x;θ). (*to-do* in the context of an estimator θ̂, what if θ is not a parameter of a model, but some other population parameter)
 
-p denotes the number of predictors and n the number of data points.  Predictors and data points will be defined shortly.  Given is a n ⨯ p matrix X where each column represents a _predictor_ (or _covariable_ or _covariate_ or _input variable_ or _independent variable_ or _feature_ or _regressor_ or _explanatory variables_ just _variable_).  Given is a n ⨯ 1 vector Y of _response variables_ (or just _reponse_ or _output variables_ or _dependent varables_).  The tuple (Y[i], X[i-th row]) represents the i-th _observation_ (or _data point_).  We assume that there is some fixed but unknown relationship between the response Y and the predictors X.  We model that by the _regression function_ f (or _population regression function_ or _PRF_) by writing Y = f(X) + ε. This can be read as ``__is modeled as__'' or Y _is regressed_ on X.  f represents the _systematic_ information that the predictors provide about the response.  ε is a n ⨯ 1 vector of a _error terms_ (or _noise_ or _disturbance_), which are independent of X.  It is a catch-all for all we miss with our model f.  The true relationship might not according to model f, there might be other variables that cause variation in Y, and there may be measurement error..  If the model f is the correct model, then these error terms are random and have no systematic error (i.e. E[ε~i~] = 0 ∀ ε~i~).  We liked to have an estimate f̂ for f and use it like so Ŷ = f̂(X).  Ŷ is the resulting _prediction_ for Y.  The elements ŷ~i~ of Ŷ are called _fitted values_ (or _predicted values_).
+p denotes the number of predictors and n the number of data points.  Predictors and data points will be defined shortly.  Given is a n ⨯ p matrix X called _design matrix_ (or _model matrix_ or _regsessor matrix_).  Each column of X represents a _predictor_ (or _covariable_ or _covariate_ or _input variable_ or _independent variable_ or _feature_ or _regressor_ or _explanatory variables_ just _variable_).  Given is a n ⨯ 1 vector Y of _response variables_ (or just _reponse_ or _output variables_ or _dependent varables_).  The tuple (Y[i], X[i-th row]) represents the i-th _observation_ (or _data point_).  We assume that there is some fixed but unknown relationship between the response Y and the predictors X.  We model that by the _regression function_ f (or _population regression function_ or _PRF_) by writing Y = f(X) + ε. This can be read as ``__is modeled as__'' or Y _is regressed_ on X.  f represents the _systematic_ information that the predictors provide about the response.  Ŷ is the resulting _prediction_ for Y.  The elements ŷ~i~ of Ŷ are called _fitted values_ (or _predicted values_).
+
+[[error_terms]]
+ε is a n ⨯ 1 vector of a _error terms_ (or _noise_ or _disturbance_), which are independent of X.  Each error term is an unobservable random variable.  It is a catch-all for all we miss with our model f.  The true relationship might not according to model f, there might be other variables that cause variation in Y that we didn't measure, and there may be measurement error....  If the model f is the correct model, then these error terms are random and have no systematic error (i.e. E[ε~i~] = 0 ∀ ε~i~).  We liked to have an estimate f̂ for f and use it like so Ŷ = f̂(X).
 
 *to-do* better merge the above paragraph with the first few paragraphs of this chapter
 
@@ -1078,13 +1153,10 @@ In general, we can use regression only for prediction of a response variable giv
 
 The variance Var(ε~i~) of the error terms ε~i~ is in general not known.  Often it is assumed that all error terms have the same constant variance σ²,  and that constant variance often is estimated via σ̂ = RSE.  Note that the error terms are in direction of the y axis, as opposed to perpendicular to a linear regression hyperplane.  This is important to note because the later is what most humans intuitively do in the 2D case when guessing which of multiple regression lines is a better fit.
 
+[[residual]]
 e~i~ = y~i~ - ŷ~i~ is the i-th _residual_.
 
 _Studentized residual_ (*to-do* what are standardized residuals? They appear in R plots) t~i~ = e / sê[e]. Can be used to dedect outliers, see there.
-
-The _residual sum of squares_ (or _RSS_) is defined as RSS = |e|² = ∑~1≤i≤n~e²~i~.  Can be thought of as the amount of variability that is left unexplained after performing the regression.
-
-The _total sum of squares_ (or _TSS_) is defined as TSS = |y-ȳ|² = ∑~1≤i≤n~(y~i~-ȳ)².  Can be thought of as the amount of variability inherent in the response before the regression is performed.
 
 See more statistics and definitions in <<measuring_model_performance>>.
 
@@ -1106,8 +1178,6 @@ Notation: In Pr~training~[·], E~training~[·], Var~training~[·], Bias~training
 | Ŷ = f̂(X) | Predictions (or fitted values)
 | e = Y - Ŷ | Residuals
 | t~i~ = e / sê[e] | Studentized residuals. For sê[e] see your specific model.
-| TSS = ∑(y~i~ - ȳ)² | Total sum of squares. ȳ is the sample mean, see there.
-| RSS = ∑e²~i~ | Residual sum of squares
 |=====
 
 References:
@@ -1127,10 +1197,12 @@ References:
 | p~ii~ > 2p̄ or p~ii~ > 3p̄  | Rule of thumb for identifying high-leverage data points, where p~ii~ is a diagonal cell in the projection matrix P and p̄=p/n is the mean leverage value.
 | D~i~ = 1/p · t²~i~ · (P~ii~/(1-P~ii~)) = 1/(pσ̂²) · ∑~j~(ŷ~j~-ŷ~j(i)~)² | Cook's distance of i-th observation.  P is the projection matrix.  ŷ~j(i)~ excludes the i-th row.
 | D~i~ > 1 or D~i~ > 4/n | Rules of thumb for identifying influencial data points.
+| TSS = ∑(y~i~ - ȳ)² | Total sum of squares. ȳ is the sample mean, see there.
+| RSS = ∑e²~i~ | Residual sum of squares
 | RSE = √(RSS/(n-p)) | Residual standard error
 | Var̂[ε~i~] = RSE | Common estimator for Var[ε~i~] = σ
 | (unadjusted) R² = (TSS - RSS) / TSS = 1 - RSS/TSS |
-| adjusted R² = 1 - RSE² / (TSS/(n-1)) |
+| adjusted R² = 1 - (RSS/(n-p)) / (TSS/(n-1)) |
 | trainingMSE = RSS/n |
 |=====
 
@@ -1139,11 +1211,35 @@ References:
 
 The _performance_ of a model is a measure of how `good' a model models a given population, most often in respect to its predictive power, i.e. its prediction capability on independent unseen test data.  For example, one could use the expected test MSE, that is, an estimate thereof.  (*to-do* is it always a property of the model, or can it also be a property of a concrete already trained estimate f̂? In what way does the difference between prediction and inference influence the topic of model performance)
 
-The _residual standard error_ (or _RSE_) is given by RSE = √(RSS/(n-p)).  The RSE is considered an absolute measure of the lack of fit of the model to the data.  Roughly speaking RSE is the average amount that the response will deviate from the true regression hyperplane.  Even if the model were absolutely correct and the parameters of the model were known exactly, any prediction Ŷ is still off by RSE.  RSE is often used as an estimator for the variance Var[ε~i~] ≈ σ̂² = RSE² of the error terms ε~i~. *to-do* derive given formula from √Var[e] or whatever is the basis, and then write RSE = √Var[e] = √(RSS/(n-p)).
+Let e denote <<residual>>s.
 
-The __R²__ statistic is defined as R² = (TSS - RSS) / TSS = 1 - RSS/TSS.  It provides an relative measure of the lack of fit of the model to the data.  TSS - RSS can be thought of as the amount of variability in the response that is explained by performing the regression.  R² then measures the proportion of variability in the response that can be explained using X.  R² ∈ [0,1], 1 meaning good, 0 meaning bad.  Small values might occur becaus the used model (e.g. linear) is wrong or the inherent error σ² is high, or both.  The advantage of R² over RSE is that the former is relative (lies in [0,1]) and the later is absolute.
+The _residual sum of squares_ (_RSS_) (or _error sum of squares_) is defined as RSS = |Y-Ŷ|² = |e|² = ∑~1≤i≤n~e²~i~.  Can be thought of as the amount of variability that is left unexplained after performing the regression.  Is a training error.  Decreases monotonically as more predictors are added to the model.  n-p degrees of freedem are associated with RSS.
 
-The __adjusted R²__ statistic is defined as 1 - RSE² / (TSS/(n-1)).
+*to-do* why exactly RSS decreases monotonically when predictors are added? I think the answer is becuase the model can better fit the data, but I don't properly understand that. If the new predictor is completely uncorrelated, why can't it get worse?
+
+*to-do* If the true model is linear, and the training set is infinitely large, then β̂ = β and e = ε.  I.e. altough e is non-zero, it is fully explained.  So we should say (RSS-|ε|²) is the amount of variability that is left unexplained after performing the regression?
+
+The _explained sum of squares_ (_ESS_ or _SSE_) (or _model sum of squares_ or _sum of quares due to regression_ (_SSR_)) is defined as ESS = |Ŷ-Ȳ|².  ESS can be thought of as the amount of variability in the response that is explained by performing the regression.  Is a training error.  p-1 degree of freedeom are associated with ESS.
+
+The _total sum of squares_ (or _TSS_ or _SST_) is defined as TSS = |Y-Ȳ|² = RSS + ESS = ∑~1≤i≤n~(y~i~-ȳ)².  Can be thought of as the amount of variability inherent in the response before the regression is performed.  Is a training error.  n-1 degrees of freedom are associated with TSS.
+
+The _residual standard error_ (or _RSE_) is given by RSE = √(RSS/(n-p)).  The RSE is considered an absolute measure of the lack of fit of the model to the data.  Roughly speaking RSE is the average amount that the response will deviate from the true regression hyperplane.  Even if the model were absolutely correct and the parameters of the model were known exactly, any prediction Ŷ is still off by RSE.  RSE is often used as an estimator for the variance Var[ε~i~] ≈ σ̂² = RSE² of the error terms ε~i~.  Is a training error.
+
+*to-do* derive given formula from √Var[e] or whatever is the basis, and then write RSE = √Var[e] = √(RSS/(n-p)).
+
+The __R²__ (or _coefficient of determination_) statistic is defined as R² = (TSS - RSS) / TSS = 1 - RSS/TSS = ESS / TSS.  R² measures the proportion of variability in the response that can be explained by our model.  R² ∈ [0,1], 1 meaning good, 0 meaning bad.  Small values might occur becaus the used model (e.g. linear) is wrong or the inherent error σ² is high, or both.  The advantage of R² over RSE is that the former is relative (lies in [0,1]) and the later is absolute.  Is a training error.  Increases monotonically as more predictors are added, see also RSS.
+
+The __adjusted R²__ statistic is defined as 1 - (RSS/(n-p)) / (TSS/(n-1)).  Adjusted R² is not as well motivated in statistical theory as AIC / BIC / C~p~, but is popular in practice.  Increases only when non-noise predictor is added.  Intuition:  Look at the nominator (RSS/(n-p)):  Adding noise predictors will lead to only a very small decrease in RSS, but the larger p will make the whole nominator smaller, ... *to-do*. i.e. adjus  Is an adjusted training error. *to-do* but an estimate for test error
+
+*to-do* I still don't get the difference between adjusted R² and R². What are pros / cons?
+
+For model fitted with LS, __Mallows's C~p~__ is an estimate of test MSE, and thus an adjusted training error, and defined as C~p~ = 1/n (RSS + 2·p·σ̂²). C~p~ is unbiased if σ̂ is unbiased.  Intuition: 2·p·σ̂² is a penalty for the fact that training error tends to underestimate the test error.
+
+_Bayesian Information Criterion_ (_BIC_) is BIC = 1/n (RSS + log(n)·p·σ̂²).  Is an adjusted training error.
+
+_Akaike Information Criterion_ (_AIC_) is AIC = 1/σ̂² C~p~.
+
+*to-do* how can all of C~p~, AIC, BIC be asymptotically (for large n) be good, but having different formulas giving them asymptotic diffrent behavior.
 
 Recall: The notation E~training~[·], Var~training~[·], E~test~[·], Var~test~[·] etc. is defined by <<trainingsampe_testsample_notation>>.
 
@@ -1156,6 +1252,8 @@ Bias~training,test~[f̂] = E~test~[Bias~training~[f̂(x~test~)]]
 *to-do* how is variance of f̂ formally defined ?
 
 Var~training~[f̂(x~0~)] = ...?
+
+*to-do* how is Var~training~[f̂(x~0~)] defined? In general, for OLS linear regression?
 
 Var~training,test~[f̂] = E~test~[Var~training~[f̂(x~test~)]
 
@@ -1170,8 +1268,8 @@ Err~training~ = 1/|trainingsample| ∑L(y~training,i~, f̂(x~training,i~))
 The _test error_ (or _generalization error_) of a model is the expected loss given a training sample.  It is defined as follows.  f̂ is fixed and was trained by the given training sample.  The stated two variants are equivalent.  In the 1st variant the randomness lies in repeatedly randomly picking a test sample from the population.  y~test,i~ and x~test,i~ correspond to the i-th observation in that random sample set and thus are fixed values.  In the 2nd variant the randomness lies in X and Y being random variables.
 
 Err~test~ = +
-E~test~[1/|testsample| ∑L(y~test,i~, f̂(x~test,i~))|f̂] or +
-E[L(Y, f̂(X))|f̂]
+1/|testsample| ∑L(y~test,i~, f̂(x~test,i~)) or +
+E~test~[L(Y, f̂(X))|f̂]
 
 [[expected_test_error]]
 The _expected test error_ (or _expected prediction error_) is the expected loss.  For a concrete example see <<expected_test_mse>>.  In respect to test error, now also the training sample is choosen at random from the population.
@@ -1184,6 +1282,8 @@ The _training MSE_ is calculated using the training data and a fixed estimate f�
 
 trainingMSE = RSS/n.
 
+*to-do* or does denomitor subtract 1 or 2?
+
 [[expected_test_mse]]
 The _expected test MSE_ is conceptually calculated in two levels. One level iterates over all possible training data sets, each iteration training a new estimate f̂.  For each of those f̂, the other level iterates over all possible test data sets. See also <<expected_test_error>> for the more general concept.
 
@@ -1195,7 +1295,9 @@ The __expected test MSE at x~0~__ is analogous, but here we only look at a fixed
 expectedTestMSE(x~0~) = E~training~[E[(Y~0~ - f̂(x~0~))²]]
 
 [[bias_variance_trade_off]]
-The _bias-variance trade-off_ (or _bias-variance dilemma_) states that that the expected test MSE at x~0~ can always be decomposed into three parts as as follows.  One important point is that we cant get rid off the irreducable error Var[ε].  Recall that we saw the same pattern also with an estimator.  It is a general principle in statistics that when bias decreases, then variance must increase and vice versa which is not directly captured by the following formula.  As model flexibily increases, bias decreases, variance increases, and the expectedTestMSE will be convex, i.e. have a U-shape.  Thus the goal is to find the model with minimal expectedTestMSE.
+The _bias-variance trade-off_ (or _bias-variance dilemma_) states that that the expected test MSE at x~0~ can always be decomposed into three parts as as follows.  One important point is that we can not get rid off the irreducable error Var[ε].  Recall that we saw the same pattern also with an estimator.  It is a general principle in statistics that when bias decreases, then variance must increase and vice versa which is not directly captured by the following formula.  As model flexibily increases, bias decreases, variance increases, and the expectedTestMSE will be convex, i.e. have a U-shape.  Thus the goal is to find the model with minimal expectedTestMSE.  When we say ``optimizing the bias-variance trade-off'', we really mean finding the minimal expected test MSE.
+
+*to-do* study how script more formarly describes the bias-variance trade-off and the curse of dimensionality
 
 expectedTestMSE(x~0~) = (Bias~training~[f̂(x~0~)])² + Var~training~[f̂(x~0~)] + Var[ε]
 
@@ -1230,7 +1332,7 @@ The _Cook's distance_ D~i~ is a commonly used estimate of the <<influencial_data
 
 
 [[model_selection]]
-==== Model selection
+==== Model selection / feature selection
 
 _Model selection_ (or _model tuning_) is the task of selecting a statistical model from a set of candiate models.  That may include determining the hyper-parameters of the choosen model and it may include determining the tuning parameters of the learning algorithm.  (*to-do* clean up this terminolgy mess)
 
@@ -1238,14 +1340,76 @@ Whether or not model selection shall additionally also train the selected model 
 
 Model selection is typically done by computing the estimated expected test error of a candidate model on _validation data_.  Validation data is the same as test data, but in the context of model selection instead model validation.
 
-
-==== Feature selection
-
 _Feature selection_ (or _variable selection_, _attribute selection_, _variable subset selection_) is the task of selecting a subset of the available predictors (aka features).
 
 *to-do* pros & cons of choosing more / less predictors. Is there already something in this document?
 
+*to-do* are feature selection and subset selection synonyms? Or is one an umbrella term, encompassing more than the other?
 
+
+[[inference_after_model_selection]]
+===== Inference after model/feature selection
+
+Say we do best subset selection, and then look at the p-values of the resulting coefficent estimates.  These p-values will be rather low, even if the data is random noise.  After all, the task of the algorithm was to select the best predictors, so obviously their p-values are among the best possible given the data.  The algorithm did data snooping. See also selection effect.
+
+*to-do* Isn't the real cause of the problem that we have not enough data per predictor, such that we can't distinguish between true signal (the true model/curve) and noise (variance of error terms)?  Then by chance, for one axis, all data points really are close to some slope, opposed to randomly around the plane at zero.  In Rcode11.R, if I increase n, the problem (finding significant coefficients) goes away. See also similar next question.
+
+*to-do* See exercise series 9, 2b. Under global null, the distribution of the p-value for a given coefficient, say for x~1~, is uniform. I am missing the intuitive explanation. Intuitively I would say if sample size n is much larger than p, it should be much much more unlikely that a p-value is significant. See above question.
+
+Analogy: Take a sample from a normal distribution. Take the max of the sample. Compute the p-value of the max (with respect to the original normal distribution). Of course it will be rather small, probably less than 0.05, i.e. significant.  What happened was kind of hidden multiple testing: testing the max is like testing every observation, because we need to look at all obvservations to find the max.  When doing this whole thing multiple times, and then drawing the empirical distribution of all these maxes, it will be a bell-shaped curved clearly shifted to the right relative to the normal distribution it is based upon.
+
+*to-do* is this also data snooping. if so, interlink or combine the two
+
+_sample splitting_: One simple way to deal with the problem is to split the data.  With one part do the feature selection, and with the other do the fit and measurement of p-values for coefficient estimates.  These p-values will be `honest'.  Disadvantages are reproducability issues due to the random split, and loss of power since we only use half of the training data (see also validation set approach).
+
+
+
+[[best_subset_selection]]
+===== Best subset selection
+
+Basic idea: Try all 2^p^ different models.
+
+1. For k = 0, ..., p: Try all C(p k) ways of choosing k from p predictors.  Take the best of these models, denoted M~k~.  In LS regression models, best can e.g. be according to smallest RSS, or equivalently largest R².  *to-do* why use RSS or R² in the innermost loop? why not exptectedTestMSE or so? I suspect due to computational complexity. But say I don't mind. Other reasons?
+
+2. Choose the best model among M~0~, ..., M~p~.  Do that via either of cross validation, validation set approach or adjusting the training error of step 1. *to-do* where BIC AIC adjusted R2 C~p~ are defined, somehow bundle them under `adjusting training error', if that really makes sense.
+
+*to-do* Why break problem of choosing among 2^p^ models into these two stages. Why not simply cross validation on 2^p^ models. _only_ because it would be computational expensive?
+
+Pro: Simple
+
+Con: Computational expensive. Not feasible for larger p (say 30-40).
+
+Con: When p gets larger, the search space gets larger,  and thus there's the risk of overfitting and high variance of the coefficient estimates.
+
+See also <<best_subset_selection_as_shrinkage>>
+
+References:
+
+- Book ``An introduction to statistical learning'', chapter ``6.1 Subset Selection''
+
+
+===== Forward stepwise selection
+
+A greedy approach.  As in best subset selection, but we iteratively improve the best model so far by greedely adding the best next predictor.  So in step 1 (see best subset selection), in iteration k, we have model M~k-1~ in our hand and try out p-k predictors.  The best predictor we add, resulting in model M~k~.
+
+Instead 2^p^, we now only try out 1 + ∑~0≤k≤p-1~(p-k) = 1 + p(p+1)/2 models.
+
+Forward stepwise selection tends to do well in practice.  However its not guaranteed to find the best model.  For instance, suppose that in a given data set with p = 3 predictors, the best possible one-variable model contains X~1~, and the best possible two-variable model instead contains X~2~ and X~3~.  Then forward stepwise selection fails because in the first iteration it chooses X~1~, and can't undo that decision in the later iterations.
+
+
+===== Backward stepwise selection
+
+As forward stepwise selection, only that we start out with the full model, and iteratively remove the least useful predictor.
+
+Con: Can't be used when n < p, because we need to start with the full model *to-do* but we still can start with the biggest possible model.  I would still think that one would call this approach backward stepwise selection, no?
+
+
+===== Hybrid approaches
+
+First greedely add predictors with the forward stepwise selection method, then remove predictors that no longer provide and improvement with the backward stepwise selection method.
+
+
+[[model_validation]]
 ==== Model validation
 
 _Model validation_ (or _model assessment_ or _assessing performance (of a model)_) is the task of calculating the performance of a final model.  Final model means one whose hyper-parameter are already determined, e.g. by model selection.  Note that it's about a model, as opposed to a single given already trained estimate f̂.  For a meaningfull model validation we usually also need to calculate the bias and the variance of the calculated performence.
@@ -1264,17 +1428,17 @@ When we use the original data for model selection, then (*to-do* Claude said tha
 
 
 [[validation_set_approach]]
-==== Validation set approach
+===== Validation set approach
 
 The _validation set approach_ is a technique for model assessment or model selection.
 
-Partition data randomly in two equaly sized partitions, one constituting the training data and the other constituting the test data (or validation data).
+Partition data randomly in two equaly sized partitions, one constituting the training data and the other constituting the test data (or validation data).  Train an estimate f̂ using the training data, and then calculate an estimate of the expected test MSE using the test data.
 
 Pro: Simple
 
 Pro: Fair estimate of test MSE (*to-do* but below we say the estimate will be biased, isn't that a contradiction?)
 
-Contra: Fewer training data always always means a worse fit of the model.  In particular it typically means more bias.  In other words, it's too pessimistic: we get a biased estimate (e.g of expected test MSE).
+Contra: Loss of power: Fewer training data always always means a worse fit of the model.  In particular it typically means more bias.  In other words, it's too pessimistic: we get a biased estimate (e.g of expected test MSE).
 
 Contra: Large variance of the validation estimate (e.g. estimated expected test MSE) because the validation estimate might depend a lot on how the partition turned out to be.
 
@@ -1285,13 +1449,20 @@ References:
 - ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``4.3.1 Leave-one-out cross-validation''
 
 
-==== Cross Validation
+[[cross_validation]]
+===== Cross Validation
 
 _Cross-validation_ (or _rotation estimation_) is a coarse technique for model assessment or model selection.  It's a coarse technique in the sense that it has multiple more concrete instanciations, such as <<LOOCV>> and <<k_fold_CV>>.  It tries to mitigate the problem of only having one data set (aka sample of the population) of finite size, altough we actually would like infinitely many training sets and test sets, each set of infinite size.
 
 _CV for model validation_: Repeatedly partition the original data set into a training set and a test set, each time doing the partition in a different way.  In each iteration, calculate an estimate of the performance of the model using the training set and the test set of that iteration. At the end, average the results, delivering the (final) estimate of the model's performance.
 
-_CV for model selection_: Analogous to before.  In each of the iterations we calculate the estimate of the performance for each of the candidate models.  At the end, we select the candidate model with the best averaged estimate of the performance.  As noted in chapter model selection, whether or not the selected model shall also be trained is not clearly defined.  If we want to train, we can train it on the complete original data set, or just take the already trained model which was trained on a subset.  The former is computationally more expensive, but larger training sets are generally better.  Note that we cannot use the optained performance estimates also for model validation, see also <<double_cross_validation>>. (*to-do* are the statements about training true?)
+*to-do* but then we didn't really measure a concrete trained model. It's more a measure of the way we train, not a measure of a concrete trained model.
+
+mind that we estimate expected test mse, for the true one we need the population
+
+we are a bit sloppy and take the number of CV for both the model and the estimate f
+
+_CV for model selection_: Analogous to CV for model validation, but do it for each candidate model.  I.e. there are two nested loops, an outer doing different partitions, and and an inner trying all candidate models (that is three nested loops in case of double cross validation).  At the end, we select the candidate model with the best averaged estimate of the performance.  As noted in chapter model selection, whether or not the selected model shall also be trained is not clearly defined.  If we want to train, we can train it on the complete original data set, or just take the already trained model which was trained on a subset.  The former is computationally more expensive, but larger training sets are generally better.  Note that we cannot use the optained performance estimates also for model validation, see also <<double_cross_validation>>. (*to-do* are the statements about training true?)
 
 *to-do* define terms overfitting, underfitting.
 
@@ -1300,6 +1471,8 @@ _CV for model selection_: Analogous to before.  In each of the iterations we cal
 *to-do* compare and contrasts these terms: (statistical) learning method, model, estimate f̂ of f, systematic information f. More usually used terms, especially for f̂ and f?
 
 *to-do* Is all of the this chapter correct, inclusive following subchapters? Be picky!
+
+See also <<oob_error_estimation>>, which computes an estimate for the test error for bagged trees.
 
 References:
 
@@ -1311,9 +1484,9 @@ References:
 
 
 [[double_cross_validation]]
-==== Double cross validation
+===== Double cross validation
 
-_Double cross validation_ (or _nested cross validation_) lets you do model selection _and_ model validation using a single original data set in a reasonable way.  Note that here `model' validation delivers the performance of the following procedure, _not_ the performance of a model.  The procedure is: given a data set, model selection is done on that data set via cross validation.
+_Double cross validation_ (or _nested cross validation_) lets you do `model' selection _and_ model validation using a single original data set in a reasonable way.  Note that here `model' validation delivers the performance of the following procedure, _not_ the performance of a model.  The procedure is: given a data set, model selection is done on that data set via cross validation.
 
 Note that we cannot do model selection with cross validation and then use the same data set for model assessment, because the assessment would test a model with data that the model already has seen.  We would thus get a biased, i.e. too optimistic, i.e. too small estimated expected test error.
 
@@ -1325,19 +1498,23 @@ Note that different inner cross validations may select different models.  That's
 
 
 [[LOOCV]]
-==== Leave one out cross validation (LOOCV)
+===== Leave one out cross validation (LOOCV)
 
 A specialization of cross validation.  Do n iterations. In each iteration, make the i-th observation the test set, and the rest the training set.
 
-MSE~i~ = (y~i~ - f̂^(-i)^(x~i~))².  LOOCV estimate of expected test MSE is 1/n ∑MSE~i~.
+expectedTestMSÊ = 1/n ∑(y~i~ - f̂^(-i)^(x~i~))²
 
-*to-do* The training of the finally used model is by the full original data set, right? And the above calculated MSE is the estimated MSE of that final model?
+In linear regression, that simplifies to
+
+expectedTestMSÊ = 1/n ∑(e~i~/(1-diag~i~(P)))², e = residuals, P = projection matrix
+
+Where f̂^(-i)^ is the estimate of the model fitted with training data being the original data without the i-th observation.
 
 Pro: Much less bias than validation set approach due to larger training set
 
 Pro: No randomization
 
-Cons: Computationally expensive, especially for large n. However for some models, e.g. for linear regression, there are short cuts.
+Cons: Computationally expensive, especially for large n, since we have to fit n different models.  However for some models, e.g. for linear regression, there are short cuts.
 
 References:
 
@@ -1347,9 +1524,9 @@ References:
 
 
 [[k_fold_CV]]
-==== k-fold cross validation
+===== k-fold cross validation
 
-A specialization of cross validation.  Split observation randomly in k equaly sized partitions.
+A specialization of cross validation.  Split observations randomly in k equaly sized partitions.
 
 *to-do*
 
@@ -1363,7 +1540,7 @@ References:
 [[model_training]]
 === Model training
 
-_Estimating f by paramtetric methods_: We assume f to be a parameterized function.  The parameters β of f are called _unknown parameters_ (or _coefficients_).  The problem of estimating f reducues now to computing estimators β̂ for the coefficients β.  For example the linear model has f̂(X) = Xβ, where β is a p ⨯ 1 vector constituting the unknown parameters.  We use the training data to _fit_ (or _train_ or _estimate_) our model, i.e. to compute estimates β̂ of the unknown parameters β.  Phrased as noun, this is _model fitting_ (or _model training_ or _model estimation_).  There are multiple approaches for fitting the model, the most common approach being (ordinary) <<least_squares>>.
+_Estimating f by paramtetric methods_: We assume f to be a parameterized function.  The parameters β of f are called _coefficients_ (or _unknown parameters_).  The problem of estimating f reducues now to computing estimators β̂ for the coefficients β.  For example the linear model has f̂(X) = Xβ, where β is a p ⨯ 1 vector constituting the unknown parameters.  We use the training data to _fit_ (or _train_ or _estimate_) our model, i.e. to compute estimates β̂ of the unknown parameters β.  Phrased as noun, this is called _model fitting_ (or _model training_ or _model estimation_).  There are multiple approaches for fitting the model, the most common approach being (ordinary) <<least_squares>>.
 
 
 [[least_squares]]
@@ -1385,27 +1562,14 @@ _Gauss-Markov theorem_: In a linear regression model with uncorreleated error te
 Contra: Var[β̂^LS^] is high in case of <<multicollinearity>>. <<shrinkage_method>>s try to solve this problem.
 
 
-==== Subset selection
-
-Method for selecting a subset of all the available predictors
-
-*to-do*
-
-*to-do* link to model selection
-
-*to-do* crosslink with shrinkage methods
-
-References:
-
-- - Book ``An introduction to statistical learning'', chapter ``6.1 Subset Selection''
-
-
 [[shrinkage_method]]
 ==== Shrinkage Methods / Regularization Methods
 
-_Shrinkage methods_ (or _regularaization methods_) try to solve the problem of <<multicollinearity>>.
+_Shrinkage methods_ (or _regularaization methods_) try to solve the problem of <<multicollinearity>>.  Altough ordenary least squares coefficient estimates are <<BLUE>> (i.e. unbiased and low variance), in case of correlated predictors the variance of a coefficent estimator might still be unacceptably high.  Shrinkage methods now trade lower variance for (hopefully only) a small increase in bias.  Also, least squares has problems wit large p or even p>n.  Shrinkage methods don't suffer from that as much.
 
-*to-do* The wiki page to ridge regression sais its about ill posed problem, not multicollineaity as I wrote.
+_standardize variables_: Ridge and Lasso are not scale invariant, which least squares is. So we should standardize variables to have variance 1 beforehand (which is done by default in R's glmnet): xʹ~ij~ = x~ij~·(1/n·√(x~ij~-x̄~j~))^-1/2^.
+
+_intercept is excluded from shrinkage_: β^(0)^ denotes β without intercept β~0~.  The rational for excluding the intercept β~0~ from being regularized is that we want to shrink the association of each predictor with the response.  The intercept is just a measure of the mean value of the response when predictors X = 0.
 
 [[multicollinearity]]
 _Multicollinearity_ describes the situation that a predictor can be linearly predicted from one or more other predictors.  In this situation, when using OLS, Var~training~[β̂] is hight, i.e. there's a higher chance of the estimator β̂ being far away from the real β.  Recall that in OLS, the estimators β̂ are unbiased.  Consider a model with two predictors X~1~ ≈ X~2~.  Then f̂(x) = β̂~0~ + β̂~1~X~1~ + β̂~2~X~2~ ≈ β̂~0~ + β̂~3~X~1~, where β̂~3~ = β̂~1~ + β̂~2~. If there was only one predictor as in the rhs of ≈, we could calculate β̂~3~ well. But in the model with two predictors, OLS doesn't know how to distribute β̂~3~ among β̂~1~ and β̂~2~ such that β̂~1~ + β̂~2~ = β̂~3~.  E.g in one training data sample, β̂~1~ will be large and β̂~2~ will be small, in the other training data sample the other way round, in yet another training data sample it's evenly distributed etc.  <<shrinkage_method>>s try to solve this problem.
@@ -1415,20 +1579,29 @@ References:
 - Book ``An introduction to statistical learning'', chapter ``6.2 Shrinkage Methods''
 
 
+===== Comparision
+
+The criterion are convex in β for Ridge and Lasso (see geometrical interpretation explained in Ridge). That is computationally convenient. Given a set of λ (opposed to one λ), we still can compute the optimal solution β̂ in one go.
+
+Best subsetset selection is computationally expensive. It is non-convex.  Lasso is in a sense the best convex relaxation of best subset selection.  The found solution, since there are less constraints, won't be the same, i.e. is an approximation, but we hope it's close enough.
+
+
 [[ridge_regression]]
 ===== Ridge regression
 
 _Ridge regression_ (or _Tikhonov regularization_ or _weight decay_) is a <<shrinkage_method>>. λ≥0 is a tuning parameter.
 
-β̂^ridge^ = argmin~β~(RSS(β) + λ|β^(0)^|²), using given training data
+β̂^ridge^ = argmin~β~(RSS(β) + λ|β^(0)^|²)
+
+β̂^ridge^ = argmin~β~(RSS(β)) subject to ∑~1≤i≤p~β²~i~≤s
 
 Where |β^(0)^| denotes the L2-Norm (aka Eucledian distance) of β excluding the intercept β~0~, i.e. |β^(0)^|² = ∑~1≤i≤p~β²~i~.
 
-*to-do* equivalent formulation which has nice geometric interpretation
+_Geometric interpretation_: For the case of 2 predictors, i.e. also two coefficients β~1~ and β~2~: Imagine a 2D coordinate system, the x axis represents possible β~1~ values, the y axis possible β~2~ values.  Each point in the plane represents a possible β, or a possible estimate β̂.  The point (β̂^LS^~1~, β̂^LS^~2~) represents the LS estimate β̂^LS^, which minimizes RSS.  Around that point we can draw contour lines, each contour line representing another, higher, RSS.  Also, we draw a circle around center (0,0) with a diameter of √s, where s can be derived from λ and vice versa.  The geometrical interpretation of the shrinkage penalty term is that the estimate β̂ must lie within the circle.  Assuming β̂^LS^ lies outside the circle, the point where the first contour line touches the circle is the estimate β̂ found by Ridge.  β = E[β̂^LS^] is the point representing the true coefficient β. Around it we can draw ellipses with semi-axes n·Var[β̂^LS^], n={1,2,...}, represinting the area where {68%, 95%, ...} of the β̂^LS^ will lie.  Assuming β is outside the shrinkage penalty circle, the β̂^Ridge^ will only be on a comperatively small part on the shrinkage penalty circle, i.e. Var[β̂^Ridge^] is lower than Var[β̂^LS^]. However we also see that E[β̂^Ridge^] will no be away from β.
+
+The elements of β̂^Ridge^ generally won't be zero, which is in contrast to β̂^Lasso^.  That's because the first contour line touching the shrinkage penalty circle probably doesn't do that at a point which exactly lies on one or more axes.
 
 *to-do* what is the benefit of ridge / lasso? After all it's just yet another parametered model, and as always, due to bias variance tradeoff, the more flexible the model the less bias but the more variance.
-
-The rational for excluding the intercept β~0~ from being regularized is that we want to shrink the association of each predictor with the response.  The intercept is just a measure of the mean value of the response when predictors X = 0.
 
 The second term, λ|β|², is also called _shrinkage penalty_.  Its effect is that of _shrinking_ the coefficient estimates towards zero.  The tuning parameter λ serves to control the amount of shrinkage.  λ=0 means no shrinkage, resulting in β̂^ridge^ = β̂^LS^.  λ→∞ means infinite shrinkage, resulting in β̂^ridge^ = 0.
 
@@ -1437,77 +1610,176 @@ References:
 - Book ``An introduction to statistical learning'', chapter ``6.2.1 Ridge Regression''
 
 
-[[ridge_regression]]
+[[lasso_regression]]
 ===== Lasso regression
 
 A <<shrinkage_method>>.  See also subchapter <<ridge_expression>>, where common topics are discussed.  λ≥0 is a tuning parameter.
 
-β̂^lasso^ = argmin~β~(RSS(β) + λ‖β^(0)^‖~1~), using given training data
+β̂^lasso^ = argmin~β~(RSS(β) + λ‖β^(0)^‖~1~)
 
-*to-do* equivalent formulation which has nice geometric interpretation
+β̂^lasso^ = argmin~β~(RSS(β)) subject to ∑~1≤i≤p~|β~i~|≤s
 
-Where ‖β^(0)^‖~1~ denotes the L1-Norm (aka Eucledian distance) of β excluding the intercept β~0~, i.e. ‖β^(0)^‖~1~ = ∑~1≤i≤p~|β~i~|.
+Where ‖β^(0)^‖~1~ denotes the L1-Norm of β excluding the intercept β~0~, i.e. ‖β^(0)^‖~1~ = ∑~1≤i≤p~|β~i~|.
 
-*to-do*
+The elements of β̂^Lasso^ often are exactly 0, especially for high λ.  Look at the respective paragraph of <<ridge_regression>>.  Now in Lasso, the geometrical interpretation of the shrinkage penalty is a square rotated 45 deg, the corners on the axes.  Now it is more likely that the first contour line touches the square at an corner than at an edge.  Since the corner lies on an axis, β̂^ridge^ is 0 with respect to the other axis.
 
 References:
 
 - Book ``An introduction to statistical learning'', chapter ``6.2.2 The Lasso''
 
 
+[[best_subset_selection_as_shrinkage]]
+===== Best subset selection viewed as shrinkage
+
+<<best_subset_selection>> can also be viewed as shrinkage method.  Especially in the 2nd variant of the definition we see that it selects not more than s predictors.
+
+β̂^subset^ = argmin~β~(RSS(β) + λ‖β^(0)^‖~0~)
+
+β̂^subset^ = argmin~β~(RSS(β)) subject to ∑~1≤i≤p~1~Bi≠0~≤s
+
+Where ‖β^(0)^‖~0~ denotes the L0-Norm of β excluding the intercept β~0~, i.e. ‖β^(0)^‖~0~ = ∑~1≤i≤p~1~Bi≠0~.
+
+The elements of β̂^subset^ often are exactly 0, especially for high λ.  Look at the respective paragraph of <<ridge_regression>>.  Now in best subset selection, the geometrical interpretation of the shrinkage penalty is a line on each axis from 0 to s. ...
+
+*to-do* In the geometrical interpretation, the contour lines will almost surely either touch the tip of one line (making this β̂~i~ equal to s), or less likely some line (making this β̂~i~ somewhere between 0 and s). I don't see how it can be (apart from a tiny probability) that multiple predictors are selected.  I don't see at all how a β̂~i~ can be larger than s -- but im sure in best subset selelection when s predictors are choosen, the β̂~i~ can be larger than s.
+
+
+[[bagging]]
+==== Bootstrap aggregation (bagging)
+
+_Bagging_ is a general method for reducing the variance of a statisticial learning method. It's particularly useful and frequently used in the context of <<decision_trees>>.
+
+Recall that averaging a set of observations reduces variance.  The central limit theorem says that given indpendent X~1~, ..., X~n~, each with variance σ², the variance of the mean X̄ is σ²/n. The idea is to train B models, each model on its own training set of size n.  The final model is just a wrapper around these B models: it delegates the call to the B submodels, and returns the averaged result.  Thus we need B training sets of size n each.  Since we only have access to one training set, we generate B bootstrap training sets based on the original training set.
+
+*to-do* The idea starts with training B models using B training sets, each of size n.  What's the difference to train once on a training set of size n*B?
+
+*to-do* due to the bias variance trade off, when bagging decreases variance, it must also increase bias? I don't see why bias should be increased.
+
+_bagging and decision trees_: We train B decision trees.  The trees are grown deep, and are not pruned, thus they have high variance but low bias.  Averaging the results of the trees reduces the variance.  Note that the final model is not a tree anymore, i.e. interpretition drops.  However the trees might be correlated. Averaging correlated quantities does not lead to an as large decrease in variance as we would like. <<random_forests>> try to tackle this problem.
+
+_bagging for classification via majority voting_:  Each of the B models/trees `votes' for one of the K categories.  The categegorie with the most votes wins, i.e. is what is returned by the overall model.  A hint why this works, without giving a formal proof:  If the trees/models, that is classifiers in general, were independent, and each classifier has a missprediction rate of less than 1/2, K=2, the majority vote approaches a perfect classifier (i.e. classifies always correctly) for B→∞.  In reality however the trees are not independent (but see also <<random_forests>>) because all bootstrap samples are derived from one original sample.  Also, if each classifier has a missprediction rate of more than 1/2, the majority vote approaches a perfecty bad qualifier.  Take away: Bagging a good qualifier can improve performance, bagging a bad classifier can degrate performance.
+
+_bagging does not do anything for linear predictors_: Thus bagging should be used for non-linear estimators, e.g. trees.  *to-do* Why does averaging not reduce variance of the mean anymore? The CLT is universal; where is the catch?
+
+[[oob_error_estimation]]
+_Out-of_bag (OOB) error estimation_:  Is an alternative to cross validation to estimate the test error, which is computationally less demanding.  It can be shown that each bootstrap sample on average uses about 2/3 of the observations of the originial sample.  We can compute the test error for the i-th observation by bagging the trees based on the bootstrap samples not containing the i-th observation, and then use the i-th observation as test data.  The test error is then the average over all observations.  It can be shown that for large B, OOB error estimation is equivalent to LOOCV.
+
+*to-do* CV estimates the expected test error, but OOB error estimation estimates the test error, so they are not really compareable?
+
+Bagging of decision trees reduces variance, at the cost of lower interpretability. For more pros & cons, see <<comparison_of_tree_based_methods>>.
+
+References:
+
+- ISLR, chapter ``8.2.1 Bagging''
+
+
 === Models
+
+==== Comparison of models
+
+Ridge and Lasso are modifications of the linear model.  They make the linear model less flexible, in orer to reduce variance, at the cost of hopefully a small bias.
+
+Nonlinear models like polynomial regression, step functions, regression splines, smoothing splines, local regression, generalized additive models (GAM) increase the flexibility to reduce bias, at the cost of hopefully only a small incease in variance.  Recall however, that when the true model is linar, then there's no bias already.
 
 
 [[linear_regression_models]]
 ==== Linear regression models
 
-In the linear multiple regression model the relation between the response and the predictors is linear, i.e. f(X) = Xβ.  Thus the estimated model is f̂(X) = Xβ̂ and thus Ŷ = f̂(X) + ε. Often the first column of X is all ones, which then makes β~0~ the _intercept_: the hyperplane described by f̂ intercepts the y-axis at β~0~.  _Simple linear regression_ is linear regression with only one predictor variable. f(X) = Xβ defines the _population regression hyperplane_, which is the best linear approximation to the true relationship between X and Y (recall that linearity was just an assumption). f̂(X) = Xβ̂ defines the _least square hyperplane_, which is an estimate based on the training data (*to-do* Is there are more general term which does not imply the fitting method).
+In the linear multiple regression model the relation between the response Y and the predictors, i.e. the design matrix X, is linear, i.e. f(X) = Xβ.  Thus the estimated model is f̂(X) = Xβ̂ and thus Ŷ = f̂(X) + ε. Often the first column of X is all ones, which then makes β~0~ the _intercept_: the hyperplane described by f̂ intercepts the y-axis at β~0~.  _Simple linear regression_ is linear regression with only one predictor variable. f(X) = Xβ defines the _population regression hyperplane_, which is the best linear approximation to the true relationship between X and Y (recall that linearity was just an assumption). f̂(X) = Xβ̂ defines the _least square hyperplane_, which is an estimate based on the training data (*to-do* Is there are more general term which does not imply the fitting method).
 
 The method to fit the model is commonly ordinary <<least_squares>>.  Other methods include <<ridge>> and <<lasso>>.
 
 Assumptions of the linear model:
 
-- E[ε] = 0, i.e. no systemtatic error, i.e. the linear model is the true model. Recall that we had Y = f(X) + ε.  The random variables Y and X are given indirectly via a sample.  If we take f to be linear, but the true relationship is not linear, then ε will have a systematic error.
+- E[ε] = 0, i.e. no systemtatic error, i.e. the linear model is the true model. Recall that we have Y = f(X) + ε and that the error terms ε are a catch-all for all we miss with our model, here the linear model f(X) = Xβ. If the true model is not linear, then when using f(X) = Xβ, E[ε] won't be 0.
 
   * As a consequence, we have E[β̂] = β (i.e. unbiased estimator β̂ of coefficients). *to-do* this implies unbiased f̂, i.e. the expectedTestMSE is defined only by variance and ε?
 
   * If this assumption does not hold, we need other models than the linar model.
 
+  * Check with Tukey-Anscombe Plot
+
 - Predictors X are exact, i.e. observed without erors. *to-do* isn't that per definition catched by the error terms ε?
 
   * If this assumption does not hold, we may can use Errors-in-variables models.
 
-- Cov[ε] = σ²I~n×n~, i.e. the errors are uncorrelated. That implies homoscedasticity of the error terms ε.
+- Cov[ε] = σ²I~n×n~, i.e. the errors are uncorrelated and have constant variance. That implies homoscedasticity of the error terms ε.
 
-  * As a consequence we have Cov[β̂] = σ²(X^T^X)^-1^.
+  * As a consequence we have Cov[β̂] = σ²(X^T^X)^-1^, and from that Var[β̂] = diag(Cov̂[β̂])
 
   * If the error terms ε are not homoscedastic we may can use weighted least squares.
 
   * If the error terms ε are correlated we may can use generalized least squares.
 
-- {ε~i~|∀i} iid \~ 𝓝(0, σ²).  (*to-do* since here we say they are independent, doesn't that imply they are also uncorrelated. I.e. the previous point is actually implied by this point? Ok, they are only uncorrelated given they are independent if second moments are finite (sais wikipedia in `uncorrelated random variables'), but is that really the point here?)
+  * Check with Tukey-Anscombe Plot
+
+- Error terms ε are jointly normally distributed. I.e. together with the above: {ε~i~|∀i} iid \~ 𝓝(0, σ²).  (*to-do* since here we say they are independent, doesn't that imply they are also uncorrelated. I.e. the previous point is actually implied by this point? Ok, they are only uncorrelated given they are independent if second moments are finite (sais wikipedia in `uncorrelated random variables'), but is that really the point here?)
 
   * As a consequence, we have
-    ** β̂ \~ 𝓝~p~(E[β̂], Var[β̂])
+    ** β̂ \~ 𝓝~p~(E[β̂], Var[β̂])  [which we require for individual t-tests / p-values]
     ** Ŷ \~ 𝓝~n~(E[Ŷ], Var[Ŷ])
     ** e \~ 𝓝~n~(0, Var[e])
+    ** σ̂² = RSE² ~ σ²/(n-p) 𝜒²(n-p)
 
-  * If this asummption does not hold, we can rely on the CLT which implies that for large sample size n, the above distributions are still approximately true.  However we may should use robust methods (*to-do* which ones?) instead least squares.
+  * If this assumption does not hold, we can rely on the CLT which implies that for large sample size n, the above distributions are still approximately true.  However we may should use robust methods (*to-do* which ones?) instead least squares.
 
 - The matrix has full rank p < n.
 
   * If that is not fulfilled, then we simply cannot solve the equations delivering β.
 
-*to-do* of what exactly are these assumptions? Linear model and/or least squares fitting?
+*to-do* Is it in the context of this lecture good enough to know these assumptions and their concequences as a whole and also onlyfor linear regression fitted with least squares? If only some asumptions are fulfilled but not others, I find it pretty hairy to properly understand which consequences / formulas still hold wand which doesn't.  Also I never really know which assumptions are relative to linear regression model and which are relative to the least squares fitting method.
 
-*to-do* how to verify?
+*to-do* how to verify these assumptions, given arbitrary data?
 
 _Projection matrix_ (or _influence matrix_ or _hat matrix_), denoted P (or H), *to-do*
 
-_F-test_. See also <<multicollinearity>> *to-do* Where do I find good information? What is it in general, what are the general definition? What is it in case of linear regression via OLS. What about partial F-Test. I find not much in the script nor in ISLR, these are too close to specific small examples / applications. Also understand well why it is possible to get significant F-statistic but non-significant regressor t-tests. Make a paragraph about correlated predictors. What if the predictors are correlated, but still a plane is well defined, since I have at least three point clouds, e.g. a triangle function. https://stats.stackexchange.com/questions/3549/why-is-it-possible-to-get-significant-f-statistic-p-001-but-non-significant-r
+_categorial (or qualitative) predictors_: Given a categorial predictor X~j~ representing l classes {class0, ..., class(l-1)). Make (l-1) dummy variables X~j|0~, ..., X~j|l-1~. X~j|k~ is 1 if X~j~ equals classk, and 0 otherwise. Instead the value pair (0, 1) we could also use other non-equal values like e.g. (-1, 1).  The class with no dummy variable, here denoted class0, is called the baseline.  
 
-_Choosing predictors_: The individual variabilities for each coefficient sum up and the variability of the estimated hyper-plane increases the more predictors are entered into the model, whether they are relevant or not. See also bias-variance trade-off.
 
+[[notes_on_correlation]]
+_Notes on predictor correlation_: If predictors are correlated in some way, but especially when they they are linearly correlated (e.g. measureable with <<pearsons_correlation_coefficient>>), then the variance and the p-value of the respective coefficient estimators β̂~i~ increase.  Imagine a linear model with two predictors, say there's the strong correlation X~1~ = 2X~2~, and say the true relation is Y = X~1~.  With some training data, LS migh deliver β̂~1~ = 1 and β̂~2~ = 0, with other training data β̂~1~ = 0 and β̂~2~ = 1/2, and with yet other training data anything inbetween.  Thus the variance and thus the p-value of β̂~1~ and β̂~2~ will be high.  You can also imagine a 3D plot, in the X~1~-X~2~ plane the observations are on a line, and the points in the 3D space are also almost on a line, and there's no stable way to lay a plane through a line.  When the predictors are correlated but not linearly correlated, there may or may not be a negative effect, but only when they are uncorrelated we are sure that we don't suffer from the mentioned negative effects.  See also <<interpretation_of_t_test>>.
+
+[[notes_on_orthogonal_X_matrix]]
+_Notes on orthogonal X matrix_:  An orthogonal X matrix directly implies uncorrelated predictors.  It can be shown that an orthogonal X implies that Cov[β̂] is diagonal matrix, i.e. the coefficient estimators β̂ are uncorrelated.  This in turn implies that β̂~j~ is identical to a β̃~j~ of a model using X~j~ as sole predictor, i.e. it can be shown that both have the same formula.  Followingly the t-test / p-value for the two are identical.
+
+[[interpretation_of_t_test]]
+_Interpretation of a t-test / p-value_ of a coeficient estimate β̂~j~:  Recall that from the assumptions it follows that the coefficient estimates β̂ are normally distributed.  Thus as always, the t-statistic for β̂~j~ is (β̂~j~ - β~j~)/sê[β̂~j~] \~ t~n-p~.  Note that sê[β̂~j~] depends on β̂, i.e. on the full model, because sê[β̂~j~] = ... = √diag(RSE²(X^T^X)^-1^),  where RSE depends on Ŷ and Ŷ in turn depends on β̂.  In a t-test for β̂~j~, the null hypothesis H~0~ is in general β~j~ = 0  (or in other words H~0~: y \~ -X~j~, H~a~: y \~ .).  A t-test for β̂~j~ quantifies the effect of the predictor X~j~ after having subtracted the linear effect of all other predictor variables: Y - ∑~0≤i≤p;i≠j~β̂~i~X~i-th col~ = β̂~j~X~j~.  Note that when looking at these individual t-tests, besides the multiple testing problem in general, it can happen that all individual t-tests show insignificant p-values, altough it is true that some predictor variables have a significant effect.  This occures if predictors are correlated, see <<notes_on_correlation>> paragraph.  That at least some predictors have an effect can be quantified with a F-test. If p-value of F-test is not significant, then you can't trust p-values of coefficients.   Uncorrelated predictors implies independent tests, and independent tests are nice to interpret.
+
+_F-test / ANOVA_: The null hypothesis is that all β~i~ are zero (aka global null).  In other words, full model is compared against empty model.  Recall that ESS has p-1 d.o.f. and RSS has n-p d.o.f.  If p-value of F-test is not significant, then you can't trust the p-values of the coefficient estimates. In R, one way to calculate the p-value of the global F-test would be anova(fit.empty, fit.all), where fit.empty = lm(response \~ 1, ...) and fit.all = lm(response ~ predictor1 + ...).
+
+
+H~0~: β~0~ = ... = β~p~ = 0 +
+H~0~: F = (ESS/(p-1)) / (RSS/(n-p)) \~ F~p-1,n-p~
+
+A _partial F-test_ compares a reduced model where q predictors are left out (i.e. their coefficents are zero) to the full model.  WLOG we assume their indicies are (p-q+1, ..., p).  The partial F-test can be interpreted as the partial effect of adding these q predictors to the model.  The F-statisic of leaving out a given predictor equals the squared t-statistic of that predictor.
+
+H~0~: β~p-q+1~ = ... = β~p~ = 0 +
+H~0~: F = \((RSSʹ-RSS)/(pʹ-1)) / (RSS/(n-p)) \~ F~pʹ-1,n-p~
+
+
+*to-do* Relation to <<multicollinearity>>
+
+*to-do* partial F-test.
+
+*to-do* when are which numbers equal between F-test and t-test? Week2.R suggests that p-value for predictor i can also be computed by anova(fit.all_expect_i, fit.all), where fit.all = lm(response \~ predictor1 + ....) and fit.all_except_i = lm(response ~ all-predictors-except-ith).
+
+Var̂[β̂] = diag(Cov̂[β̂]) = σ̂² / (Var[X](n-1)(1-R²)). Thus Var̂[β̂] increases when variance σ̂² of error terms increases, and it decreases when n or Var[X] increase.
+
+*to-do* I find it non-intuitive that Var̂[β̂~i~] decreases when Var̂[X~i~] increases.
+
+_Choosing predictors_: The individual variabilities for each coefficient sum up and the variability of the estimated hyper-plane increases the more predictors are entered into the model, whether they are relevant or not. See also bias-variance trade-off. See also <<curse_of_dimensionality>>
+
+_one multiple linear regression vs multiple single linear regressions_: Linear regression on a single predictor variable yields the same respective coefficient estimate β̂~i~ as the multiple linear regression only if the predictor variables are orthogonal, see also <<notes_on_correlation>>.
+
+_Tukey-Anscombe plot_ (_residuals vs fitted_): Scatterplot of residuals e (on y-axis) versus fitted values Ŷ (on the x-axis).  Ideally points should be randomly around horizontal line through zero (due to assumpution E[ε] = 0), and their vertical spread should be constant (due to assumption of homoscedasticity). If the trendline shows a trend, there is some evidence that the linear model assumption is not correct.  If the standard deviation grows linearly with the fitted values, the log-transform Y → log(Y) stabilizes the variance *to-do* what is the overall picture of this log-transformation?
+
+_Q-Q (quantile-quantile) plot_: Scatterplot of empirical quantiles of the residuals (on the y-axis) versus the theoretical quantiles of a N(0, 1) distribution (on the x-axis).  Ideally the points should be on a 45 deg line. See also https://data.library.virginia.edu/understanding-q-q-plots/
+
+Reference for these diagnostic plots: https://data.library.virginia.edu/diagnostic-plots/
+
+*to-do* I don't understand that plot. What does it mean to have something theoretical (i.e. not directly related to our actual data) on an axis?
+
+*to-do* What do I see on the Q-Q plot that I don't see (as easily) on the Turey-Anscombe plot?
 
 |=====
 | P = X(X^T^X)^-1^X^T^; p~ij~ = Cov[ŷ~i~,y~j~]/Var[y~j~] | Projection matrix *to-do* formula for p~ij~ using only x's. That would help to see what it mathematically means for a predictor to be far away from the mean of predictors.
@@ -1521,9 +1793,11 @@ _Choosing predictors_: The individual variabilities for each coefficient sum up 
 | Ŷ = Xβ̂ = PY  |
 | E[Ŷ] = Xβ |
 | Cov[Ŷ] = σ²P |
+| x~0~^T^β̂ ± σ̂√(x~0~^T^(X^T^X)^-1^x~0~)·qt~n-p;1-α/2~ | (1-α)100% confidence interval for E[y~0~], given new observation x~0~.
+| x~0~^T^β̂ ± σ̂√(1+x~0~^T^(X^T^X)^-1^x~0~)·qt~n-p;1-α/2~ | (1-α)100% prediction interval for y~0~
 | E[ε] = 0 | By assumption
-| Var[ε] = σ̂²  | By assumption
-| Var̂[ε] = σ̂² = RSE  |
+| Var[ε] = σ²  | By assumption
+| Var̂[ε] = σ̂² = RSE² ~ σ²/(n-p) 𝜒²(n-p) | *to-do* 𝜒² is the distribution of RSE², as opposed to σ̂², since σ̂² is an estimator and could also be estimated using other statistics, right?
 | e = Y - Ŷ = (I~n~ - P)Y | Residuals
 | E[e] = 0 |
 | Cov[e] = σ²(I~n~ - P) | Residuals e are correlated (error terms ε are not)
@@ -1533,17 +1807,17 @@ _Choosing predictors_: The individual variabilities for each coefficient sum up 
 | OLS: β̂ = argmin~β~(RSS(β)) = (X^T^X)^-1^X^T^Y | Coefficient estimates, computed using OLS. Note that this forumula is handy for theoretical purposes.  For numerical computatioin QR decomposition is mutch more stable. https://en.wikipedia.org/wiki/Proofs_involving_ordinary_least_squares#Least_squares_estimator_for_.CE.B2[Proof]
 | E[β̂] = β |
 | Cov[β̂] = σ²(X^T^X)^-1^ | Note that in some notations Var instead of Cov is used; since it's a matrix, it's implicit that the covariance matrix is meant. https://stats.stackexchange.com/questions/68151/how-to-derive-variance-covariance-matrix-of-coefficients-in-linear-r
-| Cov̂[β̂] = RSE²(X^T^X)^-1^ | σ is unknown, we estimate it as usual using RSE
+| Cov̂[β̂] = σ̂²(X^T^X)^-1^ |
 | Var[β̂] = diag(Cov[β̂]) | Usual definition
-| Var̂[β̂] = diag(Cov̂[β̂]) | Usual definition
+| Var̂[β̂] = diag(Cov̂[β̂]) = σ̂² / (Var[X](n-1)(1-R²)) | Usual definition
 | sê[β̂] = √Var̂[β̂] | Usual definition
 | β̂ \~ 𝓝~p~(E[β̂], Var[β̂]) |
 | (β̂~j~ - β~j~)/se[β̂~j~] ~ 𝓝(0, 1) | See distribution of β̂.
 | t-value of β̂~j~: (β̂~j~ - β~j~)/sê[β̂~j~] \~ t~n-p~ | Commonly we set β~j~ = 0. See also distribution of β̂, t-statistic & t-distribution.
 | p-value of β̂~j~: *to-do* |
 | p-value of β̂~j~: pseudo R-code: 2*pt(abs(t.value.beta), df=n-p, lower=FALSE) |
-| β̂~j~ ± sê[β̂~j~]·qt~n-p;1-α/2~ | 1-α confidence interval for β~j~. qt~n-p;1-α/2~ denotes the 1-α/2 quantile of a t~n-p~ distribution.
-| F = [(TSS-RSS)/(p+1)] / [RSS/(n-p)]  | F-statistic. The null hypothesis is β~i~ = 0 for all i except 0.  F-statistic is 1 if there is no relationship between X and Y, larger otherwise.
+| β̂~j~ ± sê[β̂~j~]·qt~n-p;1-α/2~ | (1-α)100% confidence interval for β~j~. qt~n-p;1-α/2~ denotes the 1-α/2 quantile of a t~n-p~ distribution.
+| F = [(TSS-RSS)/(p+1)] / [RSS/(n-p)]  | F-statistic / ANOVA. The null hypothesis is β~i~ = 0 for all i except 0.  F-statistic is 1 if there is no relationship between X and Y, larger otherwise. Under H~0~ F~p-1,n-p~ distributed.
 |=====
 
 *to-do* How to *correctly* interpret what the p-value of β̂~j~ really means. Not in the general sense, but the concrete context of linear regression. See script, box at bottom of page 10.
@@ -1557,43 +1831,351 @@ References:
 - http://seismo.berkeley.edu/~kirchner/eps_120/Toolkits/Toolkit_10.pdf
 
 
+[[basic_functions]]
+==== Basic functions
+
+We only look at univariate models, i.e. one predictor X.  We have a family of k fixed known functions b~j~(X), j ∈ [k].  This transformation delivers the new linear model, where i denotes the data point index:
+
+y~i~ = ∑~0≤j≤k~β~j~b~j~(x~i~) + ε~i~
+
+It is a regular linear model with k predictors b~j~(X), j ∈ [k].  Hence the same rules apply, we can use the same fitting methods such as least squares, and the same inference tools are available.
+
+*to-do* is it really customary to use k instead p to denote the number of functions?
+
+Examples:
+
+- <<polynomial_regression>>
+
+- <<step_functions>>
+
+- <<regression_splines>>
+
+References:
+
+- ISLR, chapter ``7.3 Basic functions''
+
+
 [[polynomial_regression]]
 ==== Polynomial regression
 
-*to-do*
+Special case of the <<basic_functions>> approach.  We only look at univariate models, i.e. one predictor X.  We replace the standard linear model Y = Xβ + ε with a polynomial in X of degree d resulting in a new linear model
 
-*to-do* What's the generalization? Any other functions ultimatively based on linear regression?
+Y = P~d~(X) + ε = β~0~ + β~1~X + β~2~X^2^ + ... β~d~X^d^ + ε
+
+In practice, it is unuasal to use d greater than 3 or 4, because of overfitting, i.e. the polynomial can take strange shapes, especially at the left and right boundary.
+
+As always, its beneficial if predictors are uncorrelated, i.e. if the matrix X is orthogonal, see also <<notes_on_orthogonal_X_matrix>>.  In R, poly(...) returns an orthogonal matrix.
+
+Pro: easy to fit via LS
+
+Pro: all the properties of linear regression still hold (since technically it still is linear regression)
+
+contra: instable at boundaries
+
+References:
+
+- ISLR, chapter ``7.1 Polynomial Regression''
+
+
+[[step_functions]]
+==== Step functions
+
+Special case of the <<basic_functions>> approach.  Can also be seen as special case of piecewise polynomials in that the polynomials have degree 0.  We only look at univariate models, i.e. one predictor X.  We cut the X axis at k cut points c~1~, ..., c~k~ into k+1 bins / regions. In the j-th bin (starting at 0), we use the constant functions β~j~.  This amounts to conoverting the continous variable X into an ordered categorial variable.  The model then is as follows. Note that we don't use C~0~(x), since that is redundant to intercept β~0~.  i denotes the data point index.
+
+y~i~ = β~0~ + ∑~1≤j≤k~β~j~C~j~(x~i~) + ε~i~
+
+Where C~j~(·), sometimes called dummy variables, are defined as follows. I(·) denotes the indicator function.
+
+C~j~(x) = I(c~j~ ≤ x < c~j+1~) ∀ j ∈ [1,k-1] +
+C~k~(x) = I(c~k~ ≤ x)
+
+β~0~ can be interpreted as the mean Y value for X < c~1~.
+
+References:
+
+- ISLR, chapter ``7.2 Step Functions''
+
+
+[[regression_splines]]
+==== Regression splines
+
+===== Piecewise polynomials / Splines
+
+We only look at univariate models, i.e. one predictor X.  A spline is a piecewise polynomimal with further boundary conditions which are explained later. The idea is to combine step functions and polynomial regression.  Or in other words, instead of having one global polynomial, we have multiple rather low degree polynomials, one for each of multiple mutually exclusive consecutive regions of X.
+
+_Spline of degree d_: We have k+1 regions.  The k boundaries are called _knots_.  Each region as a polynomial of degree d.  Additionally we have the constraints that the global function derivatives must be continous up to degree d-1.  A _cubic spline_ is a spline of degree 3.
+
+E.g degree 0: Step functions, i.e. non-continuous at knots. degree 1: piecwise linear, i.e. continuous at knots. degree 3: piecwise cubic, with continuous 0th, 1st, 2nd derivatives.
+
+*to-do* but degre 0, i.e. stepfunctions, are not continuos in 0th derivative degree, so they are _not_ splines?!
+
+The _truncated power basis function_ h(x, ξ) of degree d will be used shortly and is defined as follows.  ξ denotes the position of a knot.  Note that at ξ, h, h', h'' etc up to degree d-1 are continous, so the spline's constraints are fulfilled.
+
+h(x, ξ) = { (x-ξ)^d^ if x>ξ; 0 otherwise
+
+There many ways to represent splines of degree d.  We can e.g. base on the <<basic_functions>> approach, in which case there are still many ways of choosing a basis function.  One way is the following, where γs are further model coefficients additional to the βs, ξ~l~ is the position of the l-th knot, and the truncated power function h is defined above.  As always with the basis functions approach, the model can then be fit using linear regression.
+
+y~i~ = ∑~0≤j≤d~β~j~x~i~^j^ + ∑~1≤l≤k~γ~l~h(x~i~, ξ~l~) + ε~i~
+
+There are d+k+1 degrees of freedom.  Analysis:  There are k knots, i.e. k+1 regions, thus k+1 polynomials of degree d.  Recall that a polynomial of degree d has d+1 parameters.  At each knot there are d constraints.  (k+1)(d+1) - kd = k+d+1.
+
+We still need to decide on the number of knots and where to place them.  In practice we often choose only the number of knots, and then distribute them uniformily regarding percentiles, i.e. each region has the same amount of data points.  This altough it seems natural to choose more knots where we feel the model should be able to change more rapidly.  This 2nd variant can work well, still in pratice often the knots are distributed uniformily.
+
+Contra: high variance of f̂ at boundaries, since there polynials still can go wild.  Natural splines try to mitigate this problem.
+
+A _natural spline_ is a spline with the additional boundary conditions that the global function must be linear in the two boundary regions.  Confidence intervals for f̂ in the two boundary regions are now much smaller compared to regular splines.   Note however since the two f̂ are different, parts of the confidence interval of natural splines might be outside of the confidence interval of regular splines.  k degrees of freedom; 2·2 less than regular spline because each of the two border knots has two additional constraints.
+
+*to-do* formula analogous to the above y~i~ = ... for natural splines
+
+*to-do* formula for basis functions of splines and for natural splines
+
+References:
+
+- ISLR, chapter ``7.4 Regression Splines''
+
+
+===== Smoothing splines
+
+We only look at univariate models, i.e. one predictor X.  As in ridge and lasso, the model takes a ``loss + penalty'' formulation and a tuning paramter λ.  In the definition below which also introduced g, RSS(g) is a loss function that encourages g to fit the training data well, and the term λ∫gʺ(x)²dx is a penalty term that penaltizes a highly ``wiggly'' g.
+
+Let G be a class of functions where [a, b] ⊆ ℝ dontes the data range
+
+G = {g: [a,b] → ℝ, gʺ exits and ∫~a≤x≤b~gʺ(x)²dx < ∞}
+
+The estimate f̂ of the regression function is then defined as follows.  It can be shown that f̂ is a natural cubic splines with n knots, each training data point having one knot on it.  There multiple possible such cubic splines, and we want the one satisfying the given `argmin constraint'.
+
+f̂ = argmin~g∈G~[RSS(g) + λ∫~a≤x≤b~gʺ(x)²dx]
+
+λ = 0: f̂ perfectly fits the _training_ data (RSS=0), i.e. f̂ interpolates the training data, i.e. f̂ goes through every training data point.  It's is a flexible model (n degrees of freedom), thus has low bias and high variance.
+
+λ → ∞: gʺ(x) is forced to be 0 for all x, i.e. g must be linear.  f̂ is equivalent to the linear regression least squares solution.  It's an inflexible model (2 degrees of freedom), thus more bias and less variance; recall that least squares only has zero bias if the true model is linear.
+
+The nominal degree of freedom is n, see also natural splines.  Nominal degree of freedom usually refers to number of free parameters.  However here, these n parameters are constrained or shrunk down.  The effective degrees of freedom df~λ~ is a measure of the flexibility of smoothing splines.  It is between n (for λ = 0) and 2 (for λ → ∞), and in general its defined to be df~λ~ = trace(S~λ~), see definition of S~λ~ below.
+
+*to-do* I don't properly understand the difference between degrees of freedom and effective degrees of freedom. Are equivalent degrees (script 3.4.3) of freedom and effective degrees of freedom synonyms?
+
+The coefficients estimates β̂ (n⨯1 vector) can be computed using fast linear algebra.
+
+As in least squares linear regression where we had Ŷ = Xβ̂ = PY, we can write Ŷ = S~λ~Y where the matrix S~λ~ can be computed using fast linear algrebra.
+
+A way to find a good λ is <<cross_validation>>.  In particular leave one out cross validation (LOOCV), because it turns out that we can do LOOCV in essentially one single fit.
+
+*to-do* why exactly 2nd derivative is chosen
+
+*to-do* what exactly is the difference to cubic natural spline? As far as I understand it, the model f is identical, but the model parameters are fitted with different methods, wheras natural cubic spline is fitted with LS.  Also, smoothing spline has one knot at each data point (what if there are multipl data points per x? average?).  Is smoothing spline equivalent to natural cubic splines where knots are at the data points.
+
+*to-do* how does fitting work? To a level of details important for this lecture.
+
+References:
+
+- ISLR, chapter ``7.5 Smoothing splines''
+
+- ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``3.4 Smoothing splines and penalized regression''
+
+
+==== Generalized Addidtive Models (GAMs)
+
+y~i~ = β~0~ + ∑~1≤j≤p~f~j~(x~ij~) + ε~i~
+
+The f~j~ are unspecified univariate (smooth) functions (aka smoothers).  E.g. in linear regression, f~j~(x~ij~) = β~j~x~ij~. GAMs are called additive, because there's a separate f~j~ for each predictor X~j~, and then all results are added together.  Followingly there is also no interaction, which would require functions taking multiple predictors as arguments.  That keeps GAMs simple.  From no interaction also follows no curse of dimensionality
+
+*to-do* why follows from no interaction also no curse of dimensionality?
+
+f~j~ are constrained as follows in order to get an identifiable model. Without these constraint, one could add constant a to f~j~ and substract it from f~jʹ~.  Constraining the f~j~ s that way results in β~0~ = mean(Y).
+
+E[f~j~(X~j~)] = ∑~1≤i≤n~f~j~(x~ij~) = 0
+
+If all f~j~ are univariate models which allow to be fitted with LS, then the overall model can obviously be fitted with LS.  Interpetability is also good, since we can draw an x~j~-y plot for each f̂~j~ (recall that there's no interaction).
+
+References:
+
+- ISLR, chapter ``7.7 Generalized Additive Models''
+
+
+===== Backfitting
+
+If the f~j~ cannot be fitted using LS (e.g. smoothing splines), one possible fitting approach is backfitting.  It iteratively optimizes one coordinate (corresponding to a predictor), while keeping all others fixed.
+
+--------------------------------------------------
+backfitting(Y:n⨯1 vector, X:n⨯p matrix)
+  beta0.hat.asvector = mean(Y) * "n⨯1 vector all 1"
+  for each predictor j = 1...p:  
+    g.j = n⨯1 vector all 0
+  do:
+    for each predictor j = 1...p:
+      Yʹ = Y - beta0.hat.asvector - ∑~1≤k≤p;k≠j~g.k
+      f.hat.j = fit.j(Yʹ ~ X.j)
+      gnew.j = f.hat.j(X.j)
+      gnew.j -= mean(gnew.j) (i.e. normalize)
+    convergence = max~over all 1≤j≤p~( (|gnew.j-g.j|)/|g.j| ) < tolerance
+    for each predictor j = 1...p:
+      g.j = gnew.j
+  until convergence
+  Result: The f.hat.j s (i.e. their coefficent estimates)
+--------------------------------------------------
+
+Normalizing gnew.j is not strictly required, but gives better control of numeric errors.  The convergence criterion could also be choosen differently.  The one used here means to stop when f̂~j~(X~j~) doesn't substantially change anymore.  Tolerance might be 10^-6^.
+
+Note: In most situations, backfitting is equivalent to the Gauss-Seidel method for solving a certain liniear system of equations.
+
+pro) very general, works for all smoothers f~j~.
+
+contra) slow
+
+
+[[decision_trees]]
+==== Decision trees
+
+p denotes the number of predictors, y∈ℝ, x∈ℝ^p^. P = {R~1~, ..., R~M~} is a partition of ℝ^p^ into M regions / partitions.  β~1~, ..., β~M~ are coefficients of the model.  I(·) denotes the indicator function.
+
+The underlying model: y = g~tree~(x) + ε, g~tree~(x) = ∑~1≤r≤M~β~r~I(x∈R~r~).
+
+Note that g~tree~ is piecewise constant.
+
+β~j~ equals the average of the y values in region R~j~. Thus, computing/estimating the coefficients β is easy once we know the partition P.
+
+The hard part is finding a good partition, see <<estimation_of_partition>>.
+
+Note that interactions are allowed.
+
+*to-do* somewhere, probably close to correlation and or (in)depence, write what interaction is:  Say we have two predictors.  With no interaction, the curve Y(X1) remains the same independent of X2.
+
+If the number of data points per region is too small (e.g. when tree is too deep), we are suffering from overfitting.
+
+References:
+
+- ISLR, chapter ``8 Tree-Based Methods''
+
+
+[[estimation_of_partition]]
+===== Estimation of partition
+
+We restrict ourselves to partitions that can be represented as trees of axis parallel regions, i.e. p-dimensional boxes.  The idealized goal is to find a partition which minimizes the RSS.
+
+*to-do* But according to that goal, I just choose my regions such that I have one region per observation. My RSS will be zero. But it's a horrible overfit.
+
+Recursively split ℝ^p^ into regions.  At each split, greedely choose an axis / predictor and a split point such that the log likelihood is increased the most.  In other words, from all the possible trees resulting from the possible splits, choose the the tree/split with the highest log likelyhood.  In certain cases this is the same as reducing the RSS the most.  A possible stopping criterion might be that all regions contain fewer than a given number of observations.
+
+*to-do* concrete example of log likelihood in this context
+
+_prunning back_: The resulting full tree T~0~ is likely to overfit by beeing to deep / complex.  A smaller subtree T ⊂ T~0~ with fever splits is likely to have smaller variance, smaller test error and better interpretation at the cost of higher bias.  Intuitively we want to find the subtree that leads to the lowest test error. Note that in case of <<bagging>>, we don't prune.
+
+Note that the alternative algorithm of stop growing the tree when a split doesn't seem worth it is not the same as the above algorithm of growing deep and then prune afterwards.  This is because a seemingly worthless split might be followed somewhere deeper down by a very worthwhile split, that is a split that leads to a large increase in the log likelyhood.
+
+_cost complexity pruninning_: A concrete prunning back method.  We find a subtree T⊆T~0~ according to the following argmin formula, where |T| denotes the number of leaves in tree T, and α is a tuning parameter.  Note that it's a similar pattern as seen in <<lasso>> or <<ridge>>. α=0 means no shrinkage penalty resulting in T=T~0~, and α→∞ results in |T|=0, i.e. T has no split.  It turns out that as we increase α from zero, branches get pruned from the tree in a nested and predictable fashion, so obtaining the whole sequence of subtrees as a function of α is easy.  Note that in case of bagging, we don't prune.
+
+argmin~T⊆T0~{RSS(T) + α|T|}
+
+We can do cross validation to find the best α, and then do the recursive splitting and the cost complexity pruning using the optained α on the original data set.
+
+See also <<bagging>> to further reduce variance.
+
+
+[[random_forests]]
+===== Random forests
+
+Is a variant of bagging which aims to decorrelate the trees by the way how splitting works during building a tree.  At each split, only a random set of m of the p predictors are allowed to be considered for the split.  Often m = √p for classification and m = p/3 for regression.  m = p amounts simply to bagging.
+
+Recall that the idea behind bagging is that averaging quantities decreases variance.  However the variance is not as much reduced when the quantities are correlated.  In the context of bagging that might happen when there's a strong predictor.  Most of the bagged trees will have that predictor in the top split, and consequently most of the bagged trees will look quite similar, and thus the predictions from these bagged trees will be highly correlated.
+
+References:
+
+- ISLR, chapter ``8.2.2 Random Forests''
+
+
+[[comparison_of_tree_based_methods]]
+===== Comparison of tree-based methods
+
+Pros/cons of trees:
+
+pro) interpretation, visualization
+
+pro) allow interactions
+
+pro) can easily handle qualitative predictors (no need for dummy variables)
+
+neutral) classification performance ok
+
+con) prediction performance of functions rather poor (much improved by <<bagging>> or random forests)
+
+con) high variance (much improved by <<bagging>>)
+
+con) piecewise constant underlying function is `unnatural'
+
+con) unstable splitting error at top of tree propagates down
+
+Comparison:
+
+|=====
+|                     | trees   | bagged trees | random forests
+| interpretation      | +       | -            | -
+| computation         | +       | \--          | -
+| performance         | -       | +            | \++
+| OOB error estimates | -^1)^   | +            | \+
+| overfitting         | yes^1)^ | ok           | ok
+|=====
+
+1) Use crossvalidation to mitigate
 
 
 [[KNN]]
 ==== K-nearest-neighbor regression (KNN)
 
-f̂(y~i~) = 1/k ∑~j~y~j~ | Find the k x~j~ closest to x~i~
+f̂(x~0~) = 1/k ∑~xi∈N0~y~i~, where N~0~ are the k closest observations to x~0~.
 
 If the underlying model is linear, KNN is worse.
 
-_Curse of diemsionality_: With more predictors KNN gets worse. Intuitively: When p is gettig larger, then in p-dimensional space the density of data point usually decreses.  Thus the number of neighbors usually decreases.  Linear regression also suffers from larger p's, but not as mutch as KNN.
+Curse of dimensionality: With more predictors KNN gets worse. Intuitively: When p is gettig larger, then in p-dimensional space the density of data point usually decreases.  Thus the number of neighbors usually decreases.  Linear regression also suffers from larger p's, but not as mutch as KNN. See also <<curse_of_dimensionality>>.
+
+Note: When plotting test error (e.g. expected test MSE), then often on the x-axis we plot 1/k (opposed to k).
+
+*to-do* is a special case of local regression, right? Weihthing function K is constant 1, and the underlying model is a constant function.
+
+
+==== Local regression
+
+Computes a fitted value ŷ~0~ given an target point x~0~, as opposed to computing coefficents for a global function f̂.  Select the k = s·n nearest training points x~i~ of x~0~, and assign a weight K~i~ = K(x~i~, x~0~) to each of them.  The fraction s ∈ (0,1] (also called span) of training points to select and the weighting function K are parameters of the algorithm.  The weighting function K should be such that the x~i~ closest to x~0~ is assigned the highest weight, and the x~i~ furthest away is assigned the lowest weight.  Do weighted least squares regression on these k points using K~i~ as weight, delivering f̂~x0~.  Whether the underlying model is constant, linear or a polynomial of some higher degree is a further parameter of the algorithm.  The fitted value ŷ~0~ at x~0~ is then ŷ~0~ = f̂~x0~(x~0~).
+
+The most important choice of all these parameters is the span s. It controls the flexibility of the fit: small values results in very local and wiggly fit, large values result in global fit.  We can for example use cross-validation to choose s.
+
+References:
+
+- ISLR, chapter ``7.6 Local Regression''
 
 
 [[LOESS]]
 ==== LOESS regression curve
 
-Generalization of KNN which is smoother.  KNN can be thought of as a rectangle function.  The k neigherst neighbors get wheight 1/k, all others get weight 0.  LOESS has a smoother weighting function, parameterized by α.  Larger α means more moothing.
+LOESS is locally weighted polynomial regression.  Loosely speaking, LOESS can also be seen as a generalization of KNN which is smoother.  KNN can be thought of as a rectangle function.  The k neigherst neighbors get wheight 1/k, all others get weight 0.  LOESS has a smoother weighting function, parameterized by α.  Larger α means more moothing, which results in less variance and more bias.  Larger n (more samples, while keeping x-range constant) makes it more precise.
+
+*to-do* Comparison LOESS vs local regression
+
+*to-do* what exactly is meant by its getting more precise with larger n? Ssee Exerscise Set 3, exercise 3b. It seems to me that the variance drops, but the bias stays constant. Isn't that against the bias-variance tradeoff? Or is modifying n not covered by bias-variance trade off?
+
+
+[[curse_of_dimensionality]]
+==== Curse of dimensionality
+
+In general, adding additional signal predictors that are highly associated with the response will improve the fitted model in terms of decreasing test MSE.  However even if they are associated, the increase in variance might outweight the reduction in bias.  Adding noise predictors that are not truly associated with the response will detoriate the fitted model, because they increase the dimensionality of the problem, exacerbating the risk of overfitting, since noise features may be assigned nonzero coefficients due to chance.
+
+KNN suffers more than linear regression or GAM with splines.
+
+See also respective paragraph in <<KNN>>.
 
 
 === Bootstrap
 
-The _bootstrap_ is a method for estimating the distribution of an estimator θ̂ derived from on a population with unknown distribuation, primarily for estimating se[θ̂] and computing confidence intervals for θ̂.  Let P be an unknown distribution, Z~1~, ..., Z~n~ iid \~ P a sample, and θ̂ (or θ̂~n~) an estimator of an unknown parameter θ.  Using the given sample we can calculate a realization of θ̂.  But the problem that the bootstrap will solve is that we don't yet know the distribution of θ̂.  I.e. we don't yet know the uncertainty involved with the estimator θ̂.
+The _bootstrap_ is a method for estimating the distribution of an estimator θ̂ derived from on a population with unknown distribution (or known distribution family with unknown parameter).  We want the distribution of θ̂ for inference, e.g. for estimating se[θ̂] and computing confidence intervals for θ̂.  Let P be an unknown distribution, Z~1~, ..., Z~n~ iid \~ P a sample, and θ̂ (or θ̂~n~) an estimator of an unknown parameter θ.  Using the given sample we can calculate a realization of θ̂.  But we don't yet know the uncertainty involved with the estimator θ̂.  The bootstrap will deliver an empirical distribution of θ̂.
 
-If we had P, we could simply simulate using P.  The key idea of bootstrap is to estimate P, denoted P̂ (or P̂~n~), and then use P̂ to simulate.  Estimating P is simple.  The estimate P̂ is an empirical distribution of Z~1~, ..., Z~n~ which places mass 1/n at each data point.  It is a discrete distribution on the data points, and each point is equally likely.  To sample from P̂ means to uniformily sample with replacement from {Z~1~, ..., Z~n~}.
+If we had P, we could simply simulate using P, i.e. take multipile samples, compute an θ̂ for each sample, delivering the empirical distribution of θ̂.  The key idea of bootstrap is to estimate P, denoted P̂ (or P̂~n~), and then use P̂ to simulate.  Estimating P is simple.  The estimate P̂ is an empirical distribution of Z~1~, ..., Z~n~ which places mass 1/n at each data point.  It is a discrete distribution on the data points, and each point is equally likely.  To sample from P̂ means to uniformily sample with replacement from {Z~1~, ..., Z~n~}.
 
-Sampling from P̂ yields a so called _bootstrap sample_ Z~1~^∗i^, ..., Z~n~^∗i^ iid\~ P̂.  Typically the bootstrap sample size is choosen to be the same size as the original sample size n.  Note that Z~1~^∗i^, ..., Z~n~^∗i^ are still random variables.
+Sampling from P̂ yields a so called _bootstrap sample_ Z~1~^∗i^, ..., Z~n~^∗i^ iid\~ P̂, where i denotes the i-th bootstrap sample.  Typically the bootstrap sample size is choosen to be the same size as the original sample size n.  Note that Z~1~^∗i^, ..., Z~n~^∗i^ are still random variables.  Side note: The probability that an observation z~i~ of the original sample is contained in the bootstrap sample is about 2/3.
 
 The _bootstrapped estimator_ θ̂^∗^ is is then simply θ̂^∗^ = g(Z~1~^∗i^, ..., Z~n~^∗i^).  Is an estimator for θ̂; the point being that θ̂^∗^'s distribution can be simulated and so we can estimate θ̂'s distribution, expectation, variance etc.  Note that θ̂^∗^ is still a random variable, the (probability) sample space being the original sample, opposed to usual (probability) sample space being the population.
 
 The _bootstrap distribution_ P^∗^ is the distribution of the bootstrapped estimator θ̂^∗^.  It is a conditional distribution given the (random) original sample.  P^∗^ is induced by sampling from P̂.
 
-From now on its hard to use good terms.  One one side literature also uses only a few terms, and the few terms that are used are far from universal agreement.  And on the other side, when I tried to come up with a coherent set of terms, the individual terms become a so long sequence of words, that they become too unpractical.  I gave up and will mostly just symbols.  The terms I do use I more or less liked, but they are not at all in universally used in literature.
+From now on its hard to use good terms.  One one side literature also uses only a few terms, and the few terms that are used are far from universal agreement.  And on the other side, when I tried to come up with a coherent set of terms, the individual terms become a so long sequence of words, that they become too unpractical.  I gave up and will mostly just use symbols.  The terms I do use I more or less liked, but they are not at all in universally used in literature.
 
 _Bootstrapping an estimator_ θ̂ means sampling from P̂, delivering B bootstrap sample realization, the i-th denoted z~1~^∗i^, ..., z~n~^∗i^.  That then delivers B bootstrap estimator realizations (or _bootstrap replications_): θ̂^∗i^ = g(z~1~^∗i^, ..., z~n~^∗i^).  These B bootstrap estimator realizations then constitute the bootstrap distribution P^∗^.
 
@@ -1617,15 +2199,13 @@ bias[θ̂] = E[θ̂] - E[θ] ≈(large n) E^∗^[θ̂^∗^] - θ̂ ≈(large B) 
 
 The _bootstrap quantile_ *to-do* it's conditional, right? Must be, since it's based on the conditional distribution P^∗^.
 
-sd̂[θ̂^∗^] *to-do*. Used e.g. for bootstrap T confidence interval estimation.
-
 
 [[bootstrap_consistency]]
 ==== Bootstrap consistency
 
 The boostrap is called to be _consistent_ with rate a~n~ for estimator θ̂ if for an increasing sequence a~n~, for all x:
 
-Pr[a~n~(θ̂-θ)≤x] - Pr^∗^[a~n~(θ̂^∗^-θ̂)≤x] P→ 0 (as n→∞)
+Pr[a~n~·(θ̂-θ)≤x] - Pr^∗^[a~n~·(θ̂^∗^-θ̂)≤x] P→ 0 (as n→∞)
 
 Explaining the formula:  For Pr^∗^[·] see previous chapter.  In the left Pr[...], the estimator θ̂ is a random variable and θ is fixed.  In the right Pr^∗^[...], the bootstrap estimator θ̂^∗^ is a random variable and θ̂ is the fixed realization of estimator θ̂ using the original sample.  Typically a~n~ = √n.  An oversimplified way is to think that θ̂-θ and θ̂^∗^-θ̂ must have the same CDF.
 
@@ -1645,21 +2225,51 @@ We want to compute an estimate of 1-α confidence interval for the estimator θ�
 
 _normal_: θ̂ ± q~Z~(1-α/2) · sd̂[θ̂], where Z ~ N(0, 1) and sd̂[θ̂] = √Var̂[θ̂] ≈ √Var̂^∗^[θ̂^∗^] as described in the bootstrap intro chapter.  Note θ̂ does lie in the middle of the interval.
 
-_quantile_ (in R called perc): [q~θ̂^∗^~(α/2), q~θ̂^∗^~(1-α/2)]. Special case of reversed quantile: it equals reversed quantile if the distribution of θ̂^∗^ - θ̂ is symmetric.  It's proovable that coverage is not 1-α.  Note that θ̂ might not lie in the middle of the interval.
+_quantile_ (or _percentile_): [q~θ̂^∗^~(α/2), q~θ̂^∗^~(1-α/2)]. Special case of reversed quantile: it equals reversed quantile if the distribution of θ̂^∗^ - θ̂ is symmetric.  It's proovable that coverage is not 1-α.  Note that θ̂ might not lie in the middle of the interval.
 
-_reversed quantile_ (in R called basic):  [θ̂ - q~θ̂^∗^-θ̂~(1-α/2), θ̂ - q~θ̂^∗^-θ̂~(α/2)].  If bootstrap consistency holds, its proovable that coverage is 1-α.  Note that θ̂ might not lie in the middle of the interval. (*to-do* 1) why do we make it so compolicated - what's the intuition why we now get a better coverage that the quantile CI 2) lecture notes say that performance is sometimes critized -- but nobody says that normal or quantile has better theoretical performance, right? Or whas performance meant in sence of computationally expensive?)
+_reversed quantile_ (or _basic_):  [θ̂ - q~θ̂^∗^-θ̂~(1-α/2), θ̂ - q~θ̂^∗^-θ̂~(α/2)].  If bootstrap consistency holds, its proovable that coverage is 1-α.  Note that θ̂ might not lie in the middle of the interval.  Performance in practice is sometimes critized.
 
-_bootstrap T_ (in R called stud):  [θ̂ - q~(θ̂^∗^-θ̂)/sd̂[θ̂^∗^]~(1-α/2) · sd̂[θ̂], θ̂ - q~(θ̂^∗^-θ̂)/sd̂[θ̂^∗^]~(α/2) · sd̂[θ̂]].  sd̂[θ̂] as in normal CI.  sd̂[θ̂^∗^] computed by 2nd layer of bootstrap, see bootstrap intro chapter.  Intuition:  Look at θ̂-θ ≈ θ̂^∗^-θ̂, where θ̂-θ is what I would like to have and θ̂^∗^-θ̂ is my observation.  If we instead take (θ̂-θ)/sd(θ̂) ≈ (θ̂^∗^-θ̂)/sd̂[θ̂^∗^], the two sides get similar more quickly.  Note that θ̂ might not lie in the middle of the interval.
+*to-do* why do we make it so complicated - what's the intuition why we now get a better coverage that the quantile CI
+
+*to-do* lecture notes say that performance is sometimes critized -- but nobody says that normal or quantile has better theoretical performance, right? Or whas performance meant in sence of computationally expensive?
+
+_bootstrap T_ (or _studentized_):  [θ̂ - q~(θ̂^∗^-θ̂)/sd̂[θ̂^∗^]~(1-α/2) · sd̂[θ̂], θ̂ - q~(θ̂^∗^-θ̂)/sd̂[θ̂^∗^]~(α/2) · sd̂[θ̂]].  sd̂[θ̂] as in normal CI.  We approximate (θ̂^∗^-θ̂)/sd̂[θ̂^∗^] by the empirical distribution (θ̂^∗1^-θ̂)/sd̂[θ̂^∗1^], ..., (θ̂^∗B^-θ̂)/sd̂[θ̂^∗B^].  Bootstrap T has best theoretical properties, but is computationally very expensive.  Intuition:  Look at θ̂-θ ≈ θ̂^∗^-θ̂, where θ̂-θ is what I would like to have and θ̂^∗^-θ̂ is my observation.  If we instead take (θ̂-θ)/sd(θ̂) ≈ (θ̂^∗^-θ̂)/sd̂[θ̂^∗^], the two sides get similar more quickly.  Note that θ̂ might not lie in the middle of the interval.
 
 References:
 
 - Slides5.pdf
 
 
+==== Parametric bootstrap
+
+In parametric boostrap (or model-based bootstrap), the sample is Z~1~, ..., Z~n~ iid \~ P~δ~, where δ is an unknown parameter of a known distribution family P~δ~.  We make an estimate δ̂ of δ, and can then create B samples from P~δ̂~.  Now we're in the same situation as in non-parametric bootstrap: we have B new samples constituting an empircal distribution.  Thus confidence intervals etc work the same for parametric bootstrap.
+
+Pro: Good _if_ parametric model is approximately correct, then P~δ̂~ is closer to P~δ~ than P̂ is to P.
+
+Pro: For small n, non-parametric bootstrap might be poor, because estimates (Ê[θ̂], Var̂[θ̂] etc.) are only good for large n.
+
+Contra: We need to make assumptions (the family P~δ~ and the estimate δ̂). Non-parametric bootstrap doesn't need assumptions (i.e. only those of bootstrap consistency)
+
+Contra: Bad if parametric model is far from the truth, then P~δ̂~ is farther from P~δ~ than P̂ is from P.  I.e. parametric bootstrap is sensitive to model misspredictions.
+
+
+==== Bootstrap for regression
+
+The model is Y = f(x) + ε, where the error terms have unknown distribution, in general maybe not even iid.  There are multiple options, ranging from fully parametric to fully non-parametric. For example:
+
+- Fully parametric regression: We assume parametric model f(x) = Xβ and ε iid\~ N(0,σ²), with the parameters β and σ. We estimate these parameters giving us β̂ and σ̂.  We then can sample like this: Y^∗^ = f̂(x) + ε^∗^, where f̂(x)=Xβ̂ and ε^∗^ iid~ N(0,σ̂²).
+
+- Non-parametric residuals: No assumptions on error terms ε, but still assuming parametric model f(x) = Xβ.  We make estimation β̂.  This delivers residuals e = Y - f̂(x), where f̂(x)=Xβ̂.  Sampling with replacement from e~1~, ..., e~n~ gives sample of residuals e^∗^. Y^∗^ = f̂(x) + e^∗^.
+
+- Non-parametric: Resample observations (i.e. rows in cbind(Y,X) matrix), i.e. vanilla non-parametric bootstrap
+
+
 ==== Bootstrap summary
 
+non-parameteric case:
+
 _Real world_: +
-sampling from P delivers sample (Z~1~, ..., Z~n~) +
+we have a sample (Z~1~, ..., Z~n~) \~ P (unknown) +
 estimator θ̂ = g(Z~1~, ..., Z~n~) \~ unknown-distribution +
 θ̂'s value known since g(Z~1~, ..., Z~n~) can be computed
 
@@ -1667,6 +2277,21 @@ _Boostrap world_: +
 sampling from P̂ delivers bootstrap sample (Z~1~^∗^, ..., Z~n~^∗^) +
 bootstraped estimator θ̂^∗^ = g(Z~1~^∗^, ..., Z~n~^∗^) ~ P^∗^ +
 Distribution P^∗^ given by the B bootstrap sample realizations
+
+parametric case:
+
+_Real world_: +
+P~δ~ is a known parameterized family of distributions, δ is unknown +
+we have a sample (Z~1~, ..., Z~n~) \~ P~δ~ +
+estimator θ̂ = g(Z~1~, ..., Z~n~) \~ unknown-distribution +
+θ̂'s value known since g(Z~1~, ..., Z~n~) can be computed
+
+_Boostrap world_: +
+make estimate δ̂ +
+sampling from P~δ̂~ delivers bootstrap sample (Z~1~^∗^, ..., Z~n~^∗^) +
+bootstraped estimator θ̂^∗^ = g(Z~1~^∗^, ..., Z~n~^∗^) ~ P^∗^ +
+Distribution P^∗^ given by the B bootstrap sample realizations
+
 
 [cols="1,3"]
 |=====
@@ -1724,6 +2349,20 @@ References:
 
 === Number theory
 
+ℕ natural numbers. Whether 0 ∈ ℕ is not clearly defined.
+
+ℕ~0~, ℕ^0^, ℤ~≥0~, ℤ^*^ non-negative integers
+
+ℕ~>0~, ℤ^+^ positive integers
+
+ℤ integers. Z is for the German word Zahlen.
+
+ℚ rational numbers. Q is for the German word Quotient.
+
+ℝ real numbers
+
+0 is neither positive nor negative.
+
 References:
 
 - MIT course 6.042 "Mathematics for computer science", lecture notes "Mathematics for computer science", chapters "Number Theory"
@@ -1735,32 +2374,54 @@ References:
 
 **In this subchapter, we're only looking at integers.**
 
-a _divides_ b (or a is a _divisor_ (or _factor_) of b, or b is _divisible_ by a, or b is a _multiple_ of a), denoted a | b, iff there is a k such that ak=b. **Note that the order of operands is reversed relative to division**.
+a _divides_ b (or a is a _divisor_ of b, or b is _divisible_ by a), denoted a | b, iff there is a k such that ak=b.  b and 1 are so-called _trivial divisors_ of b.  Nontrivial divisors of b are called _factors_ of b.  If additionally k ≥ 1, we say b is a _multiple_ of a.
 
-Divisibility is reflexiv and transitiv, bot not symmetric.
+Divisibility is reflexiv and transitiv, bot not symmetric. *to-do* write more explicitely using formulas
 
-If f|a and f|b, then f|(sa+tb) for any s and t.
-I.e. a linear combination of a and b is divisible by any common factor of a and b.
+a|0 (by agreement)
 
-n is a _linear combination_ of b~0~, ..., b~k~ iff n = ∑s~i~b~i~.
+f|a and f|b ⇒ f|(sa+tb) for any s and t (a linear combination of a and b is divisible by any common factor of a and b)
 
-_Division Theorem_ (or _Division Algorithm_): Let n (_numerator_) and d (_denominator_) ≠ 0 be integers, then there exists a unique pair of integers q (_quotient_) and r (_remainder_) such that qd+r = n and 0≤r<|d|.
-Note that by this definition, the remainder is always nonnegative, as opposed to how many programming languages define it.
+a|b and b|a ⇒ a=b
 
-rem(a,b) and a mod b are diffrent notations for the same thing.
+n is a _linear combination_ of b~0~, ..., b~k~ ⇔ n = ∑s~i~b~i~.
 
-A _commonon divisor_ of a and b is a number that divides them both.  The _greatest common divisor_ of a and b is denoted gcd(a,b).
+A _commonon divisor_ of a and b is a number that divides them both.  The _greatest common divisor_ (_GCD_) (or _greatest common factor_ or _highest common divisor_) of a and b is denoted gcd(a,b).  By convention gcd(0, 0) = 0.
 
-_Euclid's algorithm_ finds the gcd of a and b ≠ 0: gcd(a,b) = gcd(b, a mod b).
+gcd(a,b) = gcd(b,a) (commutative)
 
-_Bézout's lemma_ (or _Bézout's idendity_): For any nonzero a and b:
-1) gcd(a,b) = sa+tb for some s and t; i.e. gcd(a,b) is a linear combinatino of a and b.
-2) gcd(a,b) is the smallest positive integer that can be written as sa+tb.
-3) sa+tb | gcd(a,b) for any s and t; i.e. every linear combination of a and b is a multiple of gcd(a,b).
+gcd(a, gcd(b,c)) = gcd(gcd(a,b), c) (associative)
+
+gcd(a, b, c) = gcd(gcd(a, b), c) (gcd of more than two arguments)
+
+d|a and d|b ⇒ d|gcd(a,b)
+
+a|bc and gcd(a,b) = d ⇒ a/d | c
+
+gcd(ma, mb) = m gcd(a, b) ∀ m ∈ ℕ
+
+gcd(m + mb, b) = gcd(a, b)
+
+gcd(a, ma) = a
+
+gcd(a,0) = |a|
+
+gcd(a,c)=1 and gcd(b,c)=1 ⇔ gcd(ab,c)=1
+
+gcd(a,b) = gcd(b, a mod b) (see Euclid's algorithm)
 
 Two integers and b are _relative prime_ if gcd(a,b) = 1.
 
-If gcd(a,c)=1 and gcd(b,c)=1 then gcd(ab,c)=1.
+From the fundamental theorem of arithmetic directly follows that gcd(a, b) = product of primes common to a and b.  Thus an inefficient algorithm to compute gcd(a, b) is to prime factorize a and b, compare the factors, and build the product of the common factors.
+
+_Bézout's lemma_ (or _Bézout's idendity_): For any nonzero a and b:
+1) gcd(a,b) = sa+tb for some s and t; i.e. gcd(a,b) is a linear combination of a and b.
+2) gcd(a,b) is the smallest positive integer that can be written as sa+tb.
+3) sa+tb | gcd(a,b) for any s and t; i.e. every linear combination of a and b is a multiple of gcd(a,b).
+
+_Euclid's algorithm_ Recursively solve gcd(a,b) by gcd(a,b) = gcd(b, a mod b). The bottom case is b = 0, in which case gcd(a,0) = |a|.
+
+binary method to compute gcd: *to-do*
 
 
 ==== Prime numbers
@@ -1773,28 +2434,170 @@ _Fundamental Theorem of Arithmetic_: Every positive integer is a product of a un
 
 For all primes p and any a,b: if p|ab then p|a or p|b.
 
+There are infinitely many primes.
+
 The _prime-counting function_ π(x) is the function giving the number of primes less than or equal to a given number x.
 
-_Prime Number Theorem_: π(x) ~ x/ln(x). Thus as a rule of thumb, about 1 integer out every ln n in the vicinity of n is a prime.
+_Prime Number Theorem_: π(x) ~ x/ln(x). Thus as a rule of thumb, a given integer x is prime with a probability of about 1/ln(x).
 
 _Chebyshev's Theorem on Prime Density_: π(x) > x / (3 ln x).
+
+See also algorithms_and_data_structures.adoc, chapters ``primalty testing'' and ``generating primes''.
 
 
 ==== Modular arithmetic
 
 **In this subchapter, we're only looking at integers.**
 
-a and b are said to be _congruent modulo_ n ≥ 0, denoted a ≡ b (mod n), iff n | (a-b).
-Stated differently, iff a-b = kn.
+_Division Theorem_ (or _Division Algorithm_): Let n (_numerator_) and d (_denominator_) ≠ 0 be integers, then there exists a unique pair of integers q (_quotient_) and r (_remainder_) such that q·d + r = n and 0 ≤ r < |d|.
+Note that by this definition, the remainder is always nonnegative, as opposed to how many programming languages define it.
 
-The congruent modulo relationship is reflexiv, symetric and transitiv.
+Common notations for the _remainder operation_ (or _modulo operation_) are n mod d or rem(n, d).  Common notations for _quotient operation_ are n div d or qcnt(n, d).
 
-a ≡ b (mod n) iff a mod n = b mod n
+_Modular arithmetic_ (or _clock arithmetic_) is the arithmetic of congruences.
 
-a ≡ a mod n (mod n)
+A _congruence relation_ (or simply _congurence_) is an equivalence relation on an algebraic structure that is compatible with the structure.
 
-If a ≡ b (mod n) and c ≡ d (mod n), then a + c ≡ b + d (mod n), ac = bd (mod n).
+_Congruence modulo n_ on the set of integers is a congruence relation. a ≡ b (mod n) denotes ``a is congruent to b (modulo n)'' or ``a and b are congruent modulo n''.  The number n is called the _modulus_.  These three claims are equivalent:
 
+a ≡ b (mod n) ⇔ +
+n | (a-b) ⇔ +
+a = b + kn ∀ k ∈ ℕ
+
+In the following, the explicit (mod n) is omitted for brevity.
+
+An a^-1^ such that a·a^-1^ ≡ 1 is called _modular multiplicative inverse_ of a modulo n.  a^-1^ exists iff a is coprime with n.
+
+a ≡ a [reflexiv]
+
+a ≡ b ⇔ b ≡ a [symetric]
+
+a ≡ b and b ≡ c ⇒ a ≡ c [transitiv]
+
+a ≡ b ⇔ a + k ≡ b + k ∀ k ∈ ℤ [compatibility with translation]
+
+a ≡ b ⇒ ka ≡ kb ∀ k ∈ ℤ [compatibility with scaling]
+
+ka ≡ kb and k is coprime with n ⇒ a ≡ b
+
+a ≡ b ⇒ a^k^ ≡ b^k^ ∀ k ∈ ℕ [compatibility with exponentation]
+
+a ≡ b and c ≡ d ⇒ a + c ≡ b + d [compatibility with addition]
+
+a ≡ b and c ≡ d ⇒ a - c ≡ b - d [compatibility with subtraction]
+
+a ≡ b and c ≡ d ⇒ ac ≡ bd [compatibility with multiplication]
+
+a ≡ b and a^-1^ exists ⇒ a^-1^ ≡ b^-1^ [compatibility with multiplicative inverse]
+
+When a = x² mod p for an a ∈ ℤ~p~ and any x ∈ ℤ~p~, then a is called a _quadratic residue_.
+
+When a ≠ x² mod p for an a ∈ ℤ~p~ and all x ∈ ℤ~p~, then a is called a _quadratic nonresidue_.
+
+Exactly half of the nonzero elements of field ℤ~p~ are quadratic residues.
+
+_Legendre symbol_: Leg(a|p) ≡ {1 if a is a quadratic residue, -1 if a is a quadratic non-residue, 0 if p|a}.
+
+p is odd prime ⇔ a^(p-1)/2^ ≡ Leg(a|p) ∀ a ∈ ℤ~p~ - \{0}. [Euler's Criterion]
+
+_Jacobi Symbol_: Jac(a|n) = ∏~1≤i≤l~Leg(a|p~i~)^k~i~^ = ∏~1≤i≤l~(a^(p~i~-1)/1^ mod p~i~)^k~i~^ = {1, -1}, where gcd(a,n) = 1 and where p~1~^k~1~^ · ... · p~l~^k~l~^ is the prime factorization of n.
+
+p is prime and a ∈ ℤ and gcd(a,p) = 1 ⇒ a^p-1^ ≡ 1 [Fermat's little theorem]
+
+p is prime and a ∈ ℤ~p~ - \{0} ⇒ a^-1^ = a^p-2^ mod p [Consequence of Fermat's little theorem]
+
+p is prime ⇔ (p-1)! ≡ -1 [Wilson's theorem]
+
+Chinese Remainder Theorem:  Let m = m~1~·...·m~k~ where k ∈ ℤ^+^ and m~i~ ∈ ℤ^≥2^ are pairwise coprimes. For any sequence r~1~ ∈ ℤ~m1~, ..., r~k~ ∈ ℤ~mk~ there is an unique r ∈ ℤ~m~ such that r ≡ r~i~ (mod m~i~) ∀ i ∈ [k].
+
+
+==== Abstract Algebra
+
+A set S is _closed_ under an n-ary operation f if f: S^n^ → S. A set S is closed under a collection of operations if it is closed under each of the operations individually.
+
+An _algebraic structure_ (or simply _algebra_) is a pair (S, F) where S is a set closed under a set F of operations.
+
+Given an algebra (S, ∗) where ∗ is a binary operation.  An element e ∈ S is called a _left identity_ if e ∗ x = x ∀ x ∈ S, and a _right identity_ if x ∗ e = x ∀ x ∈ S.  If e is both a left and a right identity, then it is called a _two-sided identity element_ (or _two-sided neutral element_ or simply _identity_) according to ∗ in S.
+
+Given an algebra (S, ∗) where ∗ is a binary operation, elements a, b ∈ S, and the neutral element e ∈ S.  If a ∗ b = e, then a is called a _left inverse_ of b and b is called a _right inverse_ of a.  If an element is both a left and a right inverse, it is called a _two-sided inverse_ (or simply _inverse_).  The inverse element of element x ∈ S is denoted x^-1^ (or i(x) or -x if the algebra's operation is denoted +).
+
+Note that the algebra (ℤ, +) where + denotes normal addition, subtraction a - b is modeled by adding the inverse, i.e. a + i(b) (or a + -b).  Likewise for division in algebra (ℝ, ·) where · denotes normal multiplication: division a / b is modeled by multiplying the inverse, i.e. a · i(b) (or a · b^-1^).
+
+A _semigroup_ is an algebra (S, ∗) where ∗ is a binary associative operation on S.
+
+A _monoid_ is an algebra (M, ∗) where ∗ is a binary associative operation and S has a neutral element.
+
+A _group_ is an algebra (S, ∗) where ∗ is a binary associative operation and S has a neutral element and every element x ∈ S has an inverse element.
+
+The _order_ (or _cardinality_) of a group G (or ring or field), denoted |G|, is the number of elements it contains.
+
+A group is _commutativ_ (or _abelian_) if x ∗ y = y ∗ x ∀ x,y ∈ S.  If a group is not commutative, its called _noncommutative_ (or _non-abelian_).
+
+Let (S, ∗) be a group with the neutral element e. The _i-th power_ of x ∈ S, denoted x^i^, is inductively defined as follows, for any x ∈ S and i ∈ ℤ:
+
+i) x^0^ = e (x^0^ is called the _trivial power of x_)
+
+ii) x^1^ = x
+
+iii) x^i^ = x ∗ x^i-1^ ∀ i > 1 (x^i^ is called a _nontrivial power of a_)
+
+iv) x^-i^ = (i(x))^i^ ∀ i ≥ 1
+
+Given a group G = (S, ∗), an element x ∈ S is called a _generator_ of that group if S = {x^i^|i∈ℤ}.  We also denote that with ⟨x⟩ = G. If a group has a generator, then the group is called _cyclic_.
+
+Given a group (S, ∗) with identity e. The _order_ of an element x ∈ S, denoted |x|, is the smallest positive integer n such that x^n^ = e. If there is no such n, then element x has _infinite order_.
+
+A _ring_ is an algebra (R, +, ·) where (R, +) is a commutative group and (R, ·) is a semigroup and · is distributive over + (*to-do* unspecified whether left/right/total distributive).  Wether or not a ring requires an identity under · is under debate, see also ring with identity.
+
+A ring (R, +, ·) with neutral element 0 under + is called _zero division free_ if x · y ≠ 0 ∀ x, y ∈ R - \{0}.
+
+My personal derivation: The neutral element 0 under + has no inverse under ·, so we want to prohibit having to take the inverse of 0.  We take the inverse of an element when a = c · 1/b ⇔ a · b = c.  So in our use case we want to prohibit (for a,c ∈ R - \{0}) that a · 0 = c ⇔ 1/a · a · 0 = 1/a · c ⇔ 0 = 1/a · c, which is what zero division free said.
+
+If the · operation of a ring (R, +, ·) is commutative, it's called a _commutative ring_.  If the · operation is not commutative, it's called a _noncommutative ring_ (or simply ring).
+
+If the · operation of a ring (R, +, ·) with identity 0 under + has an identity for every element in R - \{0}, it's called a _ring with identity_.
+
+A _field_ (_Körper_ in German) (R, +, ·) with neutral element 0 under + is a zero division free ring where for · the following holds: commutative, R - \{0} has an identity and there's an inverse for all x ∈ R - \{0}.
+
+Note that some authors say that a ring (R, +, ·) is the commutative group (R, +) with identity 0 and the commutative group (R-\{0}, ·).  This is not entirely correct because it technically says that · is closed under R-\{0} which is not what we mean.  We do want to allow 0 as operand and result of ·, we only want to disallow division by 0.
+
+For example, ℚ and ℝ build fields with respect to addition and multiplication.  However for ℤ it is impossible to define division.
+
+Given a field K = (R, +, ·) with identity 1 under + and identity 0 under ·, the _field characteristic_ ch(K) is the minimum number of times 1 has to be added (e.g. 1+1 counts as two times) to equal 0.  If 0 is never reached, then ch(K) = 0.
+
+A _finite field_ (or _Galois field_) is a field with a finite field order.  The order of a finite field is always a prime power p^k^, where p is a prime and k is a positive integer.  All finite fields of a given order are isomorphic.  In case k = 1, the finite field is called a _prime field_, denoted GF(p) (or 𝔽~p~), and is the field of residue classes modulo p, where the elements of GF(p) are denoted 0, ..., p-1.  Thus a = b in GF(p) means the same as a ≡ b (mod p).  p is the characterstic of the prime field.  The inverse with respect to · can be computed with the _extended Eucledian algorithm_ (*to-do*).  In case k > 1, the finite field is denoted GF(p^k^) (or 𝔽~p^k^~).
+
+ℤ/pℤ denotes a special case of a quotient group (recall a group as only one operation), but is apparently sometimes used to denote a prime field (recall that a field has two operations).
+
+ℤ~n~ denotes an abstract algebra over set {0, ..., n-1} with mod n modular arithmetic.  Wether ℤ~n~ denotes a finite group or a finite field (and thus prime field) depends on the context.
+
+*to-do* vector space, norm, module,
+
+Summary:
+
+R denotes the set of elements of the algebraic structure.  ba denotes binary associative operation.  The identity under +, if it exists, is denoted 0.  NA denotes not available.  d denotes that · is distributive over +.  e denotes existence of an identity under the given operation.  e/0 denotes existence of an identity within R - \{0} under given operation.  inv denotes the existence of a inverse element for every element of the algebraic structure under the given operation.   inv/0 denotes the existence of a inverse element for every element R - \{0} under the given operation.  zdf denotes zero division free, see there.
+
+|=====
+|                    |      | + (ba)    | · (ba, d)
+| semigroup          | +    |           | NA
+| monoid             | +    | e         | NA
+| group              | +-   | e, inv    | NA
+| commutative group  | +-   | e, inv, c | NA
+| ring               | +-·  | e, inv, c | [e/0]
+| ring with identity | +-·  | e, inv, c | e/0
+| commutative ring   | +-·  | e, inv, c | c
+| zdf ring           | +-·  | e, inv, c | zdf
+| field              | +-·/ | e, inv, c | zdf, c, e/0, inv/0
+|=====
+
+
+References:
+
+- https://www.youtube.com/playlist?list=PLi01XoE8jYoi3SgnnGorR_XOW3IcK-TP6
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``2.2.4 Algebra and Number Theory''
+
+- Book ``Design and Analysis of Randomized Algorithms'', chapter ``A.2 Algebra and Number Theory'' starting p. 239 bottom
 
 === Linear algebra
 
@@ -1870,6 +2673,8 @@ stirlings approximation: n! ~ √(2πn)*(n/e)^n^
 - MIT course 18.650 Statistics for Applications, fall 2016: https://ocw.mit.edu/courses/mathematics/18-650-statistics-for-applications-fall-2016/lecture-slides/[lecture notes], https://www.youtube.com/watch?v=VPZD_aij8H0&list=PLUl4u3cNGP60uVBMaoNERc6knT_MgPKS0[videos]
 
 - Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič. The Introduction chapter serves as good summary of computer science fundamentals.
+
+- Book ``Design and Analysis of Randomized Algorithms'', chapters ``A Fundamentals of Mathematics'' p. 227 and ``2.2 Elementary Probability Theory'' p. 20
 
 - Book ``Modern Cryptography: Theory and Practice'' has a mathematical foundations part
 
