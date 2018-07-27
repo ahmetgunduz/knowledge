@@ -1,0 +1,215 @@
+same cell type: array (k-dim), vector (1d array), matrix (2d array)
+mixed cell type: list (k-dim), data frame (2d list)
+
+typeof(obj): returns internal type of obj / class(obj)
+str(obj): compactly display the internal STRucture of any R object
+summary(obj): generic function summarizing results of various fitting functions
+
+x %in% vector: return true if x matches an element of given vector
+
+X <- as.matrix(cbind(1, data)) # cbind: add column with 1nes for intercept
+XtXinv = solve(t(X) %*% X)  # (X^T^ X)^-1^
+
+library(mylibrary) / require(mylibrary):
+
+dim / nrow / ncol: dimensions / number of rows / number of columns
+
+data(mydataset) / mydataframe <- read.csv(filepath) / mydata <- scan(url)
+seq: generates regular sequences
+numeric(n): vector of n zeros
+c: combine values to a vector/list / cbind/rbind: combine by colums or rows
+matrix(1d.data, nrow [, ncol]): creates matrix out of the given 1d-data
+data.frame(colname1 = 1d_data1, colname2= 1d_data2, ...): create data frame
+names(mydata) <- c("col1", "col2", ...): set column names
+rownames(obj) / colnames(obj): set/get row/column names of a matrix like object
+
+which(x): returns the indicies of x's elements which are true
+vector==x: new vector with boolean elements. compares value x against each original element
+(vector==x)*1: as before, but now elements are 0/1 instead FALSE/TRUE
+data[row.ids,col.ids]: extract cells covered by given row.ids/col.ids.
+  Ids are either indexes (numbers, starting at 1) or names (given as strings)
+  If indexes are all negative values, then extract all rows/columns but the given ones
+  data[,col.ids] or data$colname: extract whole columns
+  data[row.ids,] or data$rowname: extract whole rows
+  data[ids]: dataframe: ids are col.ids, matrix: ids are global indicies
+  data[boolvector]: extract rows according to predicate
+generally:
+  All the above seem to keep row-/colnames if each dimension has at least two elements
+  When using new/invalid indexes/names (and assigning to expr), creates rows/cols
+data <- data[complete.cases(data)]: remove rows with at least one missing value
+data <- na.omit(data): same as above.
+
+sample(x, size, replace):
+
+mean(x, trim) / sd(x) / median(x) / unname(quantile(x, probs))
+
+sapply(x, FUN): applies FUN to every element of x
+replicate(n, expr): evaluate expr n times
+
+table(vectorA, vectorB): Row-wise pair elements, and make a table with all occuring pairs and
+  how often equal pair occure.
+  table(predict(...,data=x.test,), y.test): e.g. classification context, where was classification right/wrong
+
+plot(x, y) or plot(Y ~ X): scatterplot given by vectors Y and X
+  type="l": lineplot instead points
+  xlog=T: logarithmig X axis
+hist(x, freq): blockchart histogram. freq=FALSE: y-axis represents probability
+  x <- seq(...); lines(x, dnorm(x)): add theoretical linecurve histogram to plot
+  lines(density(data)): add linecurve histogram of given data to plot
+boxplot(vector1, vector2, ...): boxplot
+stripchart(data, method="stack"): 1d scatter plot
+points(x, y): add points to plot
+abline(...): add straight line to plot.
+  a and b are intercept and slope. v/h for horizontal/vertical line
+general:
+  par(mfrow=c(rowcount,colcount)): plot window has space for rowcount x colcount plots
+  col: color
+  superimpose: Set add=T after first, or use plot=F after first and pass ret value to future plot.
+    Use T in c(R,G,B,T) arg to col param for transparency. You might want to use equal xlim/ylim for all.
+
+knn: recall to plot 1/k, e.g. plot(1/c(1:n), mse) mse being mse for n different k 1:n
+
+paste(..., sep = ..., collapse = ...): Imagine the args as standing vectors of same length
+  (a value would be vector of length 1) concatente all elements on same row after converting
+  each element to one string. If sep is given, use that as separator when concatenating elements.
+  The overal result is a vector of these strings.  If collapse is given, the above strings are
+  concatenated into one using the collapse arg as separator.
+paste0: as paste, but sep set to ""
+sprintf: c-like printf
+
+formula:
+  response \~ predictor1 + predictor2 + ...: straight forward
+  usually, if data param not given to fit function, response/predictor1/... must be directly vectors
+  y ~ x1 + I(x^2): use I() to inhibit interpretation of objects
+  y ~ .: use all predictors, i.e. all columns in data
+  y ~ -x1: us all predictors except x1
+  as.formula(formala.as.string): to dymically compose formula
+
+lm(formula [,data]): Fit linear model.
+  $coefficients[predictorid,]: vector containing estimate, std error, t-value, p-value
+  $residuals: straight forward
+predict(lm.out [,newdata]): straight forward
+fitted(lm.out): for my purposes, identical to predict(fitdata)
+plot after fit:
+  plot(lm.out, which): 'which' chooses between Tukey-Anscombe plot, Q-Q plot etc.
+  plot(formula, data): scatterplot of observations. use same formula and data as in fit
+  abline(fitdata): add regression line to plot
+  xgrid <- seq(min(x), max(x), length.out = 100); lines(xgrid, predict(lm.out, newdata = data.frame(x=xgrid)))
+confidence/prediction intervals:
+  confint(lm.out [,level=0.95]): confidence interval for some/all coefficient
+  predict(lm.out, newdata, interval="c", [,level=0.95]): confidence interval for E[y0], given newdata
+  predict(lm.out, newdata, interval="p", [,level=0.95]): prediction interval for y0, given newdata
+
+linear regression / p-value of the global F-test:
+  via anova: anova(lm(response ~ 1, ...), lm(response ~ ., ...))$`Pr(>F)`[2]
+  via f statistic of lm fit: f <- summary(fitdata)$fstatistic; pf(f[1], df1=f[2], df2=f[3], lower.tail = F)
+
+pvalue ONEsided Ha:  (sum(data <= threshold)+1) / (length(data)+1): +1's if threshold is given by an t.obs.
+threshold ONEsided Ha: unname(quantile(data, probs))
+
+crossvalidation for linear regression: (library boot)
+  glm.out <- glm(formula, data); cv.result <- cv.glm(data, glm.out, K=10); cv.result$delta[2]: adjusted prediction error
+
+loess(formula, span): LOESS smoother. span = smoothing parameter (larger -> more smoothing)
+knn.reg(train, test, y, k): (lib FNN) y is response for train, test is the `query'
+  $pred: predicted values for arg 'test' above
+lm(y ~ poly(x, d)) or lm(y ~ x + I(x^2) + I(x^3) + ..., data): polynomial regression
+lm(y ~ bs(data$x, df, knots), data): (lib splines) regression splines
+gam(y ~ s(X1, df) + s(X2, df) + ..., data): (lib gam) GAM with smoothing splines
+glmnet(x, y, alpha, lambda): ridge (alpha=0) / lasso (alpha=1). alpha is vector
+  x <- model.matrix(responsecolumnname~.,data) / y <- data$responsecolumnname
+  coef(glmnet.out): rows correspond to predictors, columns to given lambdas
+  predict(glmnet.out, s [,newx]): s is the lambda (value, not index) to be used
+  predict(glmnet.out, s, type="coefficients"): coefficient estimates of the linear model
+  plot(glmnet.out): for each coefficient (color), plot value of coefficient (y axis) vs lambda (x axis)
+  crossvalidation to choose lambada: cv.glmnet(x, y, alpha)$lambda.min
+fitdistr(sample,densfun): (lib MASS) maximum-likelyhood fitting
+  $esitimate[myparam]: mle of myparam of densfun
+
+regsubsets(formula, data, nvmax): (lib leaps) model selection via exhaustive / forward / backward method
+  nvmax: !! the default is *not* all predictors !! Consider upto nvmax features/predictors
+  summary(out): $rss, $adjr2, etc.
+  coef(out, id=which.max(summary$rss)): linear regression coefficient estimates for best model
+
+boot(data, statistic, R): (lib boot)
+  statistic is a function taking two args: the original data, vector of indicies. can return value or vector
+  $t0: observed statistic
+  $t: statistics based on bootstrap replicas
+boot(data, statistic, R, sim="parametric", ran.gen, mle)
+  statistic is a function taking one arg: a (generated boostrap) sample
+  ran.gen is a function taking two args: the original data set and mle. Must return a generated sample
+    of the same form as the original data
+  mle: 2nd parameter to be passed to the ran.gen function
+boot.ci(boot.out [,conf], type=c(...) [,index=]): (lib boot). Confidence intervals.
+  index is the position of the element of intrest in statistic's output
+  type stud:
+    statistic should return a tuple (statistic, variance), e.g.
+      t <- statfun(data,indicies)
+      var <- var(boot(data[indicies], statfun, R=100)$t)
+      return(cbind(t,var))
+    variant 1: boot.ci should get param var.t0=var(boot.result$t[,1])
+    variant 2: boot.ci should get param index=c(1,2)
+plot(boot.out, [,index]): Plot histogram and ? of bootstraped statistic. index defines element of statfun's return val
+
+all these tests: out$statistic: the observed test statistic
+wilcoxon.test(data_groupA, data_groupB, alternative=..., ...): wilcoxon rank sum test
+wilcoxon.test(diff_data, alternative=..., ...): wilcoxon signed rank test
+wilcoxon.test(data_groupA, data_groupB, alternative=..., paired=T, ...): alternative to above
+t.test(data): as one sample test
+t.test(data_groupA, data_groupB):
+t.test(data_groupA, data_groupB, paired=true):
+
+tree(formula [,data=]): (lib tree) full tree without pruning
+  plot(tree.out); text(tree.out,pretty=0): plot decision tree
+  tree.out: prints desicion tree as indended text
+cv.tree(tree.out, FUN=prune.misclass): cost complexity pruning for classification
+cv.tree(tree.out): cost complexity pruning for regression
+  $k: found tuning parameter (alpha in ISLR)
+  $size: size of tree
+  $dev: number of misclassifications
+predict(tree.out, testdata, type="class"): classification
+predict(tree.out, testdata): regression
+prune.misclass(tree.out, best): returns a cost complexity pruned tree having size best or larger
+prune.misclass(tree.out, k): analogous; k is the tuning parameter (alpha in ISLR)
+
+randomForest(formula, data, mtry, importance=T). mtry is number of predictors to be tried
+  rf.out: print summary. "mean squared residuals" is mse
+  $mse: OOB MSE up to i-th tree
+  $mse[rf.out$ntree]: OOB MSE
+  $votes: (classification only) for each observation, percentage of trees voting for which class
+  $err.rate:
+  $prediction: prediction based on OOB bootstrap samples
+predict(rf.out, [newdata=]): if newdata is not given rf.out$prediction is returned
+importance(rf.out): IncNodePurity means how much RSS decreased on average after a split on that predictor
+varImpPlot(rf.out): plot the above
+
+*crossvalidation*
+note that most fitting methods have a subset parameter
+fold.assignment <- sample(rep(1:k, length.out=n, replace=F), replace=F)
+# above: or cut(1:n, breaks=k, labels=F) instead rep(...)
+mses <- numeric(k)
+for (fold.no in 1:k) {
+    is.in.train <- fold.no!=fold.assignment
+    data.train <- data[is.in.training,]
+    data.test <- data[!is.in.training,]
+
+    # inner cross validation. logically receives data.train as input
+        for (fold.no.inner in 1:k) {
+            if (fold.no.inner==fold.no) { next; }
+            data.train.inner <- data[is.in.train & (fold.no.inner!=fold.assignemt),]
+            data.test.inner <- data[is.in.train & (fold.no.inner==fold.assignment,]
+            for all candidate models {
+                fit using data.train.inner
+                calc mse using prediction on data.test.inner using fit
+            }
+        }
+        average mse for all candiate models
+        fit best (according averaged mse) model on data.train
+        # logically returns fitted best model
+    # end
+
+    mses[fold.no.outer] <- mse of obtained and fitted best model on data.test.outer using
+}
+# estimated expected test mse for procedure 'Choose best (estimated expected test mse) model using CV'
+mse <- mean(mses)
+# optionally do CV (on original data) to select best model, then train that best model on original data
