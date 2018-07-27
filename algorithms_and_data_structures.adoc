@@ -98,6 +98,29 @@ We have dynamically allocated _objects_ (or _nodes_).  An object has O(1) fields
 The pointer machine model is weaker than the transdichotomous RAM model, i.e. it can be implemented on a transdichotomous RAM.
 
 
+==== External Memory Model
+
+The _external memory model_ (or _I/O model_ or _disk access model_ (_DAM_)) simplifies the memory hierarchy (Multiple layers of CPU caches, RAM, Local Disk, Network) to just two levels.  The chache is of size M and consists of M/B blocks of size B.  Transfering a block between cache and disk costs 1 unit.  Operations and access to blocks in the cache is free.  In other words, we only pay for cache misses.  Recall that in the cell probe model, every access to memory always costs 1 unit.
+
+Variations: Cache oblivious model
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 7 Memory Hierarchy Models: https://www.youtube.com/watch?v=V3omVLzI0WE&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&index=7[video], https://courses.csail.mit.edu/6.851/spring12/scribe/lec7.pdf[lecture notes]
+
+
+[[cache_oblivious_model]]
+==== Cache Oblivious Model
+
+The _cache oblivious model_ is a variation of the external memory model.  In this model, the algorithm doesn't know the cache size M nor the block size B.  We assume that caching is done automatically and optimally.  In practice this can be achievied by LRU or FIFO which are O(1)-competitive with 2-ressource augmentation.
+
+Examples: <<cache_oblivious_b_tree>>
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 7 Memory Hierarchy Models: https://www.youtube.com/watch?v=V3omVLzI0WE&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&index=7[video], https://courses.csail.mit.edu/6.851/spring12/scribe/lec7.pdf[lecture notes]
+
+
 === Asymptotic computational complexity / Assymptotic Analysis
 
 _(Asymptotic) computational complexity_ of an algorithm or data structure is an asymptotic bound, typically an asymptotic upper bound, on how much computational ressources it uses, depending on the input size in bits, as defined in the following.  Typical computational ressources that we are interested in are computation time and memory space, resulting in _asymptotic time complexity_ and _asymptotic space complexity_ respectively.  Computational complexity is always with respect to a certain <<models_of_computation,model of computation>>, which defines formally what the atomic units of the computational ressources are.  If not stated otherwise, the Word RAM model is assumed.  _Assymptotic analysis_ is the action of determining the asymptotic computational complexity of an algorithm or data structure.
@@ -259,23 +282,35 @@ The field of computational _complexity classes_ categorizes decidable decision p
 
 Common complexity classes:
 
-P (polynomial):: (Decision) problems solvable in at most polynomial tyme (n^c^).  If you can establish a problem as not in P, you provide good evidence for its intractability.  You'd better spend your time developing an approximation algorithm or solve a tractable special case.  Note that some algorithms are not polynomial in input size, i.e. they are _not_ in P, but are polynomial in numeric input value and thus appear to be polynomial at a first glance, see <<pseudo_polynomial_time>>.
+P (polynomial):: Set of (decision) problems which are solvable in at most polynomial time (n^c^).  If you can establish a problem as not in P, you provide good evidence for its intractability.  You'd better spend your time developing an approximation algorithm or solve a tractable special case.  Note that some algorithms are not polynomial in input size, i.e. they are _not_ in P, but are polynomial in numeric input value and thus appear to be polynomial at a first glance, see <<pseudo_polynomial_time>>.
 
-NP (non-determiniatic polynomial):: (Decision) problems solveable in polynomial time via a ``lucky'' algorithm: The algorithm can make polynomially many guesses and magically, being an awsome cool fairy tale computer, gets the right answer every time if the overall decision problem answer is yes.
+NP (non-determiniatic polynomial):: Set of (decision) problems which are verifyable in polynomial time.  I.e. given an alleged solution, one can verify in polynomial time whether it's a feasible solution.  You can also think of that in the beginning, an oracle guesses all fields of the sudoku, as described in the next paragraph, and now a regular deterministic algorithm verifies that it's a feasible solution.
 +
-Equivalently: (Decision) problems where the a given yes-answer (e.g. yes, this sudoku has a solution), has a proof / certificate (e.g. a particular sudoku solution) which can be checked by a verification algorithm in polynomial time (e.g. take the alleged solution / proof / certificate and verify it holds up to the sudoku rules).  You can also think of that in the beginning, the oracle guesses all fields of the sudoku, as described in the first paragraph, and now a regular deterministic algorithm verifies that it's a feasible solution.
+Equivalently: Set of (decision) problems which are solveable in polynomial time via a ``lucky'' algorithm: The algorithm can make polynomially many guesses and magically, being an awsome cool fairy tale computer, gets the right answer every time if the overall decision problem answer is yes.
 +
 Is a nondeterministic computation model.  It's not a realistic model, but it's still a usefull model.
 
-EXP (exponential):: (Decision) problems solvable in at most exponential time (2^n^).
+PSAPCE (polynomial space):: Set of (decision) problems which are solvable using polynomial space.  PSPACE ⊆ EXP.
 
-R (recursive):: (Decision) problems solvable in finite time. Etymology: R stands for recursive, which in the old days stood for `will terminate'.
+EXP (exponential) (or EXPTIME):: Set of (decision) problems which are solvable in at most exponential time (2^n^).
+
+R (recursive):: Set of (decision) problems which are solvable in finite time. Etymology: R stands for recursive, which in the old days stood for `will terminate'.
 
 NP-hard (or X-hard in general):: At least as hard as every element in NP (X in general) (i.e. same hardness or harder, but not less hard than any element in NP (X in general))
 
-NP-complete (or X-complete in general):: Intersection of NP and NP-hard.
+Strongly NP-hard / Strongly NP-complete:: See <<strongly_NP_hard>>
 
-Strongly NP-hard / NP-complete:: See <<strongly_NP_hard>>
+NPC / NP-complete (or X-complete in general):: Intersection of NP and NP-hard.  In other words, U ∈ X is X-complete, if every problem in X can be reduced to U.  In case of complexity class APX, hardness is measured by the existence or nonexistence of a PTAS. If A ≤~AP~ B, and A does not allow a PTAS, then we know that B also doesn't allow a PTAS.
+
+_PO_:: Set of optimization problems being in NPO and where the solution can be computed in polynomial time for every input.  Loosely speaking, PO is to optimization problems what P is to decision problems.
+
+_FPTAS_:: Set of optimization problems allowing an <<FPTAS>>. So FPTAS can mean two different but similar things.
+
+_PTAS_:: Set of optimizaton problems allowing an <<PTAS>>. So PTAS can mean two different but similar things.
+
+_APX_:: Set of optimization problems being in NPO and that allow polynomial time approximation algorithms with approximation ratio upper bounded by a constant.
+
+_NPO_:: Set of optimization problems for which 1) the solution can be verified in polynomial time and 2) the cost function to be minimized/maximized can be computed in polynomial time. The former implies that it can be implied in polynomial time whether input is feasible, and that the solution is of polynomial size in respect to input size.  Loosely speaking, NPO is to optimization problems what NP is to decision problems.
 
 Visualization of complexity classes, ordered on a line after hardness:
 
@@ -314,25 +349,23 @@ Examples of NP-complete problems:
 === Pseudo polynomial time
 
 [[integer_valued_problem]]
-An _integer-valued problem_ is one whose input x can be viewed as a collection of n integers x~i~ i∈[n].  Max-Int(x) denotes the largest input integer, i.e. Max-Int(x) = max{x~i~|i∈[n]}.  Max-Int(x) is also called _numeric value of input_ (*to-do* the term seems to be nowhere precisely defined).
+An _integer-valued problem_ is one whose input x can be viewed as a collection of n integers x~i~, i∈[n].  Max-Int(x) denotes the largest input integer, i.e. Max-Int(x) = max{x~i~|i∈[n]}.  Max-Int(x) is also called _numeric value of input_ (*to-do* the term seems to be nowhere precisely defined).
 
 [[input_size]]
 The _input_ x to an algorithm is formally defined as x = x~1~\#x~2~\#...\#x~n~ = \{0,1,\#}^∗^, where # denotes a seperator.  The _input size_ is |x|.  Or in words, input size is the number of bits required to write out that input, including the seperators,
 
 *to-do* There are other definitions of input and input size. using unary. or using strictly binary. Especially when using unary, running times change, which is another way to define pseudo-polynomial time algorithm. https://disopt.epfl.ch/webdav/site/disopt/shared/IntPoints2009/algorithms.pdf
 
-We say that algorithm A is a _pseudo-polynomial-time algorithm_ for an integer-valued problem if its running time is O(p(Max-Int(x), |x|)), where p is some polynomial of two variables.  Simplified, an algorithm is a pseudo-poynomial time algorithm if its running time is polynomial either in the numeric value of input or in input size.
-
-*to-do* Isn't then every algorithm in P a pseudo-polynomial algorithm? If yes, the wording `pseudo' is a bit special. It _truly_ is polynomial, but technically still also a _pseudo_-polynomial algorithm.  E.g. insertion sort O(n^2^): x = n \# e1 \# e2 # .... Running time depends now polynomically on the value of an input integer.
-
-*to-do* is counting sort pseudo-polynomial?
+We say that algorithm A is a _pseudo-polynomial-time algorithm_ for an integer-valued problem if its running time is O(p(Max-Int(x), |x|)), where p is some polynomial of two variables.  Simplified, an algorithm is a pseudo-poynomial time algorithm if its running time is polynomial either in the numeric value of input or in input size.  Note that thus every algorithm in P is a pseudo-polynomial algorithm.
 
 Let U be an integer-valued problem, and let h be a non-decreasing function ℕ → ℕ.  The __h-value-bounded subproblem__ of U, denoted Value(h)-U, is the sub problem of U by restricting the set of U's input instances to those satisfying Max-Int(x) ≤ h(|x|).
 
-[[strongly_NP_hard]]
-An integer-valued problem U is called _strongly NP-hard_ if there exists a polynomial p such that the problem Value(p)-U is NP-hard.  In other words, the problem remains NP-hard even if we restrict Max-Int(x) to Max-Int(x) ≤ p(|x|).
+Let A be a pseudo-polynomial-time algorithm for an integer-valued problem U.  Then A is a polynomial-time algorithm for Value(h)-U for every polynomial h.  In other words, a pseudo-polynomial-time algorithm runs in polynomial-time for input values that are polynomial in input size. Proof: *to-do*
 
-Givn integer-valued problem U, and assuming P≠NP:
+[[strongly_NP_hard]]
+An integer-valued problem U is called _strongly NP-hard_ if there exists a polynomial p such that the problem Value(p)-U is NP-hard.  In other words, the problem remains NP-hard even for `small' input values, where here small means Max-Int(x) ≤ p(|x|).
+
+Given an integer-valued problem U, and assuming P≠NP:
 
 U is strongly NP-hard ⇔ +
 U doesn't allow pseudo-polynomial time algorithm ⇔ +
@@ -344,9 +377,12 @@ U is not strongly NP-hard ⇔ +
 U allows pseudo-polynomial time algorithm ⇔ +
 U allows <<FPTAS>>
 
-Examples of pseudo-polynomial algorithms: <<knapsack>>, <<ford_fulkerson_algorithm>>.
+U is APX-complete ⇒ +
+U does not admit a PTAS
 
-Examples of
+Thus to prove the nonexistence of any pseudo-polynomial-time algorithm, or equivalently the nonexistence of an FPTAS, its sufficient to prove that U is strongly NP-hard.
+
+Examples of pseudo-polynomial algorithms: <<knapsack>>, <<ford_fulkerson_algorithm>>.
 
 References:
 
@@ -610,11 +646,11 @@ jmp funAddr        addr = FunEntry              | addr = addrStack.pop()
 [[optimization_problem]]
 === Optimization problem
 
-Given a (feasible) input x, an _optimization problem_ is the problem of finding the best solution, according so some objective function f(x), from the set of feasible solutions for x.  A feasible solution for x is called _optimal_ if its the best solution for x.  We say that an algorithm _solves_ an optimization problem if it finds the optimal solution for every input.  An optimization problem with discrete variables is called a _discrete optimization problem_.  An optimization problem with continuous variables is called a _continuous optimization problem_.
+Given a (feasible) input x, an _optimization problem_ is the problem of finding the best solution u out of all feasible solutions, according so some _cost function_ (or _objective function_) function cost(u).  A feasible solution for input x is called _optimal_ if it's the best solution for input x.  We say that an algorithm _solves_ an optimization problem if it finds the optimal solution for every input.  An optimization problem with discrete variables is called a _discrete optimization problem_.  An optimization problem with continuous variables is called a _continuous optimization problem_.
 
 An algorithm A is called _consistent_ for optimization problem U if A(x) is a feasible solution for all feasible x.
 
-The _standard form_ of a continous optimzatio problem is:
+The _standard form_ of a continous optimzation problem is:
 
 Minimize~x~ f(x) +
 subject to g~i~(x) ≤ 0, i ∈ [m] +
@@ -640,24 +676,114 @@ References:
 
 _Approximation algorithms_ efficiently (i.e. in polynomial time) find approximate solutions to NP-hard <<optimization_problem>>s with _proveable_ approximation ratios.  From a theoritical computer science perspective, problems in P are considered solvable fast enough, such that developing an approximation algorithm for them is not interesting.
 
-Let A be an consistent algorithm for an optimization problem, and OPT an optimal algorithm.  The _approximation ratio_ (or _approximation factor_ or _performance ratio_) of A on x is defined as Ratio~A~(x) = cost(A(x)) / cost(OPT(x)) for minimization problems, and the reciproce of it for maximization problems.
+Let A be an consistent algorithm for an optimization problem, and OPT an optimal algorithm.  The _approximation ratio_ (or _worst case performance_, or _approximation factor_, or _performance bound_, or _performance ratio_ or _error ratio_, German: _Approximations Güte_) of A on input x is defined as Ratio~A~(x) = cost(A(x)) / cost(OPT(x)) for minimization problems, and the reciproce of it for maximization problems.
 
-We say A is a _δ-approximation algorithm_ if Ratio~A~(x) ≤ δ ∀ feasible x.  In other words, δ is an upper bound on the worst case approximation ratio.
+For any x, the _relative error_ of A on input x is defined as ε~A~(x) = R~A~(x) - 1.
 
-For any x, the _relative error_ of A is defined as ε~A~(x) = R~A~(x) - 1.
+We say A is a _c-approximation algorithm_ if Ratio~A~(x) ≤ c ∀ feasible x.  I.e. even in the worst case, the worst possible input, Ratio~A~(x) ≤ c holds.  In other words, c is an upper bound on the approximation ratio.
 
-An approximation algorithm A is called a _polynomial-time approximation scheme_ (or _PTAS_) for optimization problem U if for ε > 0 and for all feasible x R~A~(x) ≤ 1 + ε and Time~A~(x, 1/ε) is bounded polynomial in |x| and unbounded in 1/ε.
+Let U be an minimization optimization problem. A _c-approximation problem to U_, denoted _c-App(U)_, is the problem of finding a feasible solution S such that cost(S)/OPT ≤ c ∀ feasible x.  If U is a maximation problem, the definition is analogous.  I.e. a c-approximation algorithm for problem U directly solves problem c-App(U).
+
+[[PTAS]]
+An approximation algorithm A is called a _polynomial-time approximation scheme_ (or _PTAS_) for optimization problem U if for ε > 0 and for all feasible x, R~A~(x) ≤ 1 + ε and Time~A~(x, 1/ε) is bounded polynomial in |x| and unbounded in 1/ε.  In other words, a PTAS provides an arbitrarily good approximation ratio, and providing the user the option to trade better approximation ratio with more computation costs.
 
 [[FPTAS]]
-A is called _fully polynomial-time approximation scheme_ (or _FPTAS_) if additionally Time~A~(x, 1/ε) is bounded polynimial also in 1/ε.  Intuition: PTAS lets you decrease approximation ratio by paying with computation time.  FPTAS guarantees you that computation time does not grow too quickly.
+A is called _fully polynomial-time approximation scheme_ (or _FPTAS_) if additionally to the PTAS rules Time~A~(x, 1/ε) is bounded polynomial also in 1/ε.  In other words, in addition to PTAS, FPTAS guarantees you that computation time does not grow too quickly.  Arguably a FPTAS is the best one can have for a NP-hard optimization problem.
+
+*to-do* difference FPTAS and APX? Only that APX promises const approximation ratio, and FPTAS doesn't say anything about approximation ratio?
 
 If the problem is not strongly NP-hard, then there is an FPTAS.  See <<strongly_NP_hard>> for details.
 
-See also <<randomized_algs_for_optimization_problems>>, which could also have been a subchapter of ``Approximation algorithms'', but was made a subchapter of ``Randomized algorithms'' instead.  I thought I'll put concrete approximation algorithms close to the problem as always in this document, so the umbrella (sub)chapter for approximation agorithms is just this small one.  Online problems are relatively special compared to offline ones, and thus all online problems are within chapter online algorithms.
+See also <<randomized_approx_algorithms>>, which could also have been a subchapter of ``Approximation algorithms'', but was made a subchapter of ``Randomized algorithms'' instead.  I thought I'll put concrete approximation algorithms close to the problem as always in this document, so the umbrella (sub)chapter for approximation agorithms is just this small one.  Online problems are relatively special compared to offline ones, and thus all online problems are within chapter online algorithms.
 
 References:
 
 - Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``4 Approximation Algorithms'' and subchapter ``4.2 Fundamentals''.
+
+
+==== Reductions
+
+*to-do* move to some more general place outside chapter approximation algorithms
+
+A reduction is an algorithm for transforming problem A into problem B.  The existence of such an reduction is a proof that B is at least as hard as A.  The notation is A ≤~X~ B, where the subscript, here placeholder X, is the type of reduction being used.
+
+
+==== Approximation-Preserving Reductions
+
+An _approximation-preserving reduction_ is a reduction in the context of optimization problems preserving the approximation ratio to some degree.
+
+The different approximation preserving reductions overlap in what properties they demonstrate on optimization problems.  In some sense they are more like different techniques.  Depending on the optimization problems involved in the reduction, one or the other approximation-preserving reduction is more easily applicable.
+
+Note that not all types of approximation-preserving reductions preserves membership in a complexity class.
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``4.4.3 Approximation-Preserving Reductions''
+
+
+==== AP reduction
+
+Preserves the upper bound of the approximation ratio to a constant factor.
+
+More formally: Given two optimization problems U~1~ and U~2~.  U~1~ is AP-reducible to U~2~, denoted U~1~ ≤~AP~ U~2~, if
+
+there is a poly-time function F transforming input to U~1~ to input to U~2~ +
+there is a poly-time function H transforming output from U~2~ to output from U~1~ +
+there is a α > 0 such that for all inputs x, Ratio~U2~(F(x)) ≤ 1+ε ⇒ Ratio~U1~(x) ≤ 1+α·ε
+
+Applications:
+
+- Used to defined completeness for the class APX, see APX-complete.
+
+- Often used to proof the nonexistence of a PTAS or FPTAS.  Given optimization problems A and B, and A does not allow a PTAS (FPTAS), if whe can reduce A to B, then B does not allow a PTAS (FPTAS).
+
+*to-do* what does AP stand for? It can't (shoudn't) stand for approximation-preserving, since here that term is already given to the umbrella topic, the family of approximation preserving reductions.
+
+*to-do* why the restriction that functions F and H are in P? Don't we want to use the concept in a more general sense, e.g. also for other complexity classes than P and NP?
+
+
+==== Gap-preserving reduction (GP-reduction)
+
+We consider only optimization problems where the output value is in relation to the input size.  E.g. in Max-Sat, the input is n clauses, and the output is the number ∈ [n] of satisfied clauses.
+
+Preliminary definition: Given an optimization problem U ∈ NPO and 0 < s ≤ c ≤ 1.  The __GAP~s,c~-U__ decision problem is defined as follows: The input x must be such that Opt~U~(x)/|x| < s or c ≤ Opt~U~(x)/|x|.  The output is "yes" if c ≤ Opt~U~(x)/|x| and "no" otherwise (i.e. Opt~U~(x)/|x| < s).
+
+Thus if an algorithm A is a c/s-approximation algorithm for optimization problem U, then A can decide GAP~s,c~-U as follows:  If cost(A(x))/|x| < s, the output is "yes", otherwise its "no".
+
+Given an optimization problem U ∈ NPO, two constants 0 < s ≤ c ≤ 1 and assuming P ≠ NP.  If GAP~s,c~-U is NP-hard (to be proven seperately), then there is no poly time c/s-approx. algorithm for U.  This is usefull to proof inapproximability, i.e. that c/s is a lower bound on the approximation ratio of any approximation algorithm solving U.
+
+--------------------------------------------------
+  U is an optimization probem
+                                  factor of
+                                  gap = c/s
+  GAP~s,c~-U     [XXXXXXX NO XXXXX)-- NA--[XXXX YES XXXX] OptU(x)/|x|
+  decision       0        ^       s       c      ^      1
+  problem                 |                      |
+                          V                      V
+  A = c/s-approx [----------------)---------------------] cost(A(x))/|x|
+  alg for U, i.e.
+  better than factor
+  of gap
+--------------------------------------------------
+
+Given maximation optimization problems U~1~ = (L~1~, ...) and U~2~ = (L~2~, ...). A _GP-reduction_ from U~1~ to U~2~ with parameters (s~1~, c~1~)  and (s~2~, c~2~) is a poly time algorithm A that satisfies the following properties:
+
+i) A(x) ∈ L~2~ for every input x ∈ L~1~.
+ii) Opt~U1~(x)/|x| < s~1~ ⇒ Opt~U2~(A(x))/|A(x)| < s~2~
+iii) Opt~U1~(x)/|x| ≥ c~1~ ⇒ Opt~U2~(A(x))/|A(x)| ≥ c~2~
+
+A GP-reduction preserves membership in complexity classes. If there is a GP-reduction with parameters (s~1~, c~1~) and (s~2~, c~2~) from optimization problem U~1~ to U~2~, and if GAP~s1,c1~-U~1~ is NP-hard, then also GAP~s2,c2~-U~2~ is NP-hard.
+
+Example: It can be shown that GAP~7/8+δ,1-δ~-MAX-E3SAT is NP-hard for every small δ>0.  It can also be shown that there is a GP-reduction from MAX-E3SAT to MAX-2SAT with parameters (b,a) and (6/10 + b/10, 6/10 + a/10), where 0 < a ≤ b ≤ 1 - 6/10.  Thus with b = 7/8+δ and a = 1-δ, and abbreviating a const factor times δ to ε, GAP~55/80+ε,7/10-ε~-MAX-2SAT is also NP-hard.  Thus, due to properties of GAP decision problems and (7/10) / (55/80) = 56/55, there is no poly-time (56/55-ε) approximation algorithm for MAX-2SAT.
+
+Applications:
+
+- Proof a lower bound: If you can show that GAP~s,c~-U is NP-hard, then you know that there is no poly-time c/a-approximation algorithm for U.
+
+- Proof a lower bound: If GAP~s1,c1~-U~1~ is NP-hard, and you can show a GP-reduction with parameters (s~1~, c~1~) and (s~2~, c~2~), then GAP~s2,c2~-U~2~ is also NP-hard and there is no poly-time c~2~/s~1~-approximation algorithm for U~2~.
+
+
+*to-do* I don't get the general benefit. What in general do I want to achieve, and how in general do I do it? E.g. in the GP reduction from MAX-E3SAT to MAX-2SAT, at the end we based upon that GAP~7/8+δ,1-δ~-MAX-E3SAT is NP-hard.  But how to know that is exactly what I am struggling with, I think.  Given an optimization problem U of known complexity class, then I don't trivially know the compelixity class of GAP~c,s~-U, right?  And because I don't know it, I am struggling to understand the whole topic of gap reductions.
 
 
 [[data_structures]]
@@ -711,7 +837,7 @@ Has the same asymptotic complexities as AVL tree and red-black tree, but is opti
 
 .Skip List
 
-Is just are another variant of a binary search tree. Is easier to implement than a AVL tree or red-black tree, especially when considering the respective concurrent data structure variants.  However a skip list has a worst-case running time of O(n), opposed to the O(log n) of most BBSTs, however with low probability.  Also the space complexity is O(n log n) in the worst-case, opposed to O(n) worst-case of most other data structures. Concurrent variants of AVL trees or red-black trees often trade concurrency for balancedness, so their worst case guarantees drops, which was one of their main benefits over skip lists.  Skip lists have more pointers per key, thus are less chache friendly.
+Is just are another variant of a binary search tree. Is easier to implement than a AVL tree or red-black tree, especially when considering the respective concurrent data structure variants.  However a skip list has a worst-case running time of O(n), opposed to the O(log n) of most BBSTs, however with low probability.  The space complexity is O(n) w.h.p. but O(n log n) in the worst-case, opposed to O(n) worst-case of most other data structures. Concurrent variants of AVL trees or red-black trees often trade concurrency for balancedness, so their worst case guarantees drops, which was one of their main benefits over skip lists.  Skip lists have more pointers per key, thus are less chache friendly. *to-do* better explicitely state that skip lists have concurrency advantages
 
 *to-do*: data strucures optimized for secondary memory, e.g. B-trees.
 
@@ -786,6 +912,13 @@ A _persistent data structure_ is a data structure that always preserves the prev
 References:
 
 - MIT course 6.851 Advanced Data Structures, spring 2012, lecture 1 Persistent data structres: https://courses.csail.mit.edu/6.851/spring12/scribe/lec1.pdf[lecture notes], https://www.youtube.com/watch?v=T0yzrZL1py0&t=0s&index=1&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf[video]
+
+
+=== Cache-oblivious data structures
+
+
+Examples: Cache-oblivious B-tree
+
 
 
 [[dynamic_data_structures]]
@@ -1530,6 +1663,36 @@ A <<b_tree>> of order four.
 A variant of a B tree which stores all values in the leave nodes, never in internal nodes.  See data_base_systems.txt
 
 
+[[cache_oblivious_b_tree]]
+=== Cache oblivious B-tree
+
+This chapter uses the <<cache_oblivious_model>> to compute time costs.
+
+References:
+
+- MIT course 6.851 Advanced Data Structures, Spring 2012, Lecture 7 Memory Hierarchy Models: https://www.youtube.com/watch?v=V3omVLzI0WE&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&index=7[video], https://courses.csail.mit.edu/6.851/spring12/scribe/lec7.pdf[lecture notes]
+
+
+=== Cache oblivious lookahead array (COLA)
+
+*to-do*
+
+.Update/query tradeoff via growth factor
+
+So far we had a growth factor g = 2, and the intuition of insertion was a binary counter.  We now set growth factor g = B^ε^, and now the intuition of insertion is a g-ary counter.  Level 0 (least significant digit) can contain [0,g) items.  Level 1 can contain [g,g²) items.  Level i can contain [g^i^, g^i+1^] items.   When inserting, to level i only something happens when all lowever levels are completely full prior to insertion.
+
+*to-do*
+
+*to-do* The growth factor g is B^ε^. However g is known to the DS / algorithm, and now the DS indirectly knows B. But by problem statement of cache oblivious says that the DS shall not know B.
+
+
+References:
+
+- Paper Cache oblivious streaming B-trees, chapter 3 Cache-oblivious lookahead array (COLA): http://supertech.csail.mit.edu/papers/sbtree.pdf
+
+- CS 229r Algorithms for Big Data: http://people.seas.harvard.edu/~minilek/cs229r/fall13/lec/lec23.pdf
+
+
 [[vEB_tree]]
 === van Emde Boas tree (aka vEB tree)
 
@@ -1987,9 +2150,11 @@ Is a randomized data structure implementing the ordered <<associative_array>> AD
 
 _search_: Start at the highest linked list.  When being at any node, when the search key equals the node's key, go straight down to the respective node in the bottom most linked list.  If the search key is less then the next node in the current linked list, go one node down, else go the next node in current linked list.
 
-_insert_: Use search to find the correct place in the bottom most linked list to insert.  After insertion, we must decide how high we want to make the node's `tower', i.e. in how many of the upper linked lists we also want to introduce a respective node.  Flip a coin, until tail appears; for each head appearing in the process, make the tower one node higher.  As a consequence, each layer has about half as many elements as its adjacent lower layer.
+_insert_: Use search to find the correct place in the bottom most linked list to insert.  After insertion, we must decide how high we want to make the node's `tower', i.e. in how many of the upper linked lists we also want to introduce a respective node.  Flip a coin, until tail appears; for each head appearing in the process, make the tower one node higher.  As a consequence, each layer has about half as many elements as its adjacent lower layer. *to-do* I guess we have to upper bound the height, else worst case guarantees are even worse
 
-Note that space complexity is O(n log n) in the worst case, opposed to O(n) worst case for most other data structres.
+*to-do* relation to bst: rotate 45deg
+
+Note that space complexity is O(n) w.h.p. but O(n log n) in the worst case.
 
 The randomization is independent of the keys, thus an adversary cannot directly provok worst-case behavior via the set of input keys.
 
@@ -2363,7 +2528,7 @@ _certificate of optimality_: *to-do*
 _LP duality_: Know the concept, but you probably won't use it often in practice. Every primal form has a _dual form_, where ``everything is inversed'': Minimize, by solving for y⃑, a linear objective function b⃑·y⃑, subject to the linear inequalities Aᵀ·y⃑≥c⃑ and to y⃑≥0.  The primal form and the dual form are equivalent.
 
 [[ILP]]
-_Integer linear programming_ (_ILP_) adds the additional constraint that numbers must be integers.  An even further restriction is _0-1 integer programming_ (_0-1 LP_) which demands that numbers are Boolean.
+_Integer linear programming_ (_ILP_) adds the additional constraint that variables (but not necessarily other numbers) must be integers.  An even further restriction is _0-1 integer programming_ (_0-1 LP_) which demands that variables are Boolean.
 
 LP is in P, while ILP and 0-1 LP are NP-hard. The reason is that the constraints requiring integer or Boolean solutions cannot be formulated as linear equations.  The linearity of LP is really substential, because then we can start at an arbitrary edge of the described polytype, a convex multidimensional object, and move along edges to find the optimum.
 
@@ -2486,7 +2651,7 @@ w[i] ∈ ℕ^+^, determine the items to include in a collection (i.e. the knapsa
 constrained to that the total weight is less than or equal to a given limit S ∈
 ℕ^+^. The goal is to maximize total weight.
 
-0-1 knapsack problem:: Now each item has a value v[i] ∈ ℕ^+^, and the goal
+(general) 0-1 knapsack problem:: Now each item has a value v[i] ∈ ℕ^+^, and the goal
 is now to maximize total value.
 
 Bounded knapsack problem (BKP):: Removes the restriction that there is only
@@ -2497,9 +2662,7 @@ copies of each kind of item.
 
 Fractional/continuous knapsack problem:: Instead of items we think of
 materials.  There is an certain amount (weight) of each material, and we can
-pack any amount less than that per material into the knapsack. Solution: sort
-materials descendinding by value/weight, then greedely take of each material
-as much as possible until the knapsack is full. O(n*lg(n)).
+pack any amount less than that per material into the knapsack.
 
 online knapsack problem:: <<online_knapsack_problem>>
 
@@ -2514,6 +2677,20 @@ coin', and `value of item' is always -1.
 Rod cutting problem:: Same as UKP. rod length -> knapsack capacity, length i
 -> item i having a weight of i, value of length i -> value of item i.
 
+Algorithms:
+
+- simple 0-1 knapsack, approximation: <<greedy_approx_simple_01_knapsack>> O(n log n)-time 2-approx.
+
+- simple 0-1 knapsack, approximation: <<ptas_simple_01_knapsack>> O(n^⌈1/ε⌉+1^)-time
+
+- 0-1 knapsack: <<01_knapsack_dp>> Θ(n·S)
+
+- 0-1 knapsack: <<01_knapsack_dp2>> O(n²·maxitemvalue)
+
+- 0-1 knapsack, approximation: <<fptas_01_knapsack>> O(1/ε n³)-time
+
+- factional knapsack problem: O(n*lg(n)). Algorithm: sort materials descendinding by value/weight, then greedely take of each material as much as possible until the knapsack is full.
+
 Applications:
 
 *to-do*
@@ -2521,6 +2698,7 @@ Applications:
 *to-do* process https://en.wikipedia.org/wiki/List_of_knapsack_problems
 
 
+[[01_knapsack_dp]]
 ==== 0-1 knapsack via DP
 
 Solution for the 0-1 knapsack problem using <<dynamic_programming>>.
@@ -2589,27 +2767,239 @@ running time is Θ(n·S), i.e. <<pseudo_polynomial_time>>. It's actually exponen
 since Θ(n·S) is exponential relative to the input size S which is O(log S) bits.
 
 
+[[01_knapsack_dp2]]
+==== 0-1 knapsack via DP, another approach
+
+*to-do*
+
+Analysis: O(n²·maxitemvalue)
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``3.2.2 Dynamic Programming and Knapsack Problem'', Algorithm 4.2.2.2 p 156
+
+
+[[greedy_approx_simple_01_knapsack]]
+==== Greedy 2-approx. alg. for simple 0-1 knapsack
+
+Let b denote the knapsack's capacity. Let w~i~ denote the weight of the i-th item. Let cost(·) denote a function summing the weights of its arguments
+
+Algorithm: Sort items decreasingly by weight.  Take weights from sorted sequence until knapsack is full.
+
+Analysis: O(n log n)-time 2-approx.
+
+Proof of O(n log n) time complexity: O(n log n) for sorting, O(n) for traversing sorted sequence.
+
+Proof of 2 being tight upper bound on approximation ratio:  Let T denote the set of items packed into the knapsack, and let j denote the index in the sorted sequence of the last item packed. Thus
+
+cost(T) + w~j+1~ > b +
+cost(T) > b - w~j+1~.
+
+The optimal solution OPT is b, from a worst case perspective. The smallest element in a set obviously is smaller or equal than the average, i.e w~j~ ≤ cost(T) / j. Thus
+
+w~j+1~ ≤ w~j~ ≤ cost(T) / j ≤ OPT / j.
+
+Putting together:
+
+cost(T) > b - w~j+1~ ≥ OPT - OPT/j = OPT/2 for j≥2.
+
+*to-do* Proof for j=1 and proof that it's a tight bound
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``4.3.4. Knapsack Problem and PTAS'', Algorithm 4.3.4.1 p 272
+
+
+[[ptas_simple_01_knapsack]]
+==== PTAS for simple 0-1 knapsack
+
+Let b denote the knapsack's capacity. Let w~i~ denote the weight of the i-th item. Let cost(·) denote a function summing the weights of its arguments
+
+Basic idea: Combine brute force for up to k items with a greedy approach for the remaining items.
+
+Algorithm: Sort weights in decreasing order. Set k = 1/ε, where ε comes from PTAS.  For every possible set S of maximal k items, where S fits into the knapsack, extend S to S^∗^ (i.e. fill the knapsack until full) using the <<greedy_approx_simple_01_knapsack>> algorithm.  While trying out each possible S^∗^, always save the best so far, and return that at the end.
+
+Analysis: The algorithm is a PTAS requiring O(n^⌈1/ε⌉+1^)-time
+
+Proof of O(n^⌈1/ε⌉+1^)-time complexity: *to-do*
+
+Proof of 1+ε being upper bound on approximation ratio:  WLOG w~1~ ≥ ... ≥ w~n~.  Let M = {i~1~, ..., i~p~} with i~1~ < ... < i~p~ denote the optimal solution.  I.e. OPT = cost(M).  Case p≤k: The algorithm will obviously find the optimal solution, since it's part of the brute force search.  Case p<k: Eventually the algorithm will evaluate S = {i~1~, ..., i~k~} = M - {i~k+1~, ..., i~p~}, i.e. the k heaviest items of M.  In case S^∗^ = M, the algorithm found the optimal solution.  Otherwise let i~q~ denote an item of the optimal solution that the algorithm does not pack into the knapsack, i.e. i~q~ > i~k~.
+
+cost(S^∗^) + w~iq~ > b ≥ OPT +
+cost(S^∗^) > OPT - w~iq~
+
+The smallest element in a set obviously is smaller or equal than the average, thus
+
+w~iq~ ≤ (w~i1~ + ... + w~ik~ + w~iq~) / (k+1) ≤ OPT / (k+1).
+
+Thus the approximation ratio is
+
+OPT / cost(S^∗^) ≤ OPT / (OPT - w~iq~) ≤ OPT / (OPT - OPT/(k+1)) = ... = 1 + 1/k = 1 + ε
+
+*to-do* Why exactly do we not proof that this upper bound is tight? E.g. maybe, from a theoretical ignorant point of view, the true tight approximation ratio might be _much_ closer to 1 than to 1 + 1/k.
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``4.3.4. Knapsack Problem and PTAS'', Algorithm 4.3.4.2 p 273
+
+
+[[fptas_simple_01_knapsack]]
+==== FPTAS for 0-1 knapsack
+
+Let b denote the knapsack's capacity. Let w~i~ denote the item weights and v~i~ item values. Let value(·) denote a function summing the item values of its arguments.
+
+Basic idea:  The <<01_knapsack_dp2>> algorithm has time complexity of O(n²·maxitemvalue), i.e. is pseudo-polynomial.  We turn that into polynomial-time by modifying the input by dividing all item values by some number, at the cost of now getting an approximation of the optimal solution, however being an FPTAS a very good one.
+
+Algorithm: Let t = ⌊log~2~(ε·maxitemvalue / (n(ε+1)))⌋. Divide all item values by 2^t^. Run <<01_knapsack_dp2>> on the modified input and return its output unmodified.
+
+Analysis: The algorithm is a FPTAS requiring O(1/ε·n³)-time
+
+Proof that it's a consistent approximation alg.: <<01_knapsack_dp2>> is a deterministic alg. always returning an optimal (thus feasible) solution.  The weights of the input were not modified.  Thus <<01_knapsack_dp2>>'s output is a feasible solution for the original input.
+
+Proof of 1+ε being upper bound on approximation ratio: Let cʹ~i~ denote modified item values.  Let T' denote an optimal solution for the modified input, i.e. the output of the algorithm presented here.  Let T denote an optimal solution for the original input.  Through many rather simple math steps we arrive at the desired statement.  *to-do* be more precise
+
+Proof of O(1/ε·n³)-time time complexity: Follows from <<01_knapsack_dp2>>'s O(n·Opt~KP~(Iʹ)), Opt~KP~(Iʹ) ≤ ∑cʹ~i~ and just math.
+
+*to-do* On p 156, it's stated that the DP algorithm runs in O(n²·maxitemvalue) time.  However during explaining the FPTAS, the running time of the DP algorithm is stated as O(n·Opt~KP~(I)). I see that Opt~KP~(I) = O(n·maxitemvalue). Still I wonder why? I still fear I miss something.
+
+*to-do* from an intuitive perspective, why is this fptas faster (for ε>2) than the previous ptas, altough it solves a more general problem.  Is there are reason, beside small ε, to ever prefer the previous ptas?
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``4.3.4. Knapsack Problem and PTAS'', Algorithm 4.3.4.11 p 280.
+
+
+=== Satisfiability (SAT)
+
+_SAT_: Given a boolean formula using the operators {and, or, not} over n boolean variables x~1~, ..., x~n~.  The problem is to set the variables to make the formula true. NP-complete. Actually the first problem proofen to be NP-complete.
+
+_CNF SAT_: Same as SAT, but the formula is given in the conjuctive normal form: The formula consists of clauses and-ed together.  Each clause consists of literals or-ed together.  A literal is either a plain variable or a negated variable.  Every boolean formula can be converted to CNF.
+
+_3SAT_ / _E3SAT_: As CNF SAT, but each clause consists of 3 literals. Still NP-complete, i.e. still as hard as CNF SAT.  I.e. every unrestricted CNF can be reduced to one where clauses consist of 3 literals.  Is often used as starting point to prove that another problem is NP-hard.  In literature it is uniformly whether 3SAT means exactly 3 literals per clause or at most 3.  Some authors use 3SAT to mean at most 3, and E3SAT to mean exactly 3.
+
+_2SAT_: Analogously. In P.
+
+_kSAT_ / _EkSAT_: As 3SAT, but now clauses consist of k literals instead 3. Also NP-complete.
+
+_monotone 3SAT_: Special case of 3SAT: Each individual clause is all positive (unnegated variables) or all negative. Also NP-complete.
+
+_MAX-SAT_: An optimization problem asking for the maximum number of clauses which can be satsified.  In class NP-hard and APX.
+
+Solutions:
+
+- MAX-SAT: <<max_sat_as_01LP>> poly-time deterministic algorithm
+
+- MAX-EkSAT: <<max_eksat_uniform_random_assignment>>
+
+- MAX-EkSAT: <<max_eksat_random_rounding>>
+
+
+[[max_sat_as_01LP]]
+==== MAX-SAT as 0-1 LP
+
+Let P~i~ denote the set of indicies of positive literals in clause i, and N~i~ analogously the negative ones. A `positive' literal is a plain variable, and `negative' literal is a negated variable.  We assume P~i~ ∪ N~i~ = ∅, because otherwise the i-th clause is always satisfied, which is uninteresting -- we would create a subproblem which doesn't contain such boring  clauses.  Let y~i~ denote the boolean variables of MAX-SAT.  Let z~i~ denote a boolean variable representing wheter the i-th clause is satisfied.  The idea is that a clause is satisfied, i.e. z~i~ = 1, only if at least one literal is true.
+
+Maximize: ∑z~i~
+Subject to m constraints, j∈[m]: ∑~i∈Pi~y~i~ + ∑~i∈Ni~(1-y~i~) - z~i~ ≥ 0
+
+References:
+
+- Book ``Design and Analysis of Randomized Algorithms'', chapter ``7.3 Random Rounding and MAX-SAT'' p 216
+
+
+[[max_eksat_uniform_random_assignment]]
+==== MAX-EkSAT: Uniform random assignment
+
+A simple linear-time randomized E[2^k^/(2^k^-1)]-approximation algorithm for MAX-EkSAT.  I.e. for long clauses, it approaches from above an expected approximation ratio of 1, for short clauses it approximates from below an expected approximation ratio of 2.
+
+Note that the algorithm design is based on <<random_sampling>>.
+
+Algorithm: Assign either 1 or 0 uniformily at random to each variable. Return number of satisfied clauses.
+
+Proof of being E[2^k^/(2^k^-1)]-approximation: Let m denote the number of clauses. Let Z~i~ be an indicator variable being 1 when the i-th clause is satisfied. E[Z~i~] = 1-(1/2)^k^. Let the random variable Z be the sum of all satisfied clauses.  Z = ∑~1≤i≤m~Z~i~. E[Z] = E[∑~1≤i≤m~Z~i~] = m(1-(1/2)^k^), due to linearity of expectation.  The optimal gain is at most m.  Thus E[Ratio] ≤ OPT / E[Z] = m / (m(1-(1/2)^k^)) = 2^k^ / (2^k^ - 1).
+
+References:
+
+- Book ``Design and Analysis of Randomized Algorithms'', Example 2.5.72 p.83 discussing the algorithm RSAM
+
+
+[[max_eksat_random_rounding]]
+==== MAX-EkSAT: Random rounding
+
+Presented is a randomized poly-time E[k^k^ / (k^k^ - (k-1)^k^)]-approximation algorithm (E[e/(e-1)]-approximation for MAX-SAT).  Thus its best for short clauses (for k=1 its E[1]) and gets slightly worse with longer clauses, upper bounded by E[e/(e-1)] ≈ E[1.58].  Is an application of the <<random_rounding>> technique.
+
+Algorithm: Express MAX-EkSAT as 0-1 LP, see <<max_sat_as_01LP>>. Relax to LP, i.e. substitute the constraints that y~i~ and z~i~ must be boolean variables by to the constraints y~i~ ≥ 0 and y~i~ ≤ 1, and likewise for z~i~.  Solve this LP problem with some poly time LP solver.  For each variable x~i~ of the original problem, set it to 1 with a probability of y~i~, and to 0 otherwise.
+
+Note that probability amplification works especially well from a time complexity perspective. The most expensive part of the algorithm is the poly-time LP solver. That however needs only to be run once.  To get multiple outputs for probability amplification, we only need to execetute multiple times the last part of the algorithm, i.e. the random rounding.
+
+Proof of being an E[...]-approximation algorithm: *to-do*
+
+References:
+
+- Book ``Design and Analysis of Randomized Algorithms'', chapter ``7.3 Random Rounding and MAX-SAT'' p 216, more specifically the algorithm RRR, p 217
+
+
+[[max_eksat_combination]]
+==== MAX-EkSAT: Combinatation of the last two
+
+Randomized poly-time E[4/3]-approximation algorithm for MAX-EkSAT. It's a simple combination of <<max_eksat_uniform_random_assignment>> and <<max_eksat_random_rounding>>.
+
+Algorithm: Make two independent runs of <<max_eksat_uniform_random_assignment>> and <<max_eksat_random_rounding>>, and return the better result of the two.
+
+*to-do* p 222 says that for k ≥ 3, RSAM is better than RRR. I.e. for k ≤ 2, RRR is same or better.  But for k ≤ 2, MAX-kSAT is in P, isnt it? At least kSAT is in P for k ≤ 2.  Thus there's never a reason to use RRR? Even more so, for k=2 the two are equal (Expected approximation ratio of 4/3). So ony for k=1 RRR is better, and I am intuitively sure there are simple linear deterministic algorithms for that, like counting wheter a given variable appears more often in its positive than in its negative form
+
+*to-do* I fail to intuitively undestand what's really the difference to choose one of the two depending on k. What could go wrong? We know the expected approximation ratio for both depending on k. We know that for k=2, the two expected approximation ratio are equal.
+
+References:
+
+- Book ``Design and Analysis of Randomized Algorithms'', chapter ``7.4 Combining Random Sampling and Random Rounding'' p 222, more specifically the algorithm COMB, p 223
+
+
 [[set_cover_problem]]
 === Set cover problem
+
+Given a set U called the universe, and a set S of subsets of U, a cover C is a subset of S whose union is U. The set cover problem is to minimize |C|.  Is one of Karp's 21 NP-complete problems.
 
 References:
 
 - http://www.cs.umd.edu/class/fall2017/cmsc451-0101/Lects/lect09-set-cover.pdf
 
-- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter cover problems p 106
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter cover problems p 106.
 
 
 ==== Greedy set cover algorithm
 
-A greedy ln(n)-approximation algorithm using O(n^3/2^) time.
+A greedy ln(n)-approximation algorithm using O(n^3/2^) time.  This is the best possible approximation ratio (assuming P ≠ NP).
 
-proof: maybe this is easier https://math.mit.edu/~goemans/18434S06/setcover-tamara.pdf
+Algorithm: Let Uʹ denote the remaining elements.  Initially set Uʹ to the universe U and let the cover C be empty.  Iteratively greedely add an element e (which is a set) of S to C, such that |e∩Uʹ| is maximal.  At the end of each iteration, set Uʹ = Uʹ - e.  Iteration stops when Uʹ is empty.
+
+Proof that output is feasible: Obvious since at the end Uʹ is empty, i.e. all elements of U are covered.
+
+Proof that ln(n) is an upper bound on the approximation ratio: *to-do* maybe this is easier https://math.mit.edu/~goemans/18434S06/setcover-tamara.pdf
+
+Prood of O(n^3/2^) time complexity: *to-do*
 
 References:
 
 - http://www.cs.umd.edu/class/fall2017/cmsc451-0101/Lects/lect09-set-cover.pdf
 
 - Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``4.3.2 Cover Problems, Greedy Method, and Relaxation to Linear Programming'', algorithm 4.3.2.11 p 264
+
+
+=== Makespan Scheduling Problem (MS) / Job-shop problem (JSP)
+
+The job-shob problem is an optimization problem.  In a simple basic variant, there are given m identical machines and n jobs, that is their machine-independent processing times p~1~, ..., p~n~.  Each machine can only execute one job at one time.  The problem is to assign the jobs to the machines, and the cost function to be minimized is the makespan.  The makespan is the total length of the schedule, that is, when all jobs have finished processing.
+
+In the standard version each jobs consists of operations, and there's a dependency graph, called pecedence constraints, between these operations.  Each operation can only be executed on a given subset of machines.
+
+Relations: TSP is a spcecial case of the JSP: There is one machine, the salesman, and there are jobs representing the cities.
+
+
+==== Greedy approximation algorithm
+
+Is a 2-apprximation algorithm for the job-shop problem.
+
+Algorithm: Sort the jobs in decreasing processing time order. Whenever a machine becomes free, assign it the front job of the sequence, i.e. the largest of the remaining jobs.
 
 
 === Consumer producer
@@ -4288,18 +4678,45 @@ References:
 
 See also subchapter <<randomized_online_algorithms>>.
 
-Overview of classification of randomized algorithms for solving decision problems and for computing functions. S(x) : 1 if A(x)=F(x), 0 otherwise. S for same.
+Overview of classification of randomized algorithms for solving decision problems and for computing functions. Let F(x) be some function and A(x) a randomized algorithm having the task of returning F(x). Let CA (correct answer) be short for A(x)=F(x), and IA (incorrect answer) be short for A(x)≠F(x).
 
 |=====
-| Pr(S(x)) ≥ ε ∧ Pr(A(x)=?) + Pr(S(x)) = 1 | 0 < ε ≤ 1 ∧ ∀ inputs x | Las Vegas
-| A is Las Vegas ∧ lim~\|x\|→∞~ Pr(S(x)) = 1 |  | Las Vegas*
-| Pr(A(x) = 1) ≥ 1/2 for ∀ x ∈ L ∧ Pr(A(y) = 0) = 1 for ∀ y ∉ L | For decision problems of language L | 1MC
-| A is 1MC ∧ lim~\|x\|→∞~ Pr(A(x) = 1) = 1 |  | 1MC*
-| Pr(S(x)) ≥ 1/2 + ε  | 0 < ε ≤ 1/2, ε is independent of input ∧ ∀ inputs x | 2MC
-| Pr(S(x)) > 1/2  | ∀ inputs x | MC
+| Pr(A(x)=?) ≤ ε ∧ Pr(A(x)=?) + Pr(CA) = 1, 0 ≤ ε < 1 | Las Vegas
+| A is Las Vegas ∧ lim~\|x\|→∞~ Pr(IA) = 0 | Las Vegas*
+| Pr(IA) ≤ ε, 0 ≤ ε < 1 | Monte Carlo
+| Pr(IA) ≤ 1/2 - ε, 0 < ε ≤ 1/2 | Monte carlo with bounded error. 2MC
+| F(x)=0: Pr(IA) = 0, F(x)=1: Pr(IA) ≤ ε  | For decision problems only. Monte carlo with one sided error (1MC). Or the other way round: A is always correct when it returns true.
+| A is 1MC ∧ lim~\|x\|→∞~ Pr(IA) = 0 | For decision problems. 1MC*
 |=====
 
-*to-do* Why constant 1/2 in monte carlo algorithms? Again, in general its just some constant, right? If its exactly 1/2, we get no information at all, i.e. we have a problem. If it's less than 1/2, we just inverse the logic and get > 1/2 again.
+Las Vegas: Probably fast (sometimes slow or returns `?'). Gambles with resources, but not with correctness.
+
+Mone Carlo: Probably correct (mostly fast, sometimes incorrect). Gambles with correctness (and possibly with ressources).
+
+Advantages / Disadvantages of randomized algorithms:
+
+- foiling the adversary / avoiding worst-case problem instances: Protection against adversaries trying to provoke worst-case behaviour with worst-case input. E.g. hash tables or sorting algorithms.
+
+- Less computation time, sometimes at the cost of less guarantees of getting the optimal result. Depending on the algorithm we still might know that the result wasn't optimal.  Note that when the (theoretical) error probability is really low, in practice we can compete with deterministic algorithms. In practice we're not completely save even with deterministic algorithms, since we also have to take into account the probability of hardware failure, bugs, accidents etc.
+
+- Often the user can choose the tradeoff between computation time and success probability. Also because often the technique of success amplification is part of the overall algorithm.
+
+- abundance of witnesses: Sometimes there is provably no deterministic way to find a witness from a given set of candidates, altought there are more witnesses than non-witnesses.  The reason might be that witnesses are distributed with no pattern.  E.g. primes.
+
+- World between P and NP-hard: There are problems for which no poly time deterministic algorithm is known, and for which there's no proof that they are NP-hard. E.g. generation of a quadratic non-residues, equivalence of polynomials or factorization of integers.  For this world between P and NP-hard poly-time randomized algorithms are interesting.
+
+- *to-do* better elaborate this topic
+
+Limits:
+
+- A commonly accepted conjecture is that NP-hard problems are also hard for randomized algorithms with bounded error.  Thus it's most probably not fruitful to try to design a polynomial time randomized algorithm with bounded error for an NP-hard problem.
+
+Applications:
+
+- primality testing *to-do* link
+
+
+
 
 References:
 
@@ -4308,87 +4725,222 @@ References:
 
 === Las Vegas algorithm
 
-Given a function F, a randomized algorithm A is called _Las Vegas algorithm_ if it can return `?' meaning ``I don't know the correct answer'' and it holds that CA = Pr(A(x)=F(x)) ≥ ε and Pr(A(x)=?) + CA = 1 for every input x and 0 < ε ≤ 1.  In plain English, it either returns the correct answer or optionally ?, but never an incorrect answer.  In other words, it gambles with resources used for computation, but not with correctness.  ``Probably fast'' is another catch phrase.  In the case that ? answers are _not_ allowed, i.e. ε = 1, definitions vary wether the algorithm is allowed to take infinite time or not.  If A is an Las Vegas Vegas Algorithm and lim~\|x\|→∞~ Pr(A(x)=F(x)) = 1, then it is called a _Las Vegas* algorithm_.
+A Las Vegas algorithm uses randomness to be probably fast while always being correct. On inputs it doesn't like it's either slow or it returns ``I don't know the answer'' with bounded probability.
 
-If the algorithm is allowed to take infinite time, any Las Vegas algorithm which is allowed to return ? can be converted to one which is not allowed to return ? by executing it repeatedly until the answer is not ?.
+Given a function F, a randomized algorithm A is called _Las Vegas algorithm_ if it can return `?' meaning ``I don't know the correct answer'' and it holds that Pr(A(x)=?) ≤ ε for every input x.  In other words, it gambles with resources used for computation, but not with correctness.  ``Probably fast'' is another catch phrase.  In the case that ? answers are _not_ allowed, definitions vary wether the algorithm is allowed to take infinite time or not.
 
-A Las Vegas Algorithm which is not allowed to return ? can be converted to one which is allowed to return ? by terminating early.  More generally, the ε can always be made smaller, as long as 0 < ε, in order to trade lower execution time for higher chance of getting ? answers.  Note that altough execution time varies, that variation is still independent of the input size, i.e. its hidden in the constant factor of the asymptotic time complexity.
+If A is an Las Vegas Vegas Algorithm and lim~\|x\|→∞~ Pr(A(x)=F(x)) = 1, then it is called a _Las Vegas* algorithm_.
 
-Las Vegas to Monte Carlo: A Las Vegas algorithm which is allowed to return ? is also a Monte Carlo algorithm.
+Some authors define Pr(A(x)=F(x)) ≥ 1/2 instead Pr(A(x)=F(x)) > 0 and argue that any later can be transformed into the former.  When the probability of a correct answer is too low, <<amplification_of_success_probability,amplicification>> in practice doesn't work nicely because the required constant number of retries is too high from a practical view point.
 
-Examples: quick sort, quick select
+See also <<amplification_of_success_probability>>.
+
+If the algorithm is allowed to take infinite time, any Las Vegas algorithm which is allowed to return ? can be converted to one which is not allowed to return ? by executing it repeatedly until the answer is not ?. It can be shown that the expected running time is upper bounded by a constant times the running time of the original algorithm.
+
+A Las Vegas Algorithm which is not allowed to return ? can be converted to one which is allowed to return ? by terminating early.  More generally, the Pr(A(x)=F(x)) can always be made smaller, as long as Pr(A(x)=F(x)) > 0, in order to trade lower execution time for higher chance of getting ? answers.  Note that altough execution time varies, that variation is still independent of the input size, i.e. its hidden in the constant factor of the asymptotic time complexity.
+
+Las Vegas to Monte Carlo: A Las Vegas algorithm which is allowed to return ? is also a Monte Carlo algorithm.  The difference is that the user knows that ? is an incorrect answer, where as in the general case of a Monte Carlo algorithm, the user doesn't know when he gets an incorrect answer.
+
+Examples:
+
+- quick sort, quick select. They always return the correct answer, but they might be slow on some inputs.
 
 
 === Monte Carlo algorithm
 
-Given a function F, a randomized algorithm A is called _Monte Carlo algorithm_ (or _MC algorithm_) if Pr(A(x)≠F(x)) < ε, for every input x and 0 < ε ≤ 1.  In plain English, it is allowed to return an incorrect answer with a certain bound on the probability.  In other words, it gambles with correctness,  and possibly also with ressources used for computation.  ``Probably correct'' is another catch phrase.
+Given a function F, a randomized algorithm A is called _Monte Carlo algorithm_ (or _MC algorithm_) if Pr(A(x)≠F(x)) ≤ ε, for every input x and 0 ≤ ε < 1.  In plain English, it is allowed to return an incorrect answer with a certain bound on the probability.  In other words, it gambles with correctness,  and possibly also with ressources used for computation.  ``Probably correct'' is another catch phrase.
 
-For the case of decision problems, a randomized algorithm A is called _false-biased Monte Carlo algorithm_ (or _on-sided-error Monte Carlo algorithm_ or _1MC algorithm_) if Pr(A(x)=F(x)) = 1 for every false F(x) and Pr(A(x)=F(x)) ≥ 1/2 for every true F(x).  In other words, it's always correct when it returns false.  If A is an 1MC Algorithm and lim~\|x\|→∞~ Pr(A(x)=F(x)) = 1, then it is called a _1MC* algorithm_.
+A _Monte carlo algorithm with bounded error_ (_2MC_) is one where Pr(A(x)≠F(x)) ≤ 1/2-ε, where 0 < ε ≤ 1/2.
 
-*to-do* be sure to write down definition correctly. Its really confusing.
+For the case of decision problems, a randomized algorithm A is called _on-sided-error Monte Carlo algorithm_ (or _1MC algorithm_) if, given F(x)=0, Pr(A(x)=F(x)) = 1, and given F(x)=1 , Pr(A(x)≠F(x)) ≤ ε.  Or the other way round, A is always correct when it returns true, and has a bounded error when it returns false.  If A is an 1MC Algorithm and lim~\|x\|→∞~ Pr(A(x)=F(x)) = 1, then it is called a _1MC* algorithm_.
 
-*to-do* 1) Book says: "Wo ist der Unterschied zwischen den 2MC-AIgorithmen und den
-MC-AIgorithmen?" and then explains. But I didn't got the final conclusion. 2) Probably the same question: why 1/2, opposed to some other constant?
+Probabilities given F(x):
+
+|======
+|          | A(x) = 0 | A(x) = 1
+| F(x) = 0 | 1        | 0
+| F(x) = 1 | ≤ ε      | > 1-ε
+|======
+
+Probabilities given A(x):
+
+|======
+|          | A(x) = 0 | A(x) = 1
+| F(x) = 0 | > 1-δ    | 0
+| F(x) = 1 | ≤ δ      | 1
+|======
+
+See also <<amplification_of_success_probability>>.
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter "" p 225
 
 
-[[randomized_algs_for_optimization_problems]]
-=== Randomized Algorithms for Optimization Problems
+[[amplification_of_success_probability]]
+=== Amplification of success probability
+
+Let A~k~ denote the algorithm which runs another algorithm A at most k times or k times.  What it means exactly is deliberately left undefined here, and will be clear from the context.
+
+Las Vegas: Run A repeatedly until the result is not ?. A~k~ is still a Las Vegas algorithm, however it's don't-know probability is upper bounded by ε^k^.
+
+2MC: We can construct a new 2MC algorithmus A~k~ with a lower error probability bound by running a 2MC algorithmus A for k times.  If A returned one answer more than k/2-times, A~k~ returns that answer and ? otherwise.  Note that this scheme couldn't be used to reduce the error probability if the constant in the definition of 2MC was larger than 1/2.  If error probability bound of A~k~ shall be δ, then k ≥ 2lnδ/(ln(1-4ε²))
+
+1MC: Recall that when A(x)=1, it's certainly correct, and when A(x)=0, it's incorrect with a probability of at most ε.  Thus when A(x)=0, run it again, until it A(x)=1, but no more than k times. A~k~ is still a 1MC algorithm, but it's error probability is upper bounded by ε^k^.
+
+In some cases we don't need to re-execute the whole algorithm, but only parts of it.  Then the technique of success amplification often is a key ingredient of the overall algorithm. See e.g. <<max_eksat_random_rounding>>, <<karger_stein_algorithm>>.
+
+When an O(f(n))-time randomized approximation algorithm A has a constant upper bound on the error probability, the overall error probability decreases exponentially. Followingly still in O(f(n))-time we can make the error probability arbitrarily close to 0. E.g. see <<detran>>
+
+*to-do* proof: a linear number of runs improves the success probabilty exponentially.
+
+References:
+
+- Book "Design and Analysis of Randomized Algorithms", chapter "5.2 Efficient amplification by repeating critical computation part"
+
+
+[[randomized_approx_algorithms]]
+=== Randomized approximation algorithms
 
 See also <<approximation_algorithms>>.
 
-Let A be a randomized algorithm for an optimization problem, let OPT be an optimal algorithm for the same problem, and let Ratio~A~(x) denote the approximation ratio of A on input x.  A is a __randomized E[δ]-approximation algorithm__ if for every feasible input x there exists an δ > 1 such that a) it returns a feasible solution and b) E[Ratio~A~(x)] ≤ δ.
+Let A be a consistent randomized algorithm for an optimization problem, let OPT be an optimal algorithm for the same problem, and let Ratio~A~(x) denote the approximation ratio of A on input x.  A is a __randomized E[δ]-approximation algorithm__ if E[Ratio~A~(x)] ≤ δ for every feasible input x and a constant δ > 1.
 
-With the same context, A is a __randomized δ-approximation algorithm__ if b) is replaced by Pr[Ratio~A~(x) ≤ δ] ≥ 1/2.  Note that such an algorithm can be repeated arbitrary many times to make Pr[Ratio~A~(x) ≤ δ] arbitrarily close to 1.
+With the same context, A is a __randomized δ-approximation algorithm__ if Pr[Ratio~A~(x) ≤ δ] ≥ 1/2.  Note that such an algorithm can be repeated arbitrary many times to make Pr[Ratio~A~(x) ≤ δ] arbitrarily close to 1.
 
-*to-do*: I forgot. Why exactly 1/2? Why not >0?
+In general a randomized E[δ]-approximation algorithm for U is not necessairly a randomized δ-approximation algorithm for U, and also not vice versa.
 
-If A is a randomized E[δ]-approximation-algorithm for an optimization problem U, then A is a randomized (2E[δ])-approximation for U.  Note that an randomized E[δ]-approximation algorithm for U is not necessairly a randomized δ-approximation algorithm for U, and vice versa.
+Proof a randomized E[δ]-approximation algorithm is not a randomized δ-approximation algorithm: Say algorithm A has 1999 different equaly likely runs on a given input. On less than half of the runs, say 999, the approximation ratio is very low, say 1, on the other runs its moderate, say 3.  (1000*3 + 999*1)/1999 ≈ 2. Thus A is an randomized E[2]-approximation algorithm, but a randomized 3-approximation algorithm.
+
+Proof a randomized δ-approximation algorithm is not a randomized E[δ]-approximation algorithm: Say algorithm A has 100 different equaly likely runs on a given input.  On most runs, say 97, the approximation ratio is very low, say 1.  On a few runs, say 3, it is very large, say 1000.  Thus A is an randomized 1-approximation algorithm, but an randomized E[970]-approximation algorithm ( (3*1 + 97*1000)/100 ≈ 970 )
+
+If A is a randomized E[δ]-approximation-algorithm for an optimization problem U, then A is a randomized (2E[δ])-approximation for U.
+
+*to-do* Yet another way to classify randomized approximation algorithms seems to be giving an lower bound on the probability with which an optimal solution is found. E.g. algorithm
+contraction.
+
+*to-do* So should actually every algorithm try do state all possible ways how it can be classified: E[δ]-approximation, δ-approximation, finds optimal solution with probability of at least δ, .... That would help to compare different algorithms. If every algorithm only states one of those, it gets hard to compare. I have the feeling the book does exactly this `bad' thing.
 
 References:
 
 - Book "Design and Analysis of Randomized Algorithms", chapters "2.5 Classification of Randomized Algorithms for Optimization Problems" and "7 Optimization and Random Rounding"
 
 
-[[relax_LP_random_rounding]]
-==== Relaxation to LP and random rounding
+[[random_rounding]]
+=== Random rounding
 
-Many discrete optimization problem are NP-hard. Many of those are reducable to ILP.  We want to reduce the cost by trading in accuracy: We relax the ILP to an LP, solve that in polynomial time resulting in a fractional solution, and then convert that fractional solution to an integer one in polynomial time using some approximation strategy costing polynomial time.
+_Random rounding_ (or _randomized rounding_) is a technique for designing efficient approximation algorithms for hard discrete optimization problems. The basic idea is to relax the constraints of the problem turning it into a tractable problem, solve that relaxed problem efficiently, and then use a probabilistic method to convert back the solution to the original problem.
 
-The 1st step is to reduce the discrete optimization problem to <<ILP>> or O-1 LP.  This is often quite easy doable in a natural way.
+Since many hard discrete optimization problems are reducable to ILP, the relaxed tractable problem is often choosen to be LP. So that's what is presented in more detail in the following.
 
-The 2nd step is the _relaxation to LP_ and solving that LP, costing polynomial time, resulting in a fractional solution.  Relaxation to LP means removing the constraints which require integer or Boolean solutions respectively.  Note an optimal solution to this LP is as good or better than an optimum solution to the original problem U, because LP's constraints are a proper subset of U's constraints.
+_Reduce to ILP_: Reduce the discrete hard optimization problem to <<ILP>> or O-1 LP.  This is often quite easy possible in a natural way.
 
-The 3rd step is converting the found optimal fraction solution to a reasonably good feasible solution to the original ILP or 0-1 LP.  One possible conversion strategy is random rounding which uses the fractional part as probability with which we round up opposed to round down.
+_Relax to LP and solve that_: Relax the ILP to LP and solve that LP, costing polynomial time, resulting in a fractional solution.  Relaxation to LP or 0-1 LP means removing the constraints which require integer or Boolean solutions respectively.  Note that an optimal solution to this LP is as good or better than an optimum solution to ILP, because now there are less constraints.
 
-Note that the fractional optimal solution to LP of step two can serve as an bound for the optimal solution of the original problem U.  An lower bound for minimization problems, and an upper bound for maximization problems respectively.
+_Random rounding_: Converting the found optimal fraction solution to a reasonably good feasible solution to the original ILP or 0-1 LP using a probabilistic method.  In case of 0-1 LP, one possible conversion strategy to use the fractional part as probability with which we round to 1 as opposed to round to 0.
 
-*to-do* What other convertion strategies than random rounding are there for step three? Answer: random rounding = irgendwie
+Note that the fractional optimal solution to LP of step two can serve as a bound for the optimal solution of the original problem.  A lower bound for minimization problems, and an upper bound for maximization problems respectively.
+
+*to-do* the notes on probability amplification of the max-eksat example algorithm also apply in this general context, at least in many cases
+
+*to-do* Im confused. What does the term random rounding mean here. It seems to mean the technique strategy (all three steps together, see wikipedia), but it also seems to mean one out of many ways to tackle step 3 (our book, but even there I am not entirerly sure how the book uses the term. E.g. the chapter title suggests the same as wiki).
+
+*to-do* What other convertion strategies than random rounding are there for step three?
 
 *to-do* It seems to me that the term `random rounding' sometimes is used for the whole idea, i.e. all three steps together (e.g. wikipedia), and sometimes only for the third step (e.g. our book).
 
+Applications:
 
-==== A randomized approximation algorithm for the max-sat problem
-
-A randomized approximation algorithm for the max-sat problem.  It makes use of the ``<<relax_LP_random_rounding,Relaxation to LP and random rounding>>'' technique.
-
-*to-do*
-
-*to-do* one chapter about sat problem and one chapter about the max-sat problem
+- <<max_eksat_random_rounding>>
 
 References:
 
-- Book "Design and Analysis of Randomized Algorithms", chapter "7.3 Random Rounding and MAX SAT"
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapters "7.1 Objectives" p 209, "7.2 Relaxation to Linear Programming" p 210, "7.5 Summary" p 225
 
 
-==== Efficient amplification by repeating critical computation parts
+=== Fingerprinting
 
-*to-do*
+_Fingerprinting_ (or _Freivalds' technique_) is a technique for solving the problem of determining whether two (complex) objects are equivalent.  E.g. two strings, or two polynomials (not necessarily given in canonical form).  Here, fingerprint is a synonym to hash value.  The basic idea is to compare the objects by comparing their respective fingerprints.  There are multiple ways to make a fingerprint, that is, there is a family of hash functions.  That is where the randomness comes from, by choosing a hash function from the family.
 
-Its not about approximation, see my lecture notes. So we calc prob of success. We don't calc approx ratio.
+The art is to find an appropriate family of hash functions.  On one hand we want long fingerprints (hashes) to reduce the number of collisions (i.e. a large proportion of witnesses (hash functions witnessing A≠B by h(A)≠h(B))), and on the other hand we want short fingerprints to achieve efficient comparisons.
+
+Fingerprinting can be seen as a special case of  the method of abundance of witnesses. (*to-do* understand why. Now in essence the algorithm has two inputs A and B, and we choose one witness at random, being an hashfunction h, and we return h(A)==h(B). In `pure' `abundance of witnesses', we have one input A, we choose a witness w, we have a predicate function p(A,w), and we return p(A,w)).
+
+Applications:
+
+- Communication protocols / determining wether string s of machine M~1~ is member of set of strings of machine M~2~, where strings are of length n. *to-do*
+
+- Verification of matrix multiplication, algorithm <<freivalds>>
+
+- <<equivalence_of_polynomials>>
 
 References:
 
-- Book "Design and Analysis of Randomized Algorithms", chapter "5.2 Efficient amplification by repeating critical computation part"
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter "4 Fingerprinting", p 130
+
+
+[[abundance_of_witnessess]]
+=== Abundance of Witnesses
+
+... There must be an abundance of witnesses among the set of candidates. That usually means that the ratio between the two is a constant
+
+Deterministic algorithms of deternining a witness might not work because the distribution pattern of witnesses among candidates is truly random or not known.  Note that it is not a requirement for the witnesses to be randomly distributed.  If we know a pattern, we may can design an efficient deterministic algorithm based on the abundance of witnesses which finds a witness in a deterministic way.
+
+Fingerprinting can be seen as a special case of abundance of witnesses, see there.
+
+See the 3 requirements described in `abundance of witnesses' in techniques_notes.adoc *to-do* better link
+
+Applications:
+
+- <<primality_testing>> *to-do* link to specific randomized algorithms
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter "Abundance of Witnesses" p 183.
+
+
+[[random_sampling]]
+=== Random sampling
+
+The problem is to find an object with a certain property out of a set of candidate objects. The set of candidate objects is usually gigantic.  The method of random sampling repeatedly chooses an object at random until a wanted object is found.  Or alternatively, in case of being an Las Vegas algorithm, it returns ``I don't know''.  For the method of random sampling to work, we need:
+
+1) We can efficiently determine whether a candidate is a wanted object.
+
+2) There's an abundance of wanted objects among candidates. *to-do* any constant would theoretically do, right? Even less than 1/2.
+
+Deterministic algorithms might not work because the distribution pattern of wanted objects among candidate objects is truly random or not known.
+
+*to-do* I don't understand the difference between random sampling and abundance of witnesses. As I see it, random sampling is a subtask of `abundance of witnesses'. The main task in this context, of an even larger problem, is finding a witness among a set of candidates, because that witness helps in solving the overall problem.  We use random sampling to find a witness object among the set of candidate objects.
+
+*to-do* I don't understand why the book claims that success amplification and random sampling are intimately intertwined. So much that they are in the same chapter.
+
+Applications:
+
+- <<generation_of_quadratic_nonresidues>>
+
+- <<max_eksat_uniform_random_assignment>>
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter "5 Success Amplification and Random Sampling" p 153
+
+
+[[generation_of_quadratic_nonresidues]]
+==== Example: Generation of quadratic nonresidues
+
+A _quadratic nonresidue_ in the field ℤ~p~ is any member of the field ℤ~p~ which is not a quadratic residue.  A _quadratic residue_ in the field ℤ~p~ is any element a ∈ ℤ~p~ where there exists an x ∈ ℤ~p~ such that a = x².
+
+Las Vegas algorithm with success probability of 1/2: Choose uniformily at random an a ∈ ℤ~p~. If a^(p-1)/2^ ≡ p - 1, return a, else return `?'.
+
+Proof: We have the two key ingredients of random sampling: 1) We can efficiently determine whether a candidate is a quadratic nonresidue. 2) There's an abundance of quadratic nonresidues among candidates.
+
+Euler's criterion state's that a is a quadratic residue if a^(p-1)/2^ ≡ 1, and a quadratic nonresidue if a^(p-1)/2^ ≡ p - 1.  The computation can be done in O(log p) by the method of repeated squaring.
+
+For every prime p, exactly half of the elements of ℤ~p~ - \{0} are quadratic nonresidues. *to-do* proof
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter "5.4 Random Sampling and Generating Quadratic Nonresidues" p 174.
 
 
 [[online_algorithms]]
@@ -4399,20 +4951,25 @@ An _online problem_ ∏(𝓘, 𝓞, sol, quality goal) consists of a set 𝓘 of
 online minimum problem: cost(ALG(I)) ≤ c·cost(OPT(I)) + α  ∀ I ∈ 𝓘 +
 online maximum problem: gain(OPT(I)) ≤ c·gain(ALG(I)) + α  ∀ I ∈ 𝓘
 
-Unfortunately there is no commonly used term for the factor c~I~ = cost(ALG(I)) / cost(OPT(I)) given a specific input I; even the notation c~I~ is made up by me.  I make up the term `__input dependent cost factor__'.  Also there is no term for the constant c; note that `cost factor' is not an official term.  c is an upper bound on the set of input dependend cost factors.  If there is no such c, the algorithm is called _not competitive_. The smallest c ≥ 1 for which that inequality is true is the _competitive ratio_ of the algorithm.  In other words the competitive ratio is the minimum of the set of valid constants c (i.e. the minimum of the set of upper bounds on the input dependend cost factor).  It is the supremum of the input dependend cost factor.  Intuitively it's a measurement of the online algorithm's quality.  If the constant offset α is zero, the algorithm is said to be _strictly competitive_.  An online algorithm is called _strongly c competitive_ if its competitive ratio equals the best that is achievable by any online algorithm for the problem at hand.  If c=1 and α=0, the online algorithm is _optimal_.  If looking only at a specific input I, we speak of the _performance_ of ALG on I. (*to-do* 1) term for c for a given instance I. 2) performance's meaning is inversed, no? a larger c is bad, but a larger performance is good.  3) not competitive). The notion of having the constant α allows an algorithm to achieve a good c for long inputs I, even if that algorithm is bad for short inputs I.  Thus if 𝓘 is finite, then any online algorithm is 1-competitive, since we can set α to the worst possible cost cost(ALG(I)).  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
+Unfortunately there is no commonly used term for the factor c~I~ = cost(ALG(I)) / cost(OPT(I)) given a specific input I; even the notation c~I~ is made up by me.  I make up the term __input dependent cost factor__.  An other authors uses _performance_.  Also there is no term for the constant c.  I will use _cost factor_.  c is an upper bound on the set of input dependend cost factors.  If there is no such c, the algorithm is called _not competitive_. The smallest cost factor c is called the _competitive ratio_ (German: _kompetitiver Faktor_) of the algorithm.  Intuitively the competitive ratio is a measurement of the online algorithm's quality. In other words the competitive ratio is a worst case measure: how well does the algorithm perform on its hardest instance.  In other words the competitive ratio is the minimum of the set of valid constants c (i.e. the minimum of the set of upper bounds on the input dependend cost factor).  If the constant offset α is zero, the algorithm is said to be _strictly competitive_.  An online algorithm is called _strongly competitive_ (or _strongly c competitive_) if its competitive ratio c equals the best that is achievable by any online algorithm for the problem at hand.  If c=1 and α=0, the online algorithm is _optimal_.  Using the paging problem as example, an _conservative algorithm_ has a cost of at most n  (n is the number of available pages) for any sequence of consecutive requests that involve (up to) n distinct pages. In other words, a conservative algorithm only updates its current hypothesis when making a mistake.
+
+The notion of having the constant α allows an algorithm to achieve a good c for long inputs I, even if that algorithm is bad for short inputs I.  Thus if 𝓘 is finite, then any online algorithm is 1-competitive, since we can set α to the worst possible cost cost(ALG(I)).
+
+*to-do* why is the summand α usefull for online alg but not for approximation alg.? In both cases we can let the alg. know the OPT solution for short inputs (i.e. inputs up to a constant length).
 
 Single online algorithm:
 --------------------------------------------------
 ⋯----------------------------------------> cost factor
   set of cI's                
-  = set of lower bounds     set of c's
+  = of lower bounds         set of c's
     for competitive ratio   = set of upper bounds on the set of cI's
  |------------------------| = set of upper bounds on the competitive ratio
                           |----------⋯⋯
                           | 
                 competitive ratio   
-                = minimum of set of c's
+                = how well does ALG perform on its hardest instance
                 = supremum of set of cI's
+                = minimum of set of c's
 --------------------------------------------------
 
 Set of online algorithms:
@@ -4423,23 +4980,14 @@ Set of online algorithms:
            union of sets of c's
           |--------------------⋯⋯
            set of competitive ratios
-           !! Note that many sets of online algorithms allow !!
-           !! for arbitrarily stupid/bad competitive ratios  !!
           |--------|
  ---------|
- set of lower bounds for set of competitive ratios
+ set of lower bounds for union of sets of c's (or for set of competitive ratios)
  = no algorithm of family is better than this-competitive
  = no algorithm of family has better competitive ratio
           |
  tight lower bound for set of competitive ratios
  = best competitive ratio of the given set of online algorithms
-                   |------⋯⋯
-                    set of upper bounds for set of competitive ratios
-                    = all algorithms of family are this-competitive
-                    = no algorithm of family has worse competitive ratio
-                   |
-               tight upper bound for set of competitive ratios
-               = worst competitive ratio of the given set of online algorithms
 ------------------------------------------------------------
 
 *to-do* After this rather complicated proof that there is an online algorithm with advice for paging being strictly ... competitive, Prof said that proofing lower bounds is hard because we have to show
@@ -4468,14 +5016,16 @@ References:
 
 *to-do* move to <<amortized_analysis>>
 
-In what follows, we consider online minimization problems and deterministic online algorithms. Let C~ALG~ denote the set of configurations of an online algorithm ALG, and likewise C~OPT~ for an arbitrary optimal algorithm OPT.  A _potential function_ Φ is a function Φ : C~ALG~ ⨯ C~OPT~ → ℝ or Φ : 𝓘 → ℝ.  We call Φ(x~i~) the _potential_ of ALG in time step T~i~.  Figuratively, the potential is a bank account with which we can pay future high costs.  We call cost(ALG(x~i~)) the _real cost_ of ALG on request x~i~.  The _amortized cost_ of ALG on request x~i~ is defined as amcost(ALG(x~i~)) = cost(ALG(x~i~)) + Φ(x~i~) - Φ(x~i-1~).  It can be interpreted as the average cost per request that is caused by processing some instance.
+The following is written targeted towards analysis of online algorithms.
 
-The potential function Φ can then be used to proof that ALG is c-comptetitive.  ALG is is c-comptetitive if:
+In what follows, we consider online minimization problems and deterministic online algorithms. Let C~ALG~ denote the set of configurations of an online algorithm ALG, and likewise C~OPT~ for an arbitrary optimal algorithm OPT.  A _potential function_ Φ is a function Φ : C~ALG~ ⨯ C~OPT~ → ℝ.  Since given a deterministic algorithm a configuration is dependent on the input, we can also define the potential function as Φ : 𝓘 → ℝ.  We call Φ(x~i~) the _potential_ of ALG in time step T~i~.  Figuratively, the potential is a bank account with which we can pay future high costs.  We call cost(ALG(x~i~)) the _real cost_ of ALG on request x~i~.  The _amortized cost_, a constant, of ALG on request x~i~ is defined as amcost(ALG(x~i~)) = cost(ALG(x~i~)) + Φ(x~i~) - Φ(x~i-1~).  The amortized cost can be interpreted as the average cost per request that we like to guarantee.  The real cost varies per request, and we choose Φ such that we can guarantee a constant amortized cost.
 
-(i) -β ≤ Φ(x~i~) ∀ i ∈ [n], ∃ β ∈ ℝ^+^ +
-(ii) amcost(ALG(x~i~)) ≤ c·cost(OPT(x~i~)) ∀ i ∈ [n]
+The potential function Φ can then be used to proof that ALG is c-comptetitive:  ALG is is c-comptetitive if for all inputs and all time steps (i ∈ [n]):
 
-(ii) implies cost(ALG(x~i~)) ≤ c·cost(OPT(x~i~)) - (Φ(x~i~)-Φ(x~i-1~)) ∀ i ∈ [n]
+(i) ∃ β ∈ ℝ^+^ so dass -β ≤ Φ(x~i~) ≤ β +
+(ii) amcost(ALG(x~i~)) ≤ c·cost(OPT(x~i~))
+
+(ii) implies cost(ALG(x~i~)) ≤ c·cost(OPT(x~i~)) - (Φ(x~i~)-Φ(x~i-1~))
 
 ALG is strictly c-competitive if additionally Φ(x~0~) = 0
 
@@ -4505,36 +5055,41 @@ online maximum problem: gain(OPT(I)) ≤ c·E~Φ~[gain(ALG(I))] + α  ∀ I ∈ 
 
 The smallest c for which the above condition holds is called _expected competitive factor_.
 
-If for a given online problem there exists an optimal randomized algorithm, then there exists also an optimal deterministic online algorithm. (*to-do* understand. Probably the key thing is that randomized online algorithm are mostly about being robust against malicious advesaries trying to provoke worst case behaviour)
+_b(n)_ denotes how many random bits from Φ the algorithm reads.  It is allowed that with a small probably the algorithm reads more than b(n) bits.  We just have to live with that possibility.  Note that we also have to live with other possibilities of small probablility, like hardware failure.  The rational is that its sometimes not possible to give an upper bound for b(n).  E.g. consider an randomized algorithm which has no other task than to uniformily at random output a number 1, 2 or 3.  When reading b(n) bits, there are 2^b(n)^ different states, but 2^b(n)^ is never divisible by 3, thus its not possible to truly uniformily at random choose a number 1, 2 or 3.
+
+An _optimal randomized online algorithm_ is one which produces an optimal solution for every input and for every random binary string Φ.
+
+Every randomized online algorithm ALG reading b(n) random bits can for inputs of length n be interpreted as a set strat(ALG) of 2^b(n)^ deterministic algorithms.  ALG chooses one of them uniformily at random.  Note that some of these deterministic algorithms might be identical.
+
+If for a given online problem there exists an optimal randomized algorithm, then there exists also an optimal deterministic online algorithm. Proof: Follows directy from definition of optimal randomized online algorithm and from the above statement that every randomized algorithm can be interpreted as a set of deterministic algorithms.
 
 There are diffrent models of adversaries: The _oblivious adversary_ knows what algorithm I am running, but he sees none of the coin flips.  It's the adversary model commonly used.  The _fully adaptive adversary_ additionally also sees the coin flips. But that is uninteresting from a randomized perspective, because then the algorithm could as well be deterministic. The _adaptive adversary_ is somewhere inbetween. It knows the previous coin flips, but not the future flips. So it's an online algorithm itself.
-exists also an optimal deterministic online algorithm. (*to-do* understand. Probably the key thing is tha
 
 
 === Online algorithms with advice
 
 An even more powerful model than <<randomized_online_algorithms>>.
 
-An _online algorithm with advice_ ALG^Φ^ (or simply ALG) has as additional input, relative to the previous definition of an online algorithm, the  _binary advice string_ Φ.  We say ALG is __c-competitive with advive complexity b(n)__ if the usual respective condition holds and ALG uses at most the first b(n) bits of Φ, where n is the size of the input I.  Analogously we append ``... with advice complexity b(n)'' to the usual terms.
+An _online algorithm with advice_ ALG^Φ^ (or simply ALG) has as additional input, relative to the previous definition of an online algorithm, the  _binary advice string_ Φ.  We say ALG is __c-competitive with advive complexity b(n)__ if the usual respective condition holds and ALG uses at most the first b(n) bits of Φ, where n is the size of the input I.  Analogously we append ``... with advice complexity b(n)'' to the other usual terms.
 
-The advice string Φ usually depends on the input I.  Figuratively, the advice string is provided by an oracle which looks at the complete input I and then provides advice the algorithm.  Naturally the advice string can contain the complete solution for input I, but we would like to do better in order to get a better advice complexity b(n).
+The advice string Φ must depend deterministically on the input I.  In particular, random bits are not allowed.  Figuratively, the advice string is provided by an oracle which looks at the complete input I and then provides advice the algorithm.  The advice string could contain the complete solution for input I, but we would like to do better in order to get a better advice complexity b(n).
 
 Φ is infinite, i.e. the algorithm doesn't know how many bits the Orakel does provide. If the size of Φ was known to the algorithm (e.g. by explicitely stating the number of bits, or some 3rd stop `bit' value at the end of `Φ'), that would constitute additional information provided to the algorithm, which is a problem, since we measure the algorithm's quality by how many bits it reads from Φ.
 
-The task of encoding an number or information in general of completely unknown size in Φ is not trivial.  Note that first stating how many bits the number uses is not a feasible option, because that number is itself of unknown size.  One possible solution is a so called _self-delimiting encoding_. We encode the n bit of information into n bit pairs. The first bit of the i-th pair contains the i-th bit of the original information.  The second bit is always 0, except for the last pair, where it's 1.
+Given a 1-comptetive algorithm with advice complexity b(n).  The number of advice bits b(n) read can be interpreted as a measure of what we are paying the c-competitiveness for.  I.e. being forced to read these b(n) advice bits is an explanation why we can't be optimal.  Likewise, given a c~1~-competitive algorithm with adivce complexity b~1~(n) and a c~2~-competitive algorithm with advice complexity b~2~(n), c~2~ > c~1~ and b~2~(n) < b~1~(n), the difference b~1~(n) - b~2~(n) explains the difference c~2~ - c~1~.
 
-Example: For the <<ski_rental_probblem>> there exist an online algorithm with advice with advice complexity 1. The one advice bit tells the algorithm whether it should buy the skies at the very beginning or always rent.
+The task of encoding an number or information in general of completely unknown size in Φ is not trivial.  Note that first stating how many bits the number uses is not a feasible option, because that number is itself of unknown size.  One possible solution is a so called _self-delimiting encoding_. We encode the n bit of information into n bit pairs. The first bit of the i-th pair contains the i-th bit of the original information.  The second bit is always 0, except for the last pair, where it's 1.
 
 
 === Randomized vs with advice
 
-Given an online randomized algorithm, we can trivially turn it into an online algorithm with advice by overtaking the algorithm as is and the oracle provides the best possible advice string.  That is the best possible sequence of now no longer `random' bits.
+Given an online randomized algorithm, we can trivially turn it into an online algorithm with advice by overtaking the algorithm as is and the oracle provides the best possible advice string for each possible input.
 
 If there is a randomized online algorithm for any online problem ∏ that is c-competitive in expectation and uses at most b(n) random bits, then there is also an online algorithm with advice for ∏ that is c-competitive and that uses at most b(n) advice bits.  Proof: Because we can just turn the randomized online algorithm into an online algorithm with advice.
 
-If there is no online algorithm with advice that is c-competitive while using at most b(n) advice bits for ∏, then there is also no randomized nonline algorithm for ∏ that is c-competitive in expectation and that uses at most b(n) random bits. *to-do* why?
+If there is no online algorithm with advice that is c-competitive while using at most b(n) advice bits for ∏, then there is also no randomized online algorithm for ∏ that is c-competitive in expectation and that uses at most b(n) random bits. *to-do* why?
 
-The advice string can depend on the input I, the random string is the same for all inputs I ∈ 𝓘.
+The advice string must deterministically depend on the input I, the random string is the same for all inputs I ∈ 𝓘.
 
 Given an input I of length n.  Both an online algorithm with advice ADV and a randomized algorithm RAND can be viewed as a set of of 2^b(n)^ deterministic algorithms.  Both read at most b(n) bits from their respective string.  Only that ADV always chooses the best from the set, while RAND chooses one uniformely at random.
 
@@ -4552,6 +5107,7 @@ References:
 === Yao's (minmax) Principle
 
 
+
 References:
 
 - Book ``An Introduction to Online Computation'', chapter ``2.3 Yao's Principle''
@@ -4562,10 +5118,15 @@ References:
 
 A page replacemenet algorithm decides which pages of a cache to evict (page out or swap out). E.g RAM (slow) and Cache (fast), or Swap on disk (slow) and virtual memory (fast).  A cache _miss_ is when a requested page is not in the cache. Updating cache from data is called _evicting_ (kicking out a page from the cache) and _fetching_ data into the now free page. The paging problem is a specialization of the <<k_server_problem>>, see there for the proof.
 
+General statements:
 
-- No deterministic algorithm is k-competitive.
+- No deterministic online algorithm is better than k-competitive. Proof that k is a lower bound on the competitive factor of any online algorithm for paging:  Assume that there are k+1 pages in total.  In every time step, the adversary picks the page currently not in the cache (i.e. the page evicted in the previous step).  Thus the algorithm has a chache miss in every step, thus total costs of n.  The optimal algorithm has at most one cache miss per phase, thus at most n/k cache misses in total.  Thus n / (n/k) = k is a lowe bound.
 
-- No online algorithm is better than k-competitive. I.e. k is a lower bound for the competitive ratio of any online algorithm.
+*to-do* why does OPT make at most one miss per phase, as opposed to exactly one miss?
+
+- No randomized online algorithm for paging can have a better competitive factor than Har(k). Proof: *to-do* Script p 27. Depends on Yao's principle.
+
+- No online algorithm with advice using (at most) b Advice-bits can have a better competitive factor than k/2^b^ - O(1/n).
 
 Page replacement strategies:
 
@@ -4577,43 +5138,85 @@ Page replacement strategies:
 
 - _LFDT_ (_longest forward distance_) (or _OPT_ (_offline optimal_) or _MIN_): Evict page to be used farthest in the future. A greedy algorithm. Proofably optimal. Cost O(n/k) (n accesses). Proof: Only very k accesses there's an evict.
 
+- _RMark_: <<rmark>>. Has an expected competitive factor of 2Har(k), i.e. O(log k).
+
+*to-do* chapter 1.3 "An Upper Bound for Paging". I don't see an upper bound for the competive ratio of paging algorithms, only cost factors (ok, upper bounds for input dependent cost factors) for concrete algorithms.
+
+*to-do* Anyway, I cannot really make sense out of an upper bound for the competitive ratio for a problem. I always can design an arbitrarily stupid algorithm, no?
+
 Applications:
 
 - Cachings at all levels of the memory hierarchy
 
 
+<<rmark>>
+==== RMARK
+
+A randomized online algorithm for paging. Has an expected competitive factor of 2Har(k) (i.e. O(log k)), where Har() denotes the harmonic number.
+
+Algorithm: Mark every requested page.  If a requested page is not in the cache, evict any of the unmarked pages uniformily at random.  If there is no unmarked site which could be choosen, first unmark all pages in the cache.
+
+Proof: *to-do*
+
+*to-do* Claim is that expected competitive factor is 2Har(k), however proof is that 2Har(k) is `only' an upper bound, not even tight.
+
+
 [[ski_rental_problem]]
 === Ski rental problem
 
-*to-do*
+We do not know how many turns t there will be. In each turn, we either have to pay 1. Alternatively, in each turn we have the option of paying k and never have to pay anything again. The goal is to minimize the total cost.
+
+Figuratively put: We do not know on how many days we will go skiing, i.e. the end of the holliday is some external event.  Each day we either rent skies for 1, or we buy them for k.
+
+_Optimal (offline) algorithm_, which does know the number of turns t: If t > k, buy with a total cost of k, otherwise rent, with a total cost of t.
+
+_break even algorithm_: strictly (2-1/k)-competitive: Buy in turn k. Proof of 2-1/k being an upper bound on the input dependent cost factor: If there are less than k turns, the cost factor is 1. If there are k or more turns, the cost factor is (k-1+k)/k = 2-(1/k).
+
+_with advice_: strictly 1-competive with advice complexity 1. The advice bit directly tells whether or not to buy the skies in the first turn.
 
 
 [[k_server_problem]]
 === k-server problem
 
-The _k-server problem_ (or simply _k-server_) is an online minimization problem.  Given a metric space M(P, dist) and k _servers_ labeled s~1~, ..., s~k~.  A _configuration_ C~i~ ⊆ P, |C~i~| = k describes the positions of these servers in timestep T~i~.  C~1~ is called the _initial configuration_.  An input I = (x~1~, ..., x~n~) consists of n requests x~i~ ∈ P.  At the end of timestep T~i~, at least one server must be on x~i~.  The algorithm possibly must move one or more servers to _serve_ the request x~i~.  The _distance_ between two configurations C~i~ and C~j~ is given by the cost of a minimum-weight matching bewteen C~i~ and C~j~.  The goal ist to minimize ∑distance(C~i~,C~i-1~).
+The _k-server problem_ (or simply _k-server_) is an online minimization problem.  Given a metric space M(P, dist) and k _servers_ labeled s~1~, ..., s~k~.  A _configuration_ C~i~ ⊆ P, |C~i~| = k describes the positions of these servers in timestep T~i~.  C~1~ is called the _initial configuration_.  An input I = (x~1~, ..., x~n~) consists of n requests x~i~ ∈ P.  At the end of timestep T~i~, at least one server must be on x~i~.  The algorithm possibly must move one or more servers to _serve_ the request x~i~.  The _distance_ between two configurations C~i~ and C~j~ is given by the cost of a minimum-weight matching bewteen C~i~ and C~j~.  The goal ist to minimize cost(I) = ∑~1≤i≤n~distance(C~i~,C~i-1~), where I is an input and n = |I|.
 
 Recall observation: All complete undirected graphs that only have edge weights of 1 and 2 satisfy the triangle inequality.
 
 Observation: k-server is a generalization of the <<paging_problem>>.  The m pages in memory are represented by m vertices p~i~ of a complete undirected graph P where all edge weigths are 1.  Instead of k cache slots, we have k servers.
 
-An online algorithm for k-server is caled _lazy_ if it only moves a server in time steps where there is not yet a server located at the requested position. Moreover, such an algorithm never moves more than one server in one time step.  Due to the triangle inequality, any algorithm for k-server can be transforded into a lazy one.
+An online algorithm for k-server is caled _lazy_ if it only moves a server in time steps where there is not yet a server located at the requested position. Moreover, such an algorithm never moves more than one server in one time step.  Any c-competitive algorithm for k-server can be transforded into a lazy c-competitive algorithm.
 
 Altough it would be allowed to place multiple servers on the same point, it can be shown that this is never necessairy.
 
-Theorem: No deterministic online algorithm for k-server is (k-ε)-competitive on any metric space with at least k+1 points and for any ε>0.
+General statements:
 
-_k-Server conjecture_: There is a k-comptetive deterministic online algorithm for k-server. If the conjecture were true, this would mean that paging is as hard as k-server from a deterministic point of view. The best knownh onine algorithm for arbitrary metric spaces achieves a competitive ratio of 2k-1.
+- No deterministic online algorithm for k-server is better than k-competitive. Proof that there are metric spaces for which k is a lower bound: Direct consequence from the same lower bound for paging and the fact that paging can be reduced to k-server. General proof: out of scope.
+
+- _k-Server conjecture_: There is a k-comptetive deterministic online algorithm for k-server. If the conjecture were true, this would mean that paging is as hard as k-server from a deterministic point of view. The best known online algorithm for arbitrary metric spaces achieves a competitive ratio of 2k-1.
+
+- _k-server conjecture for randomized algorithms_: There is a randomized Θ(log k)-competitive in expectation algorithm for k-server.
+
+Solutions:
+
+- <<greedy_k_server>>: not competitive
+
+- <<double_coverage>>: k-competitive
 
 
+[[greedy_k_server]]
 ==== Greedy k-server algorithm
 
-The _greedy k-server algorithm_ which always moves the server closest to x~i~ on x~i~ is not competitive for k-server.  Proof: Consider in 1D space p~1~=0, p~2~=2, p~3~=3, k=2, and a C~1~ where s~1~ is on p1 and s~2~ on p3. The adversary makes the input I=(p~1~, p~2~, p~1~, p~2~, ...). The optimal strategy would be to move s~1~ to p~2~ and be done with it.  The greedy strategy eternaly moves s~2~ between p~2~ and p~3~.
+The _greedy k-server algorithm_ which always moves the server closest to x~i~ on x~i~ is not competitive for k-server.
+
+Proof: Consider in 1D space p~1~=0, p~2~=2, p~3~=3, k=2, and a C~1~ where s~1~ is on p1 and s~2~ on p3. The adversary makes the input I=(p~1~, p~2~, p~1~, p~2~, ...). The optimal strategy would be to move s~1~ to p~2~ and be done with it.  The greedy strategy eternaly moves s~2~ between p~2~ and p~3~.
 
 
+[[double_coverage]]
 ==== Double coverage (DC) algorithm solving k-server on the line
 
-We look at the metric space M~[0,1]~ = ([0,1], dist) where dist(x,y) = |x-y|.  The _double coverage algorithm_ is k-competitive for k-server.  It moves the server closest to x~i~ onto x~i~.  Say the server was to the right (left) of x~i~, and it was moved by distance d.  If there are also servers on the other side of x~i~, i.e. to the left (righ),  then move the server closest to x~i~ by distance d towards x~i~.  In case of any ties choose arbitrarily.
+We look at the metric space M~[0,1]~ = ([0,1], dist) where dist(x,y) = |x-y|.  The _double coverage algorithm_ is k-competitive for k-server.  It first moves the server closest to x~i~ onto x~i~.  Say the server was to the right (left) of x~i~, and it was moved by distance d.  Then if there is also any server on the other side of x~i~, i.e. to the left (righ),  then move the server closest to x~i~ by distance d towards x~i~.  In case of any ties choose arbitrarily.
+
+*to-do* proof using potential function
 
 References:
 
@@ -4625,34 +5228,27 @@ References:
 
 Online version of the <<knapsack>> problem, where the algorithm is presented an object in each timestep, and the algorithm has to make a final decision whether to pack it or not.
 
-Definition: The input I = {w~1~, ..., w~n~} is a sequence of weights, where w~i~≤1.  A feasible solution is a set of indicies S ⊆ {1, ..., n} such that ∑~i∈S~w~i~≤1.  The goal is to minimize the sum.  In each timestep T~i~ the algorithm must make a final decision whether to pack w~i~ or not.
+Definition: The input I = {w~1~, ..., w~n~} is a sequence of weights, where w~i~≤1.  A feasible solution is a set of indicies S ⊆ {1, ..., n} such that ∑~i∈S~w~i~≤1.  The goal is to maximize the sum.  In each timestep T~i~ the algorithm must make a final decision whether to pack w~i~ or not.
 
-References:
+General statements:
 
-- Book ``An Introduction to Online Computation: Determinism, Randomization, Advice'', chapter ``6 The Knapsack problem''
+- No deterministic online algorithm for the simple knapsack problem is better than strictly 1/ε-competitive, for any ε>0. See <<deterministic_online_knapsack>>.
 
+- Weights are upper bounded: w~i~ ≤ β ≤ 1: The greedy alg. has gain ≥ 1-β or it is optimal.  See <<deterministic_online_knapsack>>.
 
-==== Comparison of solutions
+- OPT has gain of at most 1/2: The greedy alg. is optimal. See <<deterministic_online_knapsack>>.
 
-References to theorems are with respect to book ``An Introduction to Online Computation: Determinism, Randomization, Advice''. There you find also the proofs.
+- Fewever than ⌊log~2~(n-1)⌋ advice bits: No o-Alg-w-A is better than strictly (2-ε)-competitive. (ε is choosen by adversary / determined by input). See <<advice_online_knapsack>>
 
-- Any deterministic algorithm (i.e 0 advice or random bits):
+- Any optimal online algorithm with advice has to use at least n-1 advice bits. See <<advice_online_knapsack>>.
 
-  * general: arbitrily high competitive ratio (theorem 6.1)
+concrete algorithms:
 
-  * w~i~ ≤ β ≤ 1: gain ≥ 1-β or it's optimal (theorem 6.2)
+- with one advice bit: algorithm <<KN_ONE>> is strictly two competitive
 
-- With advice:
+- with O(log n) advice bits: <<KN_LOG>> is strictly (1+ε)-competitive
 
-  * One advice bit: strictly two competitive (theorem 6.6, <<KN_ONE>>)
-
-  * Fewever than log~2~(n-1) advice bits: No o-Alg-w-A is better than strictly (2-ε)-competitive. (theorem 6.7)
-
-  * O(log n) advice bits: Strictly (1+ε)-competitive  (theorem 6.8, <<KN_LOG>>)
-
-  * Any optimal online algorithm with advice has to use at least n-1 advice bits (theorem 6.5)
-
-  * n advice bits: (trivially) optimal (theorem 6.4)
+- n advice bits: the trivial algorithm is optimal.  The i-th advice bit tells wheter or not to pack the i-th item.
 
 --------------------------------------------------
  c-competitive
@@ -4667,31 +5263,58 @@ References to theorems are with respect to book ``An Introduction to Online Comp
       |XXXXXXXXXXXXXX
       |XXXXXXXXXXXXXX
  1+ε  +XXXXXXXXXXXXXX o------------------- KNLOG
-opt=1 +XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXo--- trivial
+opt=1 +XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX o--- trivial
       +++-----------+-+--------------++------>
        01  log2(n-1)   O(log n)   n-1  n  advice bits
 --------------------------------------------------
 
+References:
 
+- Book ``An Introduction to Online Computation: Determinism, Randomization, Advice'', chapter ``6 The Knapsack problem''
+
+
+[[deterministic_online_knapsack]]
 ==== Deterministic Algorithms
 
-No deterministic online algorithm for the simple knapsack problem is better than strictly 1/ε competitive, for any ε>0.
+No deterministic online algorithm for the simple knapsack problem is better than strictly 1/ε competitive, for any ε>0. (theorem 6.1 / Satz 5.2 in book/script)
 
 Proof: The adversary first offers object with weight ε. Case I: ALG packs it. Adversary now offers an object of weight 1, which doesn't fit into the knapsack. The OPT would have been to just pack the object with weight 1. The input dependent cost factor is 1/ε. Case II: ALG doesn't pack it. Adversary now doesn't offer any more objects.  The gain of ALG is 0, the gain of OPT is ε.
+
+*to-do* But this proof proofs that no deterministic algorithm is competive, which is worse than saying no deterministic is better than strictly 1/ε competitive.
+
+Weights are upper bounded: w~i~ ≤ β ≤ 1: The greedy alg has gain ≥ 1-β or it is optimal (theorem 6.2 / Satz 5.3 in book/script)
+
+Proof: If sum of all weights is less or equal to 1, the greedy alg is optimal.  Otherwise, the gain is at least 1-β, because the space left is larger than β, and no weight is smaller than β, so any weight could and would be packed.
+
+OPT has gain of at most 1/2: The greedy alg. is optimal. (Satz 5.4)
 
 References:
 
 - Book ``An Introduction to Online Computation: Determinism, Randomization, Advice'', chapter ``6.2 Deterministic Algorithms''
 
 
+[[advice_online_knapsack]]
+==== Algorithms with advice
+
+Any optimal online algorithm with advice has to use at least n-1 advice bits (theorem 6.5 / satz 5.6)
+
+Proof: We construct a class of inputs (1/2, 1/4, ..., 1/2^n-1^, w), where w = 1 - ∑~1≤i≤n-1~b~i~2^-1^ and where b is some binary string of length n-1. For example if b = 0110, w = 1 - (1/4 + 1/8), which means that an optimal solution would pack the last item (5th) with weight w, the first item with weight 1/2, and the 4-th item with weight 1/16, reaching a gain of 1. *to-do*
+
+General proof idea: Proof a lower bound b for the number of advice bits that any algorithm must read to be able to be optimal: *to-do*
+
+Fewever than ⌊log~2~(n-1)⌋ advice bits: No o-Alg-w-A is better than strictly (2-ε)-competitive. (ε is choosen by adversary / determined by input) (theorem 6.7 / Satz 5.8)
+
+Proof: Let δ = ε / (4 - 2ε).  We look at the following class 𝓘 of inputs, all of which are n requests long.  The class contains n-1 inputs, i.e. |𝓘| = n - 1.  Input I~j~, 1 ≤ j ≤ n-1 is of the form 1/2+δ, ..., 1/2+δ^j^ (the last of the sequence being the j-th item), plus (the (j+1)-th item) 1/2-δ^j^, plus (n-(j+1))-times 1/2+δ.  The optimum is to pack the j-th and the (j+1)-th item, resulting in a gain of 1.  Since |𝓘| = n - 1, our less than ⌊log~2~(n-1)⌋ advice bits are not sufficient to distinguish all inputs.  Due to the pigeon-hole principle, at least two inputs of 𝓘 share the same advice string, that is the same deterministic algorithm.  Let I~i~ and I~j~ denote these two inputs. WLOG assume i < j.  Up to the i-th item, the two inputs are identical. Case 1: ALG packs i-th item.  It can be optimal for input I~i~. However given input I~j~ he can't pack any other item, so the i-th item remains the only one packed.  Thus 1+δ^j^ is is the best gain guaranteable for both inputs. Case 2: ALG doesn't pack the i-th item. It can be optimal for I~j~. However given input I~i~, the best possible gain is 1/2+δ.  Thus over both cases, the best guaranteeable gain is 1/2+δ.  Recall that the optimum has gain of 1.  Thus the an upper bound for the competitive factor is 1/(1/2+δ) = 2 - ε.
+
+
 [[KN_ONE]]
 ==== KN_ONE
 
-An online algorithm with advice using 1 advice bit. The advice bit tells whether all weights are smaller or equal than 1/2.  If they all are, a greedy strategy is used.  If there is at least one larger than 1/2, the algorithm waits until such an object is offered, packs it, and then does anything.
+An online algorithm with advice using 1 advice bit. KN_ONE is strictly 2-comptetitive.
 
-KN_ONE is strictly two comptetitive
+Algorithm: The advice bit tells whether all weights are smaller or equal than 1/2.  If they all are, a greedy strategy is used.  If there is at least one larger than 1/2, the algorithm waits until such an object is offered, packs it, and then does anything.
 
-Proof: Follows from theorem 6.2, see overview.
+Proof: In any case, OPT's gain is at most 1. Case 1: There is a weight larger than 1/2. Alg can pack it, thus algorithms's gain is at least 1/2.  Case 2: Weights are upper bounded by 1/2.  By <<deterministic_online_knapsack>>, we know that algorithm's gain is at least 1/2. Thus 1/(1/2) = 2 is an upper bound on OPT/gain(ALG(I)) for all inputs I.
 
 References:
 
@@ -4701,7 +5324,37 @@ References:
 [[KN_LOG]]
 ==== KN_LOG
 
-*to-do*
+An online algorithm with advice using O(log n) advice bit. KN_LOG is strictly (1+ε)-comptetitive.
+
+Algorithm: Let δ = ε / (3 + 3ε).  Note that the algorithm knows ε.
+
+1) The first advice bit tells whether δ is an upper bound on the weights.  If δ is an upper bound, use a greedy strategy and be done.
+
+2) Otherwise, the oracle partitions the optimal solution into heavy weights (at least δ) and light weights (less than δ).  The advice string contains the number of heavy weights and their indicies.  Thus the algorithm can pack all of them.
+
+3) The advice string also contains an positive integer k.  The algorithm uses kδ as threshold for packing light weights: the sum of packed light weights must not exceed kδ.
+
+Analysis competive factor:
+
+1) By <<deterministic_online_knapsack>> we know that the gain is at least 1-δ, thus the competitive factor is at most 1/(1-δ) = ... ≤ 1 + ε.
+
+3.1) If OPT does not pack any light weigts, the algorithm is optimal.
+
+3.2) Otherwise, if OPT has a gain of at most 1-δ, it means that OPT packs all light weigts. The orcale sets k = ⌈1/δ⌉, and the algorithm is optimal.
+
+3.3) Otherwise, we have now the online knapsack problem with a capacity kδ and weights upper bounded by δ. By <<deterministic_online_knapsack>> the gain is at least kδ-δ. Let h denote the sum of heavy weights in OPT, and likeweise l the sum of light weights.  Thus OPT's gain is h+l. *to-do* why is kδ-δ ≥ l-2δ? In my understanding I have kδ ≥ l
+
+Total: The competitive factor is at most 1+ε.
+
+Analysis number of advice bits:
+
+1) 1 bit
+
+2, 3) There can be at most 1/δ light weights in the backpack, thus k ≤ ⌈1/δ⌉. Also there can't be more than 1/δ heavy weights in the backpack, because else the capacity would be exceeded.  Thus we need 2·⌈log~2~(1/δ)⌉ advice bits. We do not need self delimited bit strings, since the algorithm can calculate the upper bound ⌈1/δ⌉ of these two values.
+
+2, 3) Each index needs ⌈log~2~(n)⌉ bits.  The algorithm doesn't know how many bits each index needs, so the oracle has to tell him using 2⌈log~2~⌈log~2~(n)⌉⌉ bits.  The factor 2 is due to the fact that we have to use a self delimiting bit string.
+
+Total) Overall it's O(log n).
 
 References:
 
@@ -4731,21 +5384,22 @@ The _degree_ (aka _valency_) d~G~(v)=d(v) of a vertex v in an undirected graph i
 A _simple graph_ is an undirected graph that has no loops (mind: a loop is not a cycle) and no parallel edges.  A _trivial graph_ is a graph of order 0 or 1.  A _multigraph_ (or _general graph_) is a graph that is not simple.  Alternatively: a multigraph is allowed to have parallel edges.  A _sparse_ graph is one for which +|E|+ is much less than ++|V|^2^++.  A _dense_ graph is one for which +|E|+ is close to ++|V|^2^++.  An _empty graph_ (or _edgeless graph_) has no edges.  The term _null graph_ is ambigously used to either denote the graph ∅=(∅,∅) with no vertices and no edges, or as a synononym to empty graph.  The _singleton graph_ is the empty graph with one vertice.
 
 [[vertex_cover]]
-A _vertex cover_ is a set of vertices such that each edge of the graph is incident to at least one vertex of the set.  See also <<min_vertex_cover_problem>>.  An _independent set_ (aka _stable set_) is a set of vertices, no two of which are adjacent.  Given a simple Graph G, it's _complement_ graph has the same vertices, but only an edge between any two vertices iff they are not adjacent in G.
+A _vertex cover_ is a set of vertices such that each edge of the graph is incident to at least one vertex of the set.  See also <<vertex_cover_problem>>.  An _independent set_ (aka _stable set_) is a set of vertices, no two of which are adjacent.  Given a simple Graph G, it's _complement_ graph has the same vertices, but only an edge between any two vertices iff they are not adjacent in G.
 
 A _walk_ is a sequence of consecutive edges.  A _closed walk_ is one where the first and last vertices are the same, an _open walk_ is one where they are different.  A _trail_ is a walk with distinct edges.  A _circuit_ is a closed trail.  A _path_ is a walk with distinct vertices (which implies distinct edges), except possibly the first and the last.  Some authors call that a _simple path_, and use the term path as a synonym to walk.  Given a subgraph H of graph G, we call a path P an _H-path_ if it meets H only exactly at its two end vertices, i.e. no other common vertices, and no common edges.  A _cycle_ is a path in which the first and last vertex are adjacent.  An _open path_ is a path in which the first and last vertex are not adjacent.  Two paths are _vertex-independent_ (aka _vertex-disjoint_) if they do not have any vertices in common (*to-do* some sources are clear that they only mean inner vertices, other sources seem to include also end vertices).  Two paths are _edge-independent_ (aka _edge disjoint_) if they do not have any edges in common.  The _path weight_ is the sum of the weights of its constituent edges.  The _length_ of a path is sometimes defined as the number of edges on the path or as synonym to path weight.  The [[shortest_path]]_shortest path_ from vertex u to v is any path with minimal path weight.  See also <<shortest_path_problem>>.  The _shortest path weight_ is the path weight of the shortest path; defined to be infinite if there is no path, and often defined as -infinite it contains a negative-weight cycle.  Any sub path of a shortest path is itself a shortest path.  The _distance_ between two vertices is the length of the shortest path.  A _(pre/in/post)order tree walk_ does the key action with the current node's payload before/between/after recursively calling the children.
 
 summary:
 
 walk = sequence of consecutive edges +
-trail = walk w. distinct edges +
+trail = walk with distinct edges +
 circuit = closed trail +
 Eulerian trail/path/walk = trail visiting all edges +
 Eulerian cycle/circuit/tour = circuit visiting all edges +
-path = walk w. distinct vertices, except possibly first & last +
+path = walk with distinct vertices, except possibly first & last +
 cycle = closed path +
 Hamiltonian path = path visiting all vertices +
-Hamiltonian cycle/circuit = cycle visiting all vertices
+Hamiltonian cycle/circuit = cycle visiting all vertices +
+TSP = Hamiltonian cycle with minimal weight
 
 A graph is _edge-maximal_ with a given graph property if G has the property, but no Graph resulting from adding an (non-parallel) edge does.
 
@@ -5823,6 +6477,10 @@ In an weighted graph (directed or undirected), the TSP is finding the hamiltonia
 
 TSP is a special case of the travelling purchaser problem.  See also the Hamiltonian Cycle Problem which asks for any Hamiltonian cycle.
 
+Variations:
+
+__Metric TSP (△-TSP or delta-TSP)__: The edge weigths in the graph satisfy the the triangle inequality. w(p~1~, p~3~) ≤ w(p~1~, p~2~) + w(p~2~, p~3~) for all three diffrent vertices (points) p~1~, p~2~, p~3~.
+
 Algorithms:
 
 - Exact: Held–Karp, a dynamic programming algorithm.
@@ -5831,12 +6489,61 @@ Algorithms:
 
 - Exact: ... linear programming ...
 
-- Approximations: *to-do*
+- Approximation, △-TSP: <<spanningtree_metric_tsp>>: Consistent O(n^2^)-time 2-approx. algorithm
+
+- Approximation, △-TSP: <<christofides>>: Consistent O(n^4^)-time 1.5-approx. algorithm.  Best known approximation ratio for △-TSP.
 
 Applications: *to-do*
 
 
+[[spanningtree_metric_tsp]]
+==== Spanning tree alg. for metric TSP
+
+Given a complete graph with edge weights satisfying the triangle inequality.  The presented algorithm is a consistent polynomial-time 2-approx. algorithm for △-TSP.
+
+Algorithm: Construct a minimal spanning tree (MST) T according to edge weights. Perform a DFS in T starting at an arbitrary vertex. The order in which the DFS encounters unseen vertices defines the output.  Note that the output starts with the choosen root vertex.  At the end, append the choosen root vertex to the output again to complete the cycle.
+
+Analysis: Is a consistent 2-approximation algorithm with O(E) = O(n²) time complexity.
+
+Proof of complexity: Both finding the MST and the DFS are O(E) = O(n²), thus the overall time complexity is O(E) = O(n²).
+
+Proof of consistency:  The graph is complete, and the vertex sequence produced by the DFS in the MST contains every vertex.
+
+Proof of 2 being an upper bound for the approximation ratio: Let H~opt~ denote an optimal Hamiltonian cycle, let H denote the returned Hamiltonian cycle, and let cost be a function summing up all edge weights of its argument.  Observe that cost(T) ≤ cost(H~opt~) because T is a minimum spanning tree, and the deletion of any edge of H~opt~ results in a spanning tree.  Let E be the Euler tour of T.  Every edge of T is traversed exactly twice, once in every direction.  Thus cost(E) = 2·cost(T).  It can be shown that E can be stepwise transformed to H.  Beginning at the start of E, each time we encounter a subsequence (u, v, w) where v was already encountered, we shorten that subsequence to (u, w).  Due to the triangle inequality, no transformation increases the sum of edge weigths, thus cost(H) ≤ cost(E).  See also <<christofides>>.  Putting all together we get cost(H) ≤ cost(E) = 2·cost(T) ≤ 2·cost(H~opt~).
+
+Proof that 2 is a tight bound:  To proof the upper bound of 2 is tight, it suffices to present at least one input where the algorithm proofably has an approximation ratio of as `bad' as 2. We choose the following complete graph with an odd number of vertices.  All edge weights are 1, except for {v~i+1~, v~i~} with i ∈ {1, ..., n}, which are 2. Imagine the complete graph as all vertices being placed on a circle. Then the edges on the circumference from v~2~ to v~n~ have weight 2.  All other edges, notably including {v~1~, v~2~} and {v~1~, v~n~} which also lie on the circumference, have weight 1.  The algorithm might not produce the following T or H, but the possibility cannot be excluded.  Let T be the MST produced by connecting every vertex with v~1~; all edges of T have weight one.  Let H be the path given by the circumference; all edges of H have weight 2 except {v~1~, v~2~} and {v~1~, v~n~} which have weight 1. Thus cost(H) = (n-2)·2 + 2·1 = 2n - 2.  It can be shown by giving an example (e.g. for a small n) that H~opt~ only uses one edge with weight 2. Thus cost(H~opt~) = (n-1)·1 + 2 = n + 1. The approximation ratio then is cost(H) / cost(H~opt~) = (2n-2) / (n+1), which approaches 2 from below with growing n.
+
+Difference to Christofides: The two algorithms are pretty smilar. See corresponding paragraph in <<christofedes>>.
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter "4.3.5 Trabeling Salesperson Problem and Stability of Approxmiation", Algorithm 4.3.5.1 p. 283.
+
+
+[[christofides]]
+==== Christofides
+
+Given a complete graph G = (V, E) with edge weights satisfying the triangle inequality.  The presented algorithm is a consistent O(n^4^)-time 1.5-approx. algorithm for △-TSP.
+
+Algorithm: Compute a minimum spanning tree (MST) denoted T.  Let S be the set of vertices having an odd degree in T and compute a minimum-weight perfect matching M of S in G.  Compute an Eulerian tour ET in the multigraph Gʹ = (V, E(T) ∪ M).  Shorten ET to H by removing repeated vertices. Output H.
+
+Analysis: Christofides is a consistent O(n^4^)-time 1.5-approx. algorithm.
+
+Proof of time complexity: Both the MST and S can be computed in O(E) = O(n²). A minimum-weight perfect matching in a graph satisfying the triangle inequality can be computed in O(E·n²) = O(n^4^). Gʹ can again be computed in O(n²).  The Eulerian tour can be computed in O(n). Thus overall O(n^4^).
+
+Proof of 1.5 being an upper bound for the approximation ratio: Due to the triangle inequality, cost(H) ≤ cost(ET) = cost(T) + cost(M). As in <<spanningtree_metric_tsp>>, cost(T) ≤ cost(H~opt~). WLOG one can write H~opt~ = {s~1~, ..., s~2~, ..., s~m~, ..., s~1~} where s~i~ are vertices of S.  Consider the following two complementary perfect matchings of S in G: M~1~ = {{s~1~, s~2~}, {s~3~, s~4~}, ...} and M~2~ = {{s~2~, s~3~}, {s~4~, s~5~}, ...}.  Due to the triangle inequality, cost(H~opt~) ≤ cost(M~1~) + cost(M~2~).  Since M~1~ and M~2~ are perfect matchings of S in G, and M is a minimal perfect matching of S in G, we get cost(M) ≤ cost(M~1~) and cost(M) ≤ cost(M~2~).  Putting the last two together, cost(M) ≤ 1/2 cost(H~opt~).  Putting everything together cost(H) ≤ cost(T) + cost(M) ≤ cost(H~opt~) + 1/2 cost(H~opt~) = 3/2 cost(H~opt~).
+
+Proof of 1.5 being an tight upper bound: To proof the upper bound of 1.5 is tight, it suffices to present at least one input where the algorithm proofably has an approximation ratio of as `bad' as 1.5. *to-do*
+
+Difference to the <<spanningtree_metric_tsp>> algorithm: Logically the difference is only in what graph Gʹ the Euler Tour (ET) is computed.  In the greedy algorithm Gʹ is given by doubling each edge of T.  In Christofides Gʹ = (V, E(T) ∪ M).  Thus Christofides' ET edges are a subset of greedy's ET edges, and thus Christofides ET cost is smaller.  Note that in the greedy algorithm ET is not actually computed; shortening ET to H happens implicitly.
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter "4.3.5 Trabeling Salesperson Problem and Stability of Approxmiation", Algorithm 4.3.5.4 p. 288.
+
+
 === Travelling purchaser problem
+
 *to-do*
 
 
@@ -5945,9 +6652,10 @@ Two vertices v and u of an undirected graph are _connected_ if they are linked b
 
 Contracting each strongly connected component of a directed graph G to a single vertex is called the _condensation_ of G. The condensation of G is a DAG and also called _kernel DAG_ (or _component graph_).
 
-A _cut_ is a partition of V.  A _vertex cut_ (aka _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  A set of edges _respects_ a cut if no edge in that set croses the cut.  An edge crossing a cut is a _light edge_ if its weight is the minimum of any edge crossing the cut.  A graph is called _k-connected_ if k<|G| and G remains connected if k-1 vertices (or less of course) are removed.  The greatest k such that a graph G is k-connected is called the _connectivity_ (or _vertex connectivity_) κ(G) of G.  In other word, it is the size of the minimal vertex cut unless it's a complete graph, in which case κ(G) = |G|.  Is the vertex connectivity 1, the single vertex of the vertex cut is called _articulation point_ (aka _cut point_, _separating vertex_ or _cut vertex_).  2-connectivity is also called _biconnectivity_, and 3-connectivity is also called _triconnectivity_.
+[[cut]]
+A _cut_ is a partition of V.  A _vertex cut_ (aka _separating set_) of a connected graph G is a set of vertices whose removal renders G disconnected.  A set of edges _respects_ a cut if no edge in that set croses the cut.  An edge crossing a cut is a _light edge_ if its weight is the minimum of any edge crossing the cut.  A graph is called _k-connected_ if k<|G| and G remains connected if k-1 vertices (or less of course) are removed.  The greatest k such that a graph G is k-connected is called the _connectivity_ (or _vertex connectivity_) κ(G) of G.  In other word, it is the size of the minimal vertex cut unless it's a complete graph, in which case κ(G) = |G|.  Is the vertex connectivity 1, the single vertex of the vertex cut is called _articulation point_ (aka _cut point_, _separating vertex_ or _cut vertex_).  2-connectivity is also called _biconnectivity_, and 3-connectivity is also called _triconnectivity_.  See also <<minimum_cut>>.
 
-The removal of a _disconnecting set_ of edges disconnects the graph.  Partition the graph in two set of vertexes; an _edge cut_ is an edge set where each edge as an endpoint in one partition and the other endpoint in the other partition.  A graph is _k-edge-connected_ if every disconnecting set has at least k edges.  The greatest k such that a graph is k-edge-connected is called the _edge connectivity_ κʹ(G) of G.  In other words, is the minimum size of a disconnecting set.  A _bridge_ (aka _cut-edge_) is an edge in a connected (sub)graph whose removal would disconnect the (sub)graph.
+The removal of a _disconnecting set_ of edges disconnects the graph.  Partition the graph in two set of vertexes; an _edge cut_ is an edge set where each edge as an endpoint in one partition and the other endpoint in the other partition.  A graph is _k-edge-connected_ if every disconnecting set has at least k edges.  The greatest k such that a graph is k-edge-connected is called the _edge connectivity_ κʹ(G) of G.  In other words, is the minimum size of a disconnecting set.  A _bridge_ (aka _cut-edge_) is an edge in a connected (sub)graph whose removal would disconnect the (sub)graph. See also <<minimum_cut>>.
 
 A _complete graph_ with n vertices, denoted K~n~, is a simple undirected graph in which every pair of distinct vertices is connected by a unique edge.  A _tournament_ is a directed graph obtained by assigning a direction for each edge in an complete graph.  A _clique_ in an undirected graph is a subset of its vertices such that every two vertices in the subset are connected by an edge.  A _block_ is a maximal connected subgraph that has no cut-vertex.
 
@@ -6068,6 +6776,82 @@ References:
 - https://www.slideshare.net/TraianRebedea/algorithm-design-and-complexity-course-8, starting at slide 38
 
 
+[[minimum_cut]]
+==== Minimum cut problem
+
+A _minimum cut_ of a graph is a <<cut>> that is minimal in some sense.
+
+_minimum number of edges_ / edge connectivity: Recall that a the minimal cut with respect to number of edges crossing the cut defines the graph's edge connectivity.  The best known deterministic algorithm runs in O(n³). The optimum is O(n²), because any algorithm must at least look at each edge.
+
+
+[[kargers_algorithm]]
+===== Karger's algorithm
+
+A O(n²) time randomized approximation algorithm for determinig a minimal cut, with respect to number of edges crossing the cut, in a multigraph.  Finds the optimal solution with a probability of at least 2 / (n(n-1)).
+
+Given a connected multigraph G = (V, E, c), where c : E → ℕ^>0^ determines the multiplicity of the edges.  The cost function sums the edges crossing the cut.  The goal is to minimize that cost.
+
+In the following, contracting an edge means merging its two incident vertices into one vertex, while deleting all edges between the two original vertices, and keeping all other edges of the graph.
+
+Algorithm: While the multigraph has more more than two vertices, choose an edge uniformily at random and contract it. Thus at the end, two vertices remain, and the number of edges between them is the output.
+
+Proof of lower bound on finding optimal solution: Let k denote the cost of the optimal solution.  Then every vertex has a degree of at least k.  If there was a vertex with a lower degree, we could make a cut extracting only that vertex, and the cost of the cut would be lower than k, but by definition k is the cost of the minimal cut.  The graph thus has at least nk/2 edges.  Observe that the algorithm only computes the optimal solution if it does not contract an edge of the optimal solution.  There are n-2 contractions.  With mostly only math we arrive at the given bound *to-do* provide more details
+
+success amplification: When using a naive success amplification approach and repeatedly executing <<kargers_algorithm>>, and taking the best output among all runs, one can show that to reach a constant lower bound (1-1/e) for the probability of finding the optimal solution, we have to run it O(n²) times.  Thus the overall running time becomes O(n^4^), but the best known deterministic algorithms finds the optimal solution with certainty in O(n³).
+
+*to-do* link to detran and/or reptree
+
+*to-do* why not contract the edge with the highest multiciply?
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, algorithm CONTRACTION p 156
+
+
+[[detran]]
+===== Detran
+
+An O(n^8/3^)-time randomized approximation algorithm based on <<kargers_algorithm>>. It finds an optimal solution with a probability of at least 1-1/e.
+
+Key idea: Observe that Karger's algorithm makes a mistake (contracting an edge which is part of the optimal solution, resulting in a non-optimal solution) with a small possibility when there are many edges to choose from, i.e. in the beginning, and with a large possibility when there are few edges to choose from, i.e. towards the end.  Thus we can decrease the overall error probability if we replace those parts with the highest error probability with an deterministic algorithm.
+
+Base algorithm (detran): Use Karger's algorithm to shrink the graph down to n^2/3^ vertices, and then continue with a deterministic algorithm (which is O(n³)). n^2/3^ is choosen as size threshold because it optimizes the running time of the overall algorithm.
+
+repdetran: Repeat detran n^4/3^ times. The error (a feasible but not optimal solution) probability is upper bounded by 1/e.
+
+Proof: *to-do*
+
+Success amplification: If we yet again repeat repdetran multiple times, we can make the error probability probability low. Since repdetran has a constant upper bound on the error probability, the overall error probability decreases exponentially. Followingly still in O(n^8/3^) we can make the error probability arbitrarily close to 0.
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, algorithm DETRAN p 160
+
+
+[[karger_stein_algorithm]]
+===== Karger-Stein algorithm
+
+An O(n² log³ n)-time randomized approximation algorithm based on <<kargers_algorithm>>. It finds an optimal solution with probablity of a at least 1-O(1/n).
+
+Idea: Repeat the parts with high error probability, i.e. contractions in small graphs, more often than the parts with low error probability, i.e. contractions in large graphs. Visualize the recursion tree of the following algorithm.  Each edge of the tree is a sequence of multiple contractions.  Near the top, i.e. few nodes on a level, are large graphs, and near the bottom, i.e. many nodes on a level, are small graphs. Also, the edges near the top represent more contractions than the edges near the bottom.
+
+Base algorithm: An O(n² log n)-time randomized approximation algorithm based on <<kargers_algorithm>>. It finds an optimal solution with a probability of at least Θ(1/log(n)). Is a recursive algorithm. The base case is n≤6, where we use a deterministic algorithm. Otherwise, do independently two times: Use contractions as in Karger's algorithm to reduce input graph by a factor of about 1/√2 (more precisely to new size ⌈1+n/√2⌉), and then recurse with the smaller graph. Return the better of the two solutions.
+
+Repeating the base algorithm: Repeating it O(log n) times provides a constant upper bound on the error probability. Repeating it O(log² n) times makes the upper bound on the error probability even O(1/n), i.e. a function tending to 0 with growing n.
+
+*to-do* understand why the number of required repetitions equals the reciproce value of the error probability. put that to some more general place
+
+*to-do* understand why we repeat O(log² n) times. O(log n) times is already constant, i.e. more repetitions but still O(log n) already brings us arbitrarily close to 0, as stated in many other places in the book.
+
+proof of time complexity of base algorithm: *to-do*
+
+proof of time lower bound on sucess probability of base algorithm: *to-do*
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, algorithm REPTREE p 164
+
+
 [[graph_coloring]]
 === Graph coloring
 
@@ -6078,36 +6862,63 @@ regarding vertices (edges): Coloring the vertices (edges) of a graph such that n
 Relation to four color problem?
 
 
+=== Vertex cover problem
+
+Given a graph G = (V, E), a <<vertex_cover>> is a set S of vertices such that each edge of G is incident to at least one vertex of S.
+
 [[min_vertex_cover_problem]]
-=== Minimum vertex cover problem
+_Minimum vertex cover problem_: The goal is to minimize |S|. Is a NP-complete optimization problem and was one of Karp's 21 NP-complete problems.
 
-Is NP-complete and was one of Karp's 21 NP-complete problems.
+_Weighted minimum vertex cover problem_:  Each vertex has a non-zero positive weight, and the goal is to minimize the sum of the weights in S.  Does not allow any PTAS (assumin P ≠ NP).
 
-*to-do*
+_Expressed as O-1 LP_. x~i~ denotes whether or not i-th vertex is in S. c~i~ denotes the vertices weigths:
 
-*to-do* link to <<vertex_cover>>
+minimize: ∑c~i~x~i~ +
+subject to: x~i~ + x~j~ ≥ 1 ∀ {v~i~, v~j~} ∈ E (each edge must be incident)
 
 *to-do* relation to <<graph_coloring>>?
+
+Solutions:
+
+Minimum vertex cover problem, approximation: <<2_approx_min_vertex_cover>> in O(E) time.
+
+Weighted minimum vertex cover problem, approximation: <<2_approx_weighted_min_vertex_cover>> in *to-do* time.
 
 References:
 
 - Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter cover problems p 106 and p 1.07 (weighted version)
 
 
+[[2_approx_min_vertex_cover]]
 ==== 2-approx algorithm for minimum vertex cover
 
-*to-do*
+Algorithm: Find a maximal matching M by repeatedly greedely taking any feasible edge.  Return the set of endpoints of the edges in M.
 
-Analysis: O(n^3/2^)
+Analysis: A 2-approx. alg. using O(E)-time
+
+Proof of O(n^3/2^) time complexity: *to-do*
+
+Proof of 2 being an upper bound on the approximation ratio: For every edge e = (u,v) in M, u or v must be part of an optimal vertex cover, else e woudn't be covered.  That is, an optimal cover contains at least one endpoint of each edge in M.  Thus the returned vertex cover is at most 2 times larger than the optimal vertex cover.
 
 References:
 
 - Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``4.3.2 Cover Problems, Greedy Method, and Relaxation to Linear Programming'', algorithm 4.3.2.1 p 262
 
+- Book ``Randomisierte Algorithm -- Methoden zum entwurf von zufallsgesteurten Algorithm'', Beispiel 2.5.67 p 97
 
+
+[[2_approx_weighted_min_vertex_cover]]
 ==== 2-approx algorithm for weighted minimum vertex cover
 
-*to-do*
+Algorithm: Express problem as 0-1 LP and solve that. Round the output to {0,1}, whichever is closer.
+
+Analysis: Is a polynomial 2-approx. alg.
+
+Proof output is feasible: Recall constrained of 0-1 LP: x~i~ + x~j~ ≥ 1 ∀ {v~i~, v~j~} ∈ E, which is respected by the LP solution.  Thus x~i~≥0.5 or x~j~≥0.5, i.e. at least one of the vertices {x~i~, x~j~} is in S, i.e. S is a feasible solution.
+
+Proof of 2 being upper bound on approximation ratio: Let OPT denote the optimal (i.e. minimal) cost (i.e. sum of weights) of the original problem and analogously OPT~LP~ the cost of the LP problem.  Since the LP problem has less constraints, OPT ≥ OPT~LP~. Via some rather simple steps and using the previous observation one can show that cost(S) ≤ 2 OPT.
+
+Details: cost(S) = ∑~i∈S~c~i~ = ∑~vi≥0.5~c~i~ ≤ ∑~vi≥0.5~2x~i~c~i~ ≤ 2 ∑~i≤n~x~i~c~i~ = 2 OPT~LP~ ≤ 2 OPT
 
 References:
 
@@ -6731,6 +7542,147 @@ Analysis: Runs in O(n^α^), assuming multiplications can be done in O(n^α^).  I
 References:
 
 - MIT course 6.006 "Introduction to Algorithms", Fall 2011, Lecture 12. Square Roots, Newton's Method: https://www.youtube.com/watch?v=2YeJ-5UAke8&t=1400s
+
+
+[[matrix_multiplication]]
+=== Matrix multiplication
+
+Solutions:
+
+- Naive: O(n³)
+
+- Strassen: O(n^log~2~7^) ≈ O(n^2.807^)
+
+- best known: ≈ O(n^2.376^), allegedly not practical
+
+
+[[verification_of_matrix_multiplication]]
+=== Verification of matrix multiplication
+
+Given three n ⨯ n matrices A, B and C, verify whether A·B = C.
+
+Solutions:
+
+- Compute product AB and compare with C: Naive O(n³), best known O(n^2.376^), see <<matrix_multiplication>>
+
+- <<freivalds>>: A randomized O(n²)-time 1MC algorithm with an error probability at most 1/2.
+
+
+[[freivalds]]
+==== Freivalds
+
+Freivalds is a randomized O(n²)-time 1MC algorithm for verifying matrix multiplication with an error probability at most 1/2.  Being an 1MC, it may make an error when being given AB ≠ C.
+
+Given are three n ⨯ n matrices A, B and C over a field 𝔽. Let D = AB - C and δ = Dα
+
+Algorithm:  Choosue uniformly a n ⨯ 1 vector α = {0, 1}^n^ at random.  Compute β = A(Bα) and γ = Cα. Return β == γ.
+
+Proof, case AB = C (D=0): A(Bα) = Cα for all α. Thus the error probability is 0.  I.e. all α are witnesses of the fact AB = C.
+
+Proof, case AB ≠ C (D≠0) and δ ≠ 0: α is a witness of fact D ≠ 0. All is good.
+
+Proof, case AB ≠ C (D≠0) and δ = 0: α is not a witness of fact D ≠ 0. Bad luck. For at most how many α can this case happen?  In the worst case only one row of D has non-zero elements.  If there are more rows with non-zero elements, then there are even less non-witnesses.  Say the i-th row has non-zero elements: δ~i~ = 0 = ∑~j~d~ij~α~j~.  WLOG assume at least d~i1~ is non-zero. α~1~ = -1/d~i1~ · ∑~j≥2~d~ij~α~j~, i.e. one element of α is determined by all the others.  Thus at most 2^n-1^ α are non-witnesses.
+
+*to-do* why doesn't this count as `abundance of witnesses'? I see that here we can say that we choose two `hash functions' from a family, compute two hash values (fingerprints) of two `big' objects (C and (A,B)) and then compare these two hash values.
+
+*to-do* I fail to understand why at most 2^n-1^ α are non-witnesses, opposed to exactly 2^n-1^.
+
+References:
+
+- Book "Design and Analysis of Randomized Algorithms", chapter "4.4 Verification of Matrix Multiplication", algorithm freivalds p 142
+
+
+[[equivalence_of_polynomials]]
+=== Equivalence of polynomials
+
+Given a prime p and two polynomials P~1~ and P~2~ over Field ℤ~p~ in n ∈ ℕ~>0~ variables x~1~, ..., x~n~, with a maximal degree of d ∈ ℕ.  Return whether the two polynomials are equivalent over ℤ~p~.  m is the length of the representation of the input (P~1~, P~2~).
+
+Two polynomials P~1~ and P~2~ are equivalent over ℤ~p~ if ∀ (α~1~, ..., α~n~) ∈ (ℤ~p~)^n^: P~1~(α~1~, ..., α~n~) ≡ P~2~(α~1~, ..., α~n~) (mod p).  Note that the polynomials might not be given in the normal form, thus we cannot simply compare the coefficients of the normal form.
+
+Solutions / general findings:
+
+- No deterministic poly-time algorithm is known.
+
+- Randomized 1MC agorithm based on fingerprinting, see below.
+
+References:
+
+- Book "Design and Analysis of Randomized Algorithms", chapter "4.5 Equivalence of Two Polynomials" p. 144
+
+
+==== Randomized agorithm based on fingerprinting
+
+A randomized 1MC algorithm with error probability of at most 1/2.  Being a 1MC, it may makes an error when being given non-equivalent polynomials.
+
+Idea: Use method of fingerprinting.
+
+Algorithm: Choose randomly uniformly a set of inputs α~1~, ..., α~n~. Return P~1~(α~1~, ..., α~n~) ≡ P~2~(α~1~, ..., α~n~).
+
+Proof: *to-do*
+
+References:
+
+- Book "Design and Analysis of Randomized Algorithms", chapter "4.5 Equivalence of Two Polynomials" p. 144, in particular algorithm AQP p. 145.
+
+
+[[primality_testing]]
+=== Primality testing
+
+Complexity: Primality testing is in P, as shown 2002 by the deterministic AKS primality test.
+
+
+==== Simplified Solovay-Strassen Algorithm
+
+A polynomial-time 1MC algorithm, error probability at most 1/2, for the recognition of composite numbers n with n mod 4 = 3.  Being an 1MC algorithm, given a composite, it may wrongly say it's prime.
+
+Algorithm: Choose uniformly at random an a ∈ {1, ..., n-1} and compute A = a^(n-1)/2^ mod n. If A ∉ {1, -1}, return `composite', otherwise return `not composite'.
+
+Proof of being 1MC: The algorithm is an application of the method <<abundance_of_witnessess>>. It can be proven that for every integer n with n mod 4 = 3, when computing A = a^(n-1)/2^ mod n, the following holds. If n is prime, then A ∈ {1, -1} for all a ∈ {1, ..., n-1}. If n is composite, then A ∉ {1, -1} for at least half of a ∈ {1, ..., n-1}.  Thus a ∈ {1, ..., n-1} is an abundand witness of the fact that n is composite.
+
+Proof of polynomial time complexity: A can be computed in polynomial time by repeated squaring.
+
+Side node -- Example of a non-working witness: Based on Fermat's little theorem: A number a ∈ {1, ..., n-1} is a witness of the fact that n is composite iff a^n-1^ mod n ≠ 1. However for certain composite numbers, called Carmichael numbers, there are no such witnesses among the candidates {1, ..., n-1}, i.e. the witnesses are not abundand, thus this approach does not work in general.
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, Algorithm SSSA p 192
+
+
+[[solovay_strassen_algorithm]]
+==== Solovay-Strassen Algorithm
+
+A polynomial-time 1MC algorithm, error probability at most 1/2, for the recognition of composite numbers.  Being an 1MC algorithm, given a composite, it may wrongly say it's prime, but given a non-composite (prime), it always correctly identifies it as non-composite (prime).
+
+Algorithm:
+
+- If input n is even, return `composite'.
+
+- Choose uniformily at random an a ∈ {1, ..., n-1}.
+
+- If gcd(a, n) ≠ 1, return `composite'.
+
+- If jac(a,n) = a^(n-1)/2^ mod n then return `not composite', otherwise return `composite'.
+
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``6.3 Solovay-Strassen Algorithm for Primality Testing'' p 192
+
+
+[[generating_primes]]
+==== Generating primes
+
+The task is to generate a prime of length l.  Usually l is in the hundreds.  From the prime number theorem follows that a given integer n is a prime with a probability of about 1/ln(n).
+
+A polynomial-time bounded-error algorithm (neither monte carlo nor las vegas), returning a prime of lenght l.  The error might be that the returned number is not really prime, or that it returns ``no prime found''
+
+Algorithm: Do at most 2l² times: Generate a random number n of length l.  Test its compositness with at most k independent runs of the <<solovay_strassen_algorithm>>.  k is a tuning parameter of the algorithm.  If any run says n is composite, continue the outer loop.  If all k runs say n is not composite, i.e. prime, return n.  If all outer loop iterations were not successful, return ``no prime found''.
+
+Proof: *to-do*
+
+References:
+
+- Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič, chapter ``6.4 Generation of Random Primes'' p 202
 
 
 [[bit_manipulation]]
