@@ -1,5 +1,10 @@
 .Misc basics
 
+Var[X] = E[(X-E[X])²] = E[X²]-E[X]² = Cov[X,X] |
+Var[aR+b] = a²Var[R] |
+Var[R~1~ + R~2~] = Var[R~1~] + Var[R~2~] - 2Cov[R~1~, R~2~] |
+Cov[R~1~, R~2~] = E[(R~1~-E[R~1~])(R~2~-E[R~2~])] = E[R~1~R~2~] - E[R~1~]E[R~2~]
+
 n: Size of sample |
 μ: Population mean |
 μ̂ = x̄: Common estimator for μ |
@@ -14,6 +19,10 @@ SEM = se[x̄] = sd[x̄] = σ / √n: Standard error of the mean, assuming indepe
 SEM̂ = sê[x̄] = S / √n: Common estimator for se[x̄] |
 Bias~θ~[θ̂] = E~θ~[θ̂] - θ = E~θ~[θ̂ - θ] |
 MSE[θ̂] = E~θ~[(θ̂-θ)²] = Bias²~θ~[θ̂] + Var~θ~[θ̂]: mean squared error
+
+_hypothesis test / p-value_: two sided test : Pr(T≥|t~obs~-E[T]| | H~0~), one sided test: Pr(T≥t~obs~|H~0~) or Pr(T≤t~obs~|H~0~)
+
+_independence_: Random variables X~i~ are mutually independent ⇒ E[∏X~i~] = ∏E[X~i~]. Pr(⋂A~i~) = ∏Pr(A~i~) ⇔ events A~i~ are mutually independent.  _correlation_: How close are two random variables to have a releationship, e.g. the relationship between X and Y in regression/classification. Cov[X,Y] = 0 ⇒ X and Y are uncorrelated.  _interaction_ is when the influence of two or more predictors on the response is not additive. 
 
 _Data snooping_ (or _data dredging_, _data snooping_, _p-hacking_) is searching patterns in data that then can be presented as statistically significant, without first devising a hypothesis.  The proper way is to first come up with a hypothesis, independently of the test data, and only afterwards test that hypothesis with test data.  Some patterns contained in large amounts of data (especially when number of predictors is huge and the number of observations is moderate) will be only due to chance.  When doing data snooping and actively searching for patterns, we are likely to find patterns, maybe ones that are there only due to chance (e.g. the few values of a predictor happen to correlate with the response by chance).  When then doing a hypothesis test with that same data, the p-value is meaningless, because the hypothesis is based on that data.
 
@@ -34,25 +43,16 @@ _critical values_: t~crit_a~ = quantile~H0distr~(α/2); t~crit_b~ = quantile~H0d
 _critical region_ (or _rejection region_): [-∞,t~crit_a~] ∪ [t~crit_b~,∞].
 _acceptance region_: complement to the critical region.
 
-|=====
-|                       | H~0~ really true | H~a~ really true
-| failed to reject H~0~ | true positive | false negative, type I error (rate) β
-| H~0~ rejected         | false postive, type II error (rate), false discovery, significance level α | true negative, true discovery, power
-|=====
-
 _Classificaton of multiple hypothesis tests_: m hypothesis tests. Upper case variables (U V T S and R) are random variables, lower case variables (m and m~0~) are fixed. The number of tests m is known, number of tests m~0~ where H~0~ is really true is unknown, the number of rejected H~0~ R is observable, the others are unobservable.
 
 |=====
 |                       | H~0~ really true | H~a~ really true | Total
-| failed to reject H~0~ | U                | T                | m-R
-| H~0~ rejected         | V                | S                | R
-| Total                 | m~0~             | m-m~0~           | m
+| failed to reject H~0~ | U, true positive | T, false negative, type I error (rate) β | m-r
+| H~0~ rejected         | V, false postive, type II error (rate), false discovery, significance level α | S, true negative, true discovery, power | R
+| Total                 | m~0~  | m-m~0~           | m 
 |=====
 
-Typically we want to control type I error rate, since a false discovery is worse than accidentaly not making a discovery.
-
-Q = V/R is the _false discovery proportion_ (_FDP_). By convention, if V = R = 0, then Q = 0.
-The case of that H~0~ is always true, i.e. m = m~0~, is called the _gobal null_ (or _complete null_). The _False discovery rate_ (_FDR_) is defined as FDR = E[Q] = E[V/R]. I.e. FDR is the expected proportion of type I errors (aka false discoveries) relative to all discoveries. The _Famility wise error rate_ (_FWER_) is defined as FWER = Pr[V≥1].  I.e. FWER is the probability that we make an type I error (aka false discovery) at all. A procedure offers _weak control_ at level α if FWER ≤ α holds is guaranteed only under global null.  A procedure offers _strong control_ at level α if FWER ≤ α holds always.  Note that here α denotes not the same thing as the significance level α of an individual test; here, it's the ``overall significance level''.
+Typically we want to control type I error rate, since a false discovery is worse than accidentaly not making a discovery. Q = V/R is the _false discovery proportion_ (_FDP_). By convention, if V = R = 0, then Q = 0. The case of that H~0~ is always true, i.e. m = m~0~, is called the _gobal null_ (or _complete null_). The _False discovery rate_ (_FDR_) is defined as FDR = E[Q] = E[V/R]. I.e. FDR is the expected proportion of type I errors (aka false discoveries) relative to all discoveries. The _Famility wise error rate_ (_FWER_) is defined as FWER = Pr[V≥1].  I.e. FWER is the probability that we make an type I error (aka false discovery) at all. A procedure offers _weak control_ at level α if FWER ≤ α holds is guaranteed only under global null.  A procedure offers _strong control_ at level α if FWER ≤ α holds always.  Note that here α denotes not the same thing as the significance level α of an individual test; here, it's the ``overall significance level''.
 
 δ = per test type I error rate /
 FWER ≥ FDR /
@@ -65,35 +65,28 @@ _Bonferroni_: Control of the FWER. δ = α / m. δ ≤ FWER ≤ α = δm. neutra
 
 _Westfall Young permutation procedure_: Weak control of FWER. Strong control of FWER under some assumptions.  For all (some) permutations allowed under H~0~: Compute p-value for each test, and find the minimum p-value. Overall this gives us an empirical distribution D of the minimal p-values. Compute δ = quantile~D~(α). Use δ as significance level for each of the tests. This works because: FWER = P(V≥1) = P(p~i~≤δ for some p~i~) = P(min(p~1~, ..., p~m~)≤δ).
 
-_unpaired two sample test_ (or _independent two sample test_): Two samples, e.g. one treated with treatment A and the other with treatment B (which might be `no treatment at all'). Often the test statistic is the difference between the two sample means, and the H~0~ then often is that that difference is 0.
+_unpaired two sample test_ (or _independent two sample test_): Two samples, e.g. one treated with treatment A and the other with treatment B (which might be `no treatment at all'). Often the test statistic d is some kind of `difference', often standardized in some way, between the two sample means. The H~0~ is that the two population distributions are equal, which often means d = 0.
 
-_paired two sample test_  (or _paired difference test_ or _paired sample test_): Treat every element in the sample with treatment A and with treatment B (again, can be `no treatent at all').  The final test statistic is the difference of the `actual' test statistic after treatment A and after treatment B.
+pro/contra unpaired: contra) The groups need to be really similar.  E.g. by chance the elements in either group might have something in common which has nothing to do with their treatment, but still influences the outcome of the test statistic.  contra) There might be a big variance in the test static.  E.g. if we measure how long people sleep, after treatment A and after treatment B: there is anyway a rather large variance in how long different people sleep on average.
 
-contra unpaired: 1) The groups need to be really similar.  E.g. by chance the elements in either group might have something in common which has nothing to do with their treatment, but still influences the outcome of the test statistic. 2) There might be a big variance in the test static.  E.g. if we measure how long people sleep, after treatment A and after treatment B: there is anyway a rather large variance in how long different people sleep on average.
+_paired two sample test_  (or _paired difference test_ or _paired sample test_): Treat every element in the sample with treatment A and with treatment B (again, can be `no treatent at all').  The test statistic is for example the mean of the differences of each pair.
 
-_unpaired two sample permutation test_: Given samples 1 and 2 from population F~1~ and F~2~ respectively, and a test statistic t (the function) of the combined sample.  H~0~: F~1~ = F~2~, H~a~ F~1~ is a shifted version of F~2~.  Under H~0~ assignment to sample 1 or sample 2 is irrelevant. Thus we can try out all (some) of the possible permutations, which overall delivers the empirical distribution of t.  
+_permutation test_: A non-parametric test.  Use permutations to destroy the relationship that is to be tested under H~0~ while keeping all other relevant structure. test pros/cons: pro) no parametric assumptions. pro) free to use any test statistic. pro) if all permutations are considered, p-values and type I error control are exact. If only a subset of permutations are considered, it's an approximation. contra) computationally expensive. contra) Not everything can be (straightforwardly) be formulated as permutation test (e.g. linear regression). _example: Correlation_: Regression/classification setting. H~0~: no relationship between X and Y. Thus under H~0~, we can permute the Y values (or the X values/rows). As test statistic, we can for example use a rank correlation test statistic, for example Spearman's rank correlation coefficient. _example: Correlation / linear regresion_: H~0~: β = 0. Thus under H~0~, we can permute the Y values (or the X values/rows).  As test statistic, we can use for example the f-statistic of the linear regression fit.
 
-_paired two sample permutation test_: Given the two paired samples. Calculate a new sample consisting of pairwise differences.  The test statistic t is on that sample of differences.  Under H~0~, the signs of the observations are random, so we can swap/permute them (swap treatments per subject), which overall delivers the empircal distribution of t. 
+_unpaired two sample permutation test_: Given samples 1 and 2 from population F~1~ and F~2~ respectively, and a test statistic t being a function of two samples, measuring same kind of difference between the two samples.  For example sum of ranks (ranks with respect to combined sample) of sample1 (i.e. Wilcoxon rank sum as permutation test), or median(sample1) - median(sample2).  H~0~: F~1~ = F~2~, H~a~ F~1~ is a shifted version of F~2~.  Under H~0~ assignment to sample 1 or sample 2 is irrelevant. Thus we can try out all (some) of the possible permutations, which overall delivers the empirical distribution of t.
 
-permutation test pros/cons: pro) no parametric assumptions. pro) free to use any test statistic. pro) if all permutations are considered, p-values and type I error control are exact. contra) computationally expensive. contra) Not everything can be (straightforwardly) be formulated as permutation test (e.g. linear regression)
+_paired two sample permutation test_: Given the two paired samples. Calculate a new sample consisting of pairwise differences.  The test statistic t is on that sample of differences.  A possible concrete test statistic is the mean.  Under H~0~, the signs of the observations are random, so we can swap/permute them (swap treatments per subject), which overall delivers the empircal distribution of t. 
 
-_Wilcoxon rank sum test as non-parametric unpaired two sample test_: Test statistic U is sum of ranks of group 1 (or 2, doesn't matter).  The distribution of U is known (via tables) for small sample sizes (~20), and for larger sizes it can be approximated by a Normal distribution.
+_Wilcoxon rank sum test_: A two sample test using the test statistic U which is the sum of ranks (ranks with respect to the combined sample) in smaple/group 1 (or sample/group 2, doesn't matter), and the null hypothesis H~0~ that the distributions of the two samples are equal.  pros/cons: pro) non-parametric. pro) reboust, because sum of ranks is robust. pro) The two populations don't have to be normally distributed (as in t-test) pro) the distribution of U under H~0~ is independent of the distribution of the two populations. neutral) power almost identical to that of t-test if distributions are normal.
 
-pros/cons: pro) non-parametric. pro) reboust, because sum of ranks is robust. pro) The two populations don't have to be normally distributed (as in t-test) pro) the distribution of U under H~0~ is independent of the distribution of the two populations. neutral) power almost identical to that of t-test if distributions are normal
-
-_Wilcoxon rank sum test as unpaired two sample permutation test_: An unpaired two sample permuatation test where the test statistic U is as above.
-
-_Wilcoxon signed rank test_: Non-parametric paired two sample permutation test. The test statistic is the following.  Let D~i~ denote the i-th difference.  First remove all D~i~ = 0, resulting in a set of Dʹ~i~. The test statsitic is V = ∑rank~i~·H(Dʹ~i~), where rank~i~ is the rank of |Dʹ~i~| among all |Dʹ~j~|, and H(x) is the heavyside step function (0 for x < 0, 1 for x > 0).
-
-pro/cons: pro) The two populations don't have to be normally distributed (as in t-test)
+_Wilcoxon signed rank test_: Non-parametric paired two sample permutation test. The test statistic V is the following.  Let D~i~ denote the i-th difference.  First remove all D~i~ = 0, resulting in a set of Dʹ~i~. V = ∑rank~i~·H(Dʹ~i~), where rank~i~ is the rank of |Dʹ~i~| among all |Dʹ~i~|, and H(x) is the heavyside step function (0 for x < 0, 1 for x > 0). pro/cons: pro) The two populations don't have to be normally distributed (as in t-test)
 
 _Monte carlo test_: A hypothesis test based on an empirical distribution of the test statistic which we got by simulating.  E.g. when the true distribution is not easily available.
 
 .Measuring model performance
 
-tre = training error, atre = adjusted training error
-
-_RSS_ = |Y-Ŷ|² = |e|² = ∑~1≤i≤n~e²~i~. n-p DF. Unexplained variability. Add predictor -> decreases. tre.
+_tre_ = training error, _atre_ = adjusted training error.
+_RSS_ = |Y-Ŷ|² = |e|² = ∑~1≤i≤n~e²~i~. n-p DF. Unexplained variability. Add predictor -> decreases (current model is optimal with respect to RSS; if an predictor is added that cannot reduce the RSS, then the respective coefficent is set to zero). tre.
 _ESS_ = |Ŷ-Ȳ|². p-1 DF. Variability explainable by regression.
 _TSS_ = |Y-Ȳ|² = RSS + ESS. n-1 DF. tre.
 _RSE_ = √(RSS/(n-p)). residual standard error. tre.
@@ -105,6 +98,8 @@ _Bayesian Information Criterion_: BIC = 1/n (RSS + log(n)·p·σ̂²). atre.
 _training MSE_: RSS/n. tre.
 _test MSE_: E~test~[RSS/n|f̂]. Given f̂, average over `all' test samples.
 _expected test MSE_: E~train~[E~test~[RSS/n|f̂]].
+
+All of Mallow's C~p~, AIC, BIC are asymptotically (for large n) good in the sense that the best model out of a set will have the highest Mallow's C~p~ from all models, the highest AIC from all models etc.
 
 _bias variance tradeoff_: When bias decreases, then variance must increase and vice versa. Model flexibily increases -> bias decreases / variance increases / expectedTestMSE is convex. Goal (`optimizing bias-variance tradeoff'): find model with min. expectedTestMSE.
 expectedTestMSE(x~0~) = (Bias~training~[f̂(x~0~)])² + Var~training~[f̂(x~0~)] + Var[ε].
@@ -125,7 +120,7 @@ _categorial (or qualitative) predictors_: Given a categorial predictor X~j~ repr
 
 _predictor correlation_: Correlated predictors -> their variance / p-value increase. Say X~1~ = X~2~ and Y = X~1~, then β̂~1~ + β̂~2~ = 1, but depending on the training sample, β̂~1~ and β̂~2~ have quite different values. _ortogonal X matrix_ ⇒ uncorrelated predictors ⇒ β̂~j~ is identical to a β̃~j~ of a model using X~j~ as sole predictor, i.e. it can be shown that both have the same formula.  Followingly the t-test / p-value for the two are identical.
 
-_Choosing predictors_: The individual variabilities for each coefficient sum up and the variability of the estimated hyper-plane increases the more predictors are entered into the model, whether they are relevant or not. See also bias-variance trade-off and curse of dimensionality.
+_Pros/cons of adding more predictors_: pro) Better fit to the training data. con) overfitting. pro) lower bias. con) higher variance. con) lower interpretability. Rational for higher variance: the individual variabilities for each coefficient sum up and the variability of the estimated hyper-plane increases the more predictors are entered into the model, whether they are relevant or not. See also bias-variance trade-off and curse of dimensionality.
 
 _BLUE_: In a linear regression model with uncorreleated error terms ε, constant finite variance Var[ε~i~] = σ² and E[ε] = 0, the coefficents β̂ found by OLS are _BLUE_ (_best linear unbiased estimator_).  Here, `best' means Var~training~[β̂] is minimized compared to other unbiased estimators, and unbiased means Bias~training~[β̂] = 0.
 
@@ -133,75 +128,41 @@ _one multiple linear regression vs multiple single linear regressions_: Linear r
 
 _Interpretation of a t-test / p-value_ of a coeficient estimate β̂~j~: H~0~: β~j~ = 0 (or in other words H~0~: y \~ -X~j~, H~a~: y \~ .). A t-test for β̂~j~ quantifies the effect of the predictor X~j~ after having subtracted the linear effect of all other predictor variables.  If predictor variables are correlated, it can be that all p-values are insignificant, but some predictors (F-test) are significant. If p-value of F-test is not significant, then you can't trust p-values of coefficients.   Uncorrelated predictors implies independent tests, and independent tests are nice to interpret.
 
-_F-test / ANOVA_: The null hypothesis is that all β~i~ are zero (aka global null).  In other words, full model is compared against empty model.  If p-value of F-test is not significant, then you can't trust the p-values of the coefficient estimates. H~0~: F = (ESS/(p-1)) / (RSS/(n-p)) \~ F~p-1,n-p~.  A _partial F-test_ compares a reduced model where q predictors are left out (i.e. their coefficents are zero) to the full model.  WLOG we assume their indicies are (p-q+1, ..., p).  The partial F-test can be interpreted as the partial effect of adding these q predictors to the model.  The F-statisic of leaving out a given predictor equals the squared t-statistic of that predictor. H~0~: F = \((RSSʹ-RSS)/(pʹ-1)) / (RSS/(n-p)) \~ F~pʹ-1,n-p~.
+_F-test / ANOVA_: The null hypothesis is that all β~i~ are zero (aka global null).  In other words, full model is compared against empty model.  If p-value of F-test is not significant, then you can't trust the p-values of the coefficient estimates. H~0~: F = (ESS/(p-1)) / (RSS/(n-p)) \~ F~p-1,n-p~.  A _partial F-test_ compares a reduced model where q predictors are left out (i.e. their coefficents are zero) to the full model.  WLOG we assume their indicies are (p-q+1, ..., p).  The partial F-test can be interpreted as the partial effect of adding these q predictors to the model.  The p-value of a partial F-test leaving out one predictor equals the p-value of that predictor. H~0~: F = \((RSSʹ-RSS)/(pʹ-1)) / (RSS/(n-p)) \~ F~pʹ-1,n-p~.
 
 _Projection matrix_ P = X(X^T^X)^-1^X^T^. ∑p~ii~ = p. p~ii~ ∈ [1/n,1].
 _Response_ Ŷ = Xβ̂ = PY. E[Ŷ] = Xβ. Cov[Ŷ] = σ²P. (1-α)100% confidence interval for E[y~0~], given new observation x~0~: x~0~^T^β̂ ± σ̂√(x~0~^T^(X^T^X)^-1^x~0~)·qt~n-p;1-α/2~. (1-α)100% prediction interval for y~0~: x~0~^T^β̂ ± σ̂√(1+x~0~^T^(X^T^X)^-1^x~0~)·qt~n-p;1-α/2~.
 _Error terms_: Var̂[ε] = σ̂² = RSE² \~ σ²/(n-p) 𝜒²(n-p).
-_Residuals_ e = Y - Ŷ = (I~n~ - P)Y. Cov[e] = σ²(I~n~ - P). Var[e] = diag(Cov[e]) = σ²(1-diag(P)). sê[e] = se[e] = √Var[e]. studendized residual: e / sê[e].
-_Coefficient estimate_ β̂ = argmin~β~(RSS(β)) = (X^T^X)^-1^X^T^Y. E[β̂] = β. Cov[β̂] = σ²(X^T^X)^-1^. Var̂[β̂] = diag(Cov̂[β̂]) = σ̂ / (Var[X](n-1)(1-R²)). β̂ \~ 𝓝~p~(E[β̂], Var[β̂]). t-value of β̂~j~: (β̂~j~ - β~j~)/sê[β̂~j~] \~ t~n-p~. (1-α)100% confidence interval for β~j~: β̂~j~ ± sê[β̂~j~]·qt~n-p;1-α/2~.
+_Residuals_ e = Y - Ŷ = (I~n~ - P)Y. Cov[e] = σ²(I~n~ - P). Var[e] = diag(Cov[e]) = σ²(1-diag(P)). sê[e] = se[e] = √Var[e]. _Studentized residual_: e / sê[e].
+_Coefficient estimate_ β̂ = argmin~β~(RSS(β)) = (X^T^X)^-1^X^T^Y. E[β̂] = β. Cov[β̂] = σ²(X^T^X)^-1^. Var̂[β̂] = diag(Cov̂[β̂]) = σ̂² / (Var[X](1-R²)). β̂ \~ 𝓝~p~(E[β̂], Var[β̂]). t-value of β̂~j~: (β̂~j~ - β~j~)/sê[β̂~j~] \~ t~n-p~. (1-α)100% confidence interval for β~j~: β̂~j~ ± sê[β̂~j~]·qt~n-p;1-α/2~.
 _F-statistic / ANOVA_: H~0~: β~i~ = 0 for all i except 0. F = [(TSS-RSS)/(p+1)] / [RSS/(n-p)]. Under H~0~ F~p-1,n-p~ distributed.
 
 .shrinkage methods
 
-_Shrinkage methods_ try to solve the problem of multicollinearity (a predictor can be linearly predicted from one or more other predictors, leading to high variance of coefficient estimates).  Altough ordenary least squares coefficient estimates are BLUE (i.e. unbiased and low variance), in case of correlated predictors the variance of a coefficent estimator might still be unacceptably high.  Shrinkage methods now trade lower variance for (hopefully only) a small increase in bias.  Also, least squares has problems wit large p or even p>n.  Shrinkage methods don't suffer from that as much.
+_Shrinkage methods_ try to solve the problem of multicollinearity (a predictor can be linearly predicted from one or more other predictors, leading to high variance of coefficient estimates).  Altough ordenary least squares coefficient estimates are BLUE (i.e. unbiased and low variance), in case of correlated predictors the variance of a coefficent estimator might still be unacceptably high.  Shrinkage methods now trade lower variance for (hopefully only) a small increase in bias.  Also, least squares has problems wit large p or even p>n.  Shrinkage methods don't suffer from that as much. _standardize variables_: Ridge and Lasso are not scale invariant, which least squares is. So we should standardize variables to have variance 1 beforehand (which is done by default in R's glmnet): xʹ~ij~ = x~ij~·(1/n·√(x~ij~-x̄~j~))^-1/2^. _intercept is excluded from shrinkage_: β^(0)^ denotes β without intercept β~0~.  The rational for excluding the intercept β~0~ from being regularized is that we want to shrink the association of each predictor with the response.  The intercept is just a measure of the mean value of the response when predictors X = 0. _model selection / choosing λ_: Do it via CV. _Comparision_: The criterion are convex in β for Ridge and Lasso which is computationally convenient.  Given a set of λ (opposed to one λ), we still can compute the optimal solution β̂ in one go. Best subsetset selection is computationally expensive. It is non-convex.  Lasso is in a sense the best convex relaxation of best subset selection.  The found solution, since there are less constraints, won't be the same, i.e. is an approximation, but we hope it's close enough.
 
-_standardize variables_: Ridge and Lasso are not scale invariant, which least squares is. So we should standardize variables to have variance 1 beforehand (which is done by default in R's glmnet): xʹ~ij~ = x~ij~·(1/n·√(x~ij~-x̄~j~))^-1/2^.
-
-_intercept is excluded from shrinkage_: β^(0)^ denotes β without intercept β~0~.  The rational for excluding the intercept β~0~ from being regularized is that we want to shrink the association of each predictor with the response.  The intercept is just a measure of the mean value of the response when predictors X = 0.
-
-_model selection / choosing λ_: CV
-
-_Comparision_: The criterion are convex in β for Ridge and Lasso which is computationally convenient.  Given a set of λ (opposed to one λ), we still can compute the optimal solution β̂ in one go. Best subsetset selection is computationally expensive. It is non-convex.  Lasso is in a sense the best convex relaxation of best subset selection.  The found solution, since there are less constraints, won't be the same, i.e. is an approximation, but we hope it's close enough.
-
-_Ridge_: λ=0 means no shrinkage, resulting in β̂^ridge^ = β̂^LS^.  λ→∞ means infinite shrinkage, resulting in β̂^ridge^ = 0. The elements of β̂^Ridge^ generally won't be zero.  That's because the first contour line touching the shrinkage penalty circle probably doesn't do that at a point which exactly lies on one or more axes.
-
-_Lasso_: The elements of β̂^Lasso^ often are exactly 0, especially for high λ.  This is because it's more likely that the first contour line touches the square at an corner than at an edge.
-
-_Subset_: The elements of β̂^subset^ often are exactly 0, especially for high λ.  The geometrical interpretation is that each axis has an range [0,s].
+_Ridge_: λ=0 means no shrinkage, resulting in β̂^ridge^ = β̂^LS^.  λ→∞ means infinite shrinkage, resulting in β̂^ridge^ = 0. The elements of β̂^Ridge^ generally won't be zero.  That's because the first contour line touching the shrinkage penalty circle probably doesn't do that at a point which exactly lies on one or more axes. _Lasso_: The elements of β̂^Lasso^ often are exactly 0, especially for high λ.  This is because it's more likely that the first contour line touches the square at an corner than at an edge. _Subset_: The elements of β̂^subset^ often are exactly 0, especially for high λ.  The geometrical interpretation is that each axis has an range [0,s].
 
 λ≥0 (or s≥0, large λ -> small s) is a tuning parameter /
 β̂^ridge^ = argmin~β~(RSS(β) + λ|β^(0)^|²) = argmin~β~(RSS(β)) subject to ∑~1≤i≤p~β²~i~≤s = (X^T^X+λI)^-1^X^T^Y (X without intercept and centered variables) /
 β̂^lasso^ = argmin~β~(RSS(β) + λ‖β^(0)^‖~1~) = argmin~β~(RSS(β)) subject to ∑~1≤i≤p~|β~i~|≤s /
-β̂^subset^ = argmin~β~(RSS(β) + λ‖β^(0)^‖~0~) = argmin~β~(RSS(β)) subject to ∑~1≤i≤p~1~Bi≠0~≤s
-
-Where ‖β^(0)^‖~0~ denotes the L0-Norm of β excluding the intercept β~0~, i.e. ‖β^(0)^‖~0~ = ∑~1≤i≤p~1~Bi≠0~.
+β̂^subset^ = argmin~β~(RSS(β) + λ‖β^(0)^‖~0~) = argmin~β~(RSS(β)) subject to ∑~1≤i≤p~1~Bi≠0~≤s / Where ‖β^(0)^‖~0~ denotes the L0-Norm of β excluding the intercept β~0~, i.e. ‖β^(0)^‖~0~ = ∑~1≤i≤p~1~Bi≠0~.
 
 .Basic functions
 
-We only look at univariate models, i.e. one predictor X.  We have a family of k fixed known functions b~j~(X), j ∈ [k].  This transformation delivers the new linear model, where i denotes the data point index.  It is a regular linear model with k predictors b~j~(X), j ∈ [k].  Hence the same rules apply, we can use the same fitting methods such as least squares, and the same inference tools are available.
-
-y~i~ = ∑~0≤j≤k~β~j~b~j~(x~i~) + ε~i~
-
-pro) easy to fit with LS. pro) properties of linear regression still hold
+y~i~ = ∑~0≤j≤k~β~j~b~j~(x~i~) + ε~i~. We only look at univariate models, i.e. one predictor X.  We have a family of k fixed known functions b~j~(X), j ∈ [k].  This transformation delivers the new linear model, where i denotes the data point index.  It is a regular linear model with k predictors b~j~(X), j ∈ [k].  Hence the same rules apply, we can use the same fitting methods such as least squares, and the same inference tools are available. pro) easy to fit with LS. pro) properties of linear regression still hold.
 
 .Polynomial regression
 
-Special case of the basic_functions approach. As always, its beneficial if predictors are uncorrelated, i.e. if the matrix X is orthogonal.
-
-Y = P~d~(X) + ε = β~0~ + β~1~X + β~2~X^2^ + ... β~d~X^d^ + ε
-
-contra) instable at boundaries. more) see also basic functions
+Y = P~d~(X) + ε = β~0~ + β~1~X + β~2~X^2^ + ... β~d~X^d^ + ε. Special case of the basic_functions approach. As always, its beneficial if predictors are uncorrelated, i.e. if the matrix X is orthogonal. contra) instable at boundaries. more) see also basic functions
 
 .Step functions
 
-Special case of the <<basic_functions>> approach.  Can also be seen as special case of piecewise polynomials in that the polynomials have degree 0.  We cut the X axis at k cut points c~1~, ..., c~k~ into k+1 bins / regions. In the j-th bin (starting at 0), we use the constant functions β~j~.  This amounts to conoverting the continous variable X into an ordered categorial variable.  The model then is as follows. Note that we don't use C~0~(x), since that is redundant to intercept β~0~.  i denotes the data point index.
-
-y~i~ = β~0~ + ∑~1≤j≤k~β~j~C~j~(x~i~) + ε~i~
-
-β~0~ can be interpreted as the mean Y value for X < c~1~. C~j~(·), are defined as follows. I(·) denotes the indicator function.
-
-C~j~(x) = I(c~j~ ≤ x < c~j+1~) ∀ j ∈ [1,k-1] +
-C~k~(x) = I(c~k~ ≤ x)
+y~i~ = β~0~ + ∑~1≤j≤k~β~j~C~j~(x~i~) + ε~i~.  Special case of the <<basic_functions>> approach.  Can also be seen as special case of piecewise polynomials in that the polynomials have degree 0.  We cut the X axis at k cut points c~1~, ..., c~k~ into k+1 bins / regions. In the j-th bin (starting at 0), we use the constant functions β~j~.  This amounts to conoverting the continous variable X into an ordered categorial variable.  The model then is as follows. Note that we don't use C~0~(x), since that is redundant to intercept β~0~.  i denotes the data point index. β~0~ can be interpreted as the mean Y value for X < c~1~. C~j~(·), are defined as follows. I(·) denotes the indicator function. C~j~(x) = I(c~j~ ≤ x < c~j+1~) ∀ j ∈ [1,k-1]. C~k~(x) = I(c~k~ ≤ x).
 
 .Piecewise polynomials / Splines
 
-Combine step functions and polynomial regression. We have k knots (boundaries), thus k+1 regions, each region has a polynomial of degree d.  Global function derivatives must be continous up to degree d-1. ξ denotes the position of a knot. d+k+1 degrees of freedom (k+1 polynomials, each having d+1 parameters, k boundaries, each with d constraints: (k+1)(d+1) - kd = k+d+1).
-
-y~i~ = ∑~0≤j≤d~β~j~x~i~^j^ + ∑~1≤l≤k~γ~l~h(x~i~, ξ~l~) + ε~i~ +
-h(x, ξ) = { (x-ξ)^d^ if x>ξ; 0 otherwise
-
-contra) high variance of f̂ at boundaries (natural splines try to address this)
+y~i~ = ∑~0≤j≤d~β~j~x~i~^j^ + ∑~1≤l≤k~γ~l~h(x~i~, ξ~l~) + ε~i~. h(x, ξ) = { (x-ξ)^d^ if x>ξ; 0 otherwise.  Combine step functions and polynomial regression. We have k knots (boundaries), thus k+1 regions, each region has a polynomial of degree d.  Global function derivatives must be continous up to degree d-1. ξ denotes the position of a knot. d+k+1 degrees of freedom (k+1 polynomials, each having d+1 parameters, k boundaries, each with d constraints: (k+1)(d+1) - kd = k+d+1). contra) high variance of f̂ at boundaries (natural splines try to address this)
 
 .Natural splines
 
@@ -209,24 +170,11 @@ A spline with the additional boundary conditions that the global function must b
 
 .Smoothing splines
 
-f̂ = argmin~g∈G~[RSS(g) + λ∫~a≤x≤b~gʺ(x)²dx] + 
-where G is class of functions G = \{g: [a,b] → ℝ, gʺ exits and ∫~a≤x≤b~gʺ(x)²dx < ∞}
-
-It can be shown that f̂ is a natural cubic splines with n knots, each training data point having one knot on it.  There multiple possible such cubic splines, and we want the one satisfying the given `argmin constraint'.  λ = 0: flexible model (n d.o.f.). f̂ perfectly fits the training data (RSS=0), i.e. f̂ interpolates the training data, i.e. f̂ goes through every training data point.  λ → ∞: inflexible model (2 d.o.f.) gʺ(x) is forced to be 0 for all x, f̂ is equivalent to the linear regression least squares solution.
-
-The nominal degree of freedom is n, see also natural splines.  Nominal degree of freedom usually refers to number of free parameters.  However here, these n parameters are constrained or shrunk down.  The effective degrees of freedom df~λ~ is a measure of the flexibility of smoothing splines.  It is between n (for λ = 0) and 2 (for λ → ∞), and in general its defined to be df~λ~ = trace(S~λ~), see definition of S~λ~ below.
-
-Coefficients estimates β̂ (n⨯1 vector) can be computed using fast linear algebra. As in least squares linear regression where we had Ŷ = Xβ̂ = PY, we can write Ŷ = S~λ~Y where the matrix S~λ~ can be computed using fast linear algrebra.
-
-A way to find a good λ is CV.  In particular leave one out cross validation (LOOCV), because it turns out that we can do LOOCV in essentially one single fit.
+f̂ = argmin~g∈G~[RSS(g) + λ∫~a≤x≤b~gʺ(x)²dx] where G is class of functions G = \{g: [a,b] → ℝ, gʺ exits and ∫~a≤x≤b~gʺ(x)²dx < ∞}. It can be shown that f̂ is a natural cubic splines with n knots, each training data point having one knot on it.  There multiple possible such cubic splines, and we want the one satisfying the given `argmin constraint'.  λ = 0: flexible model (n d.o.f.). f̂ perfectly fits the training data (RSS=0), i.e. f̂ interpolates the training data, i.e. f̂ goes through every training data point.  λ → ∞: inflexible model (2 d.o.f.) gʺ(x) is forced to be 0 for all x, f̂ is equivalent to the linear regression least squares solution. The nominal degree of freedom is n, see also natural splines.  Nominal degree of freedom usually refers to number of free parameters.  However here, these n parameters are constrained or shrunk down.  The effective degrees of freedom df~λ~ is a measure of the flexibility of smoothing splines.  It is between n (for λ = 0) and 2 (for λ → ∞), and in general its defined to be df~λ~ = trace(S~λ~), see definition of S~λ~ below. Coefficients estimates β̂ (n⨯1 vector) can be computed using fast linear algebra. As in least squares linear regression where we had Ŷ = Xβ̂ = PY, we can write Ŷ = S~λ~Y where the matrix S~λ~ can be computed using fast linear algrebra. A way to find a good λ is CV.  In particular leave one out cross validation (LOOCV), because it turns out that we can do LOOCV in essentially one single fit.
 
 .Decision trees
 
-p denotes the number of predictors, y∈ℝ, x∈ℝ^p^. P = {R~1~, ..., R~M~} is a partition of ℝ^p^ into M regions / partitions.  β~1~, ..., β~M~ are coefficients of the model.  β~j~ equals the average of the y values in region R~j~.  I(·) denotes the indicator function.
-
-y = g~tree~(x) + ε, g~tree~(x) = ∑~1≤r≤M~β~r~I(x∈R~r~).
-
-pro) Note that interactions are allowed. contra) If the number of data points per region is too small (e.g. when tree is too deep), we are suffering from overfitting.
+y = g~tree~(x) + ε, g~tree~(x) = ∑~1≤r≤M~β~r~I(x∈R~r~).  p denotes the number of predictors, y∈ℝ, x∈ℝ^p^. P = {R~1~, ..., R~M~} is a partition of ℝ^p^ into M regions / partitions.  β~1~, ..., β~M~ are coefficients of the model.  β~j~ equals the average of the y values in region R~j~.  I(·) denotes the indicator function. pro) Note that interactions are allowed. contra) If the number of data points per region is too small (e.g. when tree is too deep), we are suffering from overfitting.
 
 _estimation of partition_: Recursively split ℝ^p^ into regions.  At each split, greedely choose an axis / predictor and a split point such that the log likelihood is increased the most (In certain cases this is the same as reducing the RSS the most).  Possible stopping criterion: number of observations.  _prune back_:  The resulting full tree T~0~ is likely to overfit.  A smaller subtree T ⊂ T~0~ with fever splits is likely to have smaller variance, smaller test error and better interpretation at the cost of higher bias.  _cost complexity pruninning_: A concrete prunning back method.  argmin~T⊆T0~{RSS(T) + α|T|}, where |T| denotes the number of leaves in tree T, and α is a tuning parameter. α=0: no shrinkage , T=T~0~. α→∞: |T|=0, i.e. T has no split.  Given an ordered sequence α s, there's an efficient algorthm computing the corresponding subtrees. We can do cross validation to find the best α. See also bagging, as an alternative to cost complexity pruning, to reduce variance.
 
@@ -275,7 +223,7 @@ LOESS is locally weighted polynomial regression. LOESS can also be seen as a gen
 
 .Curse of dimensionality
 
-In general, adding additional signal predictors that are highly associated with the response will improve the fitted model in terms of decreasing test MSE.  However even if they are associated, the increase in variance might outweight the reduction in bias.  Adding noise predictors that are not truly associated with the response will detoriate the fitted model, because they increase the dimensionality of the problem, exacerbating the risk of overfitting, since noise features may be assigned nonzero coefficients due to chance. KNN suffers more than linear regression or GAM with splines. See also respective paragraph in KNN.
+In general, adding additional signal predictors that are highly associated with the response will improve the fitted model in terms of decreasing test MSE.  However even if they are associated, the increase in variance might outweight the reduction in bias.  Adding noise predictors that are not truly associated with the response will detoriate the fitted model, because they increase the dimensionality of the problem, exacerbating the risk of overfitting, since noise features may be assigned nonzero coefficients due to chance. Models with no interaction suffer only little from curse of dimensionality, because they fit a predictor at a time, and when fitting a single predictor, they only `look in one direction' in the p-dimensional space. KNN suffers more than linear regression or GAM with splines. KNN looks in all directions in the p-dimensional space at the same time. See also respective paragraph in KNN.
 
 .Bootstrap aggregation (bagging) & random forests
 
@@ -289,7 +237,7 @@ _bagging for classification via majority voting_:  The categegorie with the most
 
 _bagging does not do anything for linear predictors_: Thus bagging should be used for non-linear estimators, e.g. trees.
 
-_Out-of_bag (OOB) error estimation_:  Alternative to CV to estimate the test error, which is computationally less demanding.  We can compute the test error for the i-th observation by bagging the trees based on the bootstrap samples not containing the i-th observation, and then use the i-th observation as test data.  The test error is then the average over all observations.  For large B, OOB error estimation is equivalent to LOOCV.
+_Out-of_bag (OOB) error estimation_ / _OOB error_: Is an alternative to cross validation to estimate the test error, which is computationally less demanding.  It can be shown that each bootstrap sample on average uses about 2/3 of the observations of the originial sample. The non-used observations are called _out-of-bag observations_.  Given the i-th observation, for every tree in which the i-th observation is OOB, i.e. the observation did not particpate in training the tree, we make a prediction using that tree. This yields about B/3 predictions.  For regression, we average, for classification, we a take majority vote, yielding a single OOB prediction for the i-th observation.  Over all n observations this yields n OOB predictions.  We use them to compute the OOB error, which is an estimate of the test error.  It can be shown that for large B, OOB error is virtually equivalent to LOOCV error.
 
 _random forests_: A variant of bagging which aims to decorrelate the trees.  At each split, only a random set of m of the p predictors are allowed to be considered for the split.  Often m = √p for classification and m = p/3 for regression.  m = p amounts simply to bagging.  Recall that the idea behind bagging is that averaging quantities decreases variance.  However the variance is not as much reduced when the quantities are correlated.  In the context of bagging that might happen when there's a strong predictor.  Most of the bagged trees will have that predictor in the top split, and consequently most of the bagged trees will look quite similar, and thus the predictions from these bagged trees will be highly correlated.
 
@@ -305,9 +253,7 @@ _Inference after model/feature selection_: Say we do best subset selection, and 
 
 .Validation set approach
 
-Partition data randomly in two equaly sized partitions, one test, one training.
-
-pro) simple. pro) fair estimate of test MSE. contra) loss of power due to less training data, which often means biased (too pessimistic) tests MSE. contra) large variance of model and test MSE, because concrete partition might have large influence.
+Partition data randomly in two equaly sized partitions, one test, one training. pro) simple. pro) fair estimate of test MSE, i.e. closer to test error than to (adjusted) training error. contra) loss of power due to less training data, which often means biased (too pessimistic / high) tests MSE. contra) large variance of model and test MSE, because concrete partition might have large influence.
 
 .Cross validiation
 

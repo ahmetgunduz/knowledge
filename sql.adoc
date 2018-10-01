@@ -20,6 +20,17 @@ type conversions
 - See chapter 5.5 Q27. Tables with one row and one column can be implicitely
   converted to scalar if needed.
 
+
+== Type system
+
++CHAR(n)+ and +VARCHAR(n)+ are strings of up to n chars. The difference is
+implementation-dependent. +BIT(n)+ and +BIT VARING(n)+ are analgous for bit
+strings. +BOOLEAN+ can be one of +TRUE+, +FALSE+ or +UNKOWN+. +INT+ (or
++INTEGER+) and +SHORTINT+ are integers of implemenetation defined size. +FLOAT+
+(or +REAL+) and +DOUBLE PRECISION+ are floating point numbers of implementation
+defined size. +DECIMAL(n,d)+ are fixed-point numbers.
+
+
 == Efficiency / Optimizations
 
 Projection is relatively cheap. Join is relatively expensive. Join is obviously faster for fewer rows. But also for fewer columns, or fewer data in general, since more tuples fit into a page, and thus there's less page I/O.

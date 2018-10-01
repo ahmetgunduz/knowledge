@@ -3,14 +3,17 @@
 
 == Intro
 
-Terms:
+A _data model_ is a collection of high-level data description constructs that hide many low-level storage details. Most DBMS today are based on the _relational data model_, in which there's a single way to represent data: A _relation_ (or _table_) represents data as a two-dimensional table. The _schema_ of a relation relation describes the relation by specifyinig its name and the name and _domain_ (aka _type_) of its _fields_ (aka _attribute_ or _column_). Think of a relation as a type; concrete instances thereof are called, well _(relation) instances_. An relation instance is a set (not list) of _(data) records_ (or _row_ or _tuple_).  A record has one _component_ for each attribute the relation. _Integrity constraints_ are conditions that each record must satisfy.  A _block_ (or _page_) is the unit of transfer for disk I/O.
 
-- relation and table are synonyms
-- attribute, column and fields are synonyms
-- (data) record, row, tuple are synonyms
-- block is a synonym to page. Unit of transfer for disk I/O.
+A database _transaction_, by definition, must be _ACID_: All the following must be guaranteed even in the event of errors, power failures etc. Atomicity (each transaction succeeds completely or fails completely), Consistency (each transaction brings DB from one valid state to another valid state, maintaining DB's invariants), Isolation (result is as if transactions were executed in strict sequence), Durability (once a transactin has been committed, will remain committed).
 
-A 'data model' is a collection of high-level data description constructs that hide many low-level storage details. Most DBMS today are based on the 'relational data model'. Here, a description of data in terms of a data model is called a _schema_. The schema of a _relation_ (aka _table_) specifies its _name_ and the name and _domain_ (aka _type_) of each _field_ (aka _attribute_ or _column_). Think of a relation as a type; concrete instances thereof are called, well 'instances'. 'Integrity constraints' are conditions that the records in a relation must satisfy. 
+_CAP theorem_: impossibility triangle: you only can have two, but never three. consistency (every read receives most recent write or an error; if not consistent, we have to deal with conflicts somehow) / availability (every request receives a (non-error) response) / partition tollerance (system continuous to operate despite an abitrary number of messages being dropped/delayed by network between nodes).
+
+*to-do* `consistency' in CAP and in ACID are not the same? In a distributed data base, where each node replicates the full data base, does consistency refer to a single data base or to the global database?
+
+_Anomalies_ are problems, e.g. problems arising from having redundancy, which in turn arises when to many fields are cramed into a single relation such that it contains many tuples which are nearly identical. The typical way of solving the problem is to _decompose_ such an ill-designed relation into multiple relations.
+
+A _normal form_ is a property of a relation with the intention of avoiding anomalies. A relation is in _1st normal form_ iff the domain of each attribute is an atomic type.  A relation is in _2nd normal form_ iff additionally all functional dependencies are on the whole candidate key, for all candidate keys. A relation is in _3rd normal form_ iff additionally every non-prime attribute is non-transitively dependent on every key of R. Bill Kent: "[Every] non-key [attribute] must provide a fact about the key, the whole key, and nothing but the key.". Requiring existence of "the key" ensures that the table is in 1NF; requiring that non-key attributes be dependent on "the whole key" ensures 2NF; further requiring that non-key attributes be dependent on "nothing but the key" ensures 3NF.
 
 Levels of abstraction:
 
@@ -43,9 +46,8 @@ Notation:
 
 Typical disk block sizes are 0.5kB to 4kB. Virtual memory page size is typically 4kB. Typicall a DB does I/O in 64kB blocks.
 
-
-'Query optimzer' translates SQL to 'Query Plans' , an internal language. The
-'query executor' is an interpreter for query plans. Think of query plans and
+_Query optimzer_ translates SQL to _Query Plans_ , an internal language. The
+_query executor_ is an interpreter for query plans. Think of query plans and
 (dataflow) directed graphs, where nodes are relational operators and directed
 edges represent data tuples (columns as specified).
 
@@ -53,28 +55,38 @@ Relational operators may be implemented using the iterator design pattern.
 
 When measuring costs, often asymptotic notations in terms of number of I/O accesses are used, since I/O is much more expensive than CPU, even with flash. Sometimes, as improvement, a distinction is made between random access and sequential access, since also their costs differ substantially.
 
+_eventual consistency_: If no updates are made, then eventually all accesses will return the last updated value. However in practice there's a continous stream of updates, so consistency will never happen.
+
+Very general best practice to achieve better performance: first try to make code better, then try to scale out, then try to scale up. ``You only get a second computer if you know how to make the first one work''.
+
+_Availability_: Measure of the percantage of time the service / equipment is in an operable state.
+
+_Reliability_: Measure of how long the service / equipment performs its intended function. Usually measured by _mean time between failure_ (_MTBF_) which is defined as total time in service / number of failures, or by _failure rate_, which is defined as the inverse of MTBF.
+
+partition schemes for load balancing: *to-do*
 
 Random notes:
 
 - Random access to pages is generally expensive, or the other way round, sequencial access is much faster
  * binary search is a bad option
+
 - Dealing with (multi)sets, i.e. unordered collections, as most SQL queries do, has the advantage that it is more parallelizable as when it had to be ordered.
 
 == Integrity Constraints
 
 Part of the DDL (data definition language).
 
-Give a table, a set of columns is a 'superkey' if no two distinct tuples can have same values in all key columns. A set of columns is a 'key' for a table if it's minimal, it is a superkey, but no subset is a superkey.  The other way round, a superkey is a set that conatains a key.  A table can have multiple keys, e.g. table student can have studentid or emailaddress. A table can have at most one 'primary key', the other keys are the 'candidate keys' (aka 'unique key').
+A _superkey_ for a relation is a set of columns such that no two distinct tuples can have same values in all these columns. In other words, a superkey is a set of attributes within a table whose values can be used to uniquely identify a tuple.  A _(candidate) key_ (or _unique key_) for a relation is a minimal superkey, i.e. no column can be removed from the superkey such that the new column set is still a superkey.  The attributes / columns constituting the candidate key are called _prime attributes_.   Attributes that doe not occur in _any_ candidate key are called _non-prime attributes_.  A table can have multiple candiate keys, one of which can be choosen to be the _primary key_, all others are then _alternate keys_.  A _foreign key_ is a set of columns in one relation that uniquely identifies a tuple of another, possibly the same, table.  The relation containing the foreign key is called the _child relation_, the relation containing the respective candidate key is called the _parent table_ (or _referenced table_).
 
 primary key vs unique key: It seems that technically the only difference is that a table can have at most one primary key, but zero or more unique keys. Further differences are among typicall defaults associated with these constraints, and the semantic meaning. Primary key is meant to identify a row, unique key is meant to ensure a constraint. Most DBMS will by default create a clustered index for primary key and an unclustered index for each unique key, and by default primary key has a non-null constrained while unique key doesn't. At least in Oracle, when all columns of a key are null, and there is no not-null constraint, then the key constraint is satisfied.
 
-'Domain constraint': Kind of a type, but with additional conditions attached. (Chapter 5.7.2).
+_Domain constraint_: Kind of a type, but with additional conditions attached. (Chapter 5.7.2).
 
-'Primary key constraint': Key must be unique within table
+_Primary key constraint_: Key must be unique within table
 
-'Foreign key constraint' (aka 'referential integrity constraint'): A key that establishes a relationship between its table or view and a primary key or unique key, called the 'referenced key', of onther table or view. The table or view containing the foreign key is called the 'child' object, the table or view containing the referenced key is called the 'parent' object. Child and parent can be the same table or view.
+_Foreign key constraint_ (aka _referential integrity constraint_): A key that establishes a relationship between its table or view and a primary key or unique key, called the _referenced key_, of onther table or view. The table or view containing the foreign key is called the _child_ object, the table or view containing the referenced key is called the _parent_ object. Child and parent can be the same table or view.
 
-'General contstraint': View CHECK constraint on a table or an ASSERTION which is global / not associated with any table.
+_General contstraint_: View CHECK constraint on a table or an ASSERTION which is global / not associated with any table.
 
 Note that being able to write down constraints in the DDL helps to remove redundancy. If we coudn't do that, these constraints would appear at multiple places / multiple programs working with the DB.
 
@@ -82,6 +94,8 @@ Note that being able to write down constraints in the DDL helps to remove redund
 == Relational operators & algebra
 
 === sort
+
+...
 
 === select
 
@@ -98,6 +112,8 @@ no index on column, sorted data:: Binary search to find first matching tuple, th
 B+ tree index on column:: Walk B+ tree to find first matching tuple, then scan as long as tuples match. O(log~fanout~
 
 === group
+
+...
 
 === join
 
@@ -191,7 +207,8 @@ A DB file is typically implemented as one or more OS files, or as raw disk space
 
 [[index]]
 === Index
-An 'index' (aka _access path_) is a disk based data structure that organizes data records of a given table, or references to them, on disk to optimize certain kinds of retrieval opereations. A table can have multiple indexes on it. A 'search key' is over any subset of columns of that table. In contrast to the key of the table, multiple records can match a search key. An index is implemented as a collection of 'data entries'. A data entry with search key value k, denoted as k*, contains enough information to locate the matching records. There are three main alternatives of how to store a data entry: Alternative 1) (k,record). I.e. the index directly the stores the records of a table. To avoid redundancy, this alternative is used at most once per table. Alternative 2) (k, rid). Alternative. 3) (k, rid-list). Alternative 2 and 3 obviously introduce a level of indirection. A 'clustered index' is one where the ordering of data records defined by its data entries is roughly the same as the ordering of the data records of the file of the underlying table. By definition alternative (1) is clustered. For alternatives (2) and (3), the file must be roughly (see <<clustered_file>>) or strictly sorted (see <<sorted_file>>). Regarding range search queries, clustered indexes are in general much faster than unclustered, due to the usual contigous access advantages and since more of read in page is actually used, i.e. less pages have to be read. The costs for a clustered index is maintainenance cost to (roughly) maintain the ordering of the data records. Often that means that the pages containing data records are not fully packed (2/3 is a common figure) to accomodate future inserts, which degrates performance since more pages nead to be read/written for a given amount of records.
+
+An _index_ (aka _access path_) is a disk based data structure that organizes data records of a given table, or references to them, on disk to optimize certain kinds of retrieval operations. A table can have multiple indexes on it. A _search key_ is over any subset of columns of that table. In contrast to the key of the table, multiple records can match a search key. An index is implemented as a collection of _data entries_. A data entry with search key value k, denoted as k*, contains enough information to locate the matching records. There are three main alternatives of how to store a data entry: Alternative 1) (k,record). I.e. the index directly stores the records of a table. To avoid redundancy, this alternative is used at most once per table. Alternative 2) (k, rid). Alternative. 3) (k, rid-list). Alternative 2 and 3 obviously introduce a level of indirection. A _clustered index_ is one where the ordering of data records defined by its data entries is roughly the same as the ordering of the data records of the file of the underlying table. By definition alternative (1) is clustered. For alternatives (2) and (3), the file must be roughly (see <<clustered_file>>) or strictly sorted (see <<sorted_file>>). Regarding range search queries, clustered indexes are in general much faster than unclustered, due to the usual contigous access advantages and since more of read in page is actually used, i.e. less pages have to be read. The costs for a clustered index is maintainenance cost to (roughly) maintain the ordering of the data records. Often that means that the pages containing data records are not fully packed (2/3 is a common figure) to accomodate future inserts, which degrates performance since more pages nead to be read/written for a given amount of records.
 
 Common kinds of selections (aka lookups) that indexes support:
 
@@ -211,15 +228,15 @@ contain pointers to further nodes, never data; only leaf nodes contain data or
 pointers to data. Also leaf nodes form a linked list. Together this allows for
 more efficient scans over a range of data.
 
-Regarding high-balancedness: Each node contains m entries with the soft restriction d<=m<=2d, i.e. it's always at least 50% full, where d is called the 'order' of the tree. The high balanced property guarantees O(log N) access time, i.e. guarantees that even after insertions/deletions performance can't degenerate to linear time. Then again, since keys can be of variable width (e.g. strings), and the data entries in the leaf nodes can be variable width (e.g. see alternative 3 in <<index>>), in practice this is seen sloppy. sometimes a physical criterion is used (`at least half full' in terms of bytes).
+Regarding high-balancedness: Each node contains m entries with the soft restriction d<=m<=2d, i.e. it's always at least 50% full, where d is called the _order_ of the tree. The high balanced property guarantees O(log N) access time, i.e. guarantees that even after insertions/deletions performance can't degenerate to linear time. Then again, since keys can be of variable width (e.g. strings), and the data entries in the leaf nodes can be variable width (e.g. see alternative 3 in <<index>>), in practice this is seen sloppy. sometimes a physical criterion is used (`at least half full' in terms of bytes).
 
 Key compression increases fanout, which reduces height, which reduces access time.
 
-Algorithm to 'insert' into an already full node: split node, which obviously includes allocating a new node, and which makes space for new item. Introducing a new node obviously also means that we need to insert a new item into the parent node which points to the new node. Now this can be a recursive process, where in the worst case it ripples up all the way up and we have to split the root. If data entries are directly data records (see alternative 1 in <<index>>, advantages see there), splits can change record ids, which means having to update referees, which is considerable disadvantage.
+Algorithm to _insert_ into an already full node: split node, which obviously includes allocating a new node, and which makes space for new item. Introducing a new node obviously also means that we need to insert a new item into the parent node which points to the new node. Now this can be a recursive process, where in the worst case it ripples up all the way up and we have to split the root. If data entries are directly data records (see alternative 1 in <<index>>, advantages see there), splits can change record ids, which means having to update referees, which is considerable disadvantage.
 
-Similarly for 'deletion'. We should maintain the d<=m<=2d invariant. However in practice m<d is allowed, since in practice it's a rare case that given a big table there are so many deletions which would shrink it to a small table. Note that all leafs have the same depth, and there are no rotations upon insertion/deletion has with other kinds of balanced trees.
+Similarly for _deletion_. We should maintain the d<=m<=2d invariant. However in practice m<d is allowed, since in practice it's a rare case that given a big table there are so many deletions which would shrink it to a small table. Note that all leafs have the same depth, and there are no rotations upon insertion/deletion has with other kinds of balanced trees.
 
-Creation of a B+ tree given a collection of keys should no be done via individual inserts, since the resulting page access pattern is very random and thus slow. Instead, we do 'bulk loading': Sort the index's data entries. Then iteratively soak them up and create leaf nodes. A fill-factor parameter determines how full the leaves shall be. Create/update parent nodes as in the insertion algorithm. Looking at the usual tree drawing, we see that always the right-most internal nodes are touched whereas the other nodes aren't at all, an access pattern which works very well together with an LRU page buffer.
+Creation of a B+ tree given a collection of keys should no be done via individual inserts, since the resulting page access pattern is very random and thus slow. Instead, we do _bulk loading_: Sort the index's data entries. Then iteratively soak them up and create leaf nodes. A fill-factor parameter determines how full the leaves shall be. Create/update parent nodes as in the insertion algorithm. Looking at the usual tree drawing, we see that always the right-most internal nodes are touched whereas the other nodes aren't at all, an access pattern which works very well together with an LRU page buffer.
 
 
 == Buffer management
@@ -249,41 +266,246 @@ Disk space manager provides about this API: allocate/free a page, read/write a p
 
 === Relational algebra
 
-'Relational algebra' (aka just 'algebgra'): Operational (thus procedural), i.e. we can build arbitrary expressions on the basis of operators, each taking one or more operands. The domain and image of each operator are relations. Relations have set semantics (in contrast to multiset), i.e. no relation can have duplicate rows (SQL has multiset semantics, i.e. tables can have duplicate rows. I.e. in pure relational algebra often there's a `remove duplicates' sub step. However in practice that is rather expensive since it involves sorting or hashing).
+_Relational algebra_ (aka just _algebgra_): Operational (thus procedural), i.e. we can build arbitrary expressions on the basis of operators, each taking one or more operands. The domain and image of each operator are relations. Relations have set semantics (in contrast to multiset), i.e. no relation can have duplicate rows (SQL has multiset semantics, i.e. tables can have duplicate rows. I.e. in pure relational algebra often there's a `remove duplicates' sub step. However in practice that is rather expensive since it involves sorting or hashing). Relation algebra is typically not directly used, but via SQL, which uses it internally.
 
-Useful for representing execution plan semantics. Close to query plans. 
+Useful for representing execution plan semantics. Close to query plans.
+
+==== Basic operators
 
 There are only five operators: selection, projection, and 3 set operators: set difference, set union, crossproduct. There are convenience operators being based on these basic operators.
 
-'Selection': σ~_condition_~(_relation_) (s as in sigma/select): The (selection) condition is a boolean expression, where primaries are literals and fields of the given relation. The output are the tuples of the input instance which satisfy the condition. The output has the same schema as the input.
+_Selection_ (or _Restriction_) (filter query): σ~_condition_~(_relation_) (s as in sigma/select): Keep matching tuples, cut away the rest.  The (selection) condition is a boolean expression, where primaries are literals and fields of the given relation. The output are the tuples of the input instance which satisfy the condition. The output has the same schema as the input.
 
-'Projection': π~_fieldlist_~(_relation_) (p as in pi/project): Returns new relation, having only the given fields of the input relation. Has to remove duplicates.
+_Projection_ (filter query): π~_fieldlist_~(_relation_) (p as in pi/project): Keep given columns, cut away the rest.  Returns new relation, having only the given fields of the input relation. Has to remove duplicates.
 
-'(set) union': A ∪ B: A and B must be 'union compatible' (sequence of field domains must be equal). Has to remove duplicates.
+_(set) union_ (set query): A ∪ B (row-wise): Row-wise concatenate relations.  A and B must be _union compatible_ (sequence of field domains must be equal). Has to remove duplicates.
 
-'(set) difference': A - B. A and B must be union compatible. Note that unlike the other basic operators, it cannot be implemented with an online algorithm, because each next tuple from B can remove a tuple from the tentative output.
+_(set) difference_ (set query): A - B (row-wise). Cut away rows which appear in B. A and B must be union compatible. Note that unlike the other basic operators, it cannot be implemented with an online algorithm, because each next tuple from B can remove a tuple from the tentative output.
 
-'crossproduct' (aka 'cartesian product'): A ⨯ B. Output relation's schema is the concatenation of A's schema plus B's schema. By convention field names are overtaken; in case of name conflicts, corresponding fields are unnamed and must be referred to by position. The output instance has each tuple of A followed by each tuple of B.
+_(set) intersection_ (set query): A ∩ B. Keep only rows appearing in both.  Defined as A-(A-B). A and B must be union compatible.
 
-Some important compound operators:
+_crossproduct_ (aka _cartesian product_) (binary query): A ⨯ B. The output relation instance has each tuple of A, each of which followed by each tuple of B.  The output relation's schema is the concatenation of A's schema plus B's schema. By convention field names are overtaken; in case of name conflicts, corresponding fields are unnamed and must be referred to by position.
 
-'(set) intersection': A ∩ B. Defined as A-(A-B). A and B must be union compatible.
 
-'conditional join': A ⨝~condition~ B: Defined as σ~_condition_~(A ⨯ B). 
+==== Some important compound operators
 
-'equi join': A conditional join where the condition solely consists of one or more equialities, combinded by logical and. They can be implemented efficiently; In effect, there is only one equiality, where the rhs and lhs are the concatenation of the individual original lhs/rhs. E.g. (r1.f1=r2.f1 and r1.f2=r2.f2) is equivalent to (concat(r1.f1,r1.f2)=concat(r2.f1,r2.f2)).
+_(conditional) join_ (binary query): A ⨝~condition~ B: Defined as σ~_condition_~(A ⨯ B).
 
-'natural join': A ⨝ B: Condition demands equivality (A.fieldx=B.fieldx) for all fields having the same name. I.e. it's an implicit equi join. However, in contrast, also a projection follows which cuts away the duplicate fields. If there are no common field names, the result is the crossproduct.
+_equi join_ (binary query): A conditional join where the condition solely consists of one or more equalities, combinded by logical and. They can be implemented efficiently; In effect, there is only one equiality, where the rhs and lhs are the concatenation of the individual original lhs/rhs. E.g. (r1.f1=r2.f1 and r1.f2=r2.f2) is equivalent to (concat(r1.f1,r1.f2)=concat(r2.f1,r2.f2)).
 
-'division': A / B: Defined as π~x~(A)-π~x~((π~x~(A)⨯B)-A). More informally: Say A tells which supplier supplies which part, and B lists parts. A/B deliviers suppliers which supply all the parts in B.
+_natural join_ (binary query): A ⨝ B: Condition demands equivality (A.fieldx=B.fieldx) for all fields having the same name. I.e. it's an implicit equi join. However, in contrast, also a projection follows which cuts away the duplicate fields. If there are no common field names, the result is the crossproduct.
+
+_Inner joins_ don’t include non-matching rows; whereas, outer joins do include them. _Left outer join_ always has at least one tuple for each tuple of the lhs input relation, and if there are no tuples of the rhs relation matching the condition, fills the components with NULLs. _Right outer join_ is analogous. _Full outer join_
+
+_division_: A / B: Defined as π~x~(A)-π~x~((π~x~(A)⨯B)-A). More informally: Say A tells which supplier supplies which part, and B lists parts. A/B deliviers suppliers which supply all the parts in B.
+
+
+==== Extended operators
+
+_duplicate-elimination_ δ (d as in duplicate/delta): Eliminates duplicate rows, i.e. turns a multiset into a proper set.
+
+_aggregation_: Apply some operation (e.g. sum, average) to all components of a column.
+
+_grouping_ γ (g as in grouping/gamma): Put tuples matching a condition in the same group, and then perform some aggregation to columns within each group.
+
+_extended projection_: In addition to projecting out some columns, we now can produce new columns.
+
+_sorting_ τ: Turn a relation instance into a list of tuples. Note that not all relational operators accept lists as arguments.
+
+_outerjoin_: *to-do*
 
 
 === Relational calculus
 
-'Relational calculus' (aka just 'calculus'): A declarative language -- Describe what you want, rather than how to calculate it. A variant is the 'tuple relational calculus' (aka 'TRC'), which heavily influenced SQL.
+_Relational calculus_ (aka just _calculus_): A declarative language -- Describe what you want, rather than how to calculate it. A variant is the _tuple relational calculus_ (aka _TRC_), which heavily influenced SQL.
 
 Exprecity of relational algebra and relational calculus is equivalent.
 
 === SQL
 
 See sql.txt
+
+
+== Misc
+
+The stack:
+
+User interfaces: (Excel, Access, Tableau, Qlikeview, BI tools) +
+Querying: (SQL, XQuery, MDX, SPARQL, REST APIs) +
+Data stores: (RDBMS, MongoDB, CouchBase, ElasticSearch, Hive, HBase. MarkLogic, Cassandra) +
+indexing: (Key-value stores, hash indices, b-trees, geographical indicies, spatial indicies) +
+processing (two-hase processing: mapreduce / dag-driven proc: tez, spark / elastic computing: EC2)  +
+validation (XML schema, JSON schema, Relational schemas, XBRL taxonomies) +
+data models (Tables: Relational model / trees: XML Infoset, XDM / graphs: RDF / Cubes: OLAP) +
+syntax (text, CSV, XML, JSON, RDF/XML, Turtle, XBRL) +
+encoding (ASCII, ISO-8859-1, UTF-8, BSON) +
+storage (local FS, NFS, GFS, HDFS, S3, Azure blob storage)
+
+How can we get more work done:
+
+1) Make SW efficient. ``You can have a second computer once you've shown you know how to use the first one'' (Paul Barham). We can gain factors of speed, and we have to pay once the development costs, and can apply it to all machines we ever will have.
+
+2) _horizontal scaling_ (or _scale out_): Add more nodes, typically commodity HW. Price grows about linearly with overall computing power.
+
+3) _vertical scaling_ (or _scale up_): Replace a node with a more powerfull node. Either by completely replacing, or by adding more RAM and/or CPUs. Price grows about exponentially with overall computing power.
+
+_data center_: ~1k - 100k machines, 1-100 cores / server, 1-12TB local storage / server, 16GB - 4TB RAM / server. 1GB/s network bandwith for a server. A rack consists of nodes.
+
+_Uniform resource name_ (_URN_) is a URI that uses the urn scheme.
+
+_REST_ API: REST is the way HTTP should be used. It's always a method (GET, PUT, DELETE, POST, ...) plus a resource (URI). PUT must be idempotent (when issued multiple times, the 2nd plus requests have no effect). GET must be side-effect free.  POST is the most generic, it can have side effects.
+
+_replication_: Rational: Fault tolerance. Local: node failure. With a lot of nodes, you are almost guaranteed that a node will fail. Regional: natural catastrophe. Thus spreading datacenters gives proximity to client (gives smaller latency) and protects against regional failures.
+
+_storage class_: High availability at high costs on one end and low availability (hours to access data) at low cost on the other end. The low end is typically for backups.
+
+
+== Object storage
+
+scalability issues with a local drive: A data base on a local machine might work for that machine.  Maybe, if you're lucky, it even works when accessed by multiple people on a (small) LAN.  But it doesn't work on a WAN.  The disk just can't cope with the amount of requests.  Also, on a typical file system you can't have billions of files.
+
+_object storage_ (or _document database_) lets you scale. Make model of local filesystem simpler. 1) throw away hierachy (file system tree). 2) Metadata is no longer fixed but flexible: assign values to keys. 3) Flat and global key-value model (associate IDs to files). 4) use commodity HW.
+
+Billions of potitenially huge (terabytes) objects.
+
+latency: s3 ~100-300ms, typical database 1-9ms  [both where client is in same region]
+
+I.e. object storage is too slow.
+
+
+== Key-value store
+
+Same data model as object storage, but implemented differently. Smaller objects (kB sized). No metadata.
+
+Much simpler than a relational database. We drop consistency (we only have eventual consistency) and gain availability and partition tolerance and scalability.
+
+Simple things are much easier to scale out than monolithic things (such as a table in the relational model).
+
+In contrast to object storage, no metadata.
+
+
+== Chord / distributed hash table
+
+A protocol for a peer-to-peer distributed hash table.
+
+Assigning keys to nodes:  Say the key size is 128bit. Imagine the 128bit numbers on a ring.  Each node uniformily at random chooses a 128bit number.  Then each node stores the keys between itself and the previous N ≥ 1 nodes. If N > 1, we get replication.  Note that this assignment of keys to nodes is very simple and predetermined.  Also note it's only about assigning keys to nodes; there's no relation to how nodes are physically conencted.
+
+Query, i.e. finding a node responsible for key k: The trivial solution would be that the nodes on the ring form a linked list, which would result in linear time query.  Here each node keeps a _finger table_, where the i-th entry stores a `pointer' to the node being 2^i^ nodes away.
+
+Pros:
+
+- highly scalable
+
+  * incremental stability (easy to add/remove nodes)
+
+- robust against failure
+
+- self organizing
+
+cons:
+
+- being a hashtable there's only lookup by key (e.g. no text search)
+
+- nothing said about data integrity (here replication is about loss, not corruption)
+
+- security issues (you need to have full control over the nodes themselves and the set of existing nodes)
+
+- bad luck when nodes choose randomly their position on the ring and there are large gaps giving big burden on the node at the end of the gap
+
+- not considering that nodes are heterogenous (i.e. have different power)
+
+The last two can be solved by the following extension: Each node gets a number of _tokens_ (or _virtual nodes_), the number proportional to the node's power. Now instead of nodes, we place place the tokens on the ring. Since there are now many tokens, and due to the central limit theorem, it's virtually impossible to have large gaps.  Also, we now adapt to the heterogenous network.  When adding a node, it takes over tokens from existing nodes.  When deleting a node, its tokens are redistributed among remaining nodes.
+
+*to-do* make this `extension' an part of the initial thing
+
+_vector clock_: Each object as associated a set, called _context_, of nodeid-number pairs, where nodeid is unique in the set. The number denotes how many times the given number wrote (put) the object. Multiple contexts for a given object form a partial order (i.e. a DAG).
+
+
+questions:
+
+- Slides 197+: I don't see how this works in the distributed system with no masters. Where are the preference lists stored? What does partition-aware client mean?
+
+- why not return (C,[(n1,3)]) , (D,[(n1,2), (n2,1)]). Answer: The protocol is such that it's a black box for the client
+
+
+== Amazone S3
+
+An (object) storage model. Proprietary, i.e. we don't really know how it works internally.
+
+There are buckets, and within buckets objects.  An object is a blackbox.
+
+identfying objects: bucket-id (uri: http://<bucket>.s3.amazonaws.com) + object-id (uri: http://<bucket>.s3.amazonaws.com/<object-name>)
+
+_object size limit_: 5TB, _durability_: Loss of 1 in 10E11 objects, _availability_: 99.99%, _response time_ <10ms 99.9% of cases. *to-do* which are actual measures, which were just examples
+
+
+== Azure
+
+Hybrid between object storage and distributed file system.
+
+identifying objects: Account-id + Partition-id + Object-id
+
+Limit: 195GB blocks, 1TB pages
+
+storage stamp = 10-20 racks +
+rack = 18 storage nodes +
+storage load of stamp kept below 70-80%
+
+Front-Ends / Account Name (DNS delivers virtual IP address) +
+Partition Layer / Partition name +
+Stream Layer / Object name
+
+Replication within Partition Layer is aysnchornously* inter storage stamp +
+Replication within Stream Layer is synchronous within same storage stamp.
+
+*) I.e. we loose consistency (mind CAP theorem: triangle consistency - availability - partition tollerance, we only can have 2, but not 3), but gain availability. If we wanted consistency, then a put call would be synchronous, i.e. the caller had to wait until we replicated the new object everywhere.
+
+
+== Amazone DynamoDB
+
+Key-value stores: state is stored as binary objects (aka blobs), identified by unique keys. ACID is _not_ offered. In particular, consistency is dropped in favor of availability, and no isolation guarantees are given. Efficiency, i.e. meeting stringent SLAs (measured at 99.9% percentile of requests so all customers benefit, guaranteeing few hundred ms latency), is an important requirement. It is assumed that operation is in a non-hostile environment. Availability is for writes (writes are never rejected), which means that reads are more complex (one always has to decide when to resolve update conflicts, at reads or at writes).  Hierarchical namespaces are not directly supported.  Relational schema is not supported.
+
+Dynamo can be characterized as a zero-hop dynamic hash table. The rational for avoiding many hops is that would increase the variance of the latency, endangering the SLA requirements.
+
+Dynamo treats both object and key as opaque array of bytes.  It applies an MD5 hash on the key to generate a 128-bit ID, which is used to determine the storage nodes that are responsible for serving the key.
+
+Simple API. context is opaque to the caller.
+
+get(key) -> value, context +
+put(key, context, value)
+
+Design principles:
+
+- priorize scalability and availability
+
+- incremental stability: i.e. you can easily add/remove nodes
+
+- symmetry: all nodes have the same responsibilities/task and do it the same way
+
+- decentralization: symmetry taken further: there is no master-slave. Note that symmetry allone would allow that: e.g. all node start alike, but then they vote one node to be the new master.
+
+- heterogeneity: the hardware of the nodes might differ (so we e.g. can add nodes with higher performance without having to upgrade all other nodes)
+
+A _preference list_ stores the physical nodes responsible for storing a particular key.
+
+*to-do* Were is/are the preference list(s) stored? Please walk me through 1) a put example 2) a coordinator dies example
+
+*to-do* How many entries are in the preference list? The text often meantions ``... the first N entries ...'', implying that the preference list is longer than N entries.
+
+*to-do* is the put really only successfull _after_ W-1 nodes successfully wrote a replica? Doesn't then latency go down the toillet (also considering that some nodes will be in different data centers)? On the other hand, if only writting to the coordinator node was good enough, then durability would go down the toilet, because imediately after the coordinator's local write and return of put, the coordinator could die, right?
+
+*to-do* is it correct that if M > 1 multiple virtual nodes of a physical node fall within a stretch of N consecutive virtual nodes on the ring, we kind of wasted M-1 virtual nodes since we never replicate within a physical node. It's only kind of since `N consecutive nodes' is a `sliding window', and only for a few positions of this sliding window all M virtual nodes fall within it.
+
+References:
+
+- http://pages.cs.wisc.edu/~thanhdo/qual-notes/ds/ds9-dynamo.txt
+
+- http://docs.basho.com/riak/kv/2.2.3/learn/dynamo/
+
+- Amazon's Highly Available Key-value Store
+
+
+== References
+
+
+- UC Berkeley, CS 186 Introduction to Database Systems, Spring 2015: https://www.youtube.com/playlist?list=PLhMnuBfGeCDPtyC9kUf_hG_QwjYzZ0Am1

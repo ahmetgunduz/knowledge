@@ -1,0 +1,220 @@
+
+== Terms
+
+for one algorithm:
+
+|=====
+| input dependend       | (input dependent cost factor) | approximation ratio
+| an upper bound        | the c in c-competive          | the δ in δ-approximation
+| the tight upper bound | competitive ratio             | -
+|=====
+
+I.e. we are generally interested in the worst case properties of a given algorithm, i.e. we want guarantees which hold for the worst possible input.
+
+For a class of algorithms:
+
+We are often interested in the 
+
+
+== Techniques for specific tasks
+
+
+o-a: online algorithm. o-p: online problem.
+
+=== Prove that a o-a is c-competitive
+
+Find an _upper bound on the input dependend cost factor / the competitive ratio_.  Equivalently for approxmiation algorithms, prove that it _is a c-approximation algorithm_, i.e. _c is an upper bound on the approximation ratio_ / _find an upper bound c on the approximation ratio_.
+
+* Starting at cost(ALG(I)) ≤ c·cost(OPT(I)) + α. Gather a set of inequalities / equalities revolving around costs to replace parts of this formula, and end up with a formula having the same form but literal values for c and α.
+
+* E.g. a bit more specifically. In cost(ALG(I))/cost(OPT(I)) ≤ c, we're trying to find a constant c (an upper bound), as small as possible.  Thus to prove small upper bound ubc~ALG~ for cost(ALG(I)) and high lower bound lbc~OPT~ for cost(OPT(I)). c = ubc~ALG~ / lbc~OPT~.  For minimization problems, it's try to prove small upper bound for gain(OPT(I)) and high lower bound for gain(ALG(I)).
+
+* Partition the set of all inputs 𝓘, and do the tips in this chapter for each partition individually might make things easier.
+
+* Similarly for paging: To do the above tips, partition input in phases, see general techniques
+
+* Amortized analizis, e.g. via potential functions
+
+* See e.g. exercise 1b (*to-do* understand the general technique used here properly), exercie 4 (*to-do* understand the general technique), exercise 5a, <<spanningtree_metric_tsp>>, <<christofides>>, exercise 12 (series 10), exercise 14b (series 11), <<greedy_set_cover>>, exercise 12 (series 7, randomized algorithms)
+
+
+=== Prove a lower bound on the competitive factor for an o-a
+
+Similarly, prove that _o-a is not competitive_ (or equivalently, that an _approximation algorithm cannot guarantee a constant approximation ratio_). In the following show that the computed cost(ALG(I))/cost(OPT(I)) approaches infinity with growing input size.
+
+* Any concrete hard input I, return cost(ALG(I))/cost(OPT(I)).
+
+* To make the bound as tight as possible, try to find the worst-case / hardest input, i.e. try maximizing cost(ALG(I)) while minimizing cost(OPT(I)).
+
+ ** E.g. in paging, minimize cost(OPT(I)) by finding input I so that OPT only makes 0 or 1 mistakes (or any small constant). 
+
+ ** E.g. in k-server, minimize cost(OPT(I)) by finding input I so that OPT only makes 0 or 1 moves (or any small constant).
+
+* Hard inputs are typically ones where the last item makes a big difference. Knowing it would make a big difference on the decisions made when receiving the first few requests.  I.e. try to find an input where the optimum, knowing the last item, comes to a dramatically better overall solution than the shortsighted specific online algorithm.  
+
+* To prove tha o-a is not competitive, show that competitiv factor is 1/ε where adversary gets to choose ε (i.e. where ε is determined by input)
+
+* See also lower bound for online problems.
+
+* See e.g. Satz 5.2 in script, exercise 1a, <<greedy_k_server>>, <<spanningtree_metric_tsp>>, <<christofides>>, exercise 9 (series 8), exercise 10 (series 9)
+
+
+=== Prove a competitive factor for an o-a
+
+Equals _tight upper/lower bound on the competitive factor_. Or similarly, proof that _specific alg has a competitive factor of c_. Or equivalently, proof that _specific alg can't be better than c-competitive_.
+
+Equivalently for approxmiation algorithms, prove a _tight upper bound for the approximation ratio_.
+
+* Proof that the algorithm is c-competitive (see there), and proof a lower bound c on the competitive factor for an o-a (see there).  For the later it suffices to demonstrate any input resulting in an input dependend cost factor of c.
+
+* Examples: See the referenced subproblems
+
+
+=== Prove a lower bound on the competitive factor for an o-p
+
+To be as tight as possible, it should be as large as possible, while still being valid, i.e. no deterministic algorithm has a better competitive factor.
+
+* Find a specific hard input I, which tries to make the cost(A(I)) high for _all_ algorithms A, and/or which tries to make cost(OPT(I)) low.  Then prove a high lower bound lbc~ALGS~ ≤ cost(A(I)), over all algorithms A and this specific input I, as tight (i.e. high) as possible.  And likewise an low upper bound ubc~OPT~ ≥ cost(OPT(I)), as tight (i.e. low) as possible.  lbc~ALGS~/ubc~OPT~ is then an lower bound on the competitive factor.  The tighter lbc~ALGS~ and ubc~OPT~ are, the tighter the resulting lower bound lbc~ALGS~/ubc~OPT~.
+
+* Similarly, try to find a set of inputs where you can prove (lbc~ALGS~ ≤ cost(A(I)) for at least one I of the set) and for all possible deterministic algorithms.
+
+* Methods to proof lower bound lbc~ALGS~. Is not trivial, since we have to proof that no algorithm can do better than lbc~ALGS~, i.e. there doesn't exist an algorithm doing better than ubc~ALGS~:
+
+ ** Think in terms of the adversary which can choose (the next) requests.  Make case distinction: Given a request passed to the algorithm, for all cases the deterministic algorithm can do, design hard followup requests which force high costs.
+
+ ** *to-do* more
+
+* See also lower bound for competitive factor for an o-a.
+
+* E.g. exercise 5b
+
+
+=== Given problem, prove lower bound on competitive factor of any o-a-w-a reading ≤b(n) advice / to be optimal
+
+Or equivalently, prove that any o-a-w-a has at least competitive ratio r (or costs c) when reading less than b random/advice bits:
+
+To be optimal: Try make use of pigenhole principle.  Define a class of distinct inputs containing _more_ than 2^b^ inputs.  Preferably for simplicity the optimum is the maximum achievable.  All inputs in the class share a common prefix, and only knowing the last item (or the postfix of items), the optimum is achievable (appart from by chance).  There must be only one way (decisions one can make given an input) to achieve the optimum.  Because strat(ALG) consists of less than 2^b^ det. algs., at least one deterministic algorithm must now handle more than one input.  But since as said there's only one way to achieve the optimum, the det. alg. is non-optimal on at least one of the two inputs.
+
+lower bound on competitive factor: Similar to above.  Class of inputs. Pick two inputs from the class. They are identical (due to same prefix) up to (excluding) i-th request. Since it's a deterministic alg., it behaves the same way for both inputs. Make case distinction over all cases that an alg. can do with the i-th request.  Based on that, try to find a lower bound on the cost for any alg.
+
+Examples: <<advice_online_knapsack>> (both statements), <<proof_k2b_oawa_paging>>.
+
+see also definitions on p317
+
+
+=== Prove a lower bound for randomized algorithms
+
+* Yao's minmax principle: The worst-case (due to worst-case input) expected (over strategies/algorithms) cost of any randomized algorithm is larger or equal to the expected (over inputs) cost of the best deterministic algorithm against input distribution P~i~.  The strategy is to find an input distribution P~i~ for which all deterministic algorithms have high cost.
+
+
+=== Prove a lower bound for randomized algorithms solving online optimization problem ∏
+
+* If you proof that there is no online algorithm with advice that is c-competitive while using at most b(n) advice bits for ∏, then there is also no randomized online algorithm for ∏ that is c-competitive in expectation and that uses at most b(n) random bits.
+
+* ∏ has m(n) different instances of length n. If there is no ((1+ε)c)-competitive online algorithm with advice for ∏ that reads at most ... (this long formula) bits, then there is also no randomized online algorithm for ∏ that is c-competitive in expectation.
+
+
+=== Prove that c is an upper bound on the approximation ratio
+
+See proving that an o-A is c-competitive
+
+
+=== Prove a given upper bound on the approximation ratio of an approximation algorithm is tight
+
+See proving that an o-A has a competitive ratio of c.
+
+
+=== Prove there's no constant approximation ratio for a given algorithm
+
+* find an example/input where the approximation ratio is dependend on the input
+
+
+=== Prove that the given optimization problem U does not admit a FPTAS (or equivalently, does not permit a pseudo-polynomial time algorithm)
+
+* proof that U is strongly NP-hard
+
+
+=== Prove that a given optimization problem U does not permit a PTAS:
+
+* proof that U is APX-complete, see there
+
+
+=== Prove that a given optimization problem U does not admit a polynomial time d-approximation algorithm (which obviously implies it does not admit a PTAS either)
+
+* Reduce a known NP-hard to the d-approximation of U problem. *to-do* I need an example. Also, there might be a polynomial-time (d+ε)-approximation algorithm for U 
+
+* Reduce an optimization problem known to not admit any polynomial-time d-approximation algorithm to the d-approximation of U problem using an approximation-preserving reduction.
+
+
+=== Prove a lower bound on the approximation ratio of an optimization problem U
+
+* Reduce a problem with known lower bound to U using an appropriate reduction, see *to-do*
+
+* Given an optimization problem U ∈ NPO, two constants 0 < s ≤ c ≤ 1 and assuming P ≠ NP.  If GAP~s,c~-U is NP-hard (to be proven seperately), then there is no poly time c/s-approx. algorithm for U.
+
+* For the previous point, to show that GAP~s2,c2~-U~2~ is NP-hard, you might can start with a GAP~s1,c1~-U~1~ already known to be NP-hard and then do a GP-reduction.
+
+* Prove that U is APX-complete
+
+  ** *to-do*
+
+=== Prove that a problem (notably Gap-U) is NP-hard
+
+<<pcp_theorem>>
+
+
+== General techniques
+
+average argument: the greatest (smallest) element of a set must be greater (smaller) or equal than the average
+
+calculating upper/lowe bounds: the art is not to calculate too exact, because then it's too dificult, but also not too inexact, because then the bound is too far away from the strict bound.
+
+Reduce to a problem where we know an algorithm or proof of complexities.  May also just a part of our problem.
+
+Find appropriate `events' and express them using random variables. Often indicator variables can be used to count something.
+
+Prefer working with expectations than with probabilities, because of the linearity of expectation.  You don't have that in general with probabilities (unless you have independence).
+
+Probabilities: especially when calculating bounds, go via ratio `favorable case' / `all cases', since for both we only need an estimate on a bound.
+
+In case of paging, thinking in phases often helps. Requesting the same page multiple times in a row is boring, since after the first request of that streak the page will be in the cache, thus we often ignore that case for simplicity.  Proofing lower bounds, its enough to consider k+1 pages.  Examples of phase partitions:
+
+* The globaly very first time step makes a cache miss. Each phase consists of k different pages.  A phase ends with time step i, where in time step (i+1) a new page (not one of those k pages) is requested.  The OPT makes at most one miss per phase.
+
+* Each phase contains exactly k cache misses of the algorithm in question and ends with the k-th cache miss.
+
+randomized algorithms: Obviously the randomness must lie within each run of the algorithm. E.g. in the communication protocolls, when the prim used is generated at random before execution and hard coded, it's not really a randomized algorithm any more.  Success amplification wouldn't work anymore, the protection comming from randomness agains adversaries doesn't work anymore.
+
+Induction to proofe s.th.
+
+
+== probability stuff
+
+Maybe better move to math.adoc
+
+- Always know what is fix and what is random. I.e. know the probability spaces.
+
+- Similarly, know what events are given, i.e. be clear about conditional probabilities.
+
+- Small simple math steps. The human mind is bad in making good intuitive decisions in this area. Rely on simple math steps, not you're intuition.
+
+
+== to-do
+
+- really know christofedes proof
+
+- randomized algorithms, set 9, exercise 15
+
+- Double coverage (DC) proof
+
+
+== questions
+
+
+
+metric space vs triangle inequality
+
+connection between triangle inequality and complete graph
+
+
+

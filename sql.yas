@@ -22,44 +22,57 @@ subquery_operator =
 
 ## The result of a query is a table. The order of processing is:
 ##
-## FROM [ON]: Joins the given tables based on the given condition.
-## WHERE: Discard failing rows.
+## FROM [ON]: Joins [crossproduct + select] the given tables based on the given condition.
+## WHERE: [select] Discard failing rows.
 ## GROUP BY: Sort by given columns, creating set of aggregations for identical
 ##   (over given colums) columns, each aggregation being a table. 1)
 ## HAVING: discard failing aggregations.
-## SELECT: create table, one row per aggregation, columns as specified, the
-##   given expressions defining the values of the cells.
+## SELECT: [build table + project] create table, one row per aggregation, columns as
+##   specified, the given expressions defining the values of the cells.
 ## ORDER BY: order by given columns.
 ## DISTINCT: discard duplicate rows.
 ## LIMIT: discard excess rows
+##
+##                  set of tables
+## FROM(join(crossproduct+select(discard failing rows)))
+##                  table
+## WHERE(select(discard failing rows))
+##                  table
+## GROUP BY(sort + build aggregations)
+##                  set of tables (one per aggregation)
+## HAVING(discard failing aggregations)
+##                  set of tables (one per aggregation)
+## SELECT(project / build aggregation value, concatenate these row-wise)
+##                  table
+## ORDER BY
+##                  table
+## DISTINCT
+##                  table
+## LIMIT
+##                  table
 ##
 ## 1) When from now on columns are refered in another way than within expression
 ## being argument to an aggregate function, depending on sql version/flavour
 ## used, the select stament is illegal or the column's value is inteteminate
 ## (http://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html)
 query_block =
-  'SELECT
-  [ 'DISTINCT | ## discard duplicate rows, after HAVING
-    'UNIQUE |
-    'ALL ]
-  select_expr_list ## columns to retreive, exprs can only reference columns of
-                   ## the CPT. projection in the relational algebra sense.
-  ['FROM join_expression] ## join input tables
-  ['WHERE condition] ## discard rows that fail. selection in the relational
-                     ## algebra sense. For inner joins, you can semantically
-                     ## logical and-append it to the join condition.
-  [group_by_clause]
-  ['HAVING condition] ## discard failing rows, after GROUP BY
+  'SELECT select_args           ## project / calc aggreg. value, concat. row-wise
+  'FROM join_expr               ## join (crossproduct + select(discard failing rows))
+  ['WHERE condition]            ## select (discard failing rows)
+  ['GROUP 'BY group_by_args]    ## build aggregations
+  ['HAVING condition]           ## discard failing aggregations
   ['ORDER 'BY ... ['ASC|'DESC]]
   ['LIMIT ([offset \,] row_count | row_count 'OFFSET offset)+]
   ...;
 
-## Matching records form a group.  Aggregate functions operate on the rows in
-## a group.  Output is one row per group.  select_expr in select_expr_list
-## refering to a column make only sense if that column appears in group by
-## clause.
-group_by_clause =
-  'GROUP 'BY ...;
+select_args =
+  [ 'DISTINCT | ## discard duplicate rows
+    'UNIQUE |
+    'ALL ]
+  select_expr_list; ## columns to retreive, exprs can only reference columns of
+                    ## the CPT
+
+group_by_args = (id#attribue \,{-})+;
 
 select_expr_list =
   \* | ## all columns of CPT resulting from where clause
@@ -86,7 +99,7 @@ prefix_operator = ...;
 
 ## the ',' builds the crossproduct table of its rhs and lhs (i.e. an (inner)
 ## join of rhs and lhs with a condition being always true).
-join_expression =
+join_expr =
   ((table_ref|join_clause|\(join_clause\)) \,{-})+;
 
 join_clause =

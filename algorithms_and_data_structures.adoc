@@ -284,7 +284,7 @@ References:
 *to-do*
 
 
-[[complexity_classes]
+[[complexity_classes]]
 === Computational complexity classes
 
 The field of computational _complexity classes_ categorizes decidable decision problems by how difficult they are to solve. "Difficult", in this sense, is described in terms of the needed computational resources.  A _decision problem_ is a problem with a binary answer, e.g. yes or no.  A _function problem_ can have answers that are more complex than a simple `yes' or `no'.  Function problems can be transformed into decision problems and vice versa.  Thus computational complexity can focus on decision problems. An _intractable problem_ is one that can be solved in theory (i.e. which is in R), but which in practice takes too long to be usefull. There's no exact definition, but in general problems not in P (but in R) are considered intractable.
@@ -1255,8 +1255,9 @@ Implemented more specialized ADTs: <<collection>>.
 
 Terminology: Deque is the abbrevation of double-ended queue.  Deque (pronounced deck) is the abbbreviation thereof.  Deck is as in an deck of cars, which also provides a good mental image.
 
-See also: - http://www.codeproject.com/Articles/5425/An-In-Depth-Study-of-the-STL-Deque-Container
-- C&plus;&plus;'s deque allows random access/insertion, is thus pretty similar to vector. vector vs deque discussions: http://stackoverflow.com/questions/5345152/why-would-i-prefer-using-vector-to-deque, http://www.gotw.ca/gotw/054.htm
+See also:
+
+- http://www.codeproject.com/Articles/5425/An-In-Depth-Study-of-the-STL-Deque-Container
 
 
 [[depq]]
@@ -1377,9 +1378,9 @@ A _dynamic connectivity_ structure is a dynamic data structure that maintains an
 
 Supported operations:
 
-_insert/delete_(v:vertex): Inserting a new vertex v means a inserting a vertex with 0 degree.
+_insert/delete_(v:vertex): Inserting a new vertex v means inserting a vertex with degree 0.
 
-_insert/delete_(e:edge):
+_insert/delete_(e:edge): Straight forward
 
 _isconnected_(v:vertex, w:vertex) (or _connectivity_): Returns true if v and w are in same connected component.
 
@@ -2164,7 +2165,7 @@ References:
 - MIT course 6.851 Advanced Data Structures, spring 2012, lecture 11 Integer: https://courses.csail.mit.edu/6.851/spring12/scribe/L11.pdf[lecture notes], https://www.youtube.com/watch?v=u-HHY1ylhHY&index=11&list=PLUl4u3cNGP61hsJNdULdudlRL493b-XZf&t=0s[video]
 
 
-[[x_fast_trie]]
+[[y_fast_trie]]
 === Y-fast trie
 
 Don't confuse with <<y_fast_tree>>.
@@ -3137,10 +3138,10 @@ Solutions:
 [[max_sat_as_01LP]]
 ==== MAX-SAT as 0-1 LP
 
-Let P~i~ denote the set of indicies of positive literals in i-th clause, and N~i~ analogously the negative ones. A `positive' literal is a plain variable, and `negative' literal is a negated variable.  We assume P~i~ ∩ N~i~ = ∅, because otherwise the i-th clause is always satisfied, which is uninteresting -- we would create a subproblem which doesn't contain such boring  clauses.  Let y~i~ denote the boolean variables of MAX-SAT.  Let z~i~ denote a boolean variable representing wheter the i-th clause is satisfied. At least one literal in the i-th clause is true (i.e. sum of true literals ≥ 1) ⇔ z~i~=1. Thus (sum of true literals) - 1 must be larger equal zero.
+Let P~i~ denote the set of indicies of positive literals in i-th clause, and N~i~ analogously the negative ones. A `positive' literal is a plain variable, and `negative' literal is a negated variable.  We assume P~i~ ∩ N~i~ = ∅, because otherwise the i-th clause is always satisfied, which is uninteresting -- we would create a subproblem which doesn't contain such boring  clauses.  Let x~i~ denote the boolean variables of MAX-SAT.  Let z~i~ denote a boolean variable representing wheter the i-th clause is satisfied. At least one literal in the i-th clause is true (i.e. sum of true literals ≥ 1) ⇔ z~i~=1. Thus (sum of true literals) - 1 must be larger equal zero.
 
 Maximize: ∑z~i~
-Subject to m constraints (1≤i≤m): ∑~j∈Pi~y~j~ + ∑~j∈Ni~ȳ~j~ - z~i~ ≥ 0
+Subject to m constraints (1≤i≤m) of form: ∑~j∈Pi~x~j~ + ∑~j∈Ni~x̄~j~ - z~i~ ≥ 0
 
 References:
 
@@ -3156,7 +3157,7 @@ Note that the algorithm design is based on <<random_sampling>>.
 
 Algorithm: Assign either 1 or 0 uniformily at random to each variable. Return number of satisfied clauses.
 
-Proof of being E[2^k^/(2^k^-1)]-approximation: Let m denote the number of clauses. Let Z~i~ be an indicator variable being 1 when the i-th clause is satisfied. E[Z~i~] = 1-(1/2)^k^. Let the random variable Z be the sum of all satisfied clauses.  Z = ∑~1≤i≤m~Z~i~. E[Z] = E[∑~1≤i≤m~Z~i~] = m(1-(1/2)^k^), due to linearity of expectation.  The optimal gain is at most m.  Thus E[Ratio] ≤ OPT / E[Z] = m / (m(1-(1/2)^k^)) = 2^k^ / (2^k^ - 1).
+Proof of being E[2^k^/(2^k^-1)]-approximation: Let m denote the number of clauses. Let Z~i~ be an indicator variable being 1 when the i-th clause is satisfied. E[Z~i~] = 1-(1/2)^k^. Let the random variable Z be the sum of all satisfied clauses.  Z = ∑~1≤i≤m~Z~i~. E[Z] = E[∑~1≤i≤m~Z~i~] = m(1-(1/2)^k^), due to linearity of expectation.  The optimal gain is at most m.  Thus E[Ratio] = cost(OPT) / E[Z] ≤ m / (m(1-(1/2)^k^)) = 2^k^ / (2^k^ - 1).
 
 References:
 
@@ -3168,11 +3169,11 @@ References:
 
 Presented is a randomized poly-time E[k^k^ / (k^k^ - (k-1)^k^)]-approximation algorithm (E[e/(e-1)]-approximation for MAX-SAT).  Thus its best for short clauses (for k=1 its E[1]) and gets slightly worse with longer clauses, upper bounded by E[e/(e-1)] ≈ E[1.58].  Is an application of the <<random_rounding>> technique.
 
-Algorithm: Express MAX-EkSAT as 0-1 LP, see <<max_sat_as_01LP>>. Relax to LP, i.e. substitute the constraints that y~i~ and z~i~ must be boolean variables by to the constraints y~i~ ≥ 0 and y~i~ ≤ 1, and likewise for z~i~.  Solve this LP problem with some poly time LP solver.  For each variable x~i~ of the original problem, set it to 1 with a probability of y~i~, and to 0 otherwise.  As often with random rounding technique, success amplification works well, because only the cheap part of random rounding has to be repeated, see <<random_rounding>>.
+Algorithm: Express MAX-EkSAT as 0-1 LP, see <<max_sat_as_01LP>>. Relax to LP, i.e. substitute the constraints that x~i~ and z~i~ must be boolean variables by to the constraints x~i~ ≥ 0 and x~i~ ≤ 1, and likewise for z~i~.  Solve this LP problem with some poly time LP solver.  For each variable xorig~i~ of the original problem, set it to 1 with a probability of x~i~, and to 0 otherwise.  As often with random rounding technique, success amplification works well, because only the cheap part of random rounding has to be repeated, see <<random_rounding>>.
 
 Proof of being an E[...]-approximation algorithm: Let Z~i~ be an indicator variable indicating whether clause F~i~ is satsified by the algorithm.  Thus E[Z~i~] is the probability that clause F~i~ is satsified.  We use the Z~i~ s to count: The total number of clauses satisfied by the algorithm is Z = ∑Z~i~.  The expected number of satisfied clauses is E[Z] = ∑E[Z~i~] (linearity of expectation).  ① below gives an lower bound on E[Z~i~]. Also using that the found LP solution is better or equal (i.e. at least as many satisfied clauses) than the optimal solution, see ②, and after math, delivers E[Z].
 
-① A lower bound on the probability E[Z~i~] of clause F~i~ being satisfied by the algorithm: We can consider clauses independently.  Thus WLOG we can assume F~i~ contains only non-negated variables, and thus ∑~j∈Pi~y~j~ - z~i~ ≥ 0 (see <<max_sat_as_01LP>>).  Clause F~i~ is unsatisfied iff all it's x~j~ are set to zero, which occurs with probability p̄~i~ = ∏~j≤k~(1-y~j~) (random rounding is done independent for each variable).  Thus E[Z~i~] = 1 - p̄~i~.  Under the above given LP constraint, E[Z~i~] is minimized when y~i~ = z~i~/k.  With some math this delivers a lower bound for E[Z~i~].
+① A lower bound on the probability E[Z~i~] of clause F~i~ being satisfied by the algorithm: We can consider clauses independently.  Thus WLOG we can assume F~i~ contains only non-negated variables, and thus ∑~j∈Pi~x~j~ - z~i~ ≥ 0 (see <<max_sat_as_01LP>>).  Clause F~i~ is unsatisfied iff all it's x~j~ are set to zero, which occurs with probability p̄~i~ = ∏~j≤k~(1-x~j~) (random rounding is done independent for each variable).  Thus E[Z~i~] = 1 - p̄~i~.  Under the above given LP constraint, E[Z~i~] is minimized when x~i~ = z~i~/k.  With some math this delivers a lower bound for E[Z~i~].
 
 ② The 0-1 LP constraints are stronger than the LP constraints, thus the set of 0-1 LP solutions is a subset of the set of LP solutions.  Thus number of clauses satisfied in LP is an upper bound on the number of clauses satisfied in O-1 LP (i.e. the optimum solution of the MAX-EkSAT problem).
 
@@ -4661,7 +4662,7 @@ https://courses.csail.mit.edu/6.851/spring12/scribe/lec16.pdf[lecture notes]
 
 See this as an intro to what a trie is. In practice you will use a <<compressed_trie>>, see there for more details.
 
-Is an implementation of the ordered <<associative_array>> ADT. It stores +k+ items (key/value pairs), the stored keys being strings _T~i~_, i=1,...,k, the strings' letters are from alphabet _Σ_.  Internally, there is also the special letter _$_ which represents the end of a string and lexicographically is smaller than any letter in Σ.  A trie is a rooted tree where each edge is labeled with a letter.  Thus child nodes have an order, since letters have order.  A root-to-leaf path represents a key (being a string), and the so reached leaf node the value associated with that key.  The strings derived from paths root to leaf are called _words_, the strings from other paths starting at the root are called _prefixes_.  Note that the number of leaves equals k.  The maximal number of nodes stored in the tree is |T| = ∑|T~i~|. In query/lookop, _P_ denotes a _pattern_ (or _query_) searched in the trie.
+Is an implementation of the ordered <<associative_array>> ADT. It stores +k+ items (key/value pairs), the stored keys being strings _T~i~_, i=1,...,k, the strings' letters are from alphabet _Σ_.  Internally, there is also the special letter _$_ which is appended to each string T~i~ and lexicographically is smaller than any letter in Σ.  It is required to distinguish prefixes from words.  Thus every edge to a leaf node is labeled with $.  A trie is a rooted tree where each edge is labeled with a letter.  Thus child nodes have an order, since letters have order.  A root-to-leaf path represents a key (being a string), and the so reached leaf node the value associated with that key.  The strings derived from paths root to leaf are called _words_, the strings from other paths starting at the root are called _prefixes_.  Note that the number of leaves equals k.  The maximal number of nodes stored in the tree is |T| = ∑|T~i~|. In query/lookop, _P_ denotes a _pattern_ (or _query_) searched in the trie.
 
 Since child nodes have an ordering, an in-order traversal prints the stored keys in order.
 
@@ -5033,7 +5034,7 @@ Las Vegas to Monte Carlo: A Las Vegas algorithm which is allowed to return ? is 
 
 Advantages / Disadvantages of randomized algorithms:
 
-- "Foiling the adversary". Avoiding worst-case problem instances: Protection against adversaries/attackers trying to provoke worst-case behaviour with worst-case input. E.g. hash tables or sorting algorithms.
+- "Foiling the adversary". Avoiding worst-case problem instances: Protection against adversaries/attackers trying to provoke worst-case behaviour with worst-case input. E.g. hash tables or sorting algorithms may want to protect against such attacks.  In case of hash tables, they may want to use universal hashing.
 
 - Less computation time, sometimes at the cost of less guarantees of getting the optimal result. Depending on the algorithm we still might know that the result wasn't optimal.  Note that when the (theoretical) error probability is really low, in practice we can compete with deterministic algorithms. In practice we're not completely save even with deterministic algorithms, since we also have to take into account the probability of hardware failure, bugs, accidents etc.  The overall error probability of a deterministic algorithm might even be higher than the overall error probability of a much faster Monte Carlo algorithm, because a hardware error has a higher probability to occure during the runtime since the runtime is much longer.
 
@@ -5078,7 +5079,7 @@ A Las Vegas Algorithm which is not allowed to return ? can be converted to one w
 
 Examples:
 
-- quick sort, quick select. They always return the correct answer, but they might be slow on some inputs.
+- quick sort, quick select, <<generation_of_quadratic_nonresidues>>. They always return the correct answer, but they might be slow on some inputs.
 
 
 === Monte Carlo algorithm
@@ -5106,6 +5107,8 @@ Probabilities given the output of A, i.e. A(x):
 |======
 
 See also <<amplification_of_success_probability>>.
+
+Examples: <<freivalds>> (1MC), <<solovay_strassen_algorithm>> (1MC),
 
 References:
 
@@ -5152,9 +5155,9 @@ With the same context, A is a __randomized δ-approximation algorithm__ if Pr~st
 
 In general a randomized E[δ]-approximation algorithm for U is not necessairly a randomized δ-approximation algorithm for U, and also not vice versa.
 
-Proof a randomized E[δ]-approximation algorithm is not a randomized δ-approximation algorithm: Say algorithm A has 1999 different equaly likely runs on a given input. On less than half of the runs, say 999, the approximation ratio is very low, say 1, on the other runs its moderate, say 3.  (1000*3 + 999*1)/1999 ≈ 2. Thus A is an randomized E[2]-approximation algorithm, but a randomized 3-approximation algorithm.
+Proof a randomized E[δ]-approximation algorithm is not a randomized δ-approximation algorithm: Say algorithm A has 1999 different equaly likely runs on a given input. On less than half of the runs, say 999, the approximation ratio is very low, say 1, on the other runs its moderate, say 3.  (999*1 + 1000*3)/1999 ≈ 2. Thus A is an randomized E[2]-approximation algorithm, but a randomized 3-approximation algorithm.
 
-Proof a randomized δ-approximation algorithm is not a randomized E[δ]-approximation algorithm: Say algorithm A has 100 different equaly likely runs on a given input.  On most runs, say 97, the approximation ratio is very low, say 1.  On a few runs, say 3, it is very large, say 1000.  Thus A is an randomized 1-approximation algorithm, but an randomized E[970]-approximation algorithm ( (3*1 + 97*1000)/100 ≈ 970 )
+Proof a randomized δ-approximation algorithm is not a randomized E[δ]-approximation algorithm: Say algorithm A has 100 different equaly likely runs on a given input.  On most runs, say 97, the approximation ratio is very low, say 1.  On a few runs, say 3, it is very large, say 1000.  Thus A is an randomized 1-approximation algorithm, but an randomized E[10.97]-approximation algorithm ( (97*1 + 3*1000)/100 = 10.97)
 
 If A is a randomized E[δ]-approximation-algorithm for an optimization problem U, then A is a randomized (2E[δ])-approximation for U.
 
@@ -5228,8 +5231,6 @@ MC: In general, the scheme used in 2MC cannot not be used, since it's possible t
 When an O(poly(n))-time randomized approximation algorithm A has a constant upper bound on the error probability, the overall error probability decreases exponentially. Followingly still in O(poly(n))-time we can make the error probability arbitrarily close to 0. E.g. see <<detran>>
 
 *to-do* proof: a linear number of runs improves the success probabilty exponentially.
-
-**to-do**(1 rand) The book often uses the constant 1/2 in definition of monte carlo and las vegas algorithms. Except for 2MC, any constant bound 0 ≤ ε < 1 will do, and I still can use success amplification to get an arbitrary better bound, still constant, with a constant number repetitions, right?
 
 In some cases we don't need to re-execute the whole algorithm, but only parts of it.  In general, only parts containing randomness are worth reexecuting.  Or from the other perspective, it doesn't make sense to reexecute part which are deterministic and dont depend on parts containing randomness.  In such a case amplification of success probability is a design technique used to design the algorithm.  An example of an algorithm is the <<karger_stein_algorithm>>.  Amplification of success probability often can be applied internally together with <<random_rounding>>, see there.
 
@@ -5311,7 +5312,7 @@ References:
 
 A _quadratic nonresidue_ in the field ℤ~p~ is any member of the field ℤ~p~ which is not a quadratic residue.  A _quadratic residue_ in the field ℤ~p~ is any element a ∈ ℤ~p~ where there exists an x ∈ ℤ~p~ such that a = x².
 
-Las Vegas algorithm with success probability of 1/2: Choose uniformily at random an a ∈ ℤ~p~. If a^(p-1)/2^ ≡ p - 1, return a, else return `?'.
+Las Vegas algorithm with success probability of 1/2: Choose uniformily at random an a ∈ {1,...,p-1}. If a^(p-1)/2^ ≡ p - 1, return a, else return `?'.
 
 Proof: We have the two key ingredients of random sampling: 1) We can efficiently determine whether a candidate is a quadratic nonresidue. 2) There's an abundance of quadratic nonresidues among candidates.
 
@@ -6433,6 +6434,7 @@ Computes the topological sort of a directed graph in O(V+E); dedects cycles.
 
 Intuitively: Have a queue which always maintains all the source vertices (a vertice with indegree 0) of the graph.  While there are vertixes left, pick a source, append it to output sequence, remove it from graph.  If any vertices are left, the graph contains at least one cycle.
 
+
 --------------------------------------------------
 kahns_algorithm(graph): list
   create empty map (key vertex, value int) -> indegree
@@ -6462,7 +6464,7 @@ kahns_algorithm(graph): list
     raise error "Graph contains at least one cycle"
 
   return topoorder
--------------------------------------------------
+--------------------------------------------------
 
 Intuitition why the algorithm works: The graph's sources appear consecutively as the first elements in the topoorder sequence.  Removing a source from the graph does not affect the topoorder sequence of the remaining vertices.  Thus we can iteratively remove sources and append them to the topoorder sequence.
 
@@ -7227,7 +7229,7 @@ In the following, contracting an edge means merging its two incident vertices in
 
 Algorithm: While the multigraph has more more than two vertices, choose an edge uniformily at random and contract it. Thus at the end, two vertices remain, and the number of edges between them is the output.
 
-Proof of lower bound on finding optimal solution: Let k denote the cost of the optimal solution.  Then every vertex has a degree of at least k.  If there was a vertex with a lower degree, we could make a cut extracting only that vertex, and the cost of the cut would be lower than k, but by definition k is the cost of the minimal cut.  The graph thus has at least kn/2 edges.  Observe that the algorithm only computes the optimal solution if it does not contract an edge of the optimal solution.  There are n-2 contractions. Let Event~i~ be the event that the i-th contraction does not contract an edge of the opt. solution.  After i contractions the graph has n-i vertices. If never an edge of the opt solution was contracted, then we still can achieve the optimal min cut, i.e. each vertex still has a degree of at least k, and thus the graph has at least |E~i~| = k(n-i)/2 edges. P~i~ = Pr[Event~i~|⋂~1≤j≤i-1~Event~j~] ≥ (|E~i-1~|-k)/|E~i-1~| = 1 - k/|E~i-1~| ≥ 1 - k/(k(n-(i-1))/2).  The probability of getting the opt. solution is Pr[⋂~1≤i≤n-2~Event~i~] = Pr[Event~1~] · Pr[Event~2~|Event~1~] · ... · P~i~ · ... ≥ ∏~1≤i≤n-2~P~i~ = ... = 1/(n(n-1)).
+Proof of lower bound on finding optimal solution: Let k denote the cost of the optimal solution.  Then every vertex has a degree of at least k.  If there was a vertex with a lower degree, we could make a cut extracting only that vertex, and the cost of the cut would be lower than k, but by definition k is the cost of the minimal cut.  The graph thus has at least kn/2 edges.  Observe that the algorithm only computes the optimal solution if it does not contract an edge of the optimal solution.  There are n-2 contractions. Let Event~i~ be the event that the i-th contraction does not contract an edge of the opt. solution. The probability of getting the opt. solution is P~opt~ = Pr[⋂~1≤i≤n-2~Event~i~] = Pr[Event~1~] · Pr[Event~2~|Event~1~] · ... · P~i~ · ... ≥ ∏~1≤i≤n-2~P~i~, where P~i~ = Pr[Event~i~|⋂~1≤j≤i-1~Event~j~]. We try to find a lower bound for P~i~. After l = i - i contractions the graph has n-l vertices. If never an edge of the opt solution was contracted, then we still can achieve the optimal min cut, i.e. each vertex still has a degree of at least k, and thus the graph has |E~i-1~| = |E~l~| ≥ k(n-l)/2 = k(n-(i-1))/2 edges. The event associated with P~i~ we start with a graph still allowing opt solution, and that we now don't contract an edge of the opt. solution, thus P~i~ ≥ (|E~i-1~|-k)/|E~i-1~| = 1 - k/|E~i-1~| ≥ 1 - k/(k(n-(i-1))/2). Inserting into our formula for P~opt~ ≥ ∏~1≤i≤n-2~P~i~ = ... = 2/(n(n-1)).
 
 naive success amplification: When using a naive success amplification approach and repeatedly executing <<kargers_algorithm>>, and taking the best output among all runs, one can show that to reach a constant lower bound (1-1/e) for the probability of finding the optimal solution, we have to run it O(n²) times.  Thus the overall running time becomes O(n^4^), but the best known deterministic algorithms finds the optimal solution with certainty in O(n³).  Note that <<detran>> and <<karger_stein_algorithm>> apply success amplification in a more sophisticated way.
 
@@ -7859,7 +7861,7 @@ Conquer: Make two recursive calls, one with (PointsXSLeft, PointsYSLeft) as argu
 
 Combine: Choose the smaller of min_left, min_right delivering min.  Now it's possible that there's a pair with a distance smaller than min in the vertical strip ±min around the vertical line from the devide step above.  One point of the pair being in the left half of the strip, the other in the right half.  Recall that points on the line can be in either partition.  From PointsYS extract those points being in the strip while keeping them y sorted, resulting in StripPointsYS.  For each point in StripPointsYS, compare it with all points further ahead in StripPointsYS which are at most min away in y direction.  It can be proven that there are at most 7 such points ahead.
 
---------------------------------------------------
+----------------------------------------------------------------------
 closest_dist(points)
   sort points in x direction
   PointsYS = an y-sorted array of pointers to into points
@@ -7902,11 +7904,11 @@ closest_dist_strip(min, AllPointsXS: points, middle_index:int, PointsYS: point_p
       j++
 
   return min
---------------------------------------------------
+----------------------------------------------------------------------
 
 Informal proof that closest_dist_strip's inner loop needs to check at most 7 points ahead: In the worst case, i.e. where the points are packed as dense as possible, the situation looks like in the following diagram. ❍ is the currently checked point as determined by the outer loop, ➊ is the point one ahead, ➌ is three ahead and so on.  Recall that the points are sorted in y.  In this worst case scenario, the 1st and 2nd point coincide; 1st being part of the left partition, 2nd being part of the right partition.  Likewise for 5th and 6th.  We don't need to consider points further ahead, because their y distance to ❍ would be larger than min.  Thus at most 7 points are ahead with a y distance smaller than min.
 
---------------------------------------------------
+----------------------------------------------------------------------
      vertical
       line
        ‖
@@ -7917,7 +7919,7 @@ Informal proof that closest_dist_strip's inner loop needs to check at most 7 poi
        ‖
   ➍----➎----➐
        ‖
---------------------------------------------------
+----------------------------------------------------------------------
 
 *to-do* As far as I understand it, 7 is an upper bound, but maybe not tight.  With more complicated math, we might be able to prove that there are even less considerable points ahead.  But it's really only about proving that it is a constant number of points we have to consider at most.  That results in O(n) for closest_dist_strip.  If we didn't had this proof, it would be O(n²), since we had to assume having to compare every point in the strip with every other in the worst case.
 
@@ -8033,7 +8035,7 @@ Proof, case AB = C (i.e. D=0): Dα = 0 for all α. Thus the error probability is
 
 Proof, case AB ≠ C (i.e. D≠0) and α s.t. Dα≠0: α is a witness of fact D≠0. All is good.
 
-Proof, case AB ≠ C (i.e. D≠0) and α s.t. Dα=0: α is not a witness of fact D≠0. Bad luck. For at most how many α can this case happen?  In the worst case only one row of D has non-zero elements.  If there are more rows with non-zero elements, then there are even less non-witnesses.  Say the i-th row has non-zero elements, then (Dα)~i~ = 0 = ∑~j~d~ij~α~j~.  WLOG assume at least d~i1~ is non-zero. α~1~ = -1/d~i1~ · ∑~j≥2~d~ij~α~j~, i.e. one element of α is determined by all the others.  Thus at most 2^n-1^ α are non-witnesses.
+Proof, case AB ≠ C (i.e. D≠0) and α s.t. Dα=0: α is not a witness of fact D≠0. Bad luck. How many non-witnesses are there at most?  In the worst case only one row of D has non-zero elements.  If there are more rows with non-zero elements, then there are even less non-witnesses.  Say the i-th row has non-zero elements, then (Dα)~i~ = 0 = ∑~j~d~ij~α~j~.  WLOG assume at least d~i1~ is non-zero. α~1~ = -1/d~i1~ · ∑~j≥2~d~ij~α~j~, i.e. one element of α is determined by all the others.  Thus at most 2^n-1^ α are non-witnesses.
 
 **to-do**(2 rand) Why doesn't this count as `abundance of witnesses'? I see that here we can say that we choose two `hash functions' from a family, compute two hash values (fingerprints) of two `big' objects (C and (A,B)) and then compare these two hash values.
 
@@ -8107,13 +8109,16 @@ References:
 
 A polynomial-time 1MC algorithm, error probability at most 1/2, for the recognition of composite numbers n with n mod 4 = 3.  Being an 1MC algorithm, given a composite, it may wrongly say it's prime.
 
-Algorithm: Choose uniformly at random an a ∈ {1, ..., n-1} and compute A = a^(n-1)/2^ mod n. If A ∉ {1, -1}, return `composite', otherwise return `not composite'.
+Algorithm: Choose uniformly at random an a ∈ {1, ..., n-1} and compute A = a^(n-1)/2^ mod n. If A ∉ {1, -1}, return COMPOSITE, otherwise return PRIME.
 
-Proof of being 1MC: The algorithm is an application of the method <<abundance_of_witnessess>>. It can be proven that for every integer n with n mod 4 = 3, when computing A = a^(n-1)/2^ mod n, the following holds. If n is prime, then A ∈ {1, -1} for all a ∈ {1, ..., n-1}. If n is composite, then A ∉ {1, -1} for at least half of a ∈ {1, ..., n-1}.  Thus a ∈ {1, ..., n-1} is an abundand witness of the fact that n is composite.
+Proof of being 1MC: The algorithm is an application of the method <<abundance_of_witnessess>>. It can be proven that for every integer n with n mod 4 = 3, when computing A = a^(n-1)/2^ mod n, the following holds. If n is prime, then A ∈ {1, -1} for all a. If n is composite, then A ∉ {1, -1} for at least half of a.  Thus a is an abundand witness of the fact that n is composite.
+
+Let n ≡ 3 (mod 4). We have to show that at least half a ∈ {1, ..., n-1} are witnesses of fact that n is composite. Non-witnesses are the Eulerian numbers; Euler-set ∪ witness-set = {1, ..., n-1}.  We show that |Euler-set| ≤ |witness-set| by showing that there's an injective mapping Euler-set to witness-set. (The proof is based on the existence of an b which has a multiplicative inverse in group (ℤ~n~^∗^, ·~mod ~). Thus there's also a proof that such a b exists, and for that we can use the Chinese Remainder Theorem).
 
 Proof of polynomial time complexity: A can be computed in polynomial time by repeated squaring.
 
 Side node -- Example of a non-working witness: Based on Fermat's little theorem: A number a ∈ {1, ..., n-1} is a witness of the fact that n is composite iff a^n-1^ mod n ≠ 1. However for certain composite numbers, called Carmichael numbers, there are no such witnesses among the candidates {1, ..., n-1}, i.e. the witnesses are not abundant, thus this approach does not work in general.
+
 
 References:
 
@@ -8135,9 +8140,21 @@ Algorithm:
 
 - If jac(a,n) = a^(n-1)/2^ mod n then return `not composite', otherwise return `composite'.
 
+
+Proof, case n is prime:
+
+If n is a prime, there does not exist any witness of “n ∈ PRIM” (Theorem
+6.3.17(a)), and so the algorithm outputs the answer “n ∈ PRIM” (“reject”) with
+certainty.
+
+If n is composite, Theorem 6.3.17(b) assures that at least half the elements of
+{1, 2, . . . , n − 1} are Jac-witnesses of “n ∈ PRIM”. Therefore, the
+Solovay-Strassen algorithm gives the right answer “n ∈ PRIM” with probability at
+least 1/2.
+
 References:
 
-- Book ``Design and Analysis of Randomized Algorithms'', chapter ``6.3 Solovay-Strassen Algorithm for Primality Testing'' p 192
+- Book ``Design and Analysis of Randomized Algorithms'', chapter ``6.3 Solovay-Strassen Algorithm for Primality Testing'' p 192, in particular the algorithm on p 201
 
 
 [[generating_primes]]
@@ -8147,9 +8164,9 @@ The task is to generate a prime of length l.  Usually l is in the hundreds.  Fro
 
 A polynomial-time (in output length, i.e. l) MC, returning a prime of a given lenght l.  The error might be that the returned number is not really prime, or that it returns ``no prime found''
 
-Algorithm: Do at most 2l² times: Generate a random number n of length l.  Test its compositness with at most k independent runs of the <<solovay_strassen_algorithm>>.  k is a tuning parameter of the algorithm. Here we set k = l.  If any run says n is composite, continue the outer loop.  If all k runs say n is not composite, i.e. prime, return n.  If all outer loop iterations were not successful, return ``no prime found''.
+Algorithm: Do at most 2l² times: Generate a random number n of length l.  Test its compositness with at most k independent runs of the <<solovay_strassen_algorithm>>.  k is a tuning parameter of the algorithm. Here we set k = l.  If any run says n is composite, continue the outermost loop.  If all k runs say n is not composite, i.e. prime, return n.  If all outer loop iterations were not successful, return ``no prime found''.
 
-Probability of answer ``no prime found'':  This happens only if all of the 2l² generated numbers are composite, and all the solovay-strassen alg. runs correctly identifies all of them as composite.  The probability of n being prime is at least 1/ln(n) > 1/(2l) (due to prime number theorem), thus the probability of n being composite is at most a = 1 - 1/(2l).  The probability that k runs of solovay strassen are correct when given a composite is b = 1-1/2^k^. Thus the probability of answer ``no prime found'' is (ab)^2l²^ < ... < 1/e^l^, where we set k = l. For reasonable l, that tends practically to 0.
+Probability of answer ``no prime found'':  This happens only if all of the 2l² generated numbers are composite, and all the solovay-strassen alg. runs correctly identifies all of them as composite.  The probability of n being prime is at least 1/ln(n) > 1/(2l) (due to prime number theorem), thus the probability of n being composite is at most a = 1 - 1/(2l).  The probability that k runs of solovay strassen are correct when given a composite is at least b = 1-1/2^k^. Thus the probability of answer ``no prime found'' is (ab)^2l²^ < ... < 1/e^l^, where we set k = l. For reasonable l, that tends practically to 0.
 
 Probability of returning a composite (i.e. an error): This happens only if 1) all numbers generated before were composite, and the solovay-strassen alg. runs always correctly identified them as such and 2) n is composite, but one of the k = l runs of solovay-strassen incorrectly labeled it as prime.  Let p~i~ denote the probability that the i-th generated number / composite is wrongly returned as a prime.  The overall probability of returning a composite is then ∑~1≤i≤2l²~p~i~ ≤ ... ≤ l² / 2^l-1^. For l=100, this bound is already 1.58E-26.
 
@@ -8163,14 +8180,12 @@ References:
 
 A _nibble_ is a four bit aggregation (aka _halb-byte_ or quartet).
 
---------------------------------------------------
+----------------------------------------------------------------------
 set:    x |=  y
 clear:  x &= ~y
 toggle: x ^=  y
 test:   x &   y
---------------------------------------------------
-
-In C / C&plus;&plus;, +CHAR_BIT+ is the number of bits in a byte.
+----------------------------------------------------------------------
 
 References:
 
@@ -8196,7 +8211,7 @@ Implementations:
 
 Returns the number of ones in a bit vector/string.  See also <<rank_and_select,rank(i)>>, which counts ones upto index i.
 
-*to-do* Reference to C&plus;&plus;, common CPU architectures already implementing this
+*to-do* Reference to C++, common CPU architectures already implementing this
 
 
 [[count_equidistant_ones]]
@@ -8210,7 +8225,7 @@ number_of_ones = ( (s · M) >> (k-1)(r+1) ) bitand 1^r+1^
 
 Explanation: It works because the multiplication, due to the way M is defined, at the right position in the product, sums up all the chunks, and by that all the bits x~0~, ..., x~k-1~.  The sum can maximally be k, since in the worst case every of the k bits is set. We need ⌈log~2~ k⌉ bits to store the maximal sum.  Since ⌈log~2~ k⌉ ≤ r+1, the sum will not spill over into the next chunk.  The following visualizes the process:
 
---------------------------------------------------
+----------------------------------------------------------------------
  s = 1 2 3 4   each digit represents a chunk
 
  s * K = 
@@ -8221,7 +8236,7 @@ Explanation: It works because the multiplication, due to the way M is defined, a
  1 2 3|4|- - -
  =============
  x x x|x|x x x
---------------------------------------------------
+----------------------------------------------------------------------
 
 Analysis: O(1). Since we did only O(1) many O(1) operations.
 
@@ -8370,7 +8385,7 @@ References:
 
 High level idea: Split word x into √w clusters of √w bits.  Then find first non-empty cluster, and within that cluster the first set bit.
 
---------------------------------------------------
+----------------------------------------------------------------------
   ~ = uninteresting, MSBoc = MSB of cluster, cluster' = cluster without its MSB
 
                  √w   √w   √w   √w
@@ -8387,7 +8402,7 @@ High level idea: Split word x into √w clusters of √w bits.  Then find first 
   y = t4 | t1 = 1000 0000 1000 1000  combine .....
                                      MSBoc = 1/0 -> cluster is nonempty/empty
  s = y*m >> w = ~~~~ ~~~~ ~~~~ 1011  MSBoc s of y in one sequence
---------------------------------------------------
+----------------------------------------------------------------------
 
 Explanation: Lets first solve the subproblem of finding the first set bit in a √w bit word, denoted s. We do a <<word_level_parallel_comparison>> of s in the sequence of the first √w powers of two, each element in the sequence being √w bits long.  E.g. for w = 16, i.e. √w = 4, the sequence would be {0001, 0010, 0100, 1000}.  The parallel comparison returns the first power of two, i.e. the sequence element's index, that is greater than s.  That directly delivers us the index of the first set bit. *to-do* off by one error?
 

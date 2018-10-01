@@ -1,0 +1,171 @@
+// The markup language of this document is AsciiDoc
+:encoding: UTF-8
+:toc:
+:toclevels: 4
+
+
+= Computer Vision
+
+== Intro
+
+Two objects are _homeomorphic_ if they can be deformed into each other by a
+continous, invertible mapping.  A _manifold_ is a surface where for every point
+x on the surface, there is an open ball, such that the intersection of the
+surface with the ball is homeomorphic to an open disc.  A _manifold with
+boundary_ is one where the civinity of each boundary point is homeomorphic to a
+half-disk.  A _polyhedron_ is a closed manifold polygonal.
+
+The _Euler characterstic_ (or _Euler number_ or _Euler-Pointcaré characterstic_)
+is defined as e = V-E+F = 2 - 2g, where V is the number of vertices, E is the
+number of edges, and F is the number of faces.  It is a topological property.
+
+The _genus_ g is a topological property and is defined as the maximal number of
+closed paths that do not disconnect the graph diveded by two.  Informally, it is
+the number of handles / holes. E.g. a sphere has a genus of zero, a donut one,
+and a double donut two.  Note that the informal description can be misleading,
+since the notion of a hole can be misleading.  E.g. a sphere with a hole (which
+is really a just a boundary loop) has the same genus as a regular sphere.
+
+The topological property _non orientable_ means that if you start on one side of
+a surface and continue walking you can end up on the other side of the surface,
+e.g. a mobius strip.
+
+A _mesh_ is a discrete representation of a geometric entity as a collection of
+other geometric entities, called _primitives_. For example, a 3D body can be
+defined by a set of triangles, called _triangluar mesh_.  The triangular mesh is
+defined by a set of vertices (called the mesh's _geometry_), and a set of
+triangles (called the _topological_ property), each triangle defined by the
+indicies of its three vertices.  A _boundary edge_ is adjacent to exactly one
+face, a _regular edge_ to exactly two faces and a singular edge to two or more.
+A _closed mesh_ is one with no holes; or in other words, a mesh with no boundary
+edges.  A _manifold mesh_ is one where every edge has exactly two neighboring
+vertices.  A _manifold mesh with boundaries_ is a mesh where each edge has one
+or two incident triangles.  A _non-manifold mesh_ is a mesh where edges can have
+more than two incident triangles.  A _manifold vertex_ has one connected ring of
+faces around it, or in case of being on a boundary, one connected half-ring.  An
+_oriented mesh_ (don't confuse with orientable as topological property)is one
+where edges have direction, an _unoriented mesh_ is one where edges don't have
+direction.  A _regular mesh_ is one where all vertices have the same degree.
+
+*to-do* manifold mesh vs manifold vertex: is mesh containing one or more non-manifold vertices considered a manifold mesh?
+
+A _scene_ is a model consisting of a collection of objects and light
+sources. The outermost coordinate system is called _world space_.  The
+coordinate system defined by a camera, itself positioned in the scene, is called
+_camera(-space) coordinate system_ (or _eye coordinate system_ or _eye space_).
+When standing behind the camera, it is centered at the camera, where the x-axis
+goes to the right, the y-axis to the top, and the z-axis to behind the camera.
+In _normalized device coordinates_, these coordinates are normalized to [-1,1]
+in x and y.  The _image space_ coordinate system is conceptually given by the
+discrete pixels of the camera sensor, and its elements are called _pixel
+coordinates_, which are integers. The _view region_ is the part of the world
+that's theoretically visible in the picture, typically a pyramid. The _view
+volume_ is the part that of the view region that's actually drawn in the
+picture.  Elements too far away or too near may be truncated / ommitted.  The
+_view port_ is the part of the output devive (e.g. screen) showing the rendered
+scene.
+
+_Ray casting_ casts an light ray from the center of the `eye' through every
+pixel of the sensor.  For each such ray, search the polygon closest to the eye
+which intersects the ray, yielding point P.  Then for each incident light ray at
+P, sum the light rays being reflected towards the eye.  Each pixel of the sensor
+can be processed in parallel.
+
+*to-do* how to know the incident light rays?
+
+_Rasterization_ maintains a _depth buffer_ (or _z-buffer_) for each pixel of the
+sensor, storing the distance from a surface point to the eye.  Unlike ray
+casting, rasterization first iterates over all polygons, then over all sensor
+pixels, using the depth buffer to decide wether the curren point P for current
+sensor pixel (x,y) overrides another P for sensor pixel (x,y).  Each polygon can
+be processed in parallel.
+
+*to-do* 3D polygon rendering vs raytracing
+
+The _pipeline_ refers usually to 3D polygon rendering. It transforms a geometric
+model of the scene into a pixel-based perspective drawing. The graphics pipeline
+is recently however being superseded by shaders. However the pipeline still
+makes a good conceptual framework.
+
+_Ambient light_ is nondirectional, applying a constant amount of illumination on
+all surfaces.  Ambient light ensures that each surface is illuminated to some
+degree, preventing pure-black surfaces.  _Directional light_ approximates a
+lightsource infinitely far away.  It's rays are parallel. It's non-attenuated.
+_Geometric light sources_ are attenuated.  A _point light_ is a geometric light
+source emanating energy equally in all directions.  A _spotlight_ is simular,
+but spreads light restricted to a cone-shaped volume.  _Emissive lighting_ is
+light emitted by a surface. Its is non-attenuated and does _not_ count as a
+light source illuminating other objects.
+
+A _lighting equation_ is an algorithmic representation of the way a surface's
+material reflects light.
+
+_Flat shading_ (or _constant shading_ or _copying shading_) is a simple shading
+technique in which for each triangle a _key vertex_ is selected. The lighting
+equation is executed to compute the illumination for that vertex, and the result
+is used for the entire triangle.  To compute the illumination at a vertex, the
+_vertex normal_ has to be computed by averaging the surface normals of all
+adjacent triangles.
+
+In _interpolation shading_ (or _Gouraud shading_), the illumination is computed
+for each vertex, and inbetween is interpolated.  In his original paper, Gouraud
+used linear interpolation.  Nowadays, most GPUs use perspective correct
+interpolation.
+
+_Phong (interpolation) shading_ (or _normal vector interpolation shading_)
+improves upon Gouraud shading.  For each pixel it interpolates a surface normal
+across the surface from the polygons vertex normals, and computes the
+illumination at that pixel using some lighting equation.
+
+The _Phong reflection model_ (or _Phong illumination_ or _Phong lighting_) is an
+empirical model of the local illumination of points on a surface.  It describes
+the way a surface reflects light as a combination of an ambient term, a diffuse
+reflection term (high when light source is normal to the surface,
+i.e. independengt of the viewer's angle) and a specular reflection term (high
+when the light of a light source reflected on the source travels in direction of
+the viewer).  A single parameter describes the ambient light intensity.  Each
+light source has a parameter for the intensity of the specular and diffuse
+component.  Each material has the following parameters. The ratio of specular
+light reflected, the ratio of diffuse light reflected, the ratio of ambient
+light reflected, and a shininess constant (aka _specular exponent_ or _specular
+power_) (high for a sharp fall-off).
+
+OpenGL (open source) and Direct3D (Microsoft, proprietary) are both APIs /
+graphic libraries providing standardized access to graphics hardware.  In
+_immediate mode_, a low level mode, a client call directly causes rendering.
+The library translates the high level device-independent graphics instructions
+of its API into the device specific instruction of the respective graphics
+hardware.  In _retained mode_, a client defines a model which is maintained
+within the library's data space.
+
+The GPU is rapidly morphing into what might be called a High Parallel Processing unit.
+
+
+=== Homogenous coordinates
+
+(x, y, z) with z!=0 is equivalent to (x/z, y/z, 1).
+
+
+=== Barycentric coordinates
+
+_Barycentric coordinates_ (t~1~, t~2~, t~3~) of a point x correspond to masses
+placed at the vertices of a reference triangle; mass t~1~ at vertex 1 and
+so on. The barycenter of the three masses defines the position of the
+point x. _homogeneous barycentric coordinates_: t~1~ + t~2~ + t~3~ = 1.
+
+
+
+
+== Human Visual Perception
+
+The human visual system consists of the _eye_, the _optic nerve_ and parts of
+the brain collectively called the _visual cortex_.
+
+The _L² distance_ (or _L² difference_ or _sum-squared difference_) is a way to
+measure the similarity between two images. Build pixel-by-pixel differences,
+square them, sum them up and finaly take the root.
+
+
+== References
+
+- Computer Graphics - Principles and practice, 3rd Ed

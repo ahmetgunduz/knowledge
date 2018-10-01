@@ -1,0 +1,32 @@
+// The markup language of this document is AsciiDoc
+:encoding: UTF-8
+:toc:
+:toclevels: 4
+
+
+= OpenGL
+
+Uses a client/server model.  The application is the client, with the CPU/RAM
+being its ressources, and the graphics hardware is the server, with the
+GPU/graphics-RAM being its ressources.  For the most part, each API function
+either sets a global state variable, or is an opeartion using global state
+variables.  OpenGL is window-system independent and has no support for creating
+and managing windows or handling events.  Such features are provided by
+3rd-party libraries such as GLUT (OpenGL Utility Library).
+
+--------------------------------------------------
+object coordinates
+                        modeling stage    |
+world coordinates                         | model-view matrix
+                        viewing stage     |
+eye coordinates
+                        projection stage  | projection matrix
+clip coordinates
+                        perspective dividing
+normalized device coordinates
+                        viewport transforming
+window coordinates
+--------------------------------------------------
+
+Shaders are programmed in GLSL (GL Shader Language), which is part of OpenGL. Is
+compiled at run time.
