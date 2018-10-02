@@ -205,9 +205,10 @@ _minimizing the expected loss_: Choose decision regions such that the average to
 _reject option_: In regions where we are relatively uncertain about the correct class, we dodge the problem and simply reject the input, i.e. answer "I don't know".  More formaly, we reject an input x if it lies within a region where the highest (with respect to k) posterior probability p(C~k~|x) is equal to or below a given threshold θ.
 
 
+[[bayesian_decision_theory]]
 ==== Bayesian decision theory
 
-Given a conditional distribution over labels p(y|x), a set 𝓐 of actions, and a cost function C:𝓨⨯𝓐→ℝ. Bayesian decision theory recommends to pick the action that minimizes the expected cost. This decision is called the _Bayesion optimal decision_.
+A form of <<cost_sensitive_classification>>.  Given a conditional distribution over labels p(y|x), a set 𝓐 of actions, and a cost function C:𝓨⨯𝓐→ℝ. Bayesian decision theory recommends to pick the action that minimizes the expected cost. This decision is called the _Bayesian optimal decision_.
 
 a^∗^ = argmin~a∈𝓐~(E~y∈𝓨~[C(y,a)|x])
 
@@ -215,28 +216,35 @@ Actions can e.g. be:
 
 - 𝓐 = 𝓨, i.e. the action is to return the classification / regression result.
 
-- 𝓐 = {𝓨, "don't know" }. E.g. when we're really uncertain about the correct result, we admit that and return "don't know".
+- 𝓐 = {𝓨, "don't know" }. E.g. when we're really uncertain about the correct result, we admit it and return "don't know".
 
-The cost function could e.g. be the 0-1 loss for classification (𝓐 = 𝓨).
+The cost function could e.g. be the 0-1 loss for classification.
 
 
 === Misc
 
 In the probabilistic view, we also model the uncertainty. Before we didn't do that, or only in a relatively limited form via calculating variance, confidence interval, prediction interval.
 
-_parameter_ θ, _parameter space_ Θ, _hypothesis_ h(x): *to-do*
+_parameter_ θ (read hypothesis), _parameter space_ Θ, _hypothesis_ h(x) (parameterized by θ): *to-do*
 
-_loss function_ l(ŷ,y) (or Q): Measures how different the prediction ŷ is from the true response y. *to-do* move / merge to correct more general place
+_loss function_ l(ŷ,y) (or l(w, x, y)): Measures how different the prediction ŷ = h~w~(x) is from the true response y.  I.e. quantifies the loss of a single data point. *to-do* move / merge to correct more general place
+
+[[01_loss]]
+_0/1 loss function_: Is 1 for a mistake, 0 otherwise. But is a nasty function to optimize. Is not continous, and is not convex.  Thus e.g. the gradient descent algorithm cannot be used to optimize.  If ŵ was argmin~w~[∑loss~0/1~(w,y~i~,x~i~)], the problem of finding the optimal solution would be NP hard.
+
+loss~0/1~(w, y, x) = (y != signʹ(w^T^x)) = (yw^T^x < 0)
+
+_cost function_ Q: Is more general than the loss function. It might be the sum of loss functions over a set of observations.
 
 _expected risk_ (or _true risk_, or just _risk_, or _expected error_, or _prediction error_) R(h) = E~y∈𝓨,x∈𝓧~[l(h(x),y)] = ∫~y∈𝓨~∫~x∈𝓧~l(h(x),y)p(x,y)dxdy: The risk associated with hypothesis h(x) is defined as the expected loss. The expected risk generally cannot be computed since in general p(x,y) is unknown.
 
-_empirical risk_ (or _empirical error_) R̂~𝓓~(h) = E~(y,x)∈𝓓~[l(h(x),y)] = 1/n ∑~(y,x)∈𝓓~l(h(x),y). Since p(x,y) is often unknown, the expected risk R(h) cannot be computed. We can estimate the risk by averaging the loss on a sample data set 𝓓.
+_empirical risk_ (or _empirical error_) R̂~𝓓~(h) = E~(y,x)∈𝓓~[l(h(x),y)] = 1/n ∑~(y,x)∈𝓓~l(h(x),y). Since p(x,y) is often unknown, the expected risk R(h) cannot be computed. We can estimate the risk by averaging the loss on a sample data set 𝓓. Assuming iid observations, R̂~𝓓~(h)→R(h) for |𝓓|→∞ (by law of large numbers).
+
+_training error_ R̂~train~(ĥ): Empirical risk using the training set and the fitted model ĥ. In general, E~all train sets~[R̂~train~(ĥ)] < E[R(ĥ)], i.e. the estimator R̂~train~(ĥ) is an overly optimistic estimator; it underestimates the true risk R(ĥ).  The reason is that the training data can be fitted better than unseen data.  Thus never evaluate a model by using the training error.
+
+_test error_ R̂~test~(ĥ): Empirical risk using the test set and typically the fitted model ĥ. An unbiased estimator for the true risk, i.e. E~all train sets~[R̂~train~(ĥ)] < E[R(ĥ)], as long as the test data was not involved in any way in fitting ĥ.
 
 _generalization error_ gen_error~𝓓~(h) = R(h) - R̂~𝓓~(h). An algorithm is said to _generalize_ if lim~|𝓓|→∞~gen_error~𝓓~(h) = 0.  In general the generalization error cannot be computed since the risk R(h) in general cannot be computed. Instead, the aim is often to bound the generalization error in probability: p(|gen_error~𝓓~(h)|≤ε) ≥ 1-δ, where ε is called the error bound and is generally dependent on δ and n = |𝓓|.
-
-_training error_ R̂~train~(h): Empirical risk using the training set.
-
-_test error_ R̂~test~(h): Empirical risk using the test set.
 
 _empirical risk minimizer_ (_ERM_): ĥ = argmin~h~(R̂~train~(h))
 
@@ -244,19 +252,17 @@ _likelihood function_ f(θ) = p(𝓓|θ): Probability of seeing the data 𝓓 gi
 
 *to-do* often p(𝓓|θ) is viewed as p(y~i~|x~i~,θ), but that isn't the same as p(y~i~,x~i~|θ). Why can we do that? Or is it just that we apply the term likelihood also to p(y~i~|x~i~,θ).
 
-The _error function_ is the negative log of the likelihood function. Maximizing the likelihood is equivalent to minimizing the error.
-
 _log likelihood_: *to-do*
 
 _negative log likelihood_ (_NLL_): *to-do*
 
-_prior (probability)_ p(θ): Probability of model paramters θ without having seen any data yet.
+_prior (probability)_ p(θ): Subjective probability of model paramters θ without having seen any data yet.
 
 _model evidence_ (or _marginal likelihood_) p(𝓓) = ∑~θ∈Θ~p(𝓓,θ)
 
 _posterior (probability)_ p(θ|𝓓) = p(𝓓|θ)p(θ) / p(𝓓) ∝ p(𝓓|θ)p(θ): Is the likelihood times the prior, normalized.
 
-_maximum likelihood estimator_ (_MLE_) θ̂^MLE^ = argmax~θ~(p(𝓓|θ)): A frequentist estimator which sets the model parameters θ to the values that maximize the likelihood function p(𝓓|θ). This corresponds to choosing the model parameters θ for which the probability of the observed data set is maximized.
+_maximum likelihood estimator_ (_MLE_) θ̂^MLE^ = argmax~θ~(p(𝓓|θ)): A frequentist point estimator which sets the model parameters θ to the values that maximize the likelihood function p(𝓓|θ). This corresponds to choosing the model parameters θ for which the probability of the observed data set is maximized.
 
 Lets express p(𝓓|θ) as p(y~1:n~|x~1:n~,w). θ̂^MLE^ = argmax~w~(p(y~1:n~|x~1:n~,w)) = argmin~w~(-log p(y~1:n~|x~1:n~,w)) =~iid data~ argmin~w~(-∑~1≤i≤n~log p(y~i~|x~i~,w)).
 
@@ -264,7 +270,7 @@ _maximum a posteriori probability estimate_ (or _MAP estimate_) for model parame
 
 _MAP estimate_ for predicton ŷ = f̂(x) = argmax~y~[p(y|x,𝓓)]. I.e. the mode of the probabilistic prediction distribution.
 
-_Baye's optimal prodecitor_: Let X and Y denote the random variables denoting a predictions vector and a response respectively.  Assume data is generated iid.  Assume (unrealistically) we knew the joint distribution p(X,Y). The hypothesis h^∗^ minimizing the expected least square error E~X,Y~[(Y-h(X))²] is given by the conditional mean h^∗^(x) = E~X,Y~[Y|X=x] = ∫p(y|X=x)·y·dy and is called Baye's optimal predictor for the squared loss.
+_Baye's optimal predictor_: Let X and Y denote the random variables denoting a predictions vector and a response respectively.  Assume data is generated iid.  Assume (unrealistically) we knew the joint distribution p(X,Y). The hypothesis h^∗^ minimizing the expected least square error E~X,Y~[(Y-h(X))²] is given by the conditional mean h^∗^(x) = E~X,Y~[Y|X=x] = ∫p(y|X=x)·y·dy and is called Baye's optimal predictor for the squared loss.
 
 _probabilistic predictions_ p(y|x,𝓓): denotes the probability distribution over possible responses, given the input vector x and training set 𝓓. I.e. it represents a probability for each possible value of the response y.
 
@@ -302,6 +308,8 @@ The _performance_ of a model is a measure of how `good' a model models a given p
 Let e denote <<residual>>s.
 
 The _residual sum of squares_ (_RSS_) (or _error sum of squares_) is defined as RSS = |Y-Ŷ|² = |e|² = ∑~1≤i≤n~e²~i~.  Can be thought of as the amount of variability that is left unexplained after performing the regression.  Is a training error.  When LS fit was used, decreases monotonically as more predictors are added to the model (current model is optimal with respect to RSS; if an predictor is added that cannot reduce the RSS, then the respective coefficent is set to zero).  n-p degrees of freedem are associated with RSS.
+
+RSS̃ means the same as RSS but with <<standardize_variables>>.
 
 **to-do**(3) If the true model is linear, and the training set is infinitely large, then β̂ = β and e = ε.  I.e. altough e is non-zero, it is fully explained.  So we should say (RSS-|ε|²) is the amount of variability that is left unexplained after performing the regression?
 
@@ -347,7 +355,7 @@ Var~training,test~[f̂] = E~test~[Var~training~[f̂(x~test~)]
 
 *to-do* confidence interval for f̂
 
-A _loss function_ (or _cost function_) L(Y, Ŷ) measures the error between Y and Ŷ = f̂(X). Typical choices are squared error (Y - Ŷ)² or absolute error |Y - Ŷ|.  Obviously we want to minimize the loss.
+A _loss function_ L(Y, Ŷ) (or l(Y, Ŷ)) measures the error between Y and Ŷ = f̂(X). Typical choices are squared error (Y - Ŷ)² or absolute error |Y - Ŷ|.  Obviously we want to minimize the loss.
 
 Similarily a _loss matrix_ L~k,j~ is often used in a classification setting, where k denotes the true class and j denotes the estimated class.
 
@@ -434,15 +442,23 @@ The _Cook's distance_ D~i~ is a commonly used estimate of the <<influencial_data
 [[model_selection]]
 === Model selection / feature selection
 
-_Model selection_ (or _model tuning_) is the task of selecting a statistical model from a set of candiate models.  That may include determining the hyper-parameters of the choosen model and it may include determining the tuning parameters of the learning algorithm.
+_Model selection_ (or _model tuning_) is the task of selecting a statistical model from a set of candiate models.  That may include determining the hyper-parameters of the choosen model and it may include determining the tuning parameters of the learning algorithm. See also <<cv_for_model_selection>>.
 
 *to-do* clean up this terminolgy mess
 
-Whether or not model selection shall additionally also train the selected model is not clearly defined (*to-do* really?)
+Whether or not model selection shall additionally also train the selected model is not clearly defined.
 
-Model selection is typically done by computing the estimated expected test error of a candidate model on _validation data_.  Validation data is the same as test data, but in the context of model selection instead model validation.
+Model selection is typically done by computing the empirical risk of a candidate model on _validation data_.
 
-_Feature selection_ (or _variable selection_, _attribute selection_, _variable subset selection_) is the task of selecting a subset of the available predictors (aka features).
+_Feature selection_ (or _variable selection_, _attribute selection_, _variable subset selection_) is the task of selecting a subset of the available features (aka predictors).
+
+Rational for feature selection
+
+- Better generalization: Simpler models usually generalize better (i.e. overfit less)
+
+- Interpretability: A model with fewer features is simpler and easier to understand
+
+- Costs: Don't need to acquire respective data, less storage costs, less computational costs.
 
 [[inference_after_model_selection]]
 ==== Inference after model/feature selection
@@ -460,18 +476,43 @@ Analogy: Take a sample from a normal distribution. Take the max of the sample. C
 _sample splitting_: One simple way to deal with the problem is to split the data.  With one part do the feature selection, and with the other do the fit and measurement of p-values for coefficient estimates.  These p-values will be `honest'.  Disadvantages are reproducability issues due to the random split, and loss of power since we only use half of the training data (see also validation set approach).
 
 
+==== Comparison of model selection methods
+
+Best/forward/back subset selection work for any prediction method, but are usually relatively slow.
+
+L1-regularization is faster since training and feature selection happen simultaneously. But it only works for linear models.
+
+
+==== Domain knowledge
+
+*to-do*
+
+
 [[best_subset_selection]]
 ==== Best subset selection
 
 Basic idea: Try all 2^p^ different models.
 
-1. For k = 0, ..., p: Try all C(p k) ways of choosing k from p predictors.  Take the best of these models, denoted M~k~.  In LS regression models, best can e.g. be according to smallest RSS, or equivalently largest R².
+--------------------------------------------------
+1: for k=0 to p
+2:     M[k] = best model out of the C(p k) ways of choosing predictors
+3: choose best model out of M
+--------------------------------------------------
 
-2. Choose the best model among M~0~, ..., M~p~.  Do that via either of cross validation, validation set approach or adjusting the training error of step 1.
+How to do all this exactly is left undefined. Also what `best' means on line 2 and what `best' means on line 3 is left undefined. For example in on line 2 we fit all C(p k) candidate models on the training set and pick the one having the smallest RSS (or equivalently largest R²). On line 3 we find the best model among the candidates M using some technique which estimates the prediction error. For example AIC, C~p~, AIC, BIC or adjusted R², computed on the training set. Or we use cross-validation to estimate the prediction error. Recall that the training error always decreases when predictors are added (more generally, with more flexible models), and thus training errors such as RSS or R² can't be used on line 3.
 
 **to-do**(4) Why use RSS or R² in the innermost loop? why not exptectedTestMSE or so? I suspect due to computational complexity. But say I don't mind. Other reasons?
 
 **to-do**(4) Why break problem of choosing among 2^p^ models into these two stages. Why not simply cross validation on 2^p^ models. _only_ because it would be computational expensive?
+
+An alternative algorithm based on the idea that the prediction error is U shaped, see bias variance tradeoff.
+
+--------------------------------------------------
+1: do
+2:     find best model out of the C(p k) ways of choosing predictors
+3:     estimate prediction error of that best model
+4: while estimated prediction error decreases
+--------------------------------------------------
 
 Pro: Simple
 
@@ -486,13 +527,15 @@ References:
 - Book ``An introduction to statistical learning'', chapter ``6.1 Subset Selection''
 
 
-==== Forward stepwise selection
+==== Forward stepwise selection / greedy feature selection
 
-A greedy approach.  As in best subset selection, but we iteratively improve the best model so far by greedely adding the best next predictor.  So in step 1 (see best subset selection), in iteration k, we have model M~k-1~ in our hand and try out p-k predictors.  The best predictor we add, resulting in model M~k~.
+A greedy approach.  Similar to best subset selection, but we iteratively improve the best model so far by greedely adding the best next predictor.  So in step 1 (see best subset selection), in iteration k, we have model M~k-1~ in our hand and try out p-k predictors.  The best predictor we add, resulting in model M~k~.
 
 Instead 2^p^, we now only try out 1 + ∑~0≤k≤p-1~(p-k) = 1 + p(p+1)/2 models.
 
 Forward stepwise selection tends to do well in practice.  However its not guaranteed to find the best model.  For instance, suppose that in a given data set with p = 3 predictors, the best possible one-variable model contains X~1~, and the best possible two-variable model instead contains X~2~ and X~3~.  Then forward stepwise selection fails because in the first iteration it chooses X~1~, and can't undo that decision in the later iterations.
+
+Pro: Usually faster than backward stepwise selection (if few relevant features)
 
 
 ==== Backward stepwise selection
@@ -501,7 +544,14 @@ As forward stepwise selection, only that we start out with the full model, and i
 
 Con: Can't be used when n < p, because we need to start with the full model
 
+Pro: Can handle dependent features
+
 *to-do* but we still can start with the biggest possible model.  I would still think that one would call this approach backward stepwise selection, no?
+
+
+==== L1-regression to encourage sparsity
+
+Best subset selection is computationally expensive. <<lasso_regression>> can be viewed as an computationally less expensive approximation to best subset selection with loss function being the quadratic loss.  See also <<comparison_of_regularization_methods>>.  Using L1-regularization, as the Lasso does, can also be used in other methods, e.g. SVM.
 
 
 ==== Hybrid approaches
@@ -556,7 +606,7 @@ References:
 
 _Cross-validation_ (or _rotation estimation_) is a coarse technique for model assessment or model selection.  It's a coarse technique in the sense that it has multiple more concrete instanciations, such as <<LOOCV>> and <<k_fold_CV>>.  It tries to mitigate the problem of only having one data set (aka sample of the population) of finite size, altough we actually would like infinitely many training sets and test sets, each set of infinite size.
 
-_CV for model validation_: Repeatedly partition the original data set into a training set and a test set, each time doing the partition in a different way.  In each iteration, calculate an estimate of the performance of the model using the training set and the test set of that iteration. At the end, average the results, delivering the (final) estimate of the model's performance.
+_CV for model validation_: Repeatedly partition the original data set into a training set and a validation set, each time doing the partition in a different way.  In each iteration, calculate an estimate of the performance of the model using the training set and the validation set of that iteration. At the end, average the results, delivering the (final) estimate of the model's performance.
 
 *to-do* but then we didn't really measure a concrete trained model. It's more a measure of the way we train, not a measure of a concrete trained model.
 
@@ -564,9 +614,8 @@ mind that we estimate expected test mse, for the true one we need the population
 
 we are a bit sloppy and take the number of CV for both the model and the estimate f
 
-_CV for model selection_: Delivers best model (in sense of template, not trained), but you don't know yet how good it is on unseen data.  Analogous to CV for model validation, but do it for each candidate model.  I.e. there are two nested loops, an outer doing different partitions, and and an inner trying all candidate models (that is three nested loops in case of double cross validation).  At the end, we select the candidate model with the best averaged estimate of the performance.  As noted in chapter model selection, whether or not the selected model shall also be trained is not clearly defined.  If we want to train, we can train it on the complete original data set, or just take the already trained model which was trained on a subset.  The former is computationally more expensive, but larger training sets are generally better.  Note that we cannot use the optained performance estimates also for model validation, see also <<double_cross_validation>>.
-
-*to-do* define terms overfitting, underfitting.
+[[cv_for_model_selection]]
+_CV for model selection_: See also <<model_selection>>. Delivers best model (in sense of template, not trained), but you don't know yet how good it is on unseen data.  Analogous to CV for model validation, but do it for each candidate model.  I.e. there are two nested loops, an outer doing different partitions, and and an inner trying all candidate models (that is three nested loops in case of double cross validation).  At the end, we select the candidate model with the best averaged estimate of the performance.  As noted in chapter model selection, whether or not the selected model shall also be trained is not clearly defined.  If we want to train, we can train it on the complete original data set, or just take the already trained model which was trained on a subset.  The former is computationally more expensive, but larger training sets are generally better.  Note that we cannot use the optained performance estimates also for model validation.  For that use <<double_cross_validation>>. Alternatively, put aside a _test set_ which is used to report the final performance of the concrete trained model.  However you must never use the test set to derive any decision, more specifically it must not be used during trainining a model or within CV to decide which model to pick.  Also after doing CV and then after evaluating the winning concrete fitted model's performance with the test set, don't change your mind and choose another model.
 
 *to-do* Chapter/paragraph about choosing a statistic for model performance. e.g. why exactly is training MSE not good.
 
@@ -652,9 +701,9 @@ The _training set_ 𝓓 = {(y~i~,x~i~)}~1≤i≤N~ is the set of observations wh
 
 _Generalization_ means the ability to well predict a predicted value ŷ given new input data, despite that we trained with only a finite training set.
 
-_Overfitting_ occurs when the model has too many degrees of freedom. The model is too flexible. The model fits the training data very well, in the extrem case goes through every training data point, but then doesnt generalize well. Also the variance of Var~train~[f̂(x~0~)] will be high, i.e. if we train on multiple training sets, yielding multiple f̂, and given some fixed x~0~, the set of values f̂(x~0~) will have a high variance. Bias~train~[f̂(x~0~)] will be low.
+_Overfitting_ occurs when the model has too many degrees of freedom. The model is too flexible. The model fits the training data very well, in the extrem case goes through every training data point, but then doesnt generalize well.  The fitted model starts to fit the noise (see also the high variance statements), instead of the underlying true function.  Also the variance of Var~train~[f̂(x~0~)] will be high, i.e. if we train on multiple training sets, yielding multiple f̂, and given some fixed x~0~, the set of values f̂(x~0~) will have a high variance. Bias~train~[f̂(x~0~)] will be low.
 
-_Underfitting_ occurs when the model has too few degrees of freedem. The model is not flexible enough. In an extrem case for example the true function is a polynomial of a higher order degree, but the model is only linear, i.e. we approximate a higher order polynomial with a line. Bias~train~[f̂(x~0~)] will be high, Var~train~[f̂(x~0~)] will be low.
+_Underfitting_ occurs when the model has too few degrees of freedem. The model is not flexible enough. In an extrem case for example the true function is a polynomial of a higher order degree, but the model is only linear, i.e. we approximate a higher order polynomial with a line. Bias~train~[f̂(x~0~)] will be high, Var~train~[f̂(x~0~)] will be low (i.e. quite insensitive to noise).
 
 
 [[least_squares]]
@@ -662,12 +711,15 @@ _Underfitting_ occurs when the model has too few degrees of freedem. The model i
 
 _Least squares_ (or _LS_) is a method of fitting a model which tries to minimize the RSS.  In other words, it is a method for computing the estimators β̂ of the model coefficients β.  Let β̂^LS^ (or β̂, since LS is kind of the standard) denote the estimator, as defined by LS, of the coefficients β of the model:
 
-β̂^LS^ = argmin~β~(RSS(β)) , using given training data
+β̂^LS^ = argmin~β~(RSS(β)) = +
+(X^T^X)^-1^X^T^Y [linear regression]
 
 There are two categories: _Ordinary least squares_ (or _OLS_ or _linear least squares_) and _non-linear least squares_.  Linear least squares has a closed-form solution, see <<linear_regression_models>>.  The nonlinear problem is usually solved by iterativie refinement.
 
 [[BLUE]]
 _Gauss-Markov theorem_: In a linear regression model with uncorreleated error terms ε, constant finite variance Var[ε~i~] = σ² and E[ε] = 0, the coefficents β̂ found by OLS are _BLUE_ (_best linear unbiased estimator_).  Here, `best' means Var~training~[β̂] is minimized compared to other unbiased estimators, and unbiased means Bias~training~[β̂] = 0.
+
+_computational cost_ in case of linear regression: Note that X^T^X is a p⨯p matrix, and solving (X^T^X)^-1^X^T^Y is then in O(p³), which is practically quite high for large p, which occurs in certain practical problems. Thus non-closed form solutions such as (stochastic) gradient descent might be a feasible alternative.
 
 *to-do* But that only works when the population regression function f (i.e. the true model) is linear, right? YES. Else also the linear function based on the coefficient β has bias. What is the appropriate terminology to phrase all this?
 
@@ -679,16 +731,22 @@ Contra: Var[β̂^LS^] is high in case of <<multicollinearity>>. <<shrinkage_meth
 [[shrinkage_method]]
 === Shrinkage Methods / Regularization Methods
 
-_Shrinkage methods_ (or _regularaization methods_) try to solve the problem of <<multicollinearity>>.  Altough ordenary least squares coefficient estimates are <<BLUE>> (i.e. unbiased and low variance), in case of correlated predictors the variance of a coefficent estimator might still be unacceptably high.  Shrinkage methods now trade lower variance for (hopefully only) a small increase in bias.  Also, least squares has problems wit large p or even p>n.  Shrinkage methods don't suffer from that as much.
+_Shrinkage methods_ (or _regularaization methods_) is a family of techniques which try to solve the problem of <<multicollinearity>>.  Altough ordenary least squares coefficient estimates are <<BLUE>> (i.e. unbiased and low variance), in case of correlated predictors the variance of a coefficent estimator might still be unacceptably high.  Shrinkage methods now trade lower variance for (hopefully only) a small increase in bias.  Also, least squares has problems wit large p or even p>n.  Shrinkage methods don't suffer from that as much.
 
-*to-do* other sources say shrinkage methods are about fighting overfitting
+*to-do* other sources say shrinkage methods are about fighting overfitting (which in turn means high variance). Applies Occam's razor (which states that the simplest model is typically the best model), since fewer features means a simpler model, and making the coefficients smaller goes towards fewer features. Controll complexity of the model. Balance goodness of fit vs overfitting.
 
-_standardize variables_: Ridge and Lasso are not scale invariant, which least squares is. So we should standardize variables to have variance 1 beforehand (which is done by default in R's glmnet): xʹ~ij~ = x~ij~·(1/n·√(x~ij~-x̄~j~))^-1/2^.
+Note that putting a penality on the weights w as done by Lasso or Ridge is just one form of regularization.
 
-_intercept is excluded from shrinkage_: β^(0)^ denotes β without intercept β~0~.  The rational for excluding the intercept β~0~ from being regularized is that we want to shrink the association of each predictor with the response.  The intercept is just a measure of the mean value of the response when predictors X = 0.
+[[standardize_variables]]
+_standardize variables_: Ridge and Lasso are not scale invariant, which least squares is. So we should standardize variables to have variance 1 and mean 0 beforehand : x̃~ij~ = (x~ij~-μ~j~)/σ~j~, where μ~j~ = 1/n∑~i~x~ij~ and σ~j~²=1/n∑~i~(x~ij~-μ~j~)².  Also standardize y~i~ likewise; as a consequence, the intercept will be guaranteed to be 0, thus X̃ is not required to have the artificial first column consisting of ones.  Note that if only X is standardized but not Y, i.e. there might be an non-zero intercept β~0~, then the β in the penalty term, e.g. λ‖β‖~2~² in Ridge, should be replaced by β^(0)^, where β^(0)^ means β with the intercept β~0~ removed, i.e. one element less. This is because we only want to regularize the coefficients of the features, we don't want to regularize the intercept.
+
+Standardization is done by default in R's glmnet.
 
 [[multicollinearity]]
 _Multicollinearity_ describes the situation that a predictor can be linearly predicted from one or more other predictors.  In this situation, when using OLS, Var~training~[β̂] is hight, i.e. there's a higher chance of the estimator β̂ being far away from the real β.  Recall that in OLS, the estimators β̂ are unbiased.  Consider a model with two predictors X~1~ ≈ X~2~.  Then f̂(x) = β̂~0~ + β̂~1~X~1~ + β̂~2~X~2~ ≈ β̂~0~ + β̂~3~X~1~, where β̂~3~ = β̂~1~ + β̂~2~. If there was only one predictor as in the rhs of ≈, we could calculate β̂~3~ well. But in the model with two predictors, OLS doesn't know how to distribute β̂~3~ among β̂~1~ and β̂~2~ such that β̂~1~ + β̂~2~ = β̂~3~.  E.g in one training data sample, β̂~1~ will be large and β̂~2~ will be small, in the other training data sample the other way round, in yet another training data sample it's evenly distributed etc.  <<shrinkage_method>>s try to solve this problem.
+
+[[choosing_regularization_parameter]]
+Choose regularization parameter λ with cross validation. Typically you would choose the candidate λ logarithmically spaced, e.g. {10^-4^, 10^-3^, ..., 10^4^}, since the order of magnitude matters, not the exact value.
 
 References:
 
@@ -705,16 +763,17 @@ probabilistic view: likelihood * prior
 
 For example for the case of ridge regression:
 
-ŵ^ridge^ = argmin~w~(RSS(w) + λ|w|²) +
+ŵ^ridge^ = argmin~w~(RSS(w) + λ‖w‖~2~²) +
 ŵ^ridge^ = argmax~w~(p(𝓓|w) · p(w)) = argmax~w~(p(w|𝓓)), p(𝓓|w) = ∏~1≤i≤n~p(y~i~|x~i~,w)
 
 |=====
 | name               | loss function | regularization | likelihood  | prior
 | least squares      | squared loss  | none           | Gaussian    | Uniform
+| best subset        | squared loss  | L0-norm        | Gaussian    | ?
 | Lasso              | squared loss  | L1-norm        | Gaussian    | Laplace
 | Ridge              | squared loss  | L2-norm        | Gaussian    | Gaussian
-| Robust regression  |               |                | Laplace     | Uniform
-| Robust regression  | (non convex)  |                | Student     | Uniform
+| Robust regression  | ?             | ?              | Laplace     | Uniform
+| Robust regression  | (non convex)  | ?              | Student     | Uniform
 |=====
 
 Large λ in regularization means that we believe the prior has a small variance, i.e. that w is close to zero.  If I believe the noise (in likelihood) is large, then I should regularize more *to-do* understand that statement better
@@ -722,7 +781,8 @@ Large λ in regularization means that we believe the prior has a small variance,
 If you have outliers, you should consider another likelihood distribution than Gaussian, for example Student's t.  That's because with Gaussian, everything that is a few standard deviations away from the mean has a probability of practically 0, so outliers strongly disagree with the model and thus mess things up.
 
 
-==== Ridge vs Lasso
+[[comparison_of_regularization_methods]]
+==== Comparison of regularization methods
 
 The criterion are convex in β for Ridge and Lasso (see geometrical interpretation explained in Ridge). That is computationally convenient. Given a set of λ (opposed to one λ), we still can compute the optimal solution β̂ in one go.
 
@@ -730,21 +790,29 @@ Lasso is good for feature selection.  Best subsetset selection is computationall
 
 
 [[ridge_regression]]
-==== Ridge regression
+==== Ridge regression / L2-regularized regression
 
 _Ridge regression_ (or _Tikhonov regularization_ or _weight decay_) is a <<shrinkage_method>>. λ≥0 is a tuning parameter.
 
-β̂^ridge^ = argmin~β~(RSS(β) + λ|β^(0)^|²)
+Recall to <<standardize_variables>>.
 
-β̂^ridge^ = argmin~β~(RSS(β)) subject to ∑~1≤i≤p~β²~i~≤s
+β̂^ridge^ = argmin~β~(RSS̃(β) + λ‖β‖~2~²)
 
-Where |β^(0)^| denotes the L2-Norm (aka Eucledian distance) of β excluding the intercept β~0~, i.e. |β^(0)^|² = ∑~1≤i≤p~β²~i~.
+β̂^ridge^ = argmin~β~(RSS̃(β)) subject to ∑~1≤i≤p~β²~i~≤s
+
+β̂^ridge^ = (X̃^T^X̃+λI)^-1^X̃^T^Ỹ [analytical closed form solution]
+
+Where ‖β‖~2~ denotes the L2-Norm (aka Eucledian distance) of β, i.e. ‖β‖² = ∑~1≤i≤p~β²~i~.
 
 _Geometric interpretation_: For the case of 2 predictors, i.e. also two coefficients β~1~ and β~2~: Imagine a 2D coordinate system, the x axis represents possible β~1~ values, the y axis possible β~2~ values.  Each point in the plane represents a possible β, or a possible estimate β̂.  The point (β̂^LS^~1~, β̂^LS^~2~) represents the LS estimate β̂^LS^, which minimizes RSS.  Around that point we can draw contour lines, each contour line representing another, higher, RSS.  Also, we draw a circle around center (0,0) with a diameter of √s, where s can be derived from λ and vice versa.  The geometrical interpretation of the shrinkage penalty term is that the estimate β̂ must lie within the circle.  Assuming β̂^LS^ lies outside the circle, the point where the first contour line touches the circle is the estimate β̂ found by Ridge.  β = E[β̂^LS^] is the point representing the true coefficient β. Around it we can draw ellipses with semi-axes n·Var[β̂^LS^], n={1,2,...}, represinting the area where {68%, 95%, ...} of the β̂^LS^ will lie.  Assuming β is outside the shrinkage penalty circle, the β̂^Ridge^ will only be on a comperatively small part on the shrinkage penalty circle, i.e. Var[β̂^Ridge^] is lower than Var[β̂^LS^]. However we also see that E[β̂^Ridge^] will no be away from β.
 
 The elements of β̂^Ridge^ generally won't be zero, which is in contrast to β̂^Lasso^.  That's because the first contour line touching the shrinkage penalty circle probably doesn't do that at a point which exactly lies on one or more axes.
 
 The second term, λ|β|², is also called _shrinkage penalty_.  Its effect is that of _shrinking_ the coefficient estimates towards zero.  The tuning parameter λ serves to control the amount of shrinkage.  λ=0 means no shrinkage, resulting in β̂^ridge^ = β̂^LS^.  λ→∞ means infinite shrinkage, resulting in β̂^ridge^ = 0.
+
+Unlike least squares, Ridge has a solution β̂^ridge^ even if n < p.
+
+See also <<choosing_regularization_parameter>> λ.
 
 References:
 
@@ -759,17 +827,23 @@ ŵ^ridge^ = argmax~w~(p(w)∏~1≤i≤n~p(y~i~|x~i~,w)
 
 
 [[lasso_regression]]
-==== Lasso regression
+==== Lasso regression / L1-regularized regression
 
 A <<shrinkage_method>>.  See also subchapter <<ridge_expression>>, where common topics are discussed.  λ≥0 is a tuning parameter.
 
-β̂^lasso^ = argmin~β~(RSS(β) + λ‖β^(0)^‖~1~)
+Recall to <<standardize_variables>>.
 
-β̂^lasso^ = argmin~β~(RSS(β)) subject to ∑~1≤i≤p~|β~i~|≤s
+β̂^lasso^ = argmin~β~(RSS̃(β) + λ‖β‖~1~)
 
-Where ‖β^(0)^‖~1~ denotes the L1-Norm of β excluding the intercept β~0~, i.e. ‖β^(0)^‖~1~ = ∑~1≤i≤p~|β~i~|.
+β̂^lasso^ = argmin~β~(RSS̃(β)) subject to ∑~1≤i≤p~|β~i~|≤s
+
+Where ‖β‖~1~ denotes the L1-Norm of β, i.e. ‖β‖~1~ = ∑~1≤i≤p~|β~i~|.
 
 The elements of β̂^Lasso^ often are exactly 0, especially for high λ.  Look at the respective paragraph of <<ridge_regression>>.  Now in Lasso, the geometrical interpretation of the shrinkage penalty is a square rotated 45 deg, the corners on the axes.  Now it is more likely that the first contour line touches the square at an corner than at an edge.  Since the corner lies on an axis, β̂^ridge^ is 0 with respect to the other axis.
+
+Lasso can be seen as using a tractable surrogate loss function (using L1 norm) with respect to the intractable loss function (using L0 norm) of the best subset selection. See also <<comparison_of_regularization_methods>>.
+
+See also <<choosing_regularization_parameter>> λ.
 
 References:
 
@@ -781,22 +855,62 @@ References:
 
 <<best_subset_selection>> can also be viewed as shrinkage method.  Especially in the 2nd variant of the definition we see that it selects not more than s predictors.
 
-β̂^subset^ = argmin~β~(RSS(β) + λ‖β^(0)^‖~0~)
+Recall to <<standardize_variables>>.
 
-β̂^subset^ = argmin~β~(RSS(β)) subject to ∑~1≤i≤p~1~Bi≠0~≤s
+β̂^subset^ = argmin~β~(RSS̃(β) + λ‖β‖~0~)
 
-Where ‖β^(0)^‖~0~ denotes the L0-Norm of β excluding the intercept β~0~, i.e. ‖β^(0)^‖~0~ = ∑~1≤i≤p~1~Bi≠0~.
+β̂^subset^ = argmin~β~(RSS̃(β)) subject to ∑~1≤i≤p~1~βi≠0~≤s
 
-The elements of β̂^subset^ often are exactly 0, especially for high λ.  Look at the respective paragraph of <<ridge_regression>>.  Now in best subset selection, the geometrical interpretation of the shrinkage penalty is a line on each axis from 0 to s. ...
+Where ‖β‖~0~ denotes the L0-Norm of β, i.e. ‖β‖~0~ = ∑~1≤i≤p~1~βi≠0~.
+
+The elements of β̂^subset^ often are exactly 0, especially for high λ.  Look at the respective paragraph of <<ridge_regression>>.  Now in best subset selection, the geometrical interpretation of the shrinkage penalty is a line on each axis from 0 to s. *to-do*
 
 *to-do* In the geometrical interpretation, the contour lines will almost surely either touch the tip of one line (making this β̂~i~ equal to s), or less likely some line (making this β̂~i~ somewhere between 0 and s). I don't see how it can be (apart from a tiny probability) that multiple predictors are selected.  I don't see at all how a β̂~i~ can be larger than s -- but im sure in best subset selelection when s predictors are choosen, the β̂~i~ can be larger than s.
+
+The above optimization problem is difficult since the L0 norm regularization term makes it an non-convex objetive function. To make it a tractable problem, we can use the L1 norm as surrogate for the L0 norm, resulting in the Lasso, see also <<comparison_of_regularization_methods>>
+
+See also <<choosing_regularization_parameter>> λ.
+
+
+=== Gradient descent
+
+An iterative approximation algorithm to find a minimum of some objective function.  If its a convex function, the algorithm will find the global minimum.  In machine learning, the objective function often is the empirical risk R̂(w). Recall that w is in general a vector.
+
+--------------------------------------------------
+w = some feasible value
+until convergence:
+  w -= η~t~∇~w~R̂(w)
+--------------------------------------------------
+
+t denotes the current iteration and η~t~ denotes the learning rate of the t-th iteration.
+
+Say we use the same learning rate η for all iterations. If η is too small, it takes a long time until we find the minimum. If η is too large, after some time we overshoot the minimum in each iteration and thus oscillate. A possible class of solutions to this problem is adaptive learning rate. Those are topics in optimization and out of the scope of this document.
+
+Note that iterative approximation approach such as gradient descent might overall still be the method of choice even if a closed form solution exists.  E.g. if the closed form solution is computationally too expensive for the problem at hand.  See respective paragraph in <<least_squares>>.  Also the exact optimum is often not required, we only need a solution that is good enough.  We will have a prediction error anyway, so we only have to ensure that the training error is roughly in the same order.
+
+Convergence criterions:
+
+- gradient is small enough
+
+- the objective function difference between two iterations is small enough
 
 
 === Stochastic gradient descent (SGD)
 
 _Stochastic gradient descent_ (or _incremental gradient descent_ or _sequential gradient descent_) is a method of optimization. It is a stochastic approximation of the gradient descent optimization. The objective function to be minimized must have the form of a sum (typically over all observations) Q(w) = ∑Q~i~(w).
 
-*to-do*
+*to-do* more concrete algorithm. Variants. The stochastic gradient descent algorithms has variants. The inner loop of iterating over all observations can be replaced by uniformily at random pick only one observation
+
+*to-do* mini batches
+
+Convergence criterions:
+
+- Fix the number of iterations. E.g. 10 epochs, where one epoch is one pass through the whole data set.
+
+- Occassionally compute full objective function / gradient and apply gradient descent a convergence criterion. E.g. every n iterations.
+
+- Monitor objective value on a separate validation set.
+
 
 Applications:
 
@@ -846,6 +960,60 @@ The _margin_ is defined to be the smallest distance between the decision boundar
 References:
 
 - Pattern Recognition and Machine Learning, chapter ``Linear Models for Classification''.
+
+
+==== Class inbalance
+
+When one class is much less frequent than the other class. By convention, the infrequent class has the `+' label, and the other the `-' label. A problem with imbalanced data is that the minority class instances contribute little to the empirical risk relative to the majority class.
+
+Solutions:
+
+- upsampling of minority class observations
+
+- downsampling of majority class observations
+
+- <<cost_sensitive_classification>>. Simulates upsampling/downsampling by scaling the loss.
+
+- in case of a linear classifier, shift hyperplane by parameter τ: h(x) = signʹ(w^T^x-τ)
+
+Metrics for imbalanced data. TP = true positive, TN = true negative, FP = false positive, FN = false negative, true_predictions = TP + TN.
+
+|====
+|                    | true label positive | true label negative
+| predicted positive | TP                  | FP
+| predicted negative | FN                  | TN
+|====
+
+- _accuracy_ = true_predictions / all: Bad metric for imbalanced data, since always returning the majority label still gives a good accuracy.
+
+- _precision_ = TP / (TP+FP)
+
+- _recall_ (or _true positive rate_ (_TPR_)) = TP / (TP+FN)
+
+- _false positive rate_ (_FPR_) = FP + (TN+FP)
+
+- _F1 score_ = 2TP / (2TP+FN+FP) = harmonic mean of precision and recall: We like to have both a high precision and a high recall. However the two are in contention, increasing one usually decreases the other.  The harmonic mean is sort of the average, but biased towards the smaller number. Thus to get a good F1 score, you need both a good precision and recall.
+
+- _Reveiver operator characteristic (ROC) curve_: Plot false positive rate vs true positive rate. Often one curve per algorithm, giving a tool to compare the algorithms.
+
+- _Precision recall curve_: As above, but precision vs recall.
+
+- _AUC_: Area under the curve
+
+
+[[cost_sensitive_classification]]
+==== Cost sensitive classification
+
+*to-do*
+
+Examples: <<bayesian_decision_theory>>
+
+
+==== Multi-class classification
+
+*to-do*
+
+21.03. 00:57
 
 
 === Comparison of models
@@ -972,7 +1140,7 @@ Reference for these diagnostic plots: https://data.library.virginia.edu/diagnost
 | Var[e] = diag(Cov[e]) = σ²(1-diag(P)) | Variance of residuals is _not_ constant (unlike variance of error terms ε).
 | sê[e] = se[e] = √Var[e] | (*to-do* is this absolutely correct? why/proofs?)
 | e / sê[e] = e / (σ√(1-diag(P))) | Studentized (or standardized) residual
-| OLS: β̂ = argmin~β~(RSS(β)) = (X^T^X)^-1^X^T^Y | Coefficient estimates, computed using OLS. Note that this forumula is handy for theoretical purposes.  For numerical computatioin QR decomposition is mutch more stable. https://en.wikipedia.org/wiki/Proofs_involving_ordinary_least_squares#Least_squares_estimator_for_.CE.B2[Proof]
+| β̂^OLS^ = argmin~β~(RSS(β)) = (X^T^X)^-1^X^T^Y | Coefficient estimates, computed using OLS. Note that this forumula is handy for theoretical purposes.  For numerical computatioin QR decomposition is mutch more stable. https://en.wikipedia.org/wiki/Proofs_involving_ordinary_least_squares#Least_squares_estimator_for_.CE.B2[Proof]
 | E[β̂] = β |
 | Cov[β̂] = σ²(X^T^X)^-1^ | Note that in some notations Var instead of Cov is used; since it's a matrix, it's implicit that the covariance matrix is meant. https://stats.stackexchange.com/questions/68151/how-to-derive-variance-covariance-matrix-of-coefficients-in-linear-r
 | Cov̂[β̂] = σ̂²(X^T^X)^-1^ |
@@ -1034,21 +1202,36 @@ References:
 - Book ``Machine Learning, a Probabilistic Perspective'', chapter ``7 Linear regression''.
 
 
-=== Kernel regression
+[[kernelized_linear_regression]]
+=== Kernelized linear regression (inc. regularization)
+
+Turns a linear regression model, here Ridge regression, into a non-linear model using the <<kernel_trick>>.
+
+Recall ŵ = argmin~w~(∑~1≤i≤n~(w^T^x~i~-y~i~)² + λ‖w‖~l~^l^)
+
+Similar to kernelized perceptron, it can be shown that the optimal estimate ŵ lies in the span o the data, i.e. is of the form ŵ = ∑~1≤i≤n~α~i~x~i~.
 
 h(x) = ∑~1≤i≤n~α~i~k(x~i~,x)
 
+Learning (for L2-norm regularization):
+
+α̂ = argmin~α~(‖α^T^K-y‖~2~² + λα^T^Kα) = (K+λI)^-1^y
+
 
 [[basic_functions]]
-=== Basic functions
+=== Basic functions / basis functions
 
 We only look at univariate models, i.e. one predictor X.  We have a family of k fixed known functions b~j~(X), j ∈ [k].  This transformation delivers the new linear model, where i denotes the data point index:
 
-y~i~ = ∑~0≤j≤k~β~j~b~j~(x~i~) + ε~i~
+f(x~i~) = ∑~0≤j≤k~β~j~b~j~(x~i~) + ε~i~
 
 It is a regular linear model with k predictors b~j~(X), j ∈ [k].  Hence the same rules apply, we can use the same fitting methods such as least squares, and the same inference tools are available.
 
 *to-do* is it really customary to use k instead p to denote the number of functions?
+
+More generally, including multivariate models, we can replace the measured observation (p+1)-dimensional vector x~i~ of the i-th iteration with the (d+1)-dimensional feature vector Φ(x). Let Φ~j~(x~i~) denote the j-th feature of to the i-th observation. Φ~j~(·) can be a non-linear function. Note that Φ~0~(·) must be constant 1, such that w~0~Φ~j~(·) = w~0~ represents the intercept.
+
+h(x~i~) = ∑~0≤j≤d~w~j~Φ~j~(x~i~)
 
 Examples:
 
@@ -1418,9 +1601,8 @@ Likelihood is modeled as p(y|x,w) = Ber(y|sigm(w^T^x)), where sigm(·) denotes t
 
 Interpretation: Our noise model is that far away from the decision boundary, the probability p(y|x) should be close to 1 and 0 respectively, depending on the side.  Close to the boundary, we don't really know which class a point belongs to, so the probability p(y|x) should be close to 0.5. So logistic regression, relative to linear regression, replaces the assumption of Gaussian noise by Bernoulli noise.
 
-ŵ^MLE^ = argmin~w~(R̂(w)) +
-R̂(w) = ∑~1≤i≤n~loss~logistic~(w)  [empirical risk] +
-loss~logistic~(w) = log(1+exp(-y~i~w^T^x~i~))
+ŵ^MLE^ = argmin~w~(∑loss~logistic~(w, y~i~, x~i~)) +
+loss~logistic~(w, y, x) = log(1+exp(-yw^T^x))
 
 The logistic loss is a convex function, thus we can use convex optimization techniques, e.g. SGD. It can be viewed as a smooth approximation to the hinge loss.
 
@@ -1438,7 +1620,7 @@ E.g. for L2 regularization, the gradient step in SGD is w = w(1-2λη) + ηyxp̂
 
 probabilistic classification: use conditional distribution p̂(y|x,ŵ) = 1/(1+exp(-yŵ^T^x))
 
-Estimated Bayesion optimal decision under 0-1 loss: ŷ = a^∗^ = argmax~y~(p̂(y|x,ŵ)) = sign(ŵ^T^x). I.e. the action a^∗^ that minimizes the expected cost is the most likely class, where set of actions 𝓐 = {+1, -1} (i.e. the action is returning the guessed class) and cost function is the 0-1 loss.
+Estimated Bayesian optimal decision under 0-1 loss: ŷ = a^∗^ = argmax~y~(p̂(y|x,ŵ)) = sign(ŵ^T^x). I.e. the action a^∗^ that minimizes the expected cost is the most likely the class, where set of actions 𝓐 is {+1, -1} (i.e. the action is returning the guessed class) and cost function is the 0-1 loss.
 
 As seen with bayesion optimal decision, having the distribution p̂(y|x,ŵ) is valuable when wanting to make decisions later on. Note that we also could have different cost functions, e.g. assymetric (different costs for false positive and false negative), or we also have a dontknow action (i.e. answer). With p̂(y|x,ŵ) we not only can do predictions, we also can quantify our uncertainty.  *to-do* move to a more general place
 
@@ -1459,68 +1641,74 @@ Interpretation: Consider the case of 2 predictors, an intercept of 0 and Φ(x) =
 
 Learning: The parameter vector w is learned as follows, based on the stochastic gradient descent algorithm: Start with a best guess for w, e.g. zero.  Iterate over all observations and update w each time: w = w + η~i~Φ(x)~i~t~i~, where η~i~ denotes the learning rate, Φ(x)~i~ denotes the feature corresponding to the i-th observation, and t~i~ is the class of the i-th observation.  Repeat this until some convergence criterion is met.
 
-Learning, variants: The stochastic gradient descent algorithms has variants. The inner loop of iterating over all observations can be replaced by uniformily at random pick only one observation. *to-do* this batch thing
-
 Intuition: Given an training observation. If the current w results in a correct classification, leave w as is. Otherwise, i.e. in case of misclassification, add the distance vector from the decision boundary to the observation to w.
 
-We actually would like to minimize the number of missclassifications, i.e. use the 0/1 loss function, see below, but the resulting minimization optimization problem would be NP hard.  So instead we use a surrogate loss function, here the _perceptron loss function_ (or just _perceptron_), which is convex.  However when evaluationg the model, e.g. via cross-validation, use the original loss function, here the 0/1 loss function.
+We actually would like to minimize the number of missclassifications, i.e. use the <<01_loss>> function, but the resulting minimization optimization problem would be NP hard.  So instead we use a surrogate loss function, here the _perceptron loss function_ (or just _perceptron_), which is convex.  However when evaluationg the model, e.g. via cross-validation, use the original loss function, here the 0/1 loss function.
 
 *to-do* the perceptron loss is a convex surrogate function for the 0-1 loss, we actually care about 0-1 loss, but optimize something else, the surrogate, here the perceptron loss.
 
 here we work directly with x opposed to Φ(x) (*to-do* integrate more nicely)
 
 ŵ = argmin~w~[∑loss~perceptron~(w,y~i~,x~i~)] +
-loss~perceptron~(w, y~i~, x~i~) = max(0, -y~i~w^T^x~i~)
+loss~perceptron~(w, y, x) = max(0, -yw^T^x)
 
 Theorem: If data is linearly seperable, the Perceptron will find a linear seperator.
 
 The perceptron does not care about margin. From the perceptron's point of view, all linear seperators are equially good.  This is because for all correct classifications, the perceptron loss is 0, regardles of how `good' the classification was. *to-do* see hinge loss, which encourages a larger margin.
 
-_0/1 loss function_: Is 1 for a mistake, 0 otherwise. But is a nasty function to optimize. Is not continous, and is not convex.  Thus e.g. the gradient descent algorithm cannot be used to optimize.  If ŵ was argmin~w~[∑loss~0/1~(w,y~i~,x~i~)], the problem of finding the optimal solution would be NP hard.
-
-loss~0/1~(w, y~i~, x~i~) =  +
-y~i~ notequal signʹ(w^T^x) = +
-y~i~w^T^x < 0
-
-Efficient computations despide feature space Φ(x) being higher dimensional than x: It can proven (representer theorem) that the optimal hyperplane ŵ is of the form ŵ = ∑α~i~y~i~x~i~.  Based on that idea, the learning of ŵ is simple (looking at stochastic gradient descent where an observation is choosen uniformily at random), even if Φ(x) has many more dimensions than x. Let t denote the index of the outer iteration, and j denote the index of the choosen observation.  Instead w = w + η~t~Φ(x)~j~t~j~, we do now α~j~ = α~j~ + η~t~.  However to compute ŷ now Φ(x)^T^Φ(xʹ) = k(x,xʹ), called kernel, must be efficiently computable. Indeed k(x,xʹ) is often more efficiently computable than Φ(x)^T^Φ(xʹ) as individual steps (first Φ(x), then transpose, etc.)
-
---------------------------------------------------
- w = 0                               α = 0
- iterate (t) until convergence       iterate (t) until convergence
-     pick observation (j) u.a.r.         pick observation (j) u.a.r.
-                                         w = ∑~i~α~i~y~i~x~i~
-     yhat = signʹ(w^T^x~j~)              yhat = signʹ(w^T^x~j~)
-                                         [yhat = signʹ(∑~i~α~i~y~i~k(x~i~,x~j~))]
-     if y~j~ != yhat                     if y~j~ != yhat
-         w += η~t~x~j~y~j~                   α~j~ += η~t~
---------------------------------------------------
-
-loss~perceptron~(w, y~i~, x~i~) = max(0, -y~i~w^T^x~i~) = +
-max(0, -∑~j~α~j~y~j~y~i~x~i~^T^x~j~)
-
-_kernel trick_ (or _kernelization_): Express problem s.t. it only depends on inner products. Replace those inner products by kernels.
-
-There is not really a probabilistic interpretation, i.e. a likelihood function corresponding to the loss function, see also <<regularization_vs_map_inference>>.
+There is not really a probabilistic interpretation, i.e. there's no likelihood function corresponding to the loss function.  See also <<regularization_vs_map_inference>>.
 
 References:
 
 - Pattern Recognition and Machine Learning, chapter ``4.1.7 The perceptron algorithm''.
 
 
-=== Support vector machine (SVM)
+=== Kernelized perceptron
 
-Variation of the perceptron, but unlike the perceptron, is a _maximal margin classifier_, meaning that it maximizes the margin.
+Turns the perceptron, a linear model, into a non-linear model using the <<kernel_trick>>.
 
-w = argmin~w~[loss~hinge~(w, y~i~, x~i~) + λ‖w‖~2~^2^] +
-loss~hinge~(w, y~i~, x~i~) = max(0, 1-y~i~w^T^x~i~)
+*to-do*
+
+
+=== Linear support vector machine (SVM)
+
+A linear two-class discriminant model.  A slight variation of the perceptron, which uses a different loss function, namely the hinge loss, and L2-regularization.  As a result, unlike the perceptron, the SVM is a _maximal margin classifier_, meaning that it maximizes the margin.
+
+ŵ = argmin~w~(∑loss~hinge~(w, y~i~, x~i~) + λ‖w‖~2~^2^) +
+loss~hinge~(w, y, x) = max(0, 1-yw^T^x)
 
 Gradient based algorithms can be used for this optimization problem (i.e. to find argmin~w~).
 
-To find the regularization parameter λ, one can use cross validation.
+The regularization parameter can be viewed as a measure on how much we insist on the maximal margin classifier constraint. A small λ means we strongly insist.
+
+See also <<choosing_regularization_parameter>> λ.
 
 *to-do* what are SVMs in general. It seems that the above is just one example for classification, which choosed to choose loss~hinge~ as loss function.
 
+Despide that the difference between the SVM and the Perceptron is quite small, that difference has a big influence. In practice, the SVM often performs much better.  In practice, we almost always prefer the SVM over the Perceptron.  For educational purposes, the Perceptron is easier to understand and serves as an good introduction.
+
 There is not really a probabilistic interpretation, i.e. a likelihood function corresponding to the loss function, see also <<regularization_vs_map_inference>>.
+
+
+[[kernelized_svm]]
+=== Kernelized SVM
+
+Turns the linear SVM into a non-linear model using the <<kernel_trick>>.  As in kernelized Perceptron, start with w = ∑~1≤i≤n~α~i~y~i~x~i~. Instead of w we now learn / optimize α. Note that ‖w‖~2~^2^ = w^T^w. Note that as in normal SVM, the regularization parameter λ remains.
+
+α̂ = argmin~α~(∑~1≤i≤n~max(0, 1-y~i~α^T^k~i~ + λα^T^D~y~KD~y~α) +
+k~i~ = (y~1~k(x~i~,x~1~), ..., y~n~k(x~i~,x~n~))
+
+*to-do* define D~y~ and K
+
+The resulting model is:
+
+h(x) = signʹ(∑~1≤i≤n~α~i~y~i~k(x~i~,x))
+
+The perceptron had (*to-do* move to right place):
+
+α̂ = argmin~α~(∑~1≤i≤n~max(0, y~i~α^T^k~i~)
+
+In general kernelized SVM are a very good choice for classification problems up to a few tens of thousands observations, i.e. should at leasts be tried.
 
 
 === Clustering
@@ -1552,7 +1740,7 @@ Applications:
 
 
 [[k_means]]
-=== k-means (clustering)
+=== k-means clustering
 
 Example of clustering.  Assumes points x = {x~1~, ..., x~n~} are in d-dimensional Euclidean space. Represent each cluster by the position of its center.  Each point in the hyperplane is assigned to the closest center, i.e. to the cluster associated with that center.  This induces a Voronoi partition.
 
@@ -1585,7 +1773,7 @@ Pros / cons:
 
 
 [[lloyds_heuristic]]
-=== _k-means algorithm_ (_Lloyd's heuristic_)
+=== k-means algorithm / Lloyd's heuristic
 
 Is a heuristic to solve the optimization problem posed by k-means clustering.
 
@@ -1806,8 +1994,79 @@ References:
 - ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``5 Bootsrap''
 
 
-== Neuronal networks
+== Kernels
 
+Allows to work implicitly (i.e. without actually calculating Φ(x)) in high-dimensional feature spaces (see <<basic_functions>>), as long as we can compute inner products k(x,k') = Φ(x)^T^Φ(x) efficiently. Indeed often k(x,k') can be computed more efficently than computing Φ(x)^T^Φ(x) explicitely.
+
+[[kernel_trick]]
+_Kernel trick_ (or _kernelization_): Express current learning algorithm s.t. it only depends on inner products. Replace those inner products by kernels.
+
+_Required properties of kernel_: Is a function k:𝓧⨯𝓧→ℝ, where 𝓧 is the data space, satisfying symmetry (k(x,xʹ)=k(xʹ,x) ∀ x,xʹ∈𝓧) and positive semi-definitess (kernel matrix (or gram matrix K = (k(x~i~,x~j~))~1≤i≤n,1≤j≤n~ must be positive semi-definit for any sample {x~1~, ..., x~n~} of 𝓧, for any n).
+
+Verifying wether a kernel is positive semi-definit is generally not that easy, so one practical way of getting new kernels are the kernel composition rules and valid known kernels.
+
+_Kernel composition rules_ (or _kernel engineering_):
+
+- k = k~1~ + k~2~
+- k = k~1~ · k~2~
+- k = c·k~1~ for c > 0
+- k = p(k~1~), where p is a polynomial with positive coefficients
+- k = exp(k~1~)
+- preprocess data: k(x,xʹ) = k~1~(foo(x),foo(xʹ))
+
+_Prediction_: Prediction is often roughly of the form h(x) = ∑~1≤i≤n~α~i~k(x~i~,x). That intuitively means that at there's a kernel function centered at each data point x~i~, weighted with α~i~, and that all these kernel functions are summed up.
+
+*to-do* is the above really a good descriptions for all kernels? Isn't it only for Gaussian / Laplace?
+
+Kernels provide a principled way of deriving non-parametric models from parametric ones.
+
+*to-do* but some kernels such as Gaussian have themselves parameters
+
+Pro of kernelized perceptron: h(x) = signʹ(∑~i~α~i~y~i~k(x~i~,x)) shows that computation can be cheap if relatively to n only a few α~i~ are non-zero.
+
+_How to choose a suitable kernel and kernel parameters_: See <<model_selection>>, <<concrete_kernels>> and recall the kernel composition rules.  _Avoid overfitting_: Kernels map to (very) high-demensional feature spaces, which indicates that we might suffer from overfitting. The problem of overfitting however is not as bad as it first sounds, because the number of parameters equals the number of observations, i.e. |α| =  n, which usually is much less than the number of dimensions in the feature space. Still we can apply regularization, as for example in <<kernelized_linear_regression>> or <<kernelized_svm>>.
+
+
+=== Examples of using kernels
+
+Example perceptron: It can proven (representer theorem) that the optimal hyperplane ŵ is of the form ŵ = ∑~1≤i≤n~α~i~y~i~x~i~.  Based on that idea, the learning of ŵ is simple (looking at stochastic gradient descent where an observation is choosen uniformily at random), even if Φ(x) has many more dimensions than x. Let t denote the index of the outer iteration, and j denote the index of the choosen observation.  Instead w = w + η~t~Φ(x)~j~t~j~, we do now α~j~ = α~j~ + η~t~.
+
+--------------------------------------------------
+ w = 0                               α = 0
+ iterate (t) until convergence       iterate (t) until convergence
+     pick observation (j) u.a.r.         pick observation (j) u.a.r.
+                                         w = ∑~i~α[i]y[i]x[i]
+     yhat = signʹ(w^T^x[j])              yhat = signʹ(w^T^x[j])
+                                         [yhat = signʹ(∑~i~α[i]y[i]k(x[i],x[j]))]
+     if y[j] != yhat                     if y[j] != yhat
+         w += η[t]x[j]y[j]                   α[j] += η[t]
+--------------------------------------------------
+
+loss~perceptron~(w, y~i~, x~i~) = max(0, -y~i~w^T^x~i~) = +
+max(0, -∑~j~α~j~y~j~y~i~x~i~^T^x~j~)
+
+Example: Anova kernel *to-do*
+
+Example: Using Gaussian kernel in the context of the perceptron. Looking at the right algorithm above, each time a (randomly choosen) data point x~j~ is missclassified, we add a gaussian bump to f(x) = ∑~i~α~i~y~i~k(x~i~,x)) at x = x~j~, due to the "α~j~ += η~t~" statement and the fact that k(x~i~,x) is a gaussian bump centered at x. Intuitively, the model ŷ = h(x) = signʹ(f(x)) is approximated by signʹ(∑~i s.t. ‖xi-x‖≤ch~α~i~y~i~) for some small c.  The α~i~ are optimized during model training.  Each data point (y~i~, x~i~) has its associated α~i~.
+
+Example: Two class k nearest neighbors classifier. We can express two class k-NN with ŷ = h(x) = signʹ(∑~1≤i≤n~y~i~k(x~i~,x)) with k(x,xʹ) = I(x is among k nearest neighbors of xʹ), where I is the indicator function.  Note here there are no parameters to be trained.
+
+
+[[concrete_kernels]]
+=== Some concrete kernels
+
+- _linear kernel_: k(x,xʹ) = x^T^xʹ
+
+- _polynomial kernel_: k(x,xʹ) = (x^T^xʹ+1)^d^. The feature space contains all monomials up to degree d.
+
+- _Gaussian kernel_ (or _Radial basis function_ (_RFB_), or _squared exp. kernel_): k(x,xʹ) = exp(-‖x-xʹ‖~2~²/h²). h is the _bandwith_ (or _length scale_) parameter. Small h means a more flexible model, i.a. a more wiggly resulting function ∑~i~α~i~k(x~i~,x~j~) which is more prone to overfitting.  A large h means an inflexible model prone to bias.  At least in case of SVM or perceptron, with a large h you almost get a linear decision boundary.  Or from another viewpoint, a small h means narrow Gaussian bumps and a large h means wide Gaussian bumps.  The decision boundary is very smooth; it's differentiable infintely many times.  Gaussian kernel is named that way only because it looks like a Guassian curve. The feature space has an infinite number of dimensions.
+
+- _Laplacian kernel_: k(x,xʹ) = exp(-‖x-xʹ‖~1~/h). h works as in Gaussian kernel.  The decision boundaries are approximately piecewise linear.  I.e. the decision boundary is quite ragged.
+
+- _Periodic kernel_: k(x,xʹ) = exp(-‖sin(px)-sin(pxʹ)‖~2~²/h²). Note the similarity to Gaussian kernel, x is replaced by sin(px) and xʹ is replaced likewise by sin(pxʹ).  p>0 is a further parameter.  An alternate way to define it is k(x,xʹ) = exp(-a∑~1≤i≤|x|~sin(p·(x~i~-xʹ~i~))²), where a>0 and p>0 are scaling parameters for amplitude and periodicity, respectively.
+
+
+== Neuronal networks
 
 === Feed-forward network functions
 
@@ -1824,3 +2083,56 @@ h(x) = ∑~1≤j≤k~wʹ~j~f~j~(w~j~^T^x)
 There is no consensus what the n in a n-layer neuronal network counts. 1) The number of transformations 2) the number of layers of hidden units 3) the number of layers of units (input, output and hidden).
 
 Neuronal networks are _universal adaptors_. For example, a two-layer (transformations) with linear output and non-linear hidden unit activation functions can approximate any continuous function on a compact input domain to arbitrary accuracy, provided sufficiently many hidden units.
+
+
+== Cheat sheet
+
+Shrinkage/Regularization: Fight overfitting (high variance) by applying Occam's Razor (simpelst model is usualy best model).
+
+|====
+| l(ŷ,y) | loss function (for one observation)
+| l~quadratic~(ŷ, y) = (y - ŷ)² |
+| l~0/1~(ŷ, y) = (y != ŷ) = (yŷ < 0) |
+| l~perceptron~(ŷ, y) = max(0, -yŷ) |
+| l~hinge~(ŷ, y) = max(0, 1-yŷ) |
+| l~logistic~(ŷ, y) = log(1+exp(-yŷ)) |
+| Q | cost function. More general than the loss function, e.g. sum of loss functions over all observations
+| R(h) = E~y∈𝓨,x∈𝓧~[l(h(x),y)] = ∫~y∈𝓨~∫~x∈𝓧~l(h(x),y)p(x,y)dxdy | expected risk
+| R̂~𝓓~(h) = E~(y,x)∈𝓓~[l(h(x),y)] = 1/n ∑~(y,x)∈𝓓~l(h(x),y) | empirical risk
+| R̂~train~(h) | training error
+| R̂~test~(h) | test error
+| R(h) - R̂~𝓓~(h) | generalization error
+| ĥ = argmin~h~(R̂~train~(h)) | empirical risk minimizer (ERM)
+| p(𝓓\|θ) or p(y~i~\|x~i~,θ) | likelihood
+| p(θ) | prior (probability)
+| p(𝓓) = ∑~θ∈Θ~p(𝓓,θ) | model evidence (marginal likelihood)
+| p(θ\|𝓓) = p(𝓓\|θ)p(θ) / p(𝓓) ∝ p(𝓓\|θ)p(θ) | posterior (probability)
+| θ̂^MLE^ = argmax~θ~(p(𝓓\|θ)) | maximum likelihood estimator (MLE)
+| θ̂^MAP^ = argmax~θ~(p(θ\|𝓓)) | maximum a posteriori probability estimate (MAP estimate)
+| p(y\|x,𝓓) | probabilistic prediction
+
+| ŵ = argmin~w~(R̂(w) [+ regterm]) | general pattern. R̂(w), i.e. loss function within, better be convex
+| ŵ = argmin~w~(RSS̃(w)) | Least squares linear regression
+| ŵ = argmin~w~(RSS̃(w) + λ‖w‖~1~) | Lasso regression
+| ŵ = argmin~w~(RSS̃(w) + λ‖w‖~2~²) | Ridge regression
+| ŵ = argmin~w~(∑l~perceptron~(w^T^x̃~i~,ỹ~i~)) | Perceptron (classification)
+| ŵ = argmin~w~(∑l~hinge~(w^T^x̃~i~,ỹ~i~) + λ‖w‖~2~²) | Support vector machine (SVM) (classification)
+| ŵ = argmin~w~(∑l~logistic~(w^T^x̃~i~,ỹ~i~) [+ regterm]) | Logistic regression (classification)
+
+| α̂ = argmin~α~(∑~1≤i≤n~max(0, y~i~α^T^k~i~) | Kernelized perceptron (classification)
+| α̂ = argmin~α~(∑~1≤i≤n~max(0, 1-y~i~α^T^k~i~ + λα^T^D~y~KD~y~α) | Kernelized SVM (classification)
+
+| h(x) = w^T^x | Linear regression, Lasso regression, ridge regression
+| h(x) = signʹ(w^T^x) | Perceptron, SVM
+
+| p(y\|x,w) = Ber(y\|sigm(w^T^x)) | Logistic regression
+
+| h(x) = ∑~1≤i≤n~α~i~k(x~i~,x) | Kernelized linear regression, L2-norm regularization
+| h(x) = signʹ(∑~1≤i≤n~α~i~y~i~k(x~i~,x)) | Kernelized perceptron, Kernelized SVM
+
+| k(x,xʹ) = x^T^xʹ | linear kernel
+| k(x,xʹ) = (x^T^xʹ+1)^d^ | polynomial kernel
+| k(x,xʹ) = exp(-‖x-xʹ‖~2~²/h²) | Gaussian kernel
+| k(x,xʹ) = exp(-‖x-xʹ‖~1~/h) | Laplacian kernel
+| k(x,xʹ) = exp(-‖sin(px)-sin(pxʹ)‖~2~²/h²) | Periodic kernel
+|====
