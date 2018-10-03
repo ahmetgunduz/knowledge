@@ -150,7 +150,7 @@ p (or D) denotes the number of predictors and n (or N) the number of data points
 Let X denote the random variable representing one row of the design matrix X (unfortunately this document uses X for both things), and let Y denote the random variable representing an element of response vector Y.  We assume that there is some fixed but unknown relationship between the response Y and the predictors X.  We model that by the _regression function_ f (or _population regression function_ or _PRF_) by writing Y = f(X) + ε. This can be read as ``__is modeled as__'' or Y _is regressed_ on X.  f represents the _systematic_ information that the predictors provide about the response.  Ŷ is the resulting _prediction_ for Y.  The elements ŷ~i~ of Ŷ are called _fitted values_ (or _predicted values_).
 
 [[error_terms]]
-ε is a n ⨯ 1 vector of a _error terms_ (or _noise_ or _disturbance_), which are independent of X.  Each error term is an unobservable random variable.  It is a catch-all for all we miss with our model f.  The true relationship might not according to model f, there might be other variables that cause variation in Y that we didn't measure, and there may be measurement error....  If the model f is the correct model, then these error terms are random and have no systematic error (i.e. E[ε~i~] = 0 ∀ ε~i~).  We liked to have an estimate f̂ for f and use it like so Ŷ = f̂(X).
+ε is a n ⨯ 1 vector (unfortunatly in this document also a random variabe denoting a single error term) of a _error terms_ (or _noise_ or _disturbance_), which are independent of X.  Each error term ε~i~ is an unobservable random variable.  It is a catch-all for all we miss with our model f.  The true relationship might not according to model f, there might be other variables that cause variation in Y that we didn't measure, and there may be measurement error....  If the model f is the correct model, then these error terms are random and have no systematic error (i.e. E[ε~i~] = 0 ∀ ε~i~).  We liked to have an estimate f̂ for f and use it like so Ŷ = f̂(X).
 
 *to-do* better merge the above paragraph with the first few paragraphs of this chapter
 
@@ -171,17 +171,17 @@ Notation: In Pr~training~[·], E~training~[·], Var~training~[·], Bias~training
 |=====
 | n (N) | Number of samples
 | p (D) | Number of predictors
-| X | Predictors. Given by being part of the given data set.
-| Y | Responses. Given by being part of the given data set.
-| ε | Error terms. Unknown.
+| X | Predictor(s). n⨯p matrix or random variable
+| Y | Response(s). n⨯1 vector or random variable
+| ε | Error term(s). n⨯1 vector or random variable
 | Often: Var[ε] = const = σ² | σ is in general not known. Often assumed to be constant.
 | Often: Var̂[ε] = σ̂² = RSE² | Common estimator
-| f | Regression function. Is guessed.
+| f | (True) regression function
 | Y ≈ f(X) | ``Approximately modeled as'' or ``X is regressed on Y''.
 | Y = f(X) + ε |
 | f̂ | Estimate for f
-| Ŷ = f̂(X) | Predictions (or fitted values)
-| e = Y - Ŷ | Residuals
+| Ŷ = f̂(X) | Predictions (or fitted values). n⨯1 vector or random variable
+| e = Y - Ŷ | Residuals. n⨯1 vector or random variable
 | t~i~ = e / sê[e] | Studentized (or standardized) residuals. For sê[e] see your specific model.
 |=====
 
@@ -1022,6 +1022,8 @@ Ridge and Lasso are modifications of the linear model.  They make the linear mod
 
 Nonlinear models like polynomial regression, step functions, regression splines, smoothing splines, local regression, generalized additive models (GAM) increase the flexibility to reduce bias, at the cost of hopefully only a small incease in variance.  Recall however, that when the true model is linar, then there's no bias already.
 
+When the underlying function is smooth in some regions and spiky in other regions, typically ANNs perform better than Gaussian kernels.
+
 
 [[linear_regression_models]]
 === Linear regression models
@@ -1221,17 +1223,15 @@ Learning (for L2-norm regularization):
 [[basic_functions]]
 === Basic functions / basis functions
 
-We only look at univariate models, i.e. one predictor X.  We have a family of k fixed known functions b~j~(X), j ∈ [k].  This transformation delivers the new linear model, where i denotes the data point index:
+We only look at univariate models, i.e. one predictor X.  We have a family of k fixed known functions b~j~(X), j ∈ [k].  This transformation delivers the new linear model
 
 f(x~i~) = ∑~0≤j≤k~β~j~b~j~(x~i~) + ε~i~
 
 It is a regular linear model with k predictors b~j~(X), j ∈ [k].  Hence the same rules apply, we can use the same fitting methods such as least squares, and the same inference tools are available.
 
-*to-do* is it really customary to use k instead p to denote the number of functions?
+More generally, including multivariate models, we can replace the measured observation (p+1)-dimensional vector x~i~ of the i-th iteration with the (d+1)-dimensional feature vector Φ(x). Let Φ~j~(x~i~) denote the j-th feature computed from the i-th observation. Φ~j~(·) can be a non-linear function. Note that Φ~0~(·) must be constant 1, such that w~0~Φ~j~(·) = w~0~ represents the intercept.
 
-More generally, including multivariate models, we can replace the measured observation (p+1)-dimensional vector x~i~ of the i-th iteration with the (d+1)-dimensional feature vector Φ(x). Let Φ~j~(x~i~) denote the j-th feature of to the i-th observation. Φ~j~(·) can be a non-linear function. Note that Φ~0~(·) must be constant 1, such that w~0~Φ~j~(·) = w~0~ represents the intercept.
-
-h(x~i~) = ∑~0≤j≤d~w~j~Φ~j~(x~i~)
+h(x) = ∑~0≤j≤d~w~j~Φ~j~(x)
 
 Examples:
 
@@ -2066,23 +2066,74 @@ Example: Two class k nearest neighbors classifier. We can express two class k-NN
 - _Periodic kernel_: k(x,xʹ) = exp(-‖sin(px)-sin(pxʹ)‖~2~²/h²). Note the similarity to Gaussian kernel, x is replaced by sin(px) and xʹ is replaced likewise by sin(pxʹ).  p>0 is a further parameter.  An alternate way to define it is k(x,xʹ) = exp(-a∑~1≤i≤|x|~sin(p·(x~i~-xʹ~i~))²), where a>0 and p>0 are scaling parameters for amplitude and periodicity, respectively.
 
 
-== Neuronal networks
+=== Artificial Neural Neutwork (ANN)
 
-=== Feed-forward network functions
+The term _Artificial neural network_ refers to nonlinear functions which are nestsed compositions of (variable) linear functions composed with (fixed) nonlinearities.  I.e. the linearities are learned, and the non-linearities are choosen apriory and then are fixed.
 
-Imagine L columns (or layers) of units (or neurons or nodes) {u^(0)^, u^(1)^, ... u^(L)^}. The first column corresponds to the input x, i.e. u^(0)^ = x, the last column corresponds to the output y, i.e. y = u^(L)^.  As in linear regression / classification, the intercept / bias is absorbed into w, meaning that the true input x is extended by prepending an element which is always 1, resulting in the actually used input x.  The units of a given column depend on the units of the previous column the following way, where f~j~(·) is a (possibly nonlinear) _activation function_, and w~j~^(l)^ is the parameter vector of the l-th (transformation-)layer for the j-th unit in the l-th column.  The units in the columns between the first (input) and last (output) column are called _hidden units_.
+Recall basis functions:
 
-u~j~^(l)^ = f~j~((w~j~^(l)^)^T^u^(l-1)^)
+h(x) = ∑~0≤j≤d~w~j~Φ~j~(x) +
+ŵ = argmin~w~(∑~1≤i≤n~l(y~i~,h(x)))
 
-Recall that is similar to what linear regression / classification does with its y = f(w^T^Φ(x)), where Φ(x) = (Φ~1~(x), ...,Φ~M~(x)), where Φ~i~(·) are possibly non-linear basis functions.  In the neuranal network, Φ is now given by the previous layer.
+The key idea is to paramaterize feature maps Φ~j~(x), thus becoming Φ(x,θ~j~), and to optimize not only on w, but also θ:
 
-In case of a single hidden layer network, having k units in the hidden layer:
+h(x) = ∑~0≤j≤d~w~j~Φ(x,θ~j~) +
+ŵ = argmin~w,θ~(∑~1≤i≤n~l(y~i~,h(x)))
 
-h(x) = ∑~1≤j≤k~wʹ~j~f~j~(w~j~^T^x)
+In neuronal nets, we nest, i.e. x is given by the previous layer.
 
-There is no consensus what the n in a n-layer neuronal network counts. 1) The number of transformations 2) the number of layers of hidden units 3) the number of layers of units (input, output and hidden).
 
-Neuronal networks are _universal adaptors_. For example, a two-layer (transformations) with linear output and non-linear hidden unit activation functions can approximate any continuous function on a compact input domain to arbitrary accuracy, provided sufficiently many hidden units.
+=== Feedforward neural network
+
+In case of zero hidden layers also called _singlelayer perceptron_, in case of one or more hidden layers also called _multilayer perceptron_.
+
+Say there are L hidden layers.  Imagine L+2 columns (or _layers_) of _units_ (or _neurons_, or _nodes_) {u^(0)^, u^(1)^, ... u^(L+1)^}. The first column corresponds to the input x, i.e. u^(0)^ = x, the last column corresponds to the output y, i.e. y = u^(L+1)^.  The layers between the input and the output layer are called _hidden layers_. The units in the hidden layers are called _hidden units_.  As in linear regression / classification, the intercept / bias is absorbed into w, meaning that the true u^(l)^ is extended by prepending an element which is always 1, resulting in the actually used u^(l)^.  The units of a given column depend on the units of the previous column the following way, where φ(·) is a (possibly nonlinear) _activation function_, and w~j~^(l)^ is the parameter / weight vector of the j-th unit in the l-th (transformation-)layer.
+
+l-th layer, j-th unit: +
+u~j~^(l)^ = φ(z~j~^(l)^)  +
+z~j~^(l)^ = (w~j~^(l)^)^T^u^(l-1)^ +
+w~j~^(l)^ = weight vector for j-th unit in l-th layer, |w~j~^(l)^| = |u^(l-1)^| +
+u~j~^(0)^ = x +
+y = u~j~^(L+1)^ +
+output layer in regression ommits φ(·), in classification φ = signʹ
+
+Or in shorter notation:
+
+u^(l)^ = φ(u^(l-1)^) [here φ returns vector; is applyied component wise] +
+z^(l)^ = W^(l)^u^(l-1)^ +
+W^(l)^ = |u^(l)^| ⨯ |u^(l-1)^| weight matrix for l-th layer
+
+In case of a single hidden layer network, having k units in the hidden layer and a single output:
+
+h(x) = ∑~1≤j≤k~wʹ~j~φ(w~j~^T^x) +
+|wʹ| = k, |w~j~| = |x| = n
+
+In case of no hidden layers, and a single output, we just get linear regression:
+
+h(x) = w^T^x
+
+In the spirit of the introduction to the neuronal networks chapter, the parameter vectors w~i,j~ of the hidden layers correspond to the parameter set θ parameterizing the feature maps. That the output layer ommits applying φ(·), can be see from the h(x) = ∑~0≤j≤d~w~j~Φ(x,θ~j~) of the introduction.
+
+In principle, each layer, or even each neuron can have its individual non-linearity φ.
+
+_learning / optimizing_: We need to learn the weight matrices W = (W^(1)^, ..., W^(L+1)^). Choose some loss function (e.g. percetpron loss, multi-class hinge loss, square loss etc.).  If there are multiple output units, typically the overall loss is the som of per-output losses.  Do empirical risk minimization Ŵ = argmin~W~(∑~1≤i≤n~l(W,x~i~,y~i~)). Is in general a non-convex optimization problem, even with a single hidden layer.  Typical choices are variants of gradient descent, despite the risk of only finding a local minima. In this solutions, initialization (where to start the search) really matters. Nevertheless, for reasons not well understood, gradient based algorithms tend to find good models.
+
+_prediction_: ŷ = h(x) = u^(L+1)^, and u^(L+1)^ is recursively given above. Starting at input x and computing each unit is called _forward propagation_.
+
+_Design decisions_: Number of layers, number of units per layer, non-linearity function(s) used, whether there's one global non-linearity function or one per layer or even one per unit.
+
+There is no consensus what the n in a n-layer neuronal network counts. 1) The number of transformations (the last being only linear) 2) the number of layers of hidden units 3) the number of layers of units (input, output and hidden).
+
+_Universal approximation theorem_: Neuronal networks are _universal adaptors_. A neuronal net with one hidden layer and a continuous sigmoidal activation function can approximate any continuous function on a compact input domain to arbitrary accuracy, provided sufficiently many hidden units.
+
+
+=== Activation functions
+
+_rectified linear units_ (_ReLU_) φ(z) = max(z,0): Similar to the perceptron loss, just flipped at the y axis. These days kind of the standard.
+
+_sigmoid activation function_ φ(z) = 1/(1+exp(-z)): φ(-∞)=0, φ(0)=1/2, φ(∞)=1, increases monotonically, close to zero it's approximately linear.
+
+_tanh activation function_ φ(z) = tanh(z) = (exp(z)-exp(-z))/(exp(z)+exp(-z)): φ(-∞)=-1, φ(0)=0, φ(∞)=1, increases monotonically, close to zero it's approximately linear.
 
 
 == Cheat sheet
