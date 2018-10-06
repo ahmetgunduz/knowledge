@@ -65,7 +65,7 @@ general:
   par(mfrow=c(rowcount,colcount)): plot window has space for rowcount x colcount plots
   col: color
   superimpose: Set add=T after first, or use plot=F after first and pass ret value to future plot.
-    Use T in c(R,G,B,T) arg to col param for transparency. You might want to use equal xlim/ylim for all.
+    Use T in rgb(R,G,B,T) arg to col param for transparency. You might want to use equal xlim/ylim for all.
 
 knn: recall to plot 1/k, e.g. plot(1/c(1:n), mse) mse being mse for n different k 1:n
 
