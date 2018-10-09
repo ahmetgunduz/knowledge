@@ -105,19 +105,45 @@ Proof for sd[x̄] = σ / √n if independent and same variance σ²:  Var[x̄] =
 
 An _estimator_ (or _point estimator_ or _(point) estimate_), denoted θ̂ (or θ̂~n~), of a parameter θ, is technically a statistic g(X~1~, ..., X~n~) plus conceptually stating which paramater θ its an estimator of.  In other words, an estimator θ̂ is a single ``best guess'' of parameter θ.  An estimator is a random variable since a statistic is one, see there.
 
-The _bias_ of an estimator θ̂ with respect to an unknown parameter θ is defined as Bias~θ~[θ̂] = E~θ~[θ̂] - θ = E~θ~[θ̂ - θ].  An estimator with zero bias is called _unbiased_.  Otherwise the estimator is said to be _biased_.  Note that there's also an analogously defined bias for the estimate f̂ of an regression function f, see there.
+Note that a program such as an machine learning algorithm that learns the parameters of a model is also an estimator.  Thus statements about how good an estimator can be, see e.g. Cramér-Rao bound, are important to machine learning. 1/(var[θ̂]𝓘(θ))
 
-An estimator θ̂ with respect to an unknown parameter θ is said to be _consistent_ if: θ̂ P→ θ.
+Recall that an estimator is a statistic and thus a random variable, so the _mean_ E~θ~[θ̂] and the _variance_ Var~θ~[θ̂] of an estimator are defined the usual way.
 
-If bias[θ̂]→0 and se[θ̂]→0 as sample size n→∞, then estimator θ̂ is consistent.
+The _bias_ of an estimator θ̂ with respect to an unknown parameter θ is defined as Bias~θ~[θ̂] = E~θ~[θ̂] - θ = E~θ~[θ̂ - θ].  An estimator with zero bias is called _unbiased_.  Otherwise the estimator is said to be _biased_.  It can be shown that unbiasdness is not necessarily the goal. There exists biased estimators which are better in the least sequares sense than any unbiased estimators, see Cramér–Rao bound.
 
 [[MSE_of_estimator]]
 The _mean squared error_ (or _MSE_) of an estimator θ̂ with respect to an unknown parameter θ is defined as follows. The MSE can be used to assess the quality of the estimator θ̂. Note that there's also an analogously defined MSE for the estimate f̂ of an regression function f, see there.
 
-MSE[θ̂] = E~θ~[(θ̂-θ)²] = +
+MSE~θ~[θ̂] = E~θ~[(θ̂-θ)²] = +
 Bias²~θ~[θ̂] + Var~θ~[θ̂] (see also <<bias_variance_trade_off>>)
 
-Recall that an estimator is a statistic and thus a random variable, so the _mean_ and the _variance_ of an estimator are defined the usual way.
+_Consistent estimator_: An estimator θ̂ with respect to an unknown parameter θ is said to be _consistent_ if θ̂ P→ θ.  We almost always want an estimator to be consistent.  If we don't have that, then even with an infinitely large sample we still don't get the true parameter value θ.
+
+If bias[θ̂]→0 and se[θ̂]→0 as sample size n→∞, then estimator θ̂ is consistent.
+
+_Cramér–Rao bound_ (_CRB_) or (or _Cramér–Rao inequality_, or _information inequality_):  Tells you how good (in the least squares sense) an estimator possibly can be.  𝓘 is the <<fisher_information>>.  Note that in general it cannot be computed, since for that we would need to know p(𝓓|θ), but it's still important that there is a lower bound.
+
+Var~θ~[θ̂] ≥ 1/𝓘(θ) [if unbiased estimator and some other assumptions] +
+Var~θ~[θ̂] ≥ (1+∇~θ~Bias~θ~[θ̂])²/𝓘(θ) +
+MSE~θ~[θ̂] ≥ (1+∇~θ~Bias~θ~[θ̂])²/𝓘(θ) + (Bias~θ~[θ̂])² +
+MSE~θ~[θ̂] ≥ (1+∇~θ~Bias~θ~[θ̂])²/(nE~θ~[Λ²(θ)]) + (Bias~θ~[θ̂])² [which assumptions?]
+
+*to-do* assumptions for 𝓘(θ) = nE~θ~[Λ²(θ)]
+𝓘(θ) = Var[Λ(θ)]
+V~𝓓~(θ) = ∇~θ~ ℒ~𝓓~(θ) = ∇~θ~ log p(𝓓|θ)
+
+_Efficiency_ of an estimator e(θ̂) = 1/(var[θ̂]𝓘(θ)), where 𝓘 is the <<fisher_information>>.  The Cramér-Rao bound can be used to prove that e(θ̂) ≤ 1.  Or the other way round, the efficincy is a measure how close var[θ̂] comes to the lower bound 1/𝓘(θ).  A more efficient estimator needs fewer observations than a less efficient one to achieve a given performance.  An _efficient estimator_ (or _fully efficient estimator_) has e(θ̂) = 1.  An _assymptotically efficient_ estimator θ̂ has lim~n→∞~e(θ̂) = 1.
+
+
+==== Notable estimators
+
+See also <<map>> and <<mle>>.
+
+Given an d-variate random variable X ∈ ℝ^d^, X \~ 𝓝~d~(θ, σ²I), where θ ∈ ℝ^d^ is unknown and σ² is known, and given a single observation x ∈ ℝ^d^.
+
+The maximum likelihood estimator is θ̂^ML^ = x.
+
+The _James-Stein_ estimator is given θ̂^JS^ = (1 - (d-2)σ²/‖x‖~2~²)·x, i.e. x is weighted. For m≥3 θ̂^JS^ dominates θ̂^ML^, i.e. MSE~θ~[θ̂^JS^] ≤ MSE~θ~[θ̂^ML^].
 
 
 === Confidence Interval & Prediction Interval
@@ -159,7 +185,7 @@ The variance Var(ε~i~) of the error terms ε~i~ is in general not known.  Often
 [[residual]]
 e~i~ = y~i~ - ŷ~i~ is the i-th _residual_.
 
-_Studentized residual_ (or _standardized residual_) t~i~ = e~i~ / sê[e~i~]. Can be used to dedect outliers, see there.
+_Studentized residual_ (or _standardized residual_) t~i~ = e~i~ / sê[e]. Can be used to dedect outliers, see there.
 
 In general, we can use regression only for prediction of a response variable given new predictors.  In general the observiations on which the regression is based do not allow for conclusions about causal relations. (*to-do* Some reference to a trusted source which concisely accurately states this)
 
@@ -236,36 +262,44 @@ loss~0/1~(w, y, x) = (y != signʹ(w^T^x)) = (yw^T^x < 0)
 
 _cost function_ Q: Is more general than the loss function. It might be the sum of loss functions over a set of observations.
 
-_expected risk_ (or _true risk_, or just _risk_, or _expected error_, or _prediction error_) R(h) = E~y∈𝓨,x∈𝓧~[l(h(x),y)] = ∫~y∈𝓨~∫~x∈𝓧~l(h(x),y)p(x,y)dxdy: The risk associated with hypothesis h(x) is defined as the expected loss. The expected risk generally cannot be computed since in general p(x,y) is unknown.
+_expected risk_ (or _true risk_, or just _risk_, or _expected error_, or _expected test error_, or _prediction error_, the `expected' over all that is random) R(h) = E~y∈𝓨,x∈𝓧~[l(h(x),y)] = ∫~y∈𝓨~∫~x∈𝓧~l(h(x),y)p(x,y)dxdy: The risk associated with hypothesis h(x) is defined as the expected loss. The expected risk generally cannot be computed since in general p(x,y) is unknown.
 
 _empirical risk_ (or _empirical error_) R̂~𝓓~(h) = E~(y,x)∈𝓓~[l(h(x),y)] = 1/n ∑~(y,x)∈𝓓~l(h(x),y). Since p(x,y) is often unknown, the expected risk R(h) cannot be computed. We can estimate the risk by averaging the loss on a sample data set 𝓓. Assuming iid observations, R̂~𝓓~(h)→R(h) for |𝓓|→∞ (by law of large numbers).
 
 _training error_ R̂~train~(ĥ): Empirical risk using the training set and the fitted model ĥ. In general, E~all train sets~[R̂~train~(ĥ)] < E[R(ĥ)], i.e. the estimator R̂~train~(ĥ) is an overly optimistic estimator; it underestimates the true risk R(ĥ).  The reason is that the training data can be fitted better than unseen data.  Thus never evaluate a model by using the training error.
 
-_test error_ R̂~test~(ĥ): Empirical risk using the test set and typically the fitted model ĥ. An unbiased estimator for the true risk, i.e. E~all train sets~[R̂~train~(ĥ)] < E[R(ĥ)], as long as the test data was not involved in any way in fitting ĥ.
+_test error_ R̂~test~(ĥ): Empirical risk using the test set and typically the fitted model ĥ. An unbiased estimator for the true risk, i.e. E~all train sets~[R̂~test~(ĥ)] < E[R(ĥ)], as long as the test data was not involved in any way in fitting ĥ.
 
 _generalization error_ gen_error~𝓓~(h) = R(h) - R̂~𝓓~(h). An algorithm is said to _generalize_ if lim~|𝓓|→∞~gen_error~𝓓~(h) = 0.  In general the generalization error cannot be computed since the risk R(h) in general cannot be computed. Instead, the aim is often to bound the generalization error in probability: p(|gen_error~𝓓~(h)|≤ε) ≥ 1-δ, where ε is called the error bound and is generally dependent on δ and n = |𝓓|.
 
 _empirical risk minimizer_ (_ERM_): ĥ = argmin~h~(R̂~train~(h))
 
-_likelihood function_ f(θ) = p(𝓓|θ): Probability of seeing the data 𝓓 given the model parameters θ.
+_likelihood function_ ℒ~𝓓~(θ) = p(𝓓|θ) =~iid~ ∏p(d~i~|θ): Probability of seeing the data 𝓓 given the model parameters θ.
 
 *to-do* often p(𝓓|θ) is viewed as p(y~i~|x~i~,θ), but that isn't the same as p(y~i~,x~i~|θ). Why can we do that? Or is it just that we apply the term likelihood also to p(y~i~|x~i~,θ).
 
-_log likelihood_: *to-do*
+_log likelihood_ log p(𝓓|θ)
 
-_negative log likelihood_ (_NLL_): *to-do*
+_negative log likelihood_ (_NLL_) -log p(𝓓|θ)
 
 _prior (probability)_ p(θ): Subjective probability of model paramters θ without having seen any data yet.
+
+[[score_function]]
+_score function_ (or _score_, or _efficient score_, or _informant_) Λ (or V) Λ~𝓓~(θ) = ∇~θ~ ℒ~𝓓~(θ) = ∇~θ~ log p(𝓓|θ) = 1/p(𝓓|θ) ∇~θ~p(𝓓|θ) =~iid~ ∇~θ~ ∑ log p(d~i~|θ) = ∑((∇~θ~p(d~i~|θ))/p(d~i~|θ))
+
+[[fisher_information]]
+_Fisher information_ 𝓘(θ) = Var[Λ(θ)], where Λ(θ) is the <<score_function>>.
 
 _model evidence_ (or _marginal likelihood_) p(𝓓) = ∑~θ∈Θ~p(𝓓,θ)
 
 _posterior (probability)_ p(θ|𝓓) = p(𝓓|θ)p(θ) / p(𝓓) ∝ p(𝓓|θ)p(θ): Is the likelihood times the prior, normalized.
 
-_maximum likelihood estimator_ (_MLE_) θ̂^MLE^ = argmax~θ~(p(𝓓|θ)): A frequentist point estimator which sets the model parameters θ to the values that maximize the likelihood function p(𝓓|θ). This corresponds to choosing the model parameters θ for which the probability of the observed data set is maximized.
+[[mle]]
+_maximum likelihood estimator_ (_MLE_) θ̂^MLE^ = argmax~θ~(p(𝓓|θ)), i.e. Λ(θ)=0: A frequentist point estimator which sets the model parameters θ to the values that maximize the likelihood function p(𝓓|θ). This corresponds to choosing the model parameters θ for which the probability of the observed data set is maximized.
 
 Lets express p(𝓓|θ) as p(y~1:n~|x~1:n~,w). θ̂^MLE^ = argmax~w~(p(y~1:n~|x~1:n~,w)) = argmin~w~(-log p(y~1:n~|x~1:n~,w)) =~iid data~ argmin~w~(-∑~1≤i≤n~log p(y~i~|x~i~,w)).
 
+[[map]]
 _maximum a posteriori probability estimate_ (or _MAP estimate_) for model parameters: θ̂^MAP^ = argmax~θ~(p(θ|𝓓)) = argmax~θ~(p(𝓓|θ)p(θ)): A estmator which sets the model parameters θ to the values that maximize the posterior probability.
 
 _MAP estimate_ for predicton ŷ = f̂(x) = argmax~y~[p(y|x,𝓓)]. I.e. the mode of the probabilistic prediction distribution.
@@ -562,19 +596,15 @@ First greedely add predictors with the forward stepwise selection method, then r
 [[model_validation]]
 === Model validation
 
-_Model validation_ (or _model assessment_ or _assessing performance (of a model)_) is the task of calculating the performance of a final model.  Final model means one whose hyper-parameter are already determined, e.g. by model selection.  Note that it's about a model, as opposed to a single given already trained estimate f̂.  For a meaningfull model validation we usually also need to calculate the bias and the variance of the calculated performence.
+_Model validation_ (or _model assessment_ or _assessing performance (of a model)_) is the task of estimating the prediction error of a model.  For a meaningfull model validation we also need to calculate the bias and the variance of the estimate.  Recall that in general we can't compute the true prediction error, since that would require us to know the true joint distribution p(x,y) of the data.
 
-The problem of model validation is that for most ways to perfectly calculate a performance we often would need all possible test data to train multiple estimates f̂ and for each of those f̂ all possible test data.  See also definition of expected test MSE.
+The following solutions do not work in general:
 
-.Use previously unseen data for model validation or model selection
+Use previously unseen data for model validation or model selection::
+It's not realistic to have further unseen data available.  Even so, in that case we could combine the original data and the newly available data into one data set, and be logically at the same point as in the beginning of the problem statement.
 
-This is not realistic.  Even so, in that case we could combine the original data and the newly available data into one data set, and be logically at the same point as in the beginning of the problem statement.
-
-.Use original data for model validation or model selection
-
-When we use the original data for model assessment, the retreived performance will be biased. That's because we trained the model with exactly the same data as we measured the model's performance with.  It was the model trainings job to fit the model to the original data, so obviously the model will have a high performance on the original data.
-
-When we use the original data for model selection, then (**to-do** Claude said that overfitting occures - but the term overfitting applies only to a single model training, no?).  The procedure would be: Calculate the performance for each of the m candidate models using the complete original data and then choose the candidate model which had the best performance.
+Use original data for model validation or model selection::
+When we use the original data for model assessment, the retreived estimated prediction error will be heavily biased; it will be too good.  That's because we trained the model with exactly the same data as we measured the model's performance with.  It was the model trainings job to fit the model to the original data, so obviously the model will have a high performance on the original data.
 
 
 [[validation_set_approach]]
@@ -582,13 +612,13 @@ When we use the original data for model selection, then (**to-do** Claude said t
 
 The _validation set approach_ is a technique for model assessment or model selection.
 
-Partition data randomly in two equaly sized partitions, one constituting the training data and the other constituting the test data (or validation data).  Train an estimate f̂ using the training data, and then calculate an estimate of the expected test MSE using the test data.
+Partition data randomly in two equaly sized partitions, one constituting the training data and the other constituting the validation data.  Train an estimate f̂ using the training data, and then calculate an estimate of the prediction error using the validation data.  Note that the validation set approach does _not_ correspond to 2-fold cross validation; in 2-fold cross validation, each split would be once test set and once validation set.
 
 Pro: Simple
 
-Pro: Fair estimate of test MSE, i.e. closer to test error than to (adjusted) training error.
+Pro: Fair estimate of prediction error, i.e. closer to prediction error than to (adjusted) training error.
 
-Contra: Loss of power: Fewer training data always always means a worse fit of the model.  In particular it typically means more bias.  In other words, it's too pessimistic: we get a biased (too high) estimate of the test error.
+Contra: Loss of power: Fewer training data always always means a worse fit of the model.  In particular it typically means more bias.  In other words, it's too pessimistic: we get a biased (too high) estimate of the prediction error.
 
 Contra: Large variance of the validation estimate (e.g. estimated expected test MSE) because the validation estimate might depend a lot on how the partition turned out to be.
 
@@ -604,7 +634,7 @@ References:
 
 !!!!! clean up usage of terms `test set/sample/...' vs `validation set/sample/...'.
 
-_Cross-validation_ (or _rotation estimation_) is a coarse technique for model assessment or model selection.  It's a coarse technique in the sense that it has multiple more concrete instanciations, such as <<LOOCV>> and <<k_fold_CV>>.  It tries to mitigate the problem of only having one data set (aka sample of the population) of finite size, altough we actually would like infinitely many training sets and test sets, each set of infinite size.
+_Cross-validation_ (or _rotation estimation_) is a coarse technique for model assessment _or_ model selection.  It's a coarse technique in the sense that it has multiple more concrete instanciations, such as <<LOOCV>> and <<k_fold_CV>>.  It tries to mitigate the problem of only having one data set (aka sample of the population) of finite size, altough we actually would like infinitely many training sets and test sets, each set of infinite size.
 
 _CV for model validation_: Repeatedly partition the original data set into a training set and a validation set, each time doing the partition in a different way.  In each iteration, calculate an estimate of the performance of the model using the training set and the validation set of that iteration. At the end, average the results, delivering the (final) estimate of the model's performance.
 
@@ -614,8 +644,31 @@ mind that we estimate expected test mse, for the true one we need the population
 
 we are a bit sloppy and take the number of CV for both the model and the estimate f
 
+!!! we also need to compute mean and bias
+
+--------------------------------------------------
+estimated_prediction_error_by_CV(model, data)
+    errors = emptycollection()
+    for trainset, validationset in partition(data)
+       model.train(trainset)
+       errors.append(loss(model,validationset))
+    return mean(errors)
+--------------------------------------------------
+
 [[cv_for_model_selection]]
 _CV for model selection_: See also <<model_selection>>. Delivers best model (in sense of template, not trained), but you don't know yet how good it is on unseen data.  Analogous to CV for model validation, but do it for each candidate model.  I.e. there are two nested loops, an outer doing different partitions, and and an inner trying all candidate models (that is three nested loops in case of double cross validation).  At the end, we select the candidate model with the best averaged estimate of the performance.  As noted in chapter model selection, whether or not the selected model shall also be trained is not clearly defined.  If we want to train, we can train it on the complete original data set, or just take the already trained model which was trained on a subset.  The former is computationally more expensive, but larger training sets are generally better.  Note that we cannot use the optained performance estimates also for model validation.  For that use <<double_cross_validation>>. Alternatively, put aside a _test set_ which is used to report the final performance of the concrete trained model.  However you must never use the test set to derive any decision, more specifically it must not be used during trainining a model or within CV to decide which model to pick.  Also after doing CV and then after evaluating the winning concrete fitted model's performance with the test set, don't change your mind and choose another model.
+
+--------------------------------------------------
+best_model_by_CV(candidatemodels, data)
+    best_error = infinity, best_model = NIL
+    for model in candidatemodels
+        error = estimated_prediction_error_by_CV(model, data)
+        best_model = model if error < best_error
+    return best_model
+    # note that we don't know estimated prediction error of returned model
+--------------------------------------------------
+
+
 
 *to-do* Chapter/paragraph about choosing a statistic for model performance. e.g. why exactly is training MSE not good.
 
@@ -651,7 +704,7 @@ Note that different inner cross validations may select different models.  That's
 [[LOOCV]]
 ==== Leave one out cross validation (LOOCV)
 
-A specialization of cross validation.  Do n iterations. In each iteration, make the i-th observation the test set, and the rest the training set. Let f̂^(-i)^ denote the estimate of the model fitted with training data being the original data without the i-th observation.
+Equals n-fold cross validation.  Do n iterations. In each iteration, make the i-th observation the test set, and the rest the training set. Let f̂^(-i)^ denote the estimate of the model fitted with training data being the original data without the i-th observation.
 
 expectedTestMSÊ = 1/n ∑(y~i~ - f̂^(-i)^(x~i~))²
 
@@ -901,7 +954,7 @@ _Stochastic gradient descent_ (or _incremental gradient descent_ or _sequential 
 
 *to-do* more concrete algorithm. Variants. The stochastic gradient descent algorithms has variants. The inner loop of iterating over all observations can be replaced by uniformily at random pick only one observation
 
-*to-do* mini batches
+_mini-batch SGD_ with batch size B is a generalization of _batch SGD_ (B=n) and _online SGD_ (B=1).
 
 Convergence criterions:
 
@@ -2075,31 +2128,41 @@ Recall basis functions:
 h(x) = ∑~0≤j≤d~w~j~Φ~j~(x) +
 ŵ = argmin~w~(∑~1≤i≤n~l(y~i~,h(x)))
 
-The key idea is to paramaterize feature maps Φ~j~(x), thus becoming Φ(x,θ~j~), and to optimize not only on w, but also θ:
+The key idea is to paramaterize feature maps Φ~j~(x) (later called activation function, denoted φ), thus becoming Φ(x,θ~j~), and to optimize not only on w, but also θ. I.e. we try to learn good features from data.
 
 h(x) = ∑~0≤j≤d~w~j~Φ(x,θ~j~) +
 ŵ = argmin~w,θ~(∑~1≤i≤n~l(y~i~,h(x)))
 
 In neuronal nets, we nest, i.e. x is given by the previous layer.
 
+_Deep learning_ generally refers to models with nested, layered non-linearities. A classical example is an ANN with many hidden layers, trained via SGD or variant thereof.
 
-=== Feedforward neural network
+Pro: Overall training its largely matrix / vector operations, which can be efficiently and in parallel be computed in (dedicated) HW, e.g. GPUs.
+
+Pro/Contra: Good for clean data, bad for noisy data. If data is noisy, the neuronal net is going to learn that mistakes and then repeat them.
+
+Contra: User has to configure many parameters (like e.g. architecture of the network, parameters of the learning algorithm).
+
+Contra: Not roboust. Training the same model multiple times gives different results.
+
+
+==== Feedforward neural network
 
 In case of zero hidden layers also called _singlelayer perceptron_, in case of one or more hidden layers also called _multilayer perceptron_.
 
-Say there are L hidden layers.  Imagine L+2 columns (or _layers_) of _units_ (or _neurons_, or _nodes_) {u^(0)^, u^(1)^, ... u^(L+1)^}. The first column corresponds to the input x, i.e. u^(0)^ = x, the last column corresponds to the output y, i.e. y = u^(L+1)^.  The layers between the input and the output layer are called _hidden layers_. The units in the hidden layers are called _hidden units_.  As in linear regression / classification, the intercept / bias is absorbed into w, meaning that the true u^(l)^ is extended by prepending an element which is always 1, resulting in the actually used u^(l)^.  The units of a given column depend on the units of the previous column the following way, where φ(·) is a (possibly nonlinear) _activation function_, and w~j~^(l)^ is the parameter / weight vector of the j-th unit in the l-th (transformation-)layer.
+Say there are L hidden layers.  Imagine L+2 columns (or _layers_) of _units_ (or _neurons_, or _nodes_) {u^(0)^, u^(1)^, ... u^(L+1)^}. The first column corresponds to the input x, i.e. u^(0)^ = x, the last column corresponds to the output y, i.e. y = u^(L+1)^.  The layers between the input and the output layer are called _hidden layers_. The units in the hidden layers are called _hidden units_.  As in linear regression / classification, the intercept / bias is absorbed into w, meaning that the true u^(l)^ is extended by prepending an element which is always 1, resulting in the actually used u^(l)^.  The units of a given column depend on the units of the previous column the following way, where φ(·) is a fixed (i.e. without parameters that we would need to learn), possibly nonlinear, _activation function_, and w~j~^(l)^ is the parameter / weight vector of the j-th unit in the l-th (transformation-)layer.
 
 l-th layer, j-th unit: +
-u~j~^(l)^ = φ(z~j~^(l)^)  +
 z~j~^(l)^ = (w~j~^(l)^)^T^u^(l-1)^ +
+u~j~^(l)^ = φ(z~j~^(l)^)  +
 w~j~^(l)^ = weight vector for j-th unit in l-th layer, |w~j~^(l)^| = |u^(l-1)^| +
 u~j~^(0)^ = x +
 y = u~j~^(L+1)^ +
-output layer in regression ommits φ(·), in classification φ = signʹ
+output layer: in regression ommits φ(·), in classification φ = signʹ
 
-Or in shorter notation:
+Or in shorter notation, l-th layer:
 
-u^(l)^ = φ(u^(l-1)^) [here φ returns vector; is applyied component wise] +
+u^(l)^ = φ(u^(l-1)^) [here φ returns a vector; is applyied component wise] +
 z^(l)^ = W^(l)^u^(l-1)^ +
 W^(l)^ = |u^(l)^| ⨯ |u^(l-1)^| weight matrix for l-th layer
 
@@ -2116,8 +2179,6 @@ In the spirit of the introduction to the neuronal networks chapter, the paramete
 
 In principle, each layer, or even each neuron can have its individual non-linearity φ.
 
-_learning / optimizing_: We need to learn the weight matrices W = (W^(1)^, ..., W^(L+1)^). Choose some loss function (e.g. percetpron loss, multi-class hinge loss, square loss etc.).  If there are multiple output units, typically the overall loss is the som of per-output losses.  Do empirical risk minimization Ŵ = argmin~W~(∑~1≤i≤n~l(W,x~i~,y~i~)). Is in general a non-convex optimization problem, even with a single hidden layer.  Typical choices are variants of gradient descent, despite the risk of only finding a local minima. In this solutions, initialization (where to start the search) really matters. Nevertheless, for reasons not well understood, gradient based algorithms tend to find good models.
-
 _prediction_: ŷ = h(x) = u^(L+1)^, and u^(L+1)^ is recursively given above. Starting at input x and computing each unit is called _forward propagation_.
 
 _Design decisions_: Number of layers, number of units per layer, non-linearity function(s) used, whether there's one global non-linearity function or one per layer or even one per unit.
@@ -2127,9 +2188,65 @@ There is no consensus what the n in a n-layer neuronal network counts. 1) The nu
 _Universal approximation theorem_: Neuronal networks are _universal adaptors_. A neuronal net with one hidden layer and a continuous sigmoidal activation function can approximate any continuous function on a compact input domain to arbitrary accuracy, provided sufficiently many hidden units.
 
 
-=== Activation functions
+==== Avoiding overfitting
 
-_rectified linear units_ (_ReLU_) φ(z) = max(z,0): Similar to the perceptron loss, just flipped at the y axis. These days kind of the standard.
+Neuronaly networks are highly flexible models due to having many parameters |W|, which might be even larger than number n of observations, thus there's considerable risk of overfitting.  If there are many hidden units, the universal approximation theorem basically guarantees overfitting.
+
+_Early stopping_ (a form of regularization): Don't run SGD until it converges, i.e. finds a local minima. For example, monitor empirical risk on the valdation set, and stop once validation error starts to increase.  Due to the universal approximation theorem, the global optimum tends to overfitt, i.e. fit the noise,  and we want to stop at the piont overfitting starts to happen. 
+
+_Dropout regularization_: During training, in each iteration, ignore some hidden units (`remove' them from the net, but only for this iteration).  Each hidden unit has a probability of p (e.g. 1/2) of being ignored.  At the end, multiply all weights with p.
+
+_Regularization_: One way to mitigate the problem is to add regulariztion the usual way by adding a regularization term: Ŵ = argmin~W~(∑~1≤i≤n~l(W,x~i~,y~i~) + λ‖W‖~2~²).  However then we need to choose the regularization parameter λ, which we usually do via cross validation.  However even one training of an ANN is quite expensive, so in general CV is often not feasible.
+
+
+[[ann_invariances]]
+==== Invariances 
+
+E.g. in handwritten digit recognizition, when the written digit is translated or scaled, that should not lead to a worse recognition.
+
+Solutions:
+
+- Augmentation of the trainin set. E.g. for each handwritten digit, add a few images containing translated & scaled versions.  But it's not an efficient solution, since it increases the number of training observations.
+
+- Structure of ANN shall reflect invariances, see <<convolutional_nn>>
+
+In certain fields, there are feature classes which already have nice properties. E.g. in computer vision, there's _SIFT_ (scale invariant feature transosformation), in speech recognition there's _Ceptrum_.
+
+
+==== Learning a feedforward neural network
+
+We need to learn the weight matrices W = (W^(1)^, ..., W^(L+1)^).  Other parameters of a neuronal network are fixed with respect to learning: number of hidden layers, number of units for each hidden layer, the activation function to be used by each unit, the activation functions themselves have no parameters which need to be learned.  Choose some loss function (e.g. percetpron loss, multi-class hinge loss, square loss etc.).  If there are multiple output units, typically the overall loss is the som of per-output losses.  Do empirical risk minimization Ŵ = argmin~W~(∑~1≤i≤n~l(W,x~i~,y~i~)). Is in general a non-convex optimization problem, even with a single hidden layer.  Typical choices are variants of gradient descent, despite the risk of only finding a local minima. In this solutions, initialization (where to start the search) really matters. Nevertheless, for reasons not well understood, gradient based algorithms tend to find good models.  Also, somehow we're much more likely to find the global optimum when we overspecify, i.e. have more hidden units than we actually minimaly need in theory for a good model to exist.
+
+_Backpropagation_ is a method of computing the gradient ∇~W~l(W) for one iteration in SGD (or a variant), to adjuts the weights W -= η~t~∇~W~l(W).  Backpropagation works by computing the loss of one data point at each unit in the output layer (were the true label y is known from the training data and the current prediction ŷ is known based on the current weights W), and then work backward layer by layer.
+
+*to-do* Is the following specific to ANN, or is it simply `SGD (and variants) and non-convex objective functions'?
+
+_Initialization_: Since the optimzation problem is non-convex, i.e. there might be multiple local minimas, initialisation of the weights W matters a lot.  It turns out that random initialization works well in practice. E.g. w~ij~ \~ 𝓝(0, 0.01) or w~ij~ ~ 𝓝(0, 1/√|layer|).  You might want to repeat training multiple times to avoid taking weights resulting from a local minima.
+
+_Choosing the learning rate η_ parameter of the SGD algorithm: One strategy which proved to be practical is to start with a small (say 0.1) learning rate, and after some iterations decrease slowly. So for example η~t~ = min(0.1, 100/t).  Additionally, you may want to ensure that the weight change resulting from the learning rate is within some constant factor (smaller 1) of the absolute weight.
+
+_Learning with momentum_: A common extension to SGD. Idea: move not only in direction of gradient, but also in direction of the last weight update(s). E.g. if only the last weight update is taken into account: ∆W = m∆W + η~t~∇~W~l(W), W -= ∆W, where m is a further parameter.  In a slightly more complex variant, we take the average of the last N updates.
+
+_Preventing oscillation_ around minima: Learning with momentum helps.
+
+
+[[convolutional_nn]]
+==== Convolutional neuronal network (CNN)
+
+A _convolutional neuronal network_ are is an ANN for specialized applications, in particular image recognition.  It is designed to attack problem of <<ann_invariances>>.   They bake a certain degree of shift and scale invariance into the model. 
+
+At a high level, this is done by sharing weights.
+
+Imagine recognition of handwritten digits. A hidden unit in the first hidden layer is connected only to the input corresponding to a patch of closeby pixels (i.e. all other weights are set to zero). The weights of each patch are constrained to be similar.
+
+CNN layer architecture: input -> (convolution -> pooling)+ -> fullyconnected+ -> output, where + means "one or more". I.e. relative to ANN, "(convolution -> pooling)+" is inserted.
+
+The convolution layer does kind of filtering. The pooling layer does kind of subsampling, having the benefit of fewer overall units, i.e. fewer parameters to learn.
+
+
+==== Common activation functions
+
+_rectified linear units_ (_ReLU_) φ(z) = max(z,0): Similar to the perceptron loss, just flipped at the y axis. These days kind of the standard. Pro: fast to compute, gradients do not `vanish' (important for deep networks), Contra: not differentiable.
 
 _sigmoid activation function_ φ(z) = 1/(1+exp(-z)): φ(-∞)=0, φ(0)=1/2, φ(∞)=1, increases monotonically, close to zero it's approximately linear.
 
@@ -2179,7 +2296,7 @@ Shrinkage/Regularization: Fight overfitting (high variance) by applying Occam's 
 | p(y\|x,w) = Ber(y\|sigm(w^T^x)) | Logistic regression
 
 | h(x) = ∑~1≤i≤n~α~i~k(x~i~,x) | Kernelized linear regression, L2-norm regularization
-| h(x) = signʹ(∑~1≤i≤n~α~i~y~i~k(x~i~,x)) | Kernelized perceptron, Kernelized SVM
+| h(x) = signʹ(∑~1≤i≤n~α~i~y~i~k(x~i~,x)) | Kernelized perceptron, Kernelized SVM (classification)
 
 | k(x,xʹ) = x^T^xʹ | linear kernel
 | k(x,xʹ) = (x^T^xʹ+1)^d^ | polynomial kernel
