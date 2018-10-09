@@ -7,7 +7,29 @@ A _data model_ is a collection of high-level data description constructs that hi
 
 A database _transaction_, by definition, must be _ACID_: All the following must be guaranteed even in the event of errors, power failures etc. Atomicity (each transaction succeeds completely or fails completely), Consistency (each transaction brings DB from one valid state to another valid state, maintaining DB's invariants), Isolation (result is as if transactions were executed in strict sequence), Durability (once a transactin has been committed, will remain committed).
 
-_CAP theorem_: impossibility triangle: you only can have two, but never three. consistency (every read receives most recent write or an error; if not consistent, we have to deal with conflicts somehow) / availability (every request receives a (non-error) response) / partition tollerance (system continuous to operate despite an abitrary number of messages being dropped/delayed by network between nodes).
+_CAP theorem_: impossibility triangle (you can have at most 2 of 3): you only can have two, but never three. consistency (every read receives most recent write or an error; if not consistent, we have to deal with conflicts somehow) / availability (every request (except under network partition) receives a non-error response (conversly, not having A at all means always getting an error) with low latency (low being subjective, making availability subjective)) / partition tolerance (system continuous to operate despite an abitrary number of messages being dropped/delayed by network between nodes).
+
+*to-do* point out that consistency and availability in the context of the CAP theorem mean different things than the same terms in the context of ACID.
+
+*to-do* If I have AC, what does P matter? The A guarantees that I _always_ (independent of network failures) get a response, no?
+
+CP examples: HBase, MongoDB, Redis, MemcacheDB, Big-table like systems
+
+CA examples: Traditional relational data bases (PostgreSQL, MySQL, etc.)
+
+AP examples: Dynamo-like systems, Voldemort, Riak, Cassandra, CouchDB
+
+A: always a error response
+
+CA: always (except network partition case) non-error repsonse, read always returns most recent write. E.g. one maschine is web server which handles client requests, behind is a node having a traditional DB server providing ACID. As long as there's no network partition, we have consistency and availability. If we have network partition (link between server and DB goes down), then the client's requests are answered by errors (CA says that we don't have the P).
+
+AP: always non-error response, even in case of network partition, but maybe a read doesnt return most recent write.
+
+CP: Something like DynamoDB, where the coordinator writes synchronously to the replicator nodes. During the write, which might take a long time because we might have to wait until the network partition is over, the coordinator can't serve further request, thus availability goes away.
+
+Doing updates (i.e. propagation to other nodes) asynchronous gives you availability, because you still can update. If you are synchronous, you can be consistent, but you are no longer available.
+
+dynamodb: update of other nodes is ansynchronous
 
 *to-do* `consistency' in CAP and in ACID are not the same? In a distributed data base, where each node replicates the full data base, does consistency refer to a single data base or to the global database?
 
@@ -55,13 +77,21 @@ Relational operators may be implemented using the iterator design pattern.
 
 When measuring costs, often asymptotic notations in terms of number of I/O accesses are used, since I/O is much more expensive than CPU, even with flash. Sometimes, as improvement, a distinction is made between random access and sequential access, since also their costs differ substantially.
 
-_eventual consistency_: If no updates are made, then eventually all accesses will return the last updated value. However in practice there's a continous stream of updates, so consistency will never happen.
+_eventual consistency_: If no updates are made, then eventually all accesses will return the last updated value. However in practice there's a continous stream of updates, so consistency will never happen.  In other words: Every update will eventually be propagated.
 
 Very general best practice to achieve better performance: first try to make code better, then try to scale out, then try to scale up. ``You only get a second computer if you know how to make the first one work''.
 
 _Availability_: Measure of the percantage of time the service / equipment is in an operable state.
 
 _Reliability_: Measure of how long the service / equipment performs its intended function. Usually measured by _mean time between failure_ (_MTBF_) which is defined as total time in service / number of failures, or by _failure rate_, which is defined as the inverse of MTBF.
+
+_durability_: A common measure is "loss of 1 in x objects".
+
+_availability_: A common measure is "99.99%" (with x many nines)
+
+_response time_: One possible measure is "<10ms 99.9% of cases"
+
+_3Vs of big data_: volume, variety and velocity *to-do*
 
 partition schemes for load balancing: *to-do*
 
@@ -341,6 +371,8 @@ syntax (text, CSV, XML, JSON, RDF/XML, Turtle, XBRL) +
 encoding (ASCII, ISO-8859-1, UTF-8, BSON) +
 storage (local FS, NFS, GFS, HDFS, S3, Azure blob storage)
 
+*to-do* DynamoDB is within storage layer, right?
+
 How can we get more work done:
 
 1) Make SW efficient. ``You can have a second computer once you've shown you know how to use the first one'' (Paul Barham). We can gain factors of speed, and we have to pay once the development costs, and can apply it to all machines we ever will have.
@@ -353,35 +385,13 @@ _data center_: ~1k - 100k machines, 1-100 cores / server, 1-12TB local storage /
 
 _Uniform resource name_ (_URN_) is a URI that uses the urn scheme.
 
-_REST_ API: REST is the way HTTP should be used. It's always a method (GET, PUT, DELETE, POST, ...) plus a resource (URI). PUT must be idempotent (when issued multiple times, the 2nd plus requests have no effect). GET must be side-effect free.  POST is the most generic, it can have side effects.
+_REST_ API (Representational State Transfer): REST is the way HTTP should be used. It's always a method (GET, PUT, DELETE, POST, ...) plus a resource (URI). PUT must be idempotent (when issued multiple times, the 2nd plus requests have no effect). GET must be side-effect free.  POST is the most generic, it can have side effects.
 
 _replication_: Rational: Fault tolerance. Local: node failure. With a lot of nodes, you are almost guaranteed that a node will fail. Regional: natural catastrophe. Thus spreading datacenters gives proximity to client (gives smaller latency) and protects against regional failures.
 
 _storage class_: High availability at high costs on one end and low availability (hours to access data) at low cost on the other end. The low end is typically for backups.
 
-
-== Object storage
-
-scalability issues with a local drive: A data base on a local machine might work for that machine.  Maybe, if you're lucky, it even works when accessed by multiple people on a (small) LAN.  But it doesn't work on a WAN.  The disk just can't cope with the amount of requests.  Also, on a typical file system you can't have billions of files.
-
-_object storage_ (or _document database_) lets you scale. Make model of local filesystem simpler. 1) throw away hierachy (file system tree). 2) Metadata is no longer fixed but flexible: assign values to keys. 3) Flat and global key-value model (associate IDs to files). 4) use commodity HW.
-
-Billions of potitenially huge (terabytes) objects.
-
-latency: s3 ~100-300ms, typical database 1-9ms  [both where client is in same region]
-
-I.e. object storage is too slow.
-
-
-== Key-value store
-
-Same data model as object storage, but implemented differently. Smaller objects (kB sized). No metadata.
-
-Much simpler than a relational database. We drop consistency (we only have eventual consistency) and gain availability and partition tolerance and scalability.
-
-Simple things are much easier to scale out than monolithic things (such as a table in the relational model).
-
-In contrast to object storage, no metadata.
+The history of storage: progress made 1956-2010: capacity: 150'000'000 times more, throughput 10'000'000 times more, latency 8 times more. To increase throughput, we can parallize. To improve latency, we can do batch processing.
 
 
 == Chord / distributed hash table
@@ -428,24 +438,148 @@ questions:
 - why not return (C,[(n1,3)]) , (D,[(n1,2), (n2,1)]). Answer: The protocol is such that it's a black box for the client
 
 
+[[block_storage]]
+== Block storage
+
+*to-do* Same as file storage?
+
+Large amount of huge files: millions of PB files. An object (aka file) is a sequence of blocks (or chunks).
+
+Block size on a local file system is \~4kB; in a relational database \~32kB. In a distributed file system such like HDFS it's ~128MB -- good compromise between latency and throughput.  Too small blocks would mean too many blocks to wait for, and since its over the network latency would be bad (relative to the time it takes to transmitt the complete block). Too big means we can't even put it on a single machine.  Also if the number of blocks of a file is smaller than the number of tasks of a mapreduce, we can't parallelize as much.
+
+
+== Google File System (GFS)
+
+Requirements:
+
+- Throughput has top priority.
+
+- A capacity of millions of PB files.
+
+- Fault tolerance and robustness (a local disk might fail, in a clustser with 10 tousands nodes, nodes _will_ fail). That means we need monitoring of the disks status, error detection, automatic recovery, so at the top layer we get fault tolerant.
+
+- Latency has secondary priority.
+
+File update model: Only append and upsert, i.e. no random access.  Appending should work for hundreds of clients in parallel.  This is a suitable model e.g. for sensors, logs, intermediate data.
+
+Master slave architecture.
+
+
+== Hadoop (HDFS)
+
+Open source distributed file system. Open source version of GFS. MapReduce. Wide column store (HBase). Block storage (by default 128MB blocks (configurable on a file-by-file basis), 64 bit block id, see also <<block_storage>> for pro/cons of block sizes). File hierarchy model.
+
+Designed for:
+
+- Peta byte files. I.e. a single file doesn't fit on a single drive, for that alone we need block storage.  A file is divided into blocks. Each block is replicated among multiple data nodes for fault tolerance.
+
+- Streaming data access patterns: i.e. it's expected that the data accessing pattern is a write-once, read-many-times.  It is expected that a large portion of a file is read, so data throughput is more important than the latency to read the first bytes.
+
+- Scaling out, i.e. using commodity HW.
+
+Disadvantages:
+
+- Can't offer low latency access
+
+- Can't offer lots of small files. This is also because the name nodes hold the filesystem metadata in memory, so the amount of memory of a name node limits the number of files.
+
+- Can't offer multiple writers, and can only append to the end of the file (i.e. can't write to arbitrary positions).
+
+- Not suited for running across data centers (*to-do* why?)
+
+In terms of CAP theorem: We have consistency. But due to the single master, we have neither full availability nor full partition tollerance.
+
+Master slave architecture.  The master is called the name node, the slaves are called data nodes.
+
+The _name node_ (or _primary name node_ or _active name node_) cares about the filesystem meta data: The _file namespace_ (i.e. the file tree), _file to block mapping_ (for each file a list of block ids constituting it), and _block locations_ (for each block id where it is stored).  It keeps all that information in memory.  Later it is described in what ways that information is persisted.
+
+A _data node_ only stores bocks, storing them on its local drives, using a traditional local filesystem.  A data node is identified by an storage id, which does not change if the IP of the data node changes.  A data node stores its storage id.  A data node stores a checksum for each block.  When a client reads/writes blocks from/to a data node, the data sending side always also transmits the checksum, and the receiving side has to verify.
+
+_Client protocol_ (a RPC protocol): Client first makes metadata operation request to name node (master).  Note that a client might be a node within the cluster, e.g. a name node.  For a read/write, as answer it receives the block locations: For each block id, the multiple (see specified number of replicas) node locations (IPs) where the block is stored, sorted by distance, so the client can choose to talk to the closests data node. See data transfer protocol below how the client continuous.
+
+_Data node protocol_ (a RPC protocol):  Between data node and name node, it's always the data node who intitiates the communicuation. E.g. registration ("Hi, I'm a new data node"). Every x seconds a name node sends a hearbeat("I'm still alive"). When the name node wants something from a data node (e.g. a block operation), the name node does so via its response to a heart beat.  When a name node received a block (see write in the data transfer protocol), he acknowledges to the master node with a BlockReceived message.  Every y hours, the data node sends a block report to the name node (the list of block, i.e. their ids, it currently stores).
+
+_Data transfer protocol_ (a streaming protocol):  See client protocol first. See following read and write.
+
+For a _read_, as answer the client receives the block locations: For each block id, the multiple node locations where the block is stored, sorted by distance (see Hadoop's measure of closeness), so the client can choose to talk to the closest data node.  Multiple clients can read in parallel from the same file / blocks.
+
+For a _write_, it's analogous.  Recall that writes can only append.  For each new block a client wants to write, it receives a collection of block locations from the name node.  The client doesn't need to care about replication.  Per block, the client talks to the closest name node, tells it also the other name nodes that need to replicate the block, and the name nodes take care of replication themselves by creating a _data pipeline_ which minimizes the distance from the client to the last data node.  The data node receiving the client's write request asynchronously sends an acknowldge to the client once all replicates are successfully written.  Recall from data node protocol that each node receiving a bock sends a BlockReceived message to the name node.  For each client-initiated transaction, the change to the filesystem meta data is commited to the client only after the name nodes journal has been flushed to disk.  There is at most one writer to a file at any point in time.
+
+_Hadoop's measure of closeness / distance_: The network is represented as a tree / hierarchy.  The hierarchy is not fixed, however common is (internet, data center, rack, node).  The distance beween two nodes is the sum of the hierarchy levels between a node and the common anchestor.  Rational: Due Hadoop's design goals and the resulting architecture, throughput is more important than latency, so a possible measure would be bandwith between nodes. That however is difficult to measure. The given metric is an approximation.
+
+*to-do* Is the ack of the write back to the client async to replication? Even prof didnt know.
+
+_Replica placement_ (or _block placement_), i.e. which nodes store a block replica: The first block/replica is stored on the client itself, if the client is a data node in the same cluster, and a random node which is not too busy and not too fully otherwise. The 2nd replica is stored on on a node in a different rack within the same cluster (If it were stored in the same rack, that would mean that the same rack is guaranteed to store two replicas, which is a shame if the rack fails). The 3rd replica is stored on a node in the same rack as the 2nd. The further replicas are stored at random nodes, but if possible at most one replica per node (we care about a node failing as a whole, not that only parts of a single drive fail) and at most two replicas per rack.
+
+Replica placement considerations: Reliabilty (how relyable is a node), read/write bandwith (how fast is the network), block distribution (what's the distance from the data node to the client (which might be itself a data node)).
+
+Number of replicas is specified per file. The default is 3.
+
+*to-do* why is the 3rd replica stored in the same rack? We just said that we don't want that the same rack contains two replicas?
+
+
+=== Dealing with master being bottleneck
+
+The name node is bottle neck and single point of failure. The following describes ways how HDFS tries to mitigate the problem. Note that the use case of unexpected failure of a name node is rare, so in practice the use case of planned downtime for maintenance is more important.
+
+The master uses its local filesystem to persist the file namespace and the file to block mappings in a _checkpoint_ and a _journal_ (or _edit log_, log of edits since last checkpoint).  Note that the block locations are not persisted, because the name node gets to know them via the heart beats of the name nodes.  The name node always writes to the journal, as opposed to the checkpoint.  The checkpoint is only modified in explicit situations, such as startup or explicit administrator commands.  When restarting the name node, we need to read the namespace file and the edit log, and apply the changes recorded in the edit log on top of the information in the namespace file. Such a restart would take about 30 minutes, which is obviously too long.
+
+The checkpoint and journal can be configured to be stored on multiple places. Recommended practice is to place each a replica on a local disk (preventing loss from failure of a single disk), and one replica replica on a remote NFS server (preventing loss from node failure).
+
+A _secondary name node_ (or _check point node_) shadows the primary name node and has the sole responsibility to make a checkpoint every once in a while, i.e. combine the primary name node's checkpoint and journal into a new checkpoint, and send back the new checkpoint to the primary name node.  When the primary name nodes replaces its checkpoint with the new checkpoint, it also can truncate its journal. Good practice is to create a daily checkpoint. A smaller journal means faster startup time, and less risk that any part of the journal is corrupted.
+
+A _backup name node_ is like a secondary name node, but additionally has the file system meta data in memory, just as the primary name node.  From the view point of the primary name node, a backup name node is just another journal store.  The backup name node thus recievies a stream of file system meta data transactions.  If the primary name node fails, the backup name node can jump in, without having to reply a journal to a checkpoint.  But there's still the issue that the backup name node doesn't know the block locations. It needs some time until all data nodes register at the new name node, telling him the block locations.
+
+A further way to remove the bottleneck (too many clients accessing the same name node) is _HDFS Federation_.  We have now multiple name nodes, each name node being responsible for a top level directory.  This can be seen as a form of scaling out / scaling out name nodes.  Each federated name node has then its own secondary name nodes and backup name nodes.
+
+*to-do* Is it really the client's problem to know which top level directory is associated to which name node? Because effectively we then just have a collection of completely different HDFS -- from the view of the client at last.  Internally, the data nodes can be shared by the name nodes. But can't they do that also in the case of a set of really different HDFS.
+
+*to-do* read more in "HDFS High Availability" in the book
+
+
+== Object storage / document database
+
+huge amount of large files: billions of TB files.  As a consequence, a file fits on a single machine. An object is a black box.
+
+Object storage lets you scale. Make model of local filesystem simpler. 1) throw away hierachy (file system tree). 2) Metadata is no longer fixed but flexible: assign values to keys. 3) Flat and global key-value model (associate IDs to files). 4) use commodity HW.
+
+on scalability issues with a local drive: A data base on a local machine might work for that machine.  Maybe, if you're lucky, it even works when accessed by multiple people on a (small) LAN.  But it doesn't work on a WAN.  The disk just can't cope with the amount of requests.  Also, on a typical file system you can't have billions of files.
+
+
+latency is low relative to a database: s3 ~ few 100ms, typical database 1-9ms, both where client is in same region.
+
+
+== Key-value store
+
+Same data model as object storage, but implemented differently. Intend to have low latency. Small objects (kB sized). No metadata. Note the key-value store is not the same as key-value model.
+
+*to-do* What's the exact difference between key-value store and key-value model. I think I have the right intuition, but I can't clearly concisely write it down.
+
+Much simpler than a relational database. We drop consistency (we only have eventual consistency) and gain availability and partition tolerance and scalability.
+
+Simple things are much easier to scale out than monolithic things (such as a table in the relational model).
+
+In contrast to object storage, no metadata.
+
+
 == Amazone S3
 
-An (object) storage model. Proprietary, i.e. we don't really know how it works internally.
+An object storage; Key value model, but _not_ a Key-value store. Proprietary, i.e. we don't really know how it works internally.
 
 There are buckets, and within buckets objects.  An object is a blackbox.
 
 identfying objects: bucket-id (uri: http://<bucket>.s3.amazonaws.com) + object-id (uri: http://<bucket>.s3.amazonaws.com/<object-name>)
 
-_object size limit_: 5TB, _durability_: Loss of 1 in 10E11 objects, _availability_: 99.99%, _response time_ <10ms 99.9% of cases. *to-do* which are actual measures, which were just examples
+_object size limit_: 5TB, _latency_: few 100ms
 
 
-== Azure
+== Azure Blob Storage
 
-Hybrid between object storage and distributed file system.
+Hybrid between object storage and distributed file system. Key value model, but _not_ a Key-value store.
 
 identifying objects: Account-id + Partition-id + Object-id
 
-Limit: 195GB blocks, 1TB pages
+Limit: 195GB blocks, 1TB pages, block size is limited depending on block type
 
 storage stamp = 10-20 racks +
 rack = 18 storage nodes +
@@ -460,10 +594,16 @@ Replication within Stream Layer is synchronous within same storage stamp.
 
 *) I.e. we loose consistency (mind CAP theorem: triangle consistency - availability - partition tollerance, we only can have 2, but not 3), but gain availability. If we wanted consistency, then a put call would be synchronous, i.e. the caller had to wait until we replicated the new object everywhere.
 
+Azure Storage offers three types of blobs. _Block blobs_ store text and binary data, up to about 4.7 TB. Block blobs are made up of blocks of data that can be managed individually. _Append blobs_ are made up of blocks like block blobs, but are optimized for append operations. Append blobs are ideal for scenarios such as logging data from virtual machines. _Page blobs_ store random access files up to 8 TB in size. Page blobs store the VHD files that back VMs.
+
+All storage services are accessible via REST APIs.
+
 
 == Amazone DynamoDB
 
-Key-value stores: state is stored as binary objects (aka blobs), identified by unique keys. ACID is _not_ offered. In particular, consistency is dropped in favor of availability, and no isolation guarantees are given. Efficiency, i.e. meeting stringent SLAs (measured at 99.9% percentile of requests so all customers benefit, guaranteeing few hundred ms latency), is an important requirement. It is assumed that operation is in a non-hostile environment. Availability is for writes (writes are never rejected), which means that reads are more complex (one always has to decide when to resolve update conflicts, at reads or at writes).  Hierarchical namespaces are not directly supported.  Relational schema is not supported.
+Key-value store: state is stored as binary objects (aka blobs), identified by unique keys. ACID is _not_ offered. Offers availability and partition tolerance, giving up consistency (but at least offers eventual consistency).  No isolation guarantees are given.  Efficiency, i.e. meeting stringent SLAs (measured at 99.9% percentile of requests so all customers benefit, guaranteeing few hundred ms latency), is an important requirement. It is assumed that operation is in a non-hostile environment.  Availability is for writes (writes are never rejected), which means that reads are more complex (as always, one has to decide when to resolve update conflicts, at reads or at writes).  Replication is asynchronous, which gives better availability.  Hierarchical namespaces are not directly supported.  Relational schema is not supported.
+
+*to-do* replication is async, which means more risk of completely using all replicas (only in total), right? E.g. when the node dies between acknowledging the write and being able to send out replicas.
 
 Dynamo can be characterized as a zero-hop dynamic hash table. The rational for avoiding many hops is that would increase the variance of the latency, endangering the SLA requirements.
 
@@ -495,6 +635,8 @@ A _preference list_ stores the physical nodes responsible for storing a particul
 *to-do* is the put really only successfull _after_ W-1 nodes successfully wrote a replica? Doesn't then latency go down the toillet (also considering that some nodes will be in different data centers)? On the other hand, if only writting to the coordinator node was good enough, then durability would go down the toilet, because imediately after the coordinator's local write and return of put, the coordinator could die, right?
 
 *to-do* is it correct that if M > 1 multiple virtual nodes of a physical node fall within a stretch of N consecutive virtual nodes on the ring, we kind of wasted M-1 virtual nodes since we never replicate within a physical node. It's only kind of since `N consecutive nodes' is a `sliding window', and only for a few positions of this sliding window all M virtual nodes fall within it.
+
+_latency_ few 1ms, _object size_ ?? (smaller than S3)
 
 References:
 
