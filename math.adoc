@@ -521,7 +521,7 @@ _Chebyshev's inequality_: Pr(|R-E[R]| ≥ a) ≤ Var[R]/a². Derived from Markov
 
 _Pairwise independent sampling_: Let R~1~, ..., R~n~ be pairwise independent random variables with the same mean μ and same deviation σ, and let S be their sum: Pr(|S/n-μ| ≥ x) ≤ 1/n σ²/x².
 
-Given a sequence X~1~, ..., X~n~ of random variables.  X~n~, the last of the sequence, _converges in distribution_ (or _converges weakly_ or _converge in law_) towards the random variable X, denoted X~n~ D→ X (D above the arrow) or X~n~ ⇝ X, if lim~n→∞~ CDF~Xn~(x) = CDF~X~(x) ∀ x ∈ ℝ at which CDF~X~ is continuous.  An estimator is said _asymptotically Normal_ if (θ̂-θ)/se[θ] ⇝ N(0,1).  (*to-do* Is the term "asymptotically" as used in this sense really restricted to "assymptotically normal" and to estimators? I.e. can I say "assymptotically exponential" and most statisticans will feel confortable by such an usage. Def is from all of statistics, p. 92)
+Given a sequence X~1~, ..., X~n~ of random variables.  X~n~, the last of the sequence, _converges in distribution_ (or _converges weakly_ or _converge in law_) towards the random variable X, denoted X~n~ D→ X (actually D is above the arrow) (or X~n~ ⇝ X), if lim~n→∞~ CDF~Xn~(x) = CDF~X~(x) ∀ x ∈ ℝ at which CDF~X~ is continuous.
 
 Given a sequence X~1~, ..., X~n~ of random variables.  X~n~, the last of the sequence, _converges in probability_ towards the random variable X, denoted X~n~ P→ X (P above the arrow) or plim~n→∞~ X~n~ = X, if for all ε > 0 lim~n→∞~ Pr(|X~n~ - X| > ε) = 0. Convergence in probability implies convergence in distribution.
 

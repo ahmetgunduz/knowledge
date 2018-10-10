@@ -132,7 +132,11 @@ MSE~θ~[θ̂] ≥ (1+∇~θ~Bias~θ~[θ̂])²/(nE~θ~[Λ²(θ)]) + (Bias~θ~[θ�
 𝓘(θ) = Var[Λ(θ)]
 V~𝓓~(θ) = ∇~θ~ ℒ~𝓓~(θ) = ∇~θ~ log p(𝓓|θ)
 
-_Efficiency_ of an estimator e(θ̂) = 1/(var[θ̂]𝓘(θ)), where 𝓘 is the <<fisher_information>>.  The Cramér-Rao bound can be used to prove that e(θ̂) ≤ 1.  Or the other way round, the efficincy is a measure how close var[θ̂] comes to the lower bound 1/𝓘(θ).  A more efficient estimator needs fewer observations than a less efficient one to achieve a given performance.  An _efficient estimator_ (or _fully efficient estimator_) has e(θ̂) = 1.  An _assymptotically efficient_ estimator θ̂ has lim~n→∞~e(θ̂) = 1.
+_Efficiency_ of an estimator e(θ̂) = 1/(var[θ̂]𝓘(θ)), where 𝓘 is the <<fisher_information>>.  The Cramér-Rao bound can be used to prove that e(θ̂) ≤ 1.  Or the other way round, the efficincy is a measure how close var[θ̂] comes to the lower bound 1/𝓘(θ).  A more efficient estimator needs fewer observations than a less efficient one to achieve a given performance.  An _efficient estimator_ (or _fully efficient estimator_) has e(θ̂) = 1.  An _asymptotically efficient_ estimator θ̂ has lim~n→∞~e(θ̂) = 1.
+
+An estimator is called _asymptotically normal_ if √n(θ̂-θ) D→ 𝓝(0, V) for some V.  The _asymptotic variance_ is by some authors defined as V, by others as V/n.
+
+An estimator is called _roboust_ if *to-do*
 
 
 ==== Notable estimators
@@ -290,14 +294,24 @@ _score function_ (or _score_, or _efficient score_, or _informant_) Λ (or V) Λ
 [[fisher_information]]
 _Fisher information_ 𝓘(θ) = Var[Λ(θ)], where Λ(θ) is the <<score_function>>.
 
-_model evidence_ (or _marginal likelihood_) p(𝓓) = ∑~θ∈Θ~p(𝓓,θ)
+_model evidence_ (or _marginal likelihood_) p(𝓓) = ∫p(𝓓,θ)dθ
 
 _posterior (probability)_ p(θ|𝓓) = p(𝓓|θ)p(θ) / p(𝓓) ∝ p(𝓓|θ)p(θ): Is the likelihood times the prior, normalized.
 
+Or recursively, assuming iid data, p(θ|𝓓) = p(x~n~|θ)p(θ|𝓓^n-1^) / evidence, evidence = ∫p(x~n~,θ)p(θ|𝓓^n-1^)dθ, with the base case p(θ|𝓓^0^) = p(θ), where x~n~ denotes the n-th observation and 𝓓^n^ denotes all observations up to and including the n-th observation.  This is based on the idea that the likelihood can be recursively expressed as p(𝓓|θ) = p(𝓓^n^|θ) = p(x~n~)p(θ|𝓓^n-1^), with the same base case.  Thus with each new observation, we improve the posterior probability p(θ|𝓓).
+
+
 [[mle]]
-_maximum likelihood estimator_ (_MLE_) θ̂^MLE^ = argmax~θ~(p(𝓓|θ)), i.e. Λ(θ)=0: A frequentist point estimator which sets the model parameters θ to the values that maximize the likelihood function p(𝓓|θ). This corresponds to choosing the model parameters θ for which the probability of the observed data set is maximized.
+_maximum likelihood estimator_ (_MLE_) θ̂^MLE^ = argmax~θ~(p(𝓓|θ)), i.e. Λ(θ)=0: A frequentist point estimator which sets the model parameters θ to the values that maximize the likelihood function p(𝓓|θ).  This corresponds to choosing the model parameters θ for which the probability of the observed data set is maximized. Properties:
+
+- consistent
+- asymptotically efficient
+- asymptotic normality: √n(θ-θ̂) → 𝓝(0, J^-1^IJ^-1^), where I=Var~θ~[Λ(θ)], J=-E~θ~[∇~θ^T^~Λ(θ)], and Λ denoting the score function
+- equivalence: If θ̂ is MLE of θ, then f(θ̂) is MLE of f(θ)
+- See also <<MLE_vs_bayes>>
 
 Lets express p(𝓓|θ) as p(y~1:n~|x~1:n~,w). θ̂^MLE^ = argmax~w~(p(y~1:n~|x~1:n~,w)) = argmin~w~(-log p(y~1:n~|x~1:n~,w)) =~iid data~ argmin~w~(-∑~1≤i≤n~log p(y~i~|x~i~,w)).
+
 
 [[map]]
 _maximum a posteriori probability estimate_ (or _MAP estimate_) for model parameters: θ̂^MAP^ = argmax~θ~(p(θ|𝓓)) = argmax~θ~(p(𝓓|θ)p(θ)): A estmator which sets the model parameters θ to the values that maximize the posterior probability.
@@ -999,6 +1013,29 @@ References:
 - ISLR, chapter ``8.2.1 Bagging''
 
 
+=== Bayesian learning
+
+The parameter θ is considered a random variable with unknown posterior probability distribution p(θ|𝓓).  The model evidence p(𝓓) is unknown.  The likelihood p(𝓓|θ) and the prior p(θ) are known / guessed.  The goal is to find the probability distribution p(x̃|𝓓) of a new data poiny x̃; note that θ doesn't occure directly in p(x̃|𝓓).
+
+p(x̃|𝓓) = +
+∫p(x̃,θ|𝓓)dθ = +
+∫p(x̃|θ,𝓓)p(θ|𝓓)dθ =~①~ +
+∫p(x̃|θ)p(θ|𝓓)dθ ≈~if ② holds~ +
+p(x̃|θ̂)
+
+① p(x̃|θ,𝓓) = p(x̃|θ) since x̃ and any x~i~ ∈ 𝓓 are iid.
+② p(θ|𝓓) ~ δ(θ-θ̂)
+
+[[MLE_vs_bayes]]
+MLE vs Bayes estimation
+
+- The results are equal in the asymptotic limit (for reasonable prior distributions)
+
+- Pro ML: ML only need differential calculus and can use gradient descent techniques.
+
+- Contra Bayes: Bayes needs a computationally expensive integration.
+
+
 == Models
 
 === Classification
@@ -1225,32 +1262,11 @@ References:
 
 Linear regression is a model of the following form, where θ = (w,σ²) are the parameters of the model.
 
-p(y|x,θ) = 𝓝(y|w^T^x,σ²)
+p(y|x,θ) = 𝓝(y|w^T^x,σ²) +
+p(y|x,θ) = 𝓝(y|w^T^Φ(x),σ²) [if basis functions are used]
 
-The distribution is called _conditional linear gaussian distribution_.
+A common estimator θ̂ of the parameter θ is the MLE.  It turns out that here it is equivalen to the least squares estimator, which is based on directly minimizing the empirical risk of the training data, with MSE as loss function.
 
-Linear regression can be made to model non-linear relationships by replacing x with some non-linear function Φ(x), which is called the _basis function expansion_.
-
-p(y|x,θ) = 𝓝(y|w^T^Φ(x),σ²)
-
-A common estimator θ̂ of the parameter θ is the MLE. Assuming iid samples and known σ²:
-
-ŵ = argmax~θ~[loglikelihood(w)] = argmin~w~[NNL(θ)] =~①~ argmin~w~(RSS(w)) +
-loglikelihood(w) = log(p(𝓓|w)) =~iid~ ∑~1≤i≤n~log(p(y~i~|x~i~,w)) +
-NLL(w) = -loglikelihood(w) [negative log likelyhood]
-
-① Turns out this estimator is equivalent to the least squares estimator.
-
-MLE has the following nice properties (however only for n→∞):
-
-- is a concistent estimator
-
-- asymptotic efficiency (smallest variance among all "well-behaved" estimators)
-
-- asymptotic normality
-
-
-*to-do* move definition of loglikelihood and NLL to some other place
 
 References:
 
