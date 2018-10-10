@@ -102,6 +102,12 @@ _storage class_: High availability at high costs on one end and low availability
 
 The history of storage: progress made 1956-2010: capacity: 150'000'000 times more, throughput 10'000'000 times more, latency 8 times more. To increase throughput, we can parallize. To improve latency, we can do batch processing.
 
+_key value model_: Some mapping from a key to a value.
+
+_column store_: Store data by columns (as opposed to by rows).
+
+_wide column store_: Store data by rows, keys identify rows, group columns in families. E.g. Google's BigTable, HBase, cassandra.
+
 Random notes:
 
 - Random access to pages is generally expensive, or the other way round, sequencial access is much faster
@@ -403,13 +409,57 @@ Buffer leak: when a page request can't comply because all pages in buffer are pi
 Disk space manager provides about this API: allocate/free a page, read/write a page. Higher levels expect that sequencial access to pages has an especially good performance.
 
 
+== Data store
+
+=== HBase
+
+HBase is the open source version of Google's Bigtable.  Uses wide column store.
+
+
+== Data models
+
+=== HBase's data model
+
+A wide column store.
+
+In the tabular model, joins are very expensive.  In the tabular model we love to have data in normal form, and as a consequence there are many joins.
+
+Paradigm of big table: store together what is accessed together (i.e. quite the opposite of normal forms). That makes batch processing better, since we only have to pay latency once (recall we want to avoid latency as much as possible), and after that it's just throughput.
+
+We denormalize. That can also be seen as precomputing the joins we expect to occur often.  Thus reads become faster.  The price is that we introduced anomalies, so writes are now more expensive.
+
+Each table has a row ID column being by definition the primary key. Columns are grouped in a column families.  The idea is to group together whats frequently accessed together.  The column families must be known in advance, but not the columns.  The number of columns can be very high (compared to relational DB).
+
+Rows have an order.
+
+Operations: put/get/delete (row), scan (rows)
+
+
+==== Implementation of HBase's data model
+
+Partition table firsy horizontally (i.e. group rows), then vertically (as already done by column families).  We need horizontal partitioning because we can have billions of rows not even fitting on a single machine.  A horizontal partition is given by the range (min-incl, max-excl).  Such a range of rows is called a _region_.  Obviously the max-excl equals the min-incl of the next partition.  The intersection of horizontal and vertical partitioning is what is stored together and is called a _store_.
+
+Master slave architecture.  The master is called _HMaster_, a slave is called _region server_.  The HMaster's responsibility is the meta data.  A store is stored as one or more files on a DFS, called _HFiles_.
+
+One HFile is actually an _SSTable_, a flat sorted list of key-value pairs.  A row is also also called KeyValue. The key is a rowid column-number pair refering to the original table, the value stores the respective cell of the original table.
+
+A HFile is only written once. When the logical content must be modified, a new file is written and the old one is deleted.
+
+Guarantees ACID on the row level via per-row locks. That gives us total order of row versions.
+
+
+=== The one of Cassandra
+
+Similar to the one of HBase.
+
+
 == Storage
 
 === Key-value store
 
 Same data model as object storage, but implemented differently. Intend to have low latency. Small objects (kB sized). No metadata. Note the key-value store is not the same as key-value model.
 
-*to-do* What's the exact difference between key-value store and key-value model. I think I have the right intuition, but I can't clearly concisely write it down.
+*to-do* What's the exact difference between key-value store and key-value model.
 
 Much simpler than a relational database. We drop consistency (we only have eventual consistency) and gain availability and partition tolerance and scalability.
 
@@ -436,9 +486,8 @@ Object storage lets you scale. Make model of local filesystem simpler. 1) throw 
 
 on scalability issues with a local drive: A data base on a local machine might work for that machine.  Maybe, if you're lucky, it even works when accessed by multiple people on a (small) LAN.  But it doesn't work on a WAN.  The disk just can't cope with the amount of requests.  Also, on a typical file system you can't have billions of files.
 
-
 latency is low relative to a database: s3 ~ few 100ms, typical database 1-9ms, both where client is in same region.
-
+n
 
 === Chord / distributed hash table
 
@@ -558,7 +607,7 @@ Number of replicas is specified per file. The default is 3.
 
 The name node is bottle neck and single point of failure. The following describes ways how HDFS tries to mitigate the problem. Note that the use case of unexpected failure of a name node is rare, so in practice the use case of planned downtime for maintenance is more important.
 
-The master uses its local filesystem to persist the file namespace and the file to block mappings in a _checkpoint_ and a _journal_ (or _edit log_, log of edits since last checkpoint).  Note that the block locations are not persisted, because the name node gets to know them via the heart beats of the name nodes.  The name node always writes to the journal, as opposed to the checkpoint.  The checkpoint is only modified in explicit situations, such as startup or explicit administrator commands.  When restarting the name node, we need to read the namespace file and the edit log, and apply the changes recorded in the edit log on top of the information in the namespace file. Such a restart would take about 30 minutes, which is obviously too long.
+The master uses its local filesystem to persist the file namespace and the file to block mappings in a _checkpoint_ and a _journal_ (or _edit log_, log of edits since last checkpoint).  Thus there are kind of three layers: memory (full), edit log, checkpoint (full). Note that the block locations are not persisted, because the name node gets to know them via the heart beats of the name nodes.  The name node always writes to the journal, as opposed to the checkpoint.  The checkpoint is only modified in explicit situations, such as startup or explicit administrator commands.  When restarting the name node, we need to read the namespace file and the edit log, and apply the changes recorded in the edit log on top of the information in the namespace file. Such a restart would take about 30 minutes, which is obviously too long.
 
 The checkpoint and journal can be configured to be stored on multiple places. Recommended practice is to place each a replica on a local disk (preventing loss from failure of a single disk), and one replica replica on a remote NFS server (preventing loss from node failure).
 
@@ -612,7 +661,7 @@ All storage services are accessible via REST APIs.
 
 === Amazone DynamoDB
 
-Key-value store: state is stored as binary objects (aka blobs), identified by unique keys. ACID is _not_ offered. Offers availability and partition tolerance, giving up consistency (but at least offers eventual consistency).  No isolation guarantees are given.  Efficiency, i.e. meeting stringent SLAs (measured at 99.9% percentile of requests so all customers benefit, guaranteeing few hundred ms latency), is an important requirement. It is assumed that operation is in a non-hostile environment.  Availability is for writes (writes are never rejected), which means that reads are more complex (as always, one has to decide when to resolve update conflicts, at reads or at writes).  Replication is asynchronous, which gives better availability.  Hierarchical namespaces are not directly supported.  Relational schema is not supported.
+Key value model. Key-value store: state is stored as binary objects (aka blobs), identified by unique keys. ACID is _not_ offered. Offers availability and partition tolerance, giving up consistency (but at least offers eventual consistency).  No isolation guarantees are given.  Efficiency, i.e. meeting stringent SLAs (measured at 99.9% percentile of requests so all customers benefit, guaranteeing few hundred ms latency), is an important requirement. It is assumed that operation is in a non-hostile environment.  Availability is for writes (writes are never rejected), which means that reads are more complex (as always, one has to decide when to resolve update conflicts, at reads or at writes).  Replication is asynchronous, which gives better availability.  Hierarchical namespaces are not directly supported.  Relational schema is not supported.
 
 *to-do* replication is async, which means more risk of completely using all replicas (only in total), right? E.g. when the node dies between acknowledging the write and being able to send out replicas.
 
