@@ -1,9 +1,36 @@
-:encoding: UTF-8
 // The markup language of this document is AsciiDoc
+:encoding: UTF-8
+:toc:
+:toclevels: 4
+
 
 == Intro
 
-A _data model_ is a collection of high-level data description constructs that hide many low-level storage details. Most DBMS today are based on the _relational data model_, in which there's a single way to represent data: A _relation_ (or _table_) represents data as a two-dimensional table. The _schema_ of a relation relation describes the relation by specifyinig its name and the name and _domain_ (aka _type_) of its _fields_ (aka _attribute_ or _column_). Think of a relation as a type; concrete instances thereof are called, well _(relation) instances_. An relation instance is a set (not list) of _(data) records_ (or _row_ or _tuple_).  A record has one _component_ for each attribute the relation. _Integrity constraints_ are conditions that each record must satisfy.  A _block_ (or _page_) is the unit of transfer for disk I/O.
+Data technology stack:
+
+[cols="1,3"]
+|=====
+| user interfaces |
+      Excel, Access, Tableau, Qlikeview, BI tools 
+| querying |
+      SQL, XQuery, MDX, SPARQL, REST APIs 
+| data stores |
+      RDBMS, MongoDB, CouchBase, ElasticSearch, Hive, HBase, MarkLogic, Cassandra
+| indexing |
+      Key-value stores, hash indices, b-trees, geographical indicies, spatial indicies
+| processing |
+      two-hase processing: mapreduce / dag-driven proc: tez, spark / elastic computing: EC2
+| validation |
+      XML schema, JSON schema, Relational schemas, XBRL taxonomies
+| data models |
+      Tables: Relational model / trees: XML Infoset, XDM / graphs: RDF / Cubes: OLAP
+| syntax |
+      text, CSV, XML, JSON, RDF/XML, Turtle, XBRL
+| encoding |
+      ASCII, ISO-8859-1, UTF-8, BSON
+| storage |
+      local FS, NFS, GFS, HDFS, S3, Azure blob storage, DynamoDB
+|=====
 
 A database _transaction_, by definition, must be _ACID_: All the following must be guaranteed even in the event of errors, power failures etc. Atomicity (each transaction succeeds completely or fails completely), Consistency (each transaction brings DB from one valid state to another valid state, maintaining DB's invariants), Isolation (result is as if transactions were executed in strict sequence), Durability (once a transactin has been committed, will remain committed).
 
@@ -35,7 +62,57 @@ dynamodb: update of other nodes is ansynchronous
 
 _Anomalies_ are problems, e.g. problems arising from having redundancy, which in turn arises when to many fields are cramed into a single relation such that it contains many tuples which are nearly identical. The typical way of solving the problem is to _decompose_ such an ill-designed relation into multiple relations.
 
-A _normal form_ is a property of a relation with the intention of avoiding anomalies. A relation is in _1st normal form_ iff the domain of each attribute is an atomic type.  A relation is in _2nd normal form_ iff additionally all functional dependencies are on the whole candidate key, for all candidate keys. A relation is in _3rd normal form_ iff additionally every non-prime attribute is non-transitively dependent on every key of R. Bill Kent: "[Every] non-key [attribute] must provide a fact about the key, the whole key, and nothing but the key.". Requiring existence of "the key" ensures that the table is in 1NF; requiring that non-key attributes be dependent on "the whole key" ensures 2NF; further requiring that non-key attributes be dependent on "nothing but the key" ensures 3NF.
+Typical disk block sizes are 0.5kB to 4kB. Virtual memory page size is typically 4kB. Typicall a DB does I/O in 64kB blocks.
+
+_eventual consistency_: If no updates are made, then eventually all accesses will return the last updated value. However in practice there's a continous stream of updates, so consistency will never happen.  In other words: Every update will eventually be propagated.
+
+Very general best practice to achieve better performance: first try to make code better, then try to scale out, then try to scale up. ``You only get a second computer if you know how to make the first one work''.
+
+_Availability_: Measure of the percantage of time the service / equipment is in an operable state.
+
+_Reliability_: Measure of how long the service / equipment performs its intended function. Usually measured by _mean time between failure_ (_MTBF_) which is defined as total time in service / number of failures, or by _failure rate_, which is defined as the inverse of MTBF.
+
+_durability_: A common measure is "loss of 1 in x objects".
+
+_availability_: A common measure is "99.99%" (with x many nines)
+
+_response time_: One possible measure is "<10ms 99.9% of cases"
+
+_3Vs of big data_: volume, variety and velocity *to-do*
+
+partition schemes for load balancing: *to-do*
+
+How can we get more work done:
+
+1) Make SW efficient. ``You can have a second computer once you've shown you know how to use the first one'' (Paul Barham). We can gain factors of speed, and we have to pay once the development costs, and can apply it to all machines we ever will have.
+
+2) _horizontal scaling_ (or _scale out_): Add more nodes, typically commodity HW. Price grows about linearly with overall computing power.
+
+3) _vertical scaling_ (or _scale up_): Replace a node with a more powerfull node. Either by completely replacing, or by adding more RAM and/or CPUs. Price grows about exponentially with overall computing power.
+
+_data center_: ~1k - 100k machines, 1-100 cores / server, 1-12TB local storage / server, 16GB - 4TB RAM / server. 1GB/s network bandwith for a server. A rack consists of nodes.
+
+_Uniform resource name_ (_URN_) is a URI that uses the urn scheme.
+
+_REST_ API (Representational State Transfer): REST is the way HTTP should be used. It's always a method (GET, PUT, DELETE, POST, ...) plus a resource (URI). PUT must be idempotent (when issued multiple times, the 2nd plus requests have no effect). GET must be side-effect free.  POST is the most generic, it can have side effects.
+
+_replication_: Rational: Fault tolerance. Local: node failure. With a lot of nodes, you are almost guaranteed that a node will fail. Regional: natural catastrophe. Thus spreading datacenters gives proximity to client (gives smaller latency) and protects against regional failures.
+
+_storage class_: High availability at high costs on one end and low availability (hours to access data) at low cost on the other end. The low end is typically for backups.
+
+The history of storage: progress made 1956-2010: capacity: 150'000'000 times more, throughput 10'000'000 times more, latency 8 times more. To increase throughput, we can parallize. To improve latency, we can do batch processing.
+
+Random notes:
+
+- Random access to pages is generally expensive, or the other way round, sequencial access is much faster
+ * binary search is a bad option
+
+- Dealing with (multi)sets, i.e. unordered collections, as most SQL queries do, has the advantage that it is more parallelizable as when it had to be ordered.
+
+
+== Relational model
+
+A _data model_ is a collection of high-level data description constructs that hide many low-level storage details. Most DBMS today are based on the _relational data model_, in which there's a single way to represent data: A _relation_ (or _table_) represents data as a two-dimensional table. The _schema_ of a relation relation describes the relation by specifyinig its name and the name and _domain_ (aka _type_) of its _fields_ (aka _attribute_ or _column_). Think of a relation as a type; concrete instances thereof are called, well _(relation) instances_. An relation instance is a set (not list) of _(data) records_ (or _row_ or _tuple_).  A record has one _component_ for each attribute the relation. _Integrity constraints_ are conditions that each record must satisfy.  A _block_ (or _page_) is the unit of transfer for disk I/O.
 
 Levels of abstraction:
 
@@ -66,8 +143,6 @@ Notation:
 - +p~T~+: The number of records of table T fitting into a single page.
 - +|T|+: Cardinality: the number of records in table T.
 
-Typical disk block sizes are 0.5kB to 4kB. Virtual memory page size is typically 4kB. Typicall a DB does I/O in 64kB blocks.
-
 _Query optimzer_ translates SQL to _Query Plans_ , an internal language. The
 _query executor_ is an interpreter for query plans. Think of query plans and
 (dataflow) directed graphs, where nodes are relational operators and directed
@@ -77,32 +152,8 @@ Relational operators may be implemented using the iterator design pattern.
 
 When measuring costs, often asymptotic notations in terms of number of I/O accesses are used, since I/O is much more expensive than CPU, even with flash. Sometimes, as improvement, a distinction is made between random access and sequential access, since also their costs differ substantially.
 
-_eventual consistency_: If no updates are made, then eventually all accesses will return the last updated value. However in practice there's a continous stream of updates, so consistency will never happen.  In other words: Every update will eventually be propagated.
 
-Very general best practice to achieve better performance: first try to make code better, then try to scale out, then try to scale up. ``You only get a second computer if you know how to make the first one work''.
-
-_Availability_: Measure of the percantage of time the service / equipment is in an operable state.
-
-_Reliability_: Measure of how long the service / equipment performs its intended function. Usually measured by _mean time between failure_ (_MTBF_) which is defined as total time in service / number of failures, or by _failure rate_, which is defined as the inverse of MTBF.
-
-_durability_: A common measure is "loss of 1 in x objects".
-
-_availability_: A common measure is "99.99%" (with x many nines)
-
-_response time_: One possible measure is "<10ms 99.9% of cases"
-
-_3Vs of big data_: volume, variety and velocity *to-do*
-
-partition schemes for load balancing: *to-do*
-
-Random notes:
-
-- Random access to pages is generally expensive, or the other way round, sequencial access is much faster
- * binary search is a bad option
-
-- Dealing with (multi)sets, i.e. unordered collections, as most SQL queries do, has the advantage that it is more parallelizable as when it had to be ordered.
-
-== Integrity Constraints
+=== Integrity Constraints
 
 Part of the DDL (data definition language).
 
@@ -121,177 +172,9 @@ _General contstraint_: View CHECK constraint on a table or an ASSERTION which is
 Note that being able to write down constraints in the DDL helps to remove redundancy. If we coudn't do that, these constraints would appear at multiple places / multiple programs working with the DB.
 
 
-== Relational operators & algebra
+=== Normal forms
 
-=== sort
-
-...
-
-=== select
-
-FP: number of pages in file. As always, time analysis is in terms of page I/Os, not considering writing the result.
-
-OMP: in case of ordered input, number of pages containing the matching tuples
-
-MT: number of matching tuples
-
-no index on column, unsorted data:: Scan all tuples. O(FP)
-
-no index on column, sorted data:: Binary search to find first matching tuple, then sequential scan as long as tuples match. O(log FP + OMP)
-
-B+ tree index on column:: Walk B+ tree to find first matching tuple, then scan as long as tuples match. O(log~fanout~
-
-=== group
-
-...
-
-=== join
-
-_Theta join_: Given sets R and S, the theta join R ⨝~Θ~ S delivers all pairs {r,s} where the predicate Θ(r,s) is true, r and s being members of the set R and S respectively. In an _equi-join_ Θ is an equality test; it can be optimed. As a special case of that, even more optimizeable, is when one operand is a key.
-
-
-==== simple nested loop join algorithm
-
---------------------------------------------------
-foreach record r in R:
-  foreach record s in S:
-    if theta(r,s): result.add({r,s})
---------------------------------------------------
-
-page I/O cost, assuming arbitrary large [T] and [R], ignoring writing result: |R|*[S]+[R], i.e. _very_ bad.
-
-==== chunk (oriented) nested loop join algorithm
-
-
-Improvement: Make number of iterations in outer loop as small as possible, so we have to go pages of S as few times as possible. So outer loop reads from R in `chunks', one chunk being B-2 pages large. It's -2 because we need one page for the input streaming buffer for S, and one page for the output streaming buffer of the result.
-
---------------------------------------------------
-foreach chunk in R:
-  read in chunk from R
-  for each record r in current Rchunk:
-    foreach record s in S:
-      if theta(r,s): result.add({r,s})
---------------------------------------------------
-
-page I/O cost: [R]/(B-2)*[S]\+[R], becomming [S]+[R] if outer table, i.e. the Rchunk, fits completely into memory, i.e. if [R]<=B-2.
-
-
-==== indexed nested loop join
-
-For the special case of equi-joins.
-
---------------------------------------------------
-foreach record r in R:
-  foreach record s in R where r==s:
-    result.add({r, s})
---------------------------------------------------
-
-page I/O cost: [R]+|R|*costOfFindingAKey
-
-
-==== sort-merge join
-
-For the special case of equi-joins, here R.r_attrib=S.s_attrib
-
-------------------------------------------------------------
-sort R on r_attrib -> sortedR
-sort S on s_attrib -> sortedS
-scan sortedR and sortedS in tandem to find matches
-------------------------------------------------------------
- 
-page I/O cost: cost(sort R) + cost(sort S) + [R]+[S].
-
-As an optimization, the sorts, each having internally a set of sorted chunks, ommit writing an output. Instead, the `scan sortedR and sortedS in tandem' step operatoes on all these chunks; each chunk is connected to an input buffer. Thus instead of the normal B-1 chunks a sort creates, now it can only create (B-1)/2 chunks. So we saved 2*([R]+[S]), since we saved writing/reading the sortedR and sortedS.
-
-Naturally a good variant if R and S need to be sorted on r_attrib and s_attrib respectively anyway in the query plan.
-
-
-==== hash join
-
-For the special case of equi-joins, here R.r_attrib=S.s_attrib
-
-----------------------------------------------------------------------
-using coarse hash function, partitionate R,
-  restriction: no partition might be larger than B-2 pages,
-                  so it might be as usual a recursive process
-using coarse hash function, partitionate S, partitions can be of any size
-for each partition pr of R
-  read in partition pr, building an inmemory hashtable (using upto B-2 pages of memory)
-  for each record s in partition of S being associated to pr: (nomal streaming using one input buffer)
-    if hash table contains key s.s_attrib:
-      result.add({r, s}) (normal streaming using one output buffer)
-----------------------------------------------------------------------
-
-Often R is called the building table, and S the probing table.
-
-Note that the probing table's partitions can have an arbitrary size (in pages), since they are streamed. Thus you want to make the smaller table the building table, and the larger table the probing table.
-
-
-== Files and Access Methods
-
-A _(DB) file_ is a collection of pages. A _page_ is a collection of records. Each _record_ has an _(physical) record id_ (rid), which is a pair (page_id, slot_id). Records can be fixed width or variable width. The file API supports insert/delete/modify/find(via recordid) a record, scan all records.
-
-_System catalogs_ store properties of each table, index, view and other stuff such as statistics, authorization etc.
-
-A DB file is typically implemented as one or more OS files, or as raw disk space, e.g. in POSIX directly a device. Note that a DB file might spawn multiple disks. 
-
-[[index]]
-=== Index
-
-An _index_ (aka _access path_) is a disk based data structure that organizes data records of a given table, or references to them, on disk to optimize certain kinds of retrieval operations. A table can have multiple indexes on it. A _search key_ is over any subset of columns of that table. In contrast to the key of the table, multiple records can match a search key. An index is implemented as a collection of _data entries_. A data entry with search key value k, denoted as k*, contains enough information to locate the matching records. There are three main alternatives of how to store a data entry: Alternative 1) (k,record). I.e. the index directly stores the records of a table. To avoid redundancy, this alternative is used at most once per table. Alternative 2) (k, rid). Alternative. 3) (k, rid-list). Alternative 2 and 3 obviously introduce a level of indirection. A _clustered index_ is one where the ordering of data records defined by its data entries is roughly the same as the ordering of the data records of the file of the underlying table. By definition alternative (1) is clustered. For alternatives (2) and (3), the file must be roughly (see <<clustered_file>>) or strictly sorted (see <<sorted_file>>). Regarding range search queries, clustered indexes are in general much faster than unclustered, due to the usual contigous access advantages and since more of read in page is actually used, i.e. less pages have to be read. The costs for a clustered index is maintainenance cost to (roughly) maintain the ordering of the data records. Often that means that the pages containing data records are not fully packed (2/3 is a common figure) to accomodate future inserts, which degrates performance since more pages nead to be read/written for a given amount of records.
-
-Common kinds of selections (aka lookups) that indexes support:
-
-- key operator constant, and specifically equality selections, where the operator is =.
-- Range selections, where op is a relational operator <, >, ....
-- N-dimensional ranges: e.g. points within a given rectangle.
-- N-dimensional radii: e.g. points within a given sphere.
-- Regular expressions
-
-[[bplus_tree]]
-=== B+ tree
-
-_B+ tree_ is an high-balanced n-ary tree. It's the most widely used data structure to implement an index. They have fast lookups and fast range querries. Is typically the most optimized part of an DBMS.
-
-Each node is stored in a page. Unlike with a B tree, internal nodes only
-contain pointers to further nodes, never data; only leaf nodes contain data or
-pointers to data. Also leaf nodes form a linked list. Together this allows for
-more efficient scans over a range of data.
-
-Regarding high-balancedness: Each node contains m entries with the soft restriction d<=m<=2d, i.e. it's always at least 50% full, where d is called the _order_ of the tree. The high balanced property guarantees O(log N) access time, i.e. guarantees that even after insertions/deletions performance can't degenerate to linear time. Then again, since keys can be of variable width (e.g. strings), and the data entries in the leaf nodes can be variable width (e.g. see alternative 3 in <<index>>), in practice this is seen sloppy. sometimes a physical criterion is used (`at least half full' in terms of bytes).
-
-Key compression increases fanout, which reduces height, which reduces access time.
-
-Algorithm to _insert_ into an already full node: split node, which obviously includes allocating a new node, and which makes space for new item. Introducing a new node obviously also means that we need to insert a new item into the parent node which points to the new node. Now this can be a recursive process, where in the worst case it ripples up all the way up and we have to split the root. If data entries are directly data records (see alternative 1 in <<index>>, advantages see there), splits can change record ids, which means having to update referees, which is considerable disadvantage.
-
-Similarly for _deletion_. We should maintain the d<=m<=2d invariant. However in practice m<d is allowed, since in practice it's a rare case that given a big table there are so many deletions which would shrink it to a small table. Note that all leafs have the same depth, and there are no rotations upon insertion/deletion has with other kinds of balanced trees.
-
-Creation of a B+ tree given a collection of keys should no be done via individual inserts, since the resulting page access pattern is very random and thus slow. Instead, we do _bulk loading_: Sort the index's data entries. Then iteratively soak them up and create leaf nodes. A fill-factor parameter determines how full the leaves shall be. Create/update parent nodes as in the insertion algorithm. Looking at the usual tree drawing, we see that always the right-most internal nodes are touched whereas the other nodes aren't at all, an access pattern which works very well together with an LRU page buffer.
-
-
-== Buffer management
-
-A cache storing in memory a collection of pages from the disk space management below. Consists of a collection of frames, a frame having the same size as a page. Allocated at startup time.
-
-Each frame has associated: pageid/NIL, pin_count (aka reference_count), dirty_flag.
-
-A request for a page increments pin count. A requestor must eventually unpin it and indicate whether page was modified (-> dirty flag).
-
-pin_count==0 means unpinned means `free to be exchanged by another page from disk'. When pin_count goes to 0, that is the event of `page is now no longer used'.
-
-There different replacement policies for replacing a frame: least-recently-used (LRU), most-recently-used (MRU), clock, ....
-
-As an optimization, pre-fetch is often employed.
-
-Buffer leak: when a page request can't comply because all pages in buffer are pinned. That is considered a bug in the DB; pages should only be pinned for a very brief time.
-
-
-== Disk space management
-
-Disk space manager provides about this API: allocate/free a page, read/write a page. Higher levels expect that sequencial access to pages has an especially good performance.
-
-
-== Relational query languages
+A _normal form_ is a property of a relation with the intention of avoiding anomalies. A relation is in _1st normal form_ iff the domain of each attribute is an atomic type.  A relation is in _2nd normal form_ iff additionally all functional dependencies are on the whole candidate key, for all candidate keys. A relation is in _3rd normal form_ iff additionally every non-prime attribute is non-transitively dependent on every key of R. Bill Kent: "[Every] non-key [attribute] must provide a fact about the key, the whole key, and nothing but the key.". Requiring existence of "the key" ensures that the table is in 1NF; requiring that non-key attributes be dependent on "the whole key" ensures 2NF; further requiring that non-key attributes be dependent on "nothing but the key" ensures 3NF.
 
 
 === Relational algebra
@@ -299,6 +182,11 @@ Disk space manager provides about this API: allocate/free a page, read/write a p
 _Relational algebra_ (aka just _algebgra_): Operational (thus procedural), i.e. we can build arbitrary expressions on the basis of operators, each taking one or more operands. The domain and image of each operator are relations. Relations have set semantics (in contrast to multiset), i.e. no relation can have duplicate rows (SQL has multiset semantics, i.e. tables can have duplicate rows. I.e. in pure relational algebra often there's a `remove duplicates' sub step. However in practice that is rather expensive since it involves sorting or hashing). Relation algebra is typically not directly used, but via SQL, which uses it internally.
 
 Useful for representing execution plan semantics. Close to query plans.
+
+_Relational calculus_ (aka just _calculus_): A declarative language -- Describe what you want, rather than how to calculate it. A variant is the _tuple relational calculus_ (aka _TRC_), which heavily influenced SQL.
+
+Exprecity of relational algebra and relational calculus is equivalent.
+
 
 ==== Basic operators
 
@@ -345,58 +233,216 @@ _sorting_ τ: Turn a relation instance into a list of tuples. Note that not all 
 _outerjoin_: *to-do*
 
 
-=== Relational calculus
-
-_Relational calculus_ (aka just _calculus_): A declarative language -- Describe what you want, rather than how to calculate it. A variant is the _tuple relational calculus_ (aka _TRC_), which heavily influenced SQL.
-
-Exprecity of relational algebra and relational calculus is equivalent.
-
 === SQL
 
 See sql.txt
 
 
-== Misc
-
-The stack:
-
-User interfaces: (Excel, Access, Tableau, Qlikeview, BI tools) +
-Querying: (SQL, XQuery, MDX, SPARQL, REST APIs) +
-Data stores: (RDBMS, MongoDB, CouchBase, ElasticSearch, Hive, HBase. MarkLogic, Cassandra) +
-indexing: (Key-value stores, hash indices, b-trees, geographical indicies, spatial indicies) +
-processing (two-hase processing: mapreduce / dag-driven proc: tez, spark / elastic computing: EC2)  +
-validation (XML schema, JSON schema, Relational schemas, XBRL taxonomies) +
-data models (Tables: Relational model / trees: XML Infoset, XDM / graphs: RDF / Cubes: OLAP) +
-syntax (text, CSV, XML, JSON, RDF/XML, Turtle, XBRL) +
-encoding (ASCII, ISO-8859-1, UTF-8, BSON) +
-storage (local FS, NFS, GFS, HDFS, S3, Azure blob storage)
-
-*to-do* DynamoDB is within storage layer, right?
-
-How can we get more work done:
-
-1) Make SW efficient. ``You can have a second computer once you've shown you know how to use the first one'' (Paul Barham). We can gain factors of speed, and we have to pay once the development costs, and can apply it to all machines we ever will have.
-
-2) _horizontal scaling_ (or _scale out_): Add more nodes, typically commodity HW. Price grows about linearly with overall computing power.
-
-3) _vertical scaling_ (or _scale up_): Replace a node with a more powerfull node. Either by completely replacing, or by adding more RAM and/or CPUs. Price grows about exponentially with overall computing power.
-
-_data center_: ~1k - 100k machines, 1-100 cores / server, 1-12TB local storage / server, 16GB - 4TB RAM / server. 1GB/s network bandwith for a server. A rack consists of nodes.
-
-_Uniform resource name_ (_URN_) is a URI that uses the urn scheme.
-
-_REST_ API (Representational State Transfer): REST is the way HTTP should be used. It's always a method (GET, PUT, DELETE, POST, ...) plus a resource (URI). PUT must be idempotent (when issued multiple times, the 2nd plus requests have no effect). GET must be side-effect free.  POST is the most generic, it can have side effects.
-
-_replication_: Rational: Fault tolerance. Local: node failure. With a lot of nodes, you are almost guaranteed that a node will fail. Regional: natural catastrophe. Thus spreading datacenters gives proximity to client (gives smaller latency) and protects against regional failures.
-
-_storage class_: High availability at high costs on one end and low availability (hours to access data) at low cost on the other end. The low end is typically for backups.
-
-The history of storage: progress made 1956-2010: capacity: 150'000'000 times more, throughput 10'000'000 times more, latency 8 times more. To increase throughput, we can parallize. To improve latency, we can do batch processing.
+== Local implementation of relational model
 
 
-== Chord / distributed hash table
+=== Implementation of relational operators
 
-A protocol for a peer-to-peer distributed hash table.
+==== select
+
+FP: number of pages in file. As always, time analysis is in terms of page I/Os, not considering writing the result.
+
+OMP: in case of ordered input, number of pages containing the matching tuples
+
+MT: number of matching tuples
+
+no index on column, unsorted data:: Scan all tuples. O(FP)
+
+no index on column, sorted data:: Binary search to find first matching tuple, then sequential scan as long as tuples match. O(log FP + OMP)
+
+B+ tree index on column:: Walk B+ tree to find first matching tuple, then scan as long as tuples match. O(log~fanout~
+
+==== join
+
+_Theta join_: Given sets R and S, the theta join R ⨝~Θ~ S delivers all pairs {r,s} where the predicate Θ(r,s) is true, r and s being members of the set R and S respectively. In an _equi-join_ Θ is an equality test; it can be optimed. As a special case of that, even more optimizeable, is when one operand is a key.
+
+
+===== simple nested loop join algorithm
+
+--------------------------------------------------
+foreach record r in R:
+  foreach record s in S:
+    if theta(r,s): result.add({r,s})
+--------------------------------------------------
+
+page I/O cost, assuming arbitrary large [T] and [R], ignoring writing result: |R|*[S]+[R], i.e. _very_ bad.
+
+===== chunk (oriented) nested loop join algorithm
+
+
+Improvement: Make number of iterations in outer loop as small as possible, so we have to go pages of S as few times as possible. So outer loop reads from R in `chunks', one chunk being B-2 pages large. It's -2 because we need one page for the input streaming buffer for S, and one page for the output streaming buffer of the result.
+
+--------------------------------------------------
+foreach chunk in R:
+  read in chunk from R
+  for each record r in current Rchunk:
+    foreach record s in S:
+      if theta(r,s): result.add({r,s})
+--------------------------------------------------
+
+page I/O cost: [R]/(B-2)*[S]\+[R], becomming [S]+[R] if outer table, i.e. the Rchunk, fits completely into memory, i.e. if [R]<=B-2.
+
+
+===== indexed nested loop join
+
+For the special case of equi-joins.
+
+--------------------------------------------------
+foreach record r in R:
+  foreach record s in R where r==s:
+    result.add({r, s})
+--------------------------------------------------
+
+page I/O cost: [R]+|R|*costOfFindingAKey
+
+
+===== sort-merge join
+
+For the special case of equi-joins, here R.r_attrib=S.s_attrib
+
+------------------------------------------------------------
+sort R on r_attrib -> sortedR
+sort S on s_attrib -> sortedS
+scan sortedR and sortedS in tandem to find matches
+------------------------------------------------------------
+ 
+page I/O cost: cost(sort R) + cost(sort S) + [R]+[S].
+
+As an optimization, the sorts, each having internally a set of sorted chunks, ommit writing an output. Instead, the `scan sortedR and sortedS in tandem' step operatoes on all these chunks; each chunk is connected to an input buffer. Thus instead of the normal B-1 chunks a sort creates, now it can only create (B-1)/2 chunks. So we saved 2*([R]+[S]), since we saved writing/reading the sortedR and sortedS.
+
+Naturally a good variant if R and S need to be sorted on r_attrib and s_attrib respectively anyway in the query plan.
+
+
+===== hash join
+
+For the special case of equi-joins, here R.r_attrib=S.s_attrib
+
+----------------------------------------------------------------------
+using coarse hash function, partitionate R,
+  restriction: no partition might be larger than B-2 pages,
+                  so it might be as usual a recursive process
+using coarse hash function, partitionate S, partitions can be of any size
+for each partition pr of R
+  read in partition pr, building an inmemory hashtable (using upto B-2 pages of memory)
+  for each record s in partition of S being associated to pr: (nomal streaming using one input buffer)
+    if hash table contains key s.s_attrib:
+      result.add({r, s}) (normal streaming using one output buffer)
+----------------------------------------------------------------------
+
+Often R is called the building table, and S the probing table.
+
+Note that the probing table's partitions can have an arbitrary size (in pages), since they are streamed. Thus you want to make the smaller table the building table, and the larger table the probing table.
+
+
+=== Files and Access Methods
+
+A _(DB) file_ is a collection of pages. A _page_ is a collection of records. Each _record_ has an _(physical) record id_ (rid), which is a pair (page_id, slot_id). Records can be fixed width or variable width. The file API supports insert/delete/modify/find(via recordid) a record, scan all records.
+
+_System catalogs_ store properties of each table, index, view and other stuff such as statistics, authorization etc.
+
+A DB file is typically implemented as one or more OS files, or as raw disk space, e.g. in POSIX directly a device. Note that a DB file might spawn multiple disks. 
+
+[[index]]
+==== Index
+
+An _index_ (aka _access path_) is a disk based data structure that organizes data records of a given table, or references to them, on disk to optimize certain kinds of retrieval operations. A table can have multiple indexes on it. A _search key_ is over any subset of columns of that table. In contrast to the key of the table, multiple records can match a search key. An index is implemented as a collection of _data entries_. A data entry with search key value k, denoted as k*, contains enough information to locate the matching records. There are three main alternatives of how to store a data entry: Alternative 1) (k,record). I.e. the index directly stores the records of a table. To avoid redundancy, this alternative is used at most once per table. Alternative 2) (k, rid). Alternative. 3) (k, rid-list). Alternative 2 and 3 obviously introduce a level of indirection. A _clustered index_ is one where the ordering of data records defined by its data entries is roughly the same as the ordering of the data records of the file of the underlying table. By definition alternative (1) is clustered. For alternatives (2) and (3), the file must be roughly (see <<clustered_file>>) or strictly sorted (see <<sorted_file>>). Regarding range search queries, clustered indexes are in general much faster than unclustered, due to the usual contigous access advantages and since more of read in page is actually used, i.e. less pages have to be read. The costs for a clustered index is maintainenance cost to (roughly) maintain the ordering of the data records. Often that means that the pages containing data records are not fully packed (2/3 is a common figure) to accomodate future inserts, which degrates performance since more pages nead to be read/written for a given amount of records.
+
+Common kinds of selections (aka lookups) that indexes support:
+
+- key operator constant, and specifically equality selections, where the operator is =.
+- Range selections, where op is a relational operator <, >, ....
+- N-dimensional ranges: e.g. points within a given rectangle.
+- N-dimensional radii: e.g. points within a given sphere.
+- Regular expressions
+
+[[bplus_tree]]
+==== B+ tree
+
+_B+ tree_ is an high-balanced n-ary tree. It's the most widely used data structure to implement an index. They have fast lookups and fast range querries. Is typically the most optimized part of an DBMS.
+
+Each node is stored in a page. Unlike with a B tree, internal nodes only
+contain pointers to further nodes, never data; only leaf nodes contain data or
+pointers to data. Also leaf nodes form a linked list. Together this allows for
+more efficient scans over a range of data.
+
+Regarding high-balancedness: Each node contains m entries with the soft restriction d<=m<=2d, i.e. it's always at least 50% full, where d is called the _order_ of the tree. The high balanced property guarantees O(log N) access time, i.e. guarantees that even after insertions/deletions performance can't degenerate to linear time. Then again, since keys can be of variable width (e.g. strings), and the data entries in the leaf nodes can be variable width (e.g. see alternative 3 in <<index>>), in practice this is seen sloppy. sometimes a physical criterion is used (`at least half full' in terms of bytes).
+
+Key compression increases fanout, which reduces height, which reduces access time.
+
+Algorithm to _insert_ into an already full node: split node, which obviously includes allocating a new node, and which makes space for new item. Introducing a new node obviously also means that we need to insert a new item into the parent node which points to the new node. Now this can be a recursive process, where in the worst case it ripples up all the way up and we have to split the root. If data entries are directly data records (see alternative 1 in <<index>>, advantages see there), splits can change record ids, which means having to update referees, which is considerable disadvantage.
+
+Similarly for _deletion_. We should maintain the d<=m<=2d invariant. However in practice m<d is allowed, since in practice it's a rare case that given a big table there are so many deletions which would shrink it to a small table. Note that all leafs have the same depth, and there are no rotations upon insertion/deletion has with other kinds of balanced trees.
+
+Creation of a B+ tree given a collection of keys should no be done via individual inserts, since the resulting page access pattern is very random and thus slow. Instead, we do _bulk loading_: Sort the index's data entries. Then iteratively soak them up and create leaf nodes. A fill-factor parameter determines how full the leaves shall be. Create/update parent nodes as in the insertion algorithm. Looking at the usual tree drawing, we see that always the right-most internal nodes are touched whereas the other nodes aren't at all, an access pattern which works very well together with an LRU page buffer.
+
+
+=== Buffer management
+
+A cache storing in memory a collection of pages from the disk space management below. Consists of a collection of frames, a frame having the same size as a page. Allocated at startup time.
+
+Each frame has associated: pageid/NIL, pin_count (aka reference_count), dirty_flag.
+
+A request for a page increments pin count. A requestor must eventually unpin it and indicate whether page was modified (-> dirty flag).
+
+pin_count==0 means unpinned means `free to be exchanged by another page from disk'. When pin_count goes to 0, that is the event of `page is now no longer used'.
+
+There different replacement policies for replacing a frame: least-recently-used (LRU), most-recently-used (MRU), clock, ....
+
+As an optimization, pre-fetch is often employed.
+
+Buffer leak: when a page request can't comply because all pages in buffer are pinned. That is considered a bug in the DB; pages should only be pinned for a very brief time.
+
+
+=== Disk space management
+
+Disk space manager provides about this API: allocate/free a page, read/write a page. Higher levels expect that sequencial access to pages has an especially good performance.
+
+
+== Storage
+
+=== Key-value store
+
+Same data model as object storage, but implemented differently. Intend to have low latency. Small objects (kB sized). No metadata. Note the key-value store is not the same as key-value model.
+
+*to-do* What's the exact difference between key-value store and key-value model. I think I have the right intuition, but I can't clearly concisely write it down.
+
+Much simpler than a relational database. We drop consistency (we only have eventual consistency) and gain availability and partition tolerance and scalability.
+
+Simple things are much easier to scale out than monolithic things (such as a table in the relational model).
+
+In contrast to object storage, no metadata.
+
+
+[[block_storage]]
+=== Block storage
+
+*to-do* Same as file storage?
+
+Large amount of huge files: millions of PB files. An object (aka file) is a sequence of blocks (or chunks).
+
+Block size on a local file system is \~4kB; in a relational database \~32kB. In a distributed file system such like HDFS it's ~128MB -- good compromise between latency and throughput.  Too small blocks would mean too many blocks to wait for, and since its over the network latency would be bad (relative to the time it takes to transmitt the complete block). Too big means we can't even put it on a single machine.  Also if the number of blocks of a file is smaller than the number of tasks of a mapreduce, we can't parallelize as much.
+
+
+=== Object storage / document database
+
+huge amount of large files: billions of TB files.  As a consequence, a file fits on a single machine. An object is a black box.
+
+Object storage lets you scale. Make model of local filesystem simpler. 1) throw away hierachy (file system tree). 2) Metadata is no longer fixed but flexible: assign values to keys. 3) Flat and global key-value model (associate IDs to files). 4) use commodity HW.
+
+on scalability issues with a local drive: A data base on a local machine might work for that machine.  Maybe, if you're lucky, it even works when accessed by multiple people on a (small) LAN.  But it doesn't work on a WAN.  The disk just can't cope with the amount of requests.  Also, on a typical file system you can't have billions of files.
+
+
+latency is low relative to a database: s3 ~ few 100ms, typical database 1-9ms, both where client is in same region.
+
+
+=== Chord / distributed hash table
+
+A protocol for a peer-to-peer distributed hash table. Used by DynamoDB.
 
 Assigning keys to nodes:  Say the key size is 128bit. Imagine the 128bit numbers on a ring.  Each node uniformily at random chooses a 128bit number.  Then each node stores the keys between itself and the previous N ≥ 1 nodes. If N > 1, we get replication.  Note that this assignment of keys to nodes is very simple and predetermined.  Also note it's only about assigning keys to nodes; there's no relation to how nodes are physically conencted.
 
@@ -412,7 +458,7 @@ Pros:
 
 - self organizing
 
-cons:
+Cons:
 
 - being a hashtable there's only lookup by key (e.g. no text search)
 
@@ -438,17 +484,7 @@ questions:
 - why not return (C,[(n1,3)]) , (D,[(n1,2), (n2,1)]). Answer: The protocol is such that it's a black box for the client
 
 
-[[block_storage]]
-== Block storage
-
-*to-do* Same as file storage?
-
-Large amount of huge files: millions of PB files. An object (aka file) is a sequence of blocks (or chunks).
-
-Block size on a local file system is \~4kB; in a relational database \~32kB. In a distributed file system such like HDFS it's ~128MB -- good compromise between latency and throughput.  Too small blocks would mean too many blocks to wait for, and since its over the network latency would be bad (relative to the time it takes to transmitt the complete block). Too big means we can't even put it on a single machine.  Also if the number of blocks of a file is smaller than the number of tasks of a mapreduce, we can't parallelize as much.
-
-
-== Google File System (GFS)
+=== Google File System (GFS)
 
 Requirements:
 
@@ -465,7 +501,7 @@ File update model: Only append and upsert, i.e. no random access.  Appending sho
 Master slave architecture.
 
 
-== Hadoop (HDFS)
+=== Hadoop (HDFS)
 
 Open source distributed file system. Open source version of GFS. MapReduce. Wide column store (HBase). Block storage (by default 128MB blocks (configurable on a file-by-file basis), 64 bit block id, see also <<block_storage>> for pro/cons of block sizes). File hierarchy model.
 
@@ -503,7 +539,7 @@ _Data transfer protocol_ (a streaming protocol):  See client protocol first. See
 
 For a _read_, as answer the client receives the block locations: For each block id, the multiple node locations where the block is stored, sorted by distance (see Hadoop's measure of closeness), so the client can choose to talk to the closest data node.  Multiple clients can read in parallel from the same file / blocks.
 
-For a _write_, it's analogous.  Recall that writes can only append.  For each new block a client wants to write, it receives a collection of block locations from the name node.  The client doesn't need to care about replication.  Per block, the client talks to the closest name node, tells it also the other name nodes that need to replicate the block, and the name nodes take care of replication themselves by creating a _data pipeline_ which minimizes the distance from the client to the last data node.  The data node receiving the client's write request asynchronously sends an acknowldge to the client once all replicates are successfully written.  Recall from data node protocol that each node receiving a bock sends a BlockReceived message to the name node.  For each client-initiated transaction, the change to the filesystem meta data is commited to the client only after the name nodes journal has been flushed to disk.  There is at most one writer to a file at any point in time.
+For a _write_, it's analogous.  Recall that writes can only append.  For each new block a client wants to write, it receives a collection of block locations from the name node.  The client doesn't need to care about replication.  Per block, the client talks to the closest name node, tells it also the other name nodes that need to replicate the block, and the name nodes take care of replication themselves by creating a _data pipeline_ which minimizes the distance from the client to the last data node.  The data node receiving the client's write request asynchronously sends an acknowldge to the client once all replicates are successfully written.  Recall from data node protocol that each node receiving a block sends a BlockReceived message to the name node.  For each client-initiated transaction, the change to the filesystem meta data is commited to the client only after the name nodes journal has been flushed to disk.  There is at most one writer to a file at any point in time, ensured by having a lock on each file.  I.e. before the write, the client has to open the file wor writing to acquire the lock, and at the end he has to close the file to free the lock.
 
 _Hadoop's measure of closeness / distance_: The network is represented as a tree / hierarchy.  The hierarchy is not fixed, however common is (internet, data center, rack, node).  The distance beween two nodes is the sum of the hierarchy levels between a node and the common anchestor.  Rational: Due Hadoop's design goals and the resulting architecture, throughput is more important than latency, so a possible measure would be bandwith between nodes. That however is difficult to measure. The given metric is an approximation.
 
@@ -518,7 +554,7 @@ Number of replicas is specified per file. The default is 3.
 *to-do* why is the 3rd replica stored in the same rack? We just said that we don't want that the same rack contains two replicas?
 
 
-=== Dealing with master being bottleneck
+==== Dealing with master being bottleneck
 
 The name node is bottle neck and single point of failure. The following describes ways how HDFS tries to mitigate the problem. Note that the use case of unexpected failure of a name node is rare, so in practice the use case of planned downtime for maintenance is more important.
 
@@ -537,32 +573,7 @@ A further way to remove the bottleneck (too many clients accessing the same name
 *to-do* read more in "HDFS High Availability" in the book
 
 
-== Object storage / document database
-
-huge amount of large files: billions of TB files.  As a consequence, a file fits on a single machine. An object is a black box.
-
-Object storage lets you scale. Make model of local filesystem simpler. 1) throw away hierachy (file system tree). 2) Metadata is no longer fixed but flexible: assign values to keys. 3) Flat and global key-value model (associate IDs to files). 4) use commodity HW.
-
-on scalability issues with a local drive: A data base on a local machine might work for that machine.  Maybe, if you're lucky, it even works when accessed by multiple people on a (small) LAN.  But it doesn't work on a WAN.  The disk just can't cope with the amount of requests.  Also, on a typical file system you can't have billions of files.
-
-
-latency is low relative to a database: s3 ~ few 100ms, typical database 1-9ms, both where client is in same region.
-
-
-== Key-value store
-
-Same data model as object storage, but implemented differently. Intend to have low latency. Small objects (kB sized). No metadata. Note the key-value store is not the same as key-value model.
-
-*to-do* What's the exact difference between key-value store and key-value model. I think I have the right intuition, but I can't clearly concisely write it down.
-
-Much simpler than a relational database. We drop consistency (we only have eventual consistency) and gain availability and partition tolerance and scalability.
-
-Simple things are much easier to scale out than monolithic things (such as a table in the relational model).
-
-In contrast to object storage, no metadata.
-
-
-== Amazone S3
+=== Amazone S3
 
 An object storage; Key value model, but _not_ a Key-value store. Proprietary, i.e. we don't really know how it works internally.
 
@@ -573,7 +584,7 @@ identfying objects: bucket-id (uri: http://<bucket>.s3.amazonaws.com) + object-i
 _object size limit_: 5TB, _latency_: few 100ms
 
 
-== Azure Blob Storage
+=== Azure Blob Storage
 
 Hybrid between object storage and distributed file system. Key value model, but _not_ a Key-value store.
 
@@ -599,7 +610,7 @@ Azure Storage offers three types of blobs. _Block blobs_ store text and binary d
 All storage services are accessible via REST APIs.
 
 
-== Amazone DynamoDB
+=== Amazone DynamoDB
 
 Key-value store: state is stored as binary objects (aka blobs), identified by unique keys. ACID is _not_ offered. Offers availability and partition tolerance, giving up consistency (but at least offers eventual consistency).  No isolation guarantees are given.  Efficiency, i.e. meeting stringent SLAs (measured at 99.9% percentile of requests so all customers benefit, guaranteeing few hundred ms latency), is an important requirement. It is assumed that operation is in a non-hostile environment.  Availability is for writes (writes are never rejected), which means that reads are more complex (as always, one has to decide when to resolve update conflicts, at reads or at writes).  Replication is asynchronous, which gives better availability.  Hierarchical namespaces are not directly supported.  Relational schema is not supported.
 
