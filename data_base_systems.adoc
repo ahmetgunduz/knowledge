@@ -439,13 +439,30 @@ Operations: put/get/delete (row), scan (rows)
 
 Partition table firsy horizontally (i.e. group rows), then vertically (as already done by column families).  We need horizontal partitioning because we can have billions of rows not even fitting on a single machine.  A horizontal partition is given by the range (min-incl, max-excl).  Such a range of rows is called a _region_.  Obviously the max-excl equals the min-incl of the next partition.  The intersection of horizontal and vertical partitioning is what is stored together and is called a _store_.
 
-Master slave architecture.  The master is called _HMaster_, a slave is called _region server_.  The HMaster's responsibility is the meta data.  A store is stored as one or more files on a DFS, called _HFiles_.
+Master slave architecture.  The master is called _HMaster_, a slave is called _region server_.  The HMaster's responsibility is the meta data.  A store is stored as one or more files, called _store file_ (or _HFiles_), on a DFS.
 
-One HFile is actually an _SSTable_, a flat sorted list of key-value pairs.  A row is also also called KeyValue. The key is a rowid column-number pair refering to the original table, the value stores the respective cell of the original table.
+One store file is actually an _SSTable_, a flat sorted list of key-value pairs, one pair also called  _KeyValue_, plus an index for faster key lookukp.  The key is logically a (rowid, column-number) pair refering to a cell of the original table, and the value storing the content of that cell.  KeyValues are stored sequentially, forming a bytestream.  Each KeyValue is stored as tuple (keylength, valuelength, key, value).  The length of the keylength and valuelength elements are fixed width, e.g. 32bit.  Practically the key is a tuple
 
-A HFile is only written once. When the logical content must be modified, a new file is written and the old one is deleted.
+(rowidlength, rowid, columnfamiliylength, columnfamily, columnqualifier, timestamp, keytype)
+
+Again rowidlength, columnfamiliylength are fixed width, and their value defines the length of the respective tuple element.  Timestamp and keytype are fixed width.  So columnqualifier length can be computed, taking the outer keylength into account.  Technically, the columnfamily is not required, since we already know in which column family we are.  The timestamp is the version.  The keytype is actually a deletion mark.
+
+The key-value pairs of the store file are read in blocks of about 64kB; no pair is ever split.  Note that these are not the same blocks as the ones the underlying DFS might have.
+
+A store file is only written once. When the logical content must be modified, a new file is written and the old one is deleted.
 
 Guarantees ACID on the row level via per-row locks. That gives us total order of row versions.
+
+Overview:
+
+Table +
+Region +
+Store  +
+StoreFile | Memstore+
+Block | - +
+KeyValue | KeyValue
+
+*to-do* How to ensure that a store completely fits into memory? After all compaction works by reading all store files in memory, sort, and flush.
 
 
 === The one of Cassandra
