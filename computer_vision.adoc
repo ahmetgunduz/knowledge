@@ -141,6 +141,44 @@ within the library's data space.
 The GPU is rapidly morphing into what might be called a High Parallel Processing unit.
 
 
+=== Light and matter
+
+_Radiometry_ studies the measurement of electromatic radiation. _Visible light_ is radiation capable of directly causing visual sensation, and lies in the range of ca 390-700nm.
+
+_Radiant energy Q_ = ∫Φ∂t [J]: Energy of electromagnetic and gravitational radiation, measured over a given time period.
+
+_Radiant flux Φ_ (or just _flux_ or _power_) = ∂Q/∂t [W=J/S] ``Photons entering/leaving a source/sink per unit time''
+
+pRadiant flux of a surface Φ(A) = ∂Q(A)/∂t = ∫~A~∫~hemisphere~L·cosθ·∂ω·∂A.
+
+_Radiant intensity I_ = ∂Φ/∂ω [W/sr]: Directional density of flux.
+
+_Irradiance E_ = ∂Φ/∂A = ∫~hemisphere~L·cosθ·∂ω [W/m²]: Area density of _arriving_ flux. ``Photons arriving at the unit area per unit time''
+
+_Radiosity B_ = ∂Φ/∂A [W/m²]: Same as Irradiance, but with respect to _leaving_ flux.
+
+_Radiance L_ = ∂²Φ/(∂ω·∂A·cosθ) = ∫~hemisphere~L~i~·f~r~·cosθ~i~·∂ω~i~: Flux per unit area per unit solid angle in direction θ (angle with respect to surface normal).  The equation with the integral is also called the _reflection equation_, see also BRDF.  It computes the reflected radiance due to incident illumniation from all directions.
+
+_Luminance_ = *to-do*
+
+_Bidirectional reflectance distribution function_ (_BRDF_)  _f~r~_ = ∂L~r~/∂E~i~ = ∂L~r~ / L~i~θ~i~cosω~i~ [1/sr]: Subscript i for incident, subsript r for reflected.  Ratio of differential reflected radiance to differential incident radiance. Or ``Ratio of `outgoing light' to `incident light'''. Or ``ratio of reflected light, given an incoming angle and an outgoing angle''.  f~r~ is typically given by some model.  Using that model / BRDF, we can compute the radiance L~r~ using the reflection equation.  Note that BRDFs are flat surface models.  In the model light doesn't go in the material and is then reflacted below the surface.
+
+
+Models:
+
+- diffuse/lambertian: incomming is distributed in reflections equally in all directions, no refraction
+
+- perfect reflection:
+
+- perfect refraction: (see also dielectric material, snell's law)
+
+- specular reflection (or regular refraction):
+
+- ?: incomming is distributed in one reflection ray and and on refraction ray (see also Fresnel Equations, giving ratio reflected vs refracted)
+
+- microfaset distribution:
+
+
 === Homogenous coordinates
 
 (x, y, z) with z!=0 is equivalent to (x/z, y/z, 1).

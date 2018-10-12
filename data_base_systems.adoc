@@ -11,9 +11,9 @@ Data technology stack:
 [cols="1,3"]
 |=====
 | user interfaces |
-      Excel, Access, Tableau, Qlikeview, BI tools 
+      Excel, Access, Tableau, Qlikeview, BI tools
 | querying |
-      SQL, XQuery, MDX, SPARQL, REST APIs 
+      SQL, XQuery, MDX, SPARQL, REST APIs
 | data stores |
       RDBMS, MongoDB, CouchBase, ElasticSearch, Hive, HBase, MarkLogic, Cassandra
 | indexing |
@@ -23,7 +23,7 @@ Data technology stack:
 | validation |
       XML schema, JSON schema, Relational schemas, XBRL taxonomies
 | data models |
-      Tables: Relational model / trees: XML Infoset, XDM / graphs: RDF / Cubes: OLAP
+      Tables: Relational model, column store, wide column store / trees: XML Infoset, XDM / graphs: RDF / Cubes: OLAP / key-value model
 | syntax |
       text, CSV, XML, JSON, RDF/XML, Turtle, XBRL
 | encoding |
@@ -32,9 +32,83 @@ Data technology stack:
       local FS, NFS, GFS, HDFS, S3, Azure blob storage, DynamoDB
 |=====
 
-A database _transaction_, by definition, must be _ACID_: All the following must be guaranteed even in the event of errors, power failures etc. Atomicity (each transaction succeeds completely or fails completely), Consistency (each transaction brings DB from one valid state to another valid state, maintaining DB's invariants), Isolation (result is as if transactions were executed in strict sequence), Durability (once a transactin has been committed, will remain committed).
+The history of storage: progress made 1956-2010: capacity: 150'000'000 times more, throughput 10'000'000 times more, latency 8 times more. To increase throughput, we can parallize. To improve latency, we can do batch processing.
 
-_CAP theorem_: impossibility triangle (you can have at most 2 of 3): you only can have two, but never three. consistency (every read receives most recent write or an error; if not consistent, we have to deal with conflicts somehow) / availability (every request (except under network partition) receives a non-error response (conversly, not having A at all means always getting an error) with low latency (low being subjective, making availability subjective)) / partition tolerance (system continuous to operate despite an abitrary number of messages being dropped/delayed by network between nodes).
+How can we get more work done:
+
+1) Make SW efficient. ``You can have a second computer once you've shown you know how to use the first one'' (Paul Barham). We can gain factors of speed, and we have to pay once the development costs, and can apply it to all machines we ever will have.
+
+2) _horizontal scaling_ (or _scale out_): Add more nodes, typically commodity HW. Price grows about linearly with overall computing power.
+
+3) _vertical scaling_ (or _scale up_): Replace a node with a more powerfull node. Either by completely replacing, or by adding more RAM and/or CPUs. Price grows about exponentially with overall computing power.
+
+_Design principles_ of big data (by Fourny Ghislain Gilles)
+
+- Learn from the past
+
+- Simplicity
+
+- Modularize the architecture / make good abstractions
+
+- Homogeneity in the large (e.g. blocks in HDFS, regions in HBASE, virtual nodes in chords). So at the large, things are easy to handle.
+
+- Heterogeneity in the small (a.g. add columns in HBase). Heterogenity gives flexibility to the client.  But the cost of increased complexity does not affect the system in the whole.
+
+- Separate metadata from data
+
+- Abstract logical model from its physical implementation
+
+- Shard the data
+
+- Replicate the data
+
+A database _transaction_, by definition, must be _ACID_: All the following must be guaranteed even in the event of errors, power failures etc. _Atomicity_ (each transaction succeeds completely or fails completely), _Consistency_ (each transaction brings DB from one valid state to another valid state, maintaining DB's invariants), _Isolation_ (result is as if transactions were executed in strict sequence), _Durability_ (once a transactin has been committed, will remain committed).
+
+_Consistency models_: _Strict consistency_: Changes are atomic and appear to take effect instantaneously. _Sequential consistency_: Every client sees all changes in the same order they were applied. _Causial consistency_: All changes that are causally related are observed in the same order by all clients.  _Eventual consistency_: If no updates are made, then eventually all accesses will return the last updated value. However in practice there's a continous stream of updates, so consistency will never happen.  In other words: Every update will eventually be propagated. _Weak consistency_: Clients may see updates out of order, or may not see an update at all.
+
+_Availability_: Measure of the percantage of time the service / equipment is in an operable state. A common measure is "99.99%" (with x many nines).
+
+_Reliability_: Measure of how long the service / equipment performs its intended function. Usually measured by _mean time between failure_ (_MTBF_) which is defined as total time in service / number of failures, or by _failure rate_, which is defined as the inverse of MTBF.
+
+_Durability_: A common measure is "loss of 1 in x objects".
+
+_Response time_: One possible measure is "<10ms 99.9% of cases"
+
+_3Vs of big data_: volume, variety and velocity *to-do*
+
+_Load balancing_: *to-do*, Partition schemes
+
+_batch processing_: *to-do*
+
+_data independence_: *to-do*
+
+_shard_: *to-do*
+
+_Replication_: Rational: Fault tolerance. Local: node failure. With a lot of nodes, you are almost guaranteed that a node will fail. Regional: natural catastrophe. Thus spreading datacenters gives proximity to client (gives smaller latency) and protects against regional failures.
+
+_Storage classes_: High availability at high costs on one end and low availability (hours to access data) at low cost on the other end. The low end is typically for backups.
+
+Random notes:
+
+- Random access to pages is generally expensive, or the other way round, sequencial access is much faster
+ * binary search is a bad option
+
+- Dealing with (multi)sets, i.e. unordered collections, as most SQL queries do, has the advantage that it is more parallelizable as when it had to be ordered.
+
+- Typical disk block sizes are 0.5kB to 4kB. Virtual memory page size is typically 4kB. Typicall a DB does I/O in 64kB blocks.
+
+- _data center_: ~1k - 100k machines, 1-100 cores / server, 1-12TB local storage / server, 16GB - 4TB RAM / server. 1GB/s network bandwith for a server. A rack consists of nodes.
+
+
+=== CAP Thoerem
+
+The _CAP theorem_ is about the following impossibility triangle (you can have at most 2 of 3): you only can have two, but never three.
+
+- _consistency_: every read receives most recent write or an error; if not consistent, we have to deal with conflicts somehow
+
+- _availability_:  every request (except under network partition) receives a non-error response (conversly, not having A at all means always getting an error) with low latency (low being subjective, making availability subjective).
+
+- _partition tolerance_: system continuous to operate despite an abitrary number of messages being dropped/delayed by network between nodes.
 
 *to-do* point out that consistency and availability in the context of the CAP theorem mean different things than the same terms in the context of ACID.
 
@@ -56,64 +130,12 @@ CP: Something like DynamoDB, where the coordinator writes synchronously to the r
 
 Doing updates (i.e. propagation to other nodes) asynchronous gives you availability, because you still can update. If you are synchronous, you can be consistent, but you are no longer available.
 
-dynamodb: update of other nodes is ansynchronous
-
 *to-do* `consistency' in CAP and in ACID are not the same? In a distributed data base, where each node replicates the full data base, does consistency refer to a single data base or to the global database?
 
-_Anomalies_ are problems, e.g. problems arising from having redundancy, which in turn arises when to many fields are cramed into a single relation such that it contains many tuples which are nearly identical. The typical way of solving the problem is to _decompose_ such an ill-designed relation into multiple relations.
 
-Typical disk block sizes are 0.5kB to 4kB. Virtual memory page size is typically 4kB. Typicall a DB does I/O in 64kB blocks.
-
-_eventual consistency_: If no updates are made, then eventually all accesses will return the last updated value. However in practice there's a continous stream of updates, so consistency will never happen.  In other words: Every update will eventually be propagated.
-
-Very general best practice to achieve better performance: first try to make code better, then try to scale out, then try to scale up. ``You only get a second computer if you know how to make the first one work''.
-
-_Availability_: Measure of the percantage of time the service / equipment is in an operable state.
-
-_Reliability_: Measure of how long the service / equipment performs its intended function. Usually measured by _mean time between failure_ (_MTBF_) which is defined as total time in service / number of failures, or by _failure rate_, which is defined as the inverse of MTBF.
-
-_durability_: A common measure is "loss of 1 in x objects".
-
-_availability_: A common measure is "99.99%" (with x many nines)
-
-_response time_: One possible measure is "<10ms 99.9% of cases"
-
-_3Vs of big data_: volume, variety and velocity *to-do*
-
-partition schemes for load balancing: *to-do*
-
-How can we get more work done:
-
-1) Make SW efficient. ``You can have a second computer once you've shown you know how to use the first one'' (Paul Barham). We can gain factors of speed, and we have to pay once the development costs, and can apply it to all machines we ever will have.
-
-2) _horizontal scaling_ (or _scale out_): Add more nodes, typically commodity HW. Price grows about linearly with overall computing power.
-
-3) _vertical scaling_ (or _scale up_): Replace a node with a more powerfull node. Either by completely replacing, or by adding more RAM and/or CPUs. Price grows about exponentially with overall computing power.
-
-_data center_: ~1k - 100k machines, 1-100 cores / server, 1-12TB local storage / server, 16GB - 4TB RAM / server. 1GB/s network bandwith for a server. A rack consists of nodes.
-
-_Uniform resource name_ (_URN_) is a URI that uses the urn scheme.
+=== REST
 
 _REST_ API (Representational State Transfer): REST is the way HTTP should be used. It's always a method (GET, PUT, DELETE, POST, ...) plus a resource (URI). PUT must be idempotent (when issued multiple times, the 2nd plus requests have no effect). GET must be side-effect free.  POST is the most generic, it can have side effects.
-
-_replication_: Rational: Fault tolerance. Local: node failure. With a lot of nodes, you are almost guaranteed that a node will fail. Regional: natural catastrophe. Thus spreading datacenters gives proximity to client (gives smaller latency) and protects against regional failures.
-
-_storage class_: High availability at high costs on one end and low availability (hours to access data) at low cost on the other end. The low end is typically for backups.
-
-The history of storage: progress made 1956-2010: capacity: 150'000'000 times more, throughput 10'000'000 times more, latency 8 times more. To increase throughput, we can parallize. To improve latency, we can do batch processing.
-
-_key value model_: Some mapping from a key to a value.
-
-_column store_: Store data by columns (as opposed to by rows).
-
-_wide column store_: Store data by rows, keys identify rows, group columns in families. E.g. Google's BigTable, HBase, cassandra.
-
-Random notes:
-
-- Random access to pages is generally expensive, or the other way round, sequencial access is much faster
- * binary search is a bad option
-
-- Dealing with (multi)sets, i.e. unordered collections, as most SQL queries do, has the advantage that it is more parallelizable as when it had to be ordered.
 
 
 == Relational model
@@ -127,20 +149,20 @@ Levels of abstraction:
 - Physical schema describes the files and indexes used
 
 --------------------------------------------------
-                 Query Optimization 
+                 Query Optimization
                  and Execution
-                       |             
+                       |
                        V
                  Relational Operators
-                       |             
+                       |
                        V
-            +--> Files and Access Methods <--+   
+            +--> Files and Access Methods <--+
             |          |                     |
             |          V                     |
 Concurrency-+--> Buffer Manager           <--+- Recovery
 Controll    |          |                     |  Manager
             |          V                     |
-            +--> Disk Space Manager       <--+ 
+            +--> Disk Space Manager       <--+
 --------------------------------------------------
 
 Notation:
@@ -179,6 +201,8 @@ Note that being able to write down constraints in the DDL helps to remove redund
 
 
 === Normal forms
+
+_Anomalies_ are problems, e.g. problems arising from having redundancy, which in turn arises when to many fields are cramed into a single relation such that it contains many tuples which are nearly identical. The typical way of solving the problem is to _decompose_ such an ill-designed relation into multiple relations.
 
 A _normal form_ is a property of a relation with the intention of avoiding anomalies. A relation is in _1st normal form_ iff the domain of each attribute is an atomic type.  A relation is in _2nd normal form_ iff additionally all functional dependencies are on the whole candidate key, for all candidate keys. A relation is in _3rd normal form_ iff additionally every non-prime attribute is non-transitively dependent on every key of R. Bill Kent: "[Every] non-key [attribute] must provide a fact about the key, the whole key, and nothing but the key.". Requiring existence of "the key" ensures that the table is in 1NF; requiring that non-key attributes be dependent on "the whole key" ensures 2NF; further requiring that non-key attributes be dependent on "nothing but the key" ensures 3NF.
 
@@ -316,7 +340,7 @@ sort R on r_attrib -> sortedR
 sort S on s_attrib -> sortedS
 scan sortedR and sortedS in tandem to find matches
 ------------------------------------------------------------
- 
+
 page I/O cost: cost(sort R) + cost(sort S) + [R]+[S].
 
 As an optimization, the sorts, each having internally a set of sorted chunks, ommit writing an output. Instead, the `scan sortedR and sortedS in tandem' step operatoes on all these chunks; each chunk is connected to an input buffer. Thus instead of the normal B-1 chunks a sort creates, now it can only create (B-1)/2 chunks. So we saved 2*([R]+[S]), since we saved writing/reading the sortedR and sortedS.
@@ -351,7 +375,7 @@ A _(DB) file_ is a collection of pages. A _page_ is a collection of records. Eac
 
 _System catalogs_ store properties of each table, index, view and other stuff such as statistics, authorization etc.
 
-A DB file is typically implemented as one or more OS files, or as raw disk space, e.g. in POSIX directly a device. Note that a DB file might spawn multiple disks. 
+A DB file is typically implemented as one or more OS files, or as raw disk space, e.g. in POSIX directly a device. Note that a DB file might spawn multiple disks.
 
 [[index]]
 ==== Index
@@ -409,24 +433,12 @@ Buffer leak: when a page request can't comply because all pages in buffer are pi
 Disk space manager provides about this API: allocate/free a page, read/write a page. Higher levels expect that sequencial access to pages has an especially good performance.
 
 
-== Data store
+== Data Stores
+
 
 === HBase
 
-HBase is the open source version of Google's Bigtable.  Uses wide column store.
-
-
-== Data models
-
-=== HBase's data model
-
-A wide column store.
-
-In the tabular model, joins are very expensive.  In the tabular model we love to have data in normal form, and as a consequence there are many joins.
-
-Paradigm of big table: store together what is accessed together (i.e. quite the opposite of normal forms). That makes batch processing better, since we only have to pay latency once (recall we want to avoid latency as much as possible), and after that it's just throughput.
-
-We denormalize. That can also be seen as precomputing the joins we expect to occur often.  Thus reads become faster.  The price is that we introduced anomalies, so writes are now more expensive.
+HBase is the open source version of Google's Bigtable. Based on the wide column store model.
 
 Each table has a row ID column being by definition the primary key. Columns are grouped in a column families.  The idea is to group together whats frequently accessed together.  The column families must be known in advance, but not the columns.  The number of columns can be very high (compared to relational DB).
 
@@ -434,14 +446,18 @@ Rows have an order.
 
 Operations: put/get/delete (row), scan (rows)
 
+Has low latency because of the memstore; latency due to access to underlying DFS falls aften away
 
-==== Implementation of HBase's data model
+*to-do* But isn't there still the network latency to the region server? From a high level perspective, clien-regionsserver is the same as client-datanode, so the two should have about the same latency, no?
+
+
+==== Implementation of HBase
 
 Partition table firsy horizontally (i.e. group rows), then vertically (as already done by column families).  We need horizontal partitioning because we can have billions of rows not even fitting on a single machine.  A horizontal partition is given by the range (min-incl, max-excl).  Such a range of rows is called a _region_.  Obviously the max-excl equals the min-incl of the next partition.  The intersection of horizontal and vertical partitioning is what is stored together and is called a _store_.
 
 Master slave architecture.  The master is called _HMaster_, a slave is called _region server_.  The HMaster's responsibility is the meta data.  A store is stored as one or more files, called _store file_ (or _HFiles_), on a DFS.
 
-One store file is actually an _SSTable_, a flat sorted list of key-value pairs, one pair also called  _KeyValue_, plus an index for faster key lookukp.  The key is logically a (rowid, column-number) pair refering to a cell of the original table, and the value storing the content of that cell.  KeyValues are stored sequentially, forming a bytestream.  Each KeyValue is stored as tuple (keylength, valuelength, key, value).  The length of the keylength and valuelength elements are fixed width, e.g. 32bit.  Practically the key is a tuple
+One store file is actually an _SSTable_, a flat sorted list of key-value pairs, one pair also called  _KeyValue_, plus an index for faster key lookukp.  The index is loaded into memory.  The key is logically a (rowid, column-number) pair refering to a cell of the original table, and the value storing the content of that cell.  KeyValues are stored sequentially, forming a bytestream, making it efficient for transfer.  Each KeyValue is stored as tuple (keylength, valuelength, key, value).  The length of the keylength and valuelength elements are fixed width, e.g. 32bit.  Practically the key is a tuple
 
 (rowidlength, rowid, columnfamiliylength, columnfamily, columnqualifier, timestamp, keytype)
 
@@ -449,7 +465,15 @@ Again rowidlength, columnfamiliylength are fixed width, and their value defines 
 
 The key-value pairs of the store file are read in blocks of about 64kB; no pair is ever split.  Note that these are not the same blocks as the ones the underlying DFS might have.
 
-A store file is only written once. When the logical content must be modified, a new file is written and the old one is deleted.
+_put_: First write to _HLog_ file (or _write ahead log_), a journal, then to the _memstore_.  The HLog file is a security measure in case we loose what's in the memory before the memory could be flushed to disk.  It is stored on the underlying DFS.  When certain criterions are met, the memstore is flushed to disk, creating a new storefile (as always with sorted rows).  After flushing, the log file can be discarded.  Thus we keep generetaing partially redundant store files (but remember that each KeyValue as an version, and we have a total order).  Every now and then, we do _compaction_:  Replace the existing HFiles by one new HFile by merging them.
+
+*to-do* Is an existing KeyValue updated, or a new one created with an increased version number?
+
+_delete_: Similar to put, where the modification is to check the `is deleted' flag.
+
+*to-do* but isnt the HLog file HUGE very quickly, since KeyValue can be big? And followingly, isnt synchronously appending to the HLog expensive, both in latency and throughput, relative to the other costs of an HBase put?
+
+*to-do* compaction: Isn't it easily possible that the sum of generated store files don't fit into memory? Maybe the answer is online merge sort?
 
 Guarantees ACID on the row level via per-row locks. That gives us total order of row versions.
 
@@ -458,23 +482,49 @@ Overview:
 Table +
 Region +
 Store  +
-StoreFile | Memstore+
+StoreFile(n) + Memstore(1) + HLog(1) +
 Block | - +
 KeyValue | KeyValue
 
 *to-do* How to ensure that a store completely fits into memory? After all compaction works by reading all store files in memory, sort, and flush.
 
 
-=== The one of Cassandra
+==== Optimizations
+
+Besides the memstore, there's also an in-memory _cache_ of KeyValue s.  A unit of the cache is a block.  The MemStore is for KeyValue s not yet flushed to disk, the cache is for  faster access to already persisted KeyValue s.  The cache is composed of two hierarchy levels, the _LRU BlockCache_ and the _bucket cache_.  LRU BlockCache caches the last recently used blocks.
+
+_short circuiting_ / _colocation_ (process data where it is stored):  Is when the requested block of the underlying DFS is stored on the same physical node as the region server requesting that block runs on.  Thus effectively the region server reads the block from its own local drive, without paying network overhead.  This is a situation that occures most of the time as a result of the design of HDFS and HBase, in particular from the <<hdfs_replica_placement>> strategy of prefering to store a block on the client itself.  One could think that due to HDFS having a life, over time the HDFS data node (runing on the same physical node as the HBase region server) will no longer itself store the HDFS block.  But due to the compaction of HFiles and the HDFS replica placement strategy, we will restore colocation over time.
+
+An in-memory _bloom filter_ is used to reduce access to HFiles when searching keys.
+
+LMS-tree *to-do* The LSM-tree structure's purpose is to minimize the number of required compactions.
+
+
+=== Cassandra
 
 Similar to the one of HBase.
 
 
-== Storage
+=== Google Bigtable
+
+*to-do*
+
+
+== Data models
+
+
+_Key-value model_:  A data model. Some mapping from a key to a value.
+
+_Column store_ (or _column-oriented DB_): A data model. Store data by columns (as opposed to by rows). One advantage is that subsequent cells in the same row tend to be similar, thus compression algorithms tend to work well.
+
+_Wide column store_: A data model. Store data by rows, keys identify rows, group columns in families. E.g. Google's BigTable, HBase, cassandra.  In the tabular model, joins are very expensive.  In the tabular model we love to have data in normal form, and as a consequence there are many joins.  Paradigm of BigTable: store together what is accessed together (i.e. quite the opposite of normal forms). That makes batch processing better, since we only have to pay latency once (recall we want to avoid latency as much as possible), and after that it's just throughput. To fulfill the paradigm, we denormalize. That can also be seen as precomputing the joins we expect to occur often.  Thus reads become faster.  The price is that we introduced anomalies, so writes are now more expensive.
+
+
+== Storages
 
 === Key-value store
 
-Same data model as object storage, but implemented differently. Intend to have low latency. Small objects (kB sized). No metadata. Note the key-value store is not the same as key-value model.
+Same data model as object storage, but implemented differently. Intend to have low latency. Smaller objects (kB sized). No metadata. Note the key-value store is not the same as key-value model.
 
 *to-do* What's the exact difference between key-value store and key-value model.
 
@@ -484,27 +534,34 @@ Simple things are much easier to scale out than monolithic things (such as a tab
 
 In contrast to object storage, no metadata.
 
+*to-do* examples: dynamodb
+
 
 [[block_storage]]
 === Block storage
 
 *to-do* Same as file storage?
 
-Large amount of huge files: millions of PB files. An object (aka file) is a sequence of blocks (or chunks).
+Object is divided into blocks.  Large amount of huge files: millions of PB files.  I.e. limited in number files.  An object (aka file) is a sequence of blocks (or chunks).
 
 Block size on a local file system is \~4kB; in a relational database \~32kB. In a distributed file system such like HDFS it's ~128MB -- good compromise between latency and throughput.  Too small blocks would mean too many blocks to wait for, and since its over the network latency would be bad (relative to the time it takes to transmitt the complete block). Too big means we can't even put it on a single machine.  Also if the number of blocks of a file is smaller than the number of tasks of a mapreduce, we can't parallelize as much.
+
+*to-do* examples: gfs, hdfs
 
 
 === Object storage / document database
 
-huge amount of large files: billions of TB files.  As a consequence, a file fits on a single machine. An object is a black box.
+huge amount of large files: billions of TB files.  I.e. limited in file size.  As a consequence, a file fits on a single machine. An object is a black box.
 
 Object storage lets you scale. Make model of local filesystem simpler. 1) throw away hierachy (file system tree). 2) Metadata is no longer fixed but flexible: assign values to keys. 3) Flat and global key-value model (associate IDs to files). 4) use commodity HW.
 
 on scalability issues with a local drive: A data base on a local machine might work for that machine.  Maybe, if you're lucky, it even works when accessed by multiple people on a (small) LAN.  But it doesn't work on a WAN.  The disk just can't cope with the amount of requests.  Also, on a typical file system you can't have billions of files.
 
 latency is low relative to a database: s3 ~ few 100ms, typical database 1-9ms, both where client is in same region.
-n
+
+
+*to-do* examples: s3
+
 
 === Chord / distributed hash table
 
@@ -605,13 +662,18 @@ _Data transfer protocol_ (a streaming protocol):  See client protocol first. See
 
 For a _read_, as answer the client receives the block locations: For each block id, the multiple node locations where the block is stored, sorted by distance (see Hadoop's measure of closeness), so the client can choose to talk to the closest data node.  Multiple clients can read in parallel from the same file / blocks.
 
-For a _write_, it's analogous.  Recall that writes can only append.  For each new block a client wants to write, it receives a collection of block locations from the name node.  The client doesn't need to care about replication.  Per block, the client talks to the closest name node, tells it also the other name nodes that need to replicate the block, and the name nodes take care of replication themselves by creating a _data pipeline_ which minimizes the distance from the client to the last data node.  The data node receiving the client's write request asynchronously sends an acknowldge to the client once all replicates are successfully written.  Recall from data node protocol that each node receiving a block sends a BlockReceived message to the name node.  For each client-initiated transaction, the change to the filesystem meta data is commited to the client only after the name nodes journal has been flushed to disk.  There is at most one writer to a file at any point in time, ensured by having a lock on each file.  I.e. before the write, the client has to open the file wor writing to acquire the lock, and at the end he has to close the file to free the lock.
+*to-do* can a client read different blocks in parallel, i.e. block1 from datanode1, block2 from datanode2 etc.
+
+For a _write_, it's analogous.  Recall that writes can only append.  For each new block a client wants to write, it receives a collection of block locations from the name node.  The client doesn't need to care about replication.  Per block, the client talks to the closest name node, tells it also the other name nodes that need to replicate the block, and the name nodes take care of replication themselves by creating a _data pipeline_ which minimizes the distance from the client to the last data node.  The data node receiving the client's write request asynchronously sends an acknowldge to the client once all replicates are successfully written.  Recall from data node protocol that each node receiving a block sends a BlockReceived message to the name node.  For each client-initiated transaction, the change to the filesystem meta data is commited to the client only after the name nodes journal has been flushed to disk.  There is at most one writer to a file at any point in time, ensured by having a lock on each file.  I.e. before the write, the client has to open the file for writing to acquire the lock, and at the end he has to close the file to free the lock.
+
+*to-do* fix: its the client that organizes the pipeline
 
 _Hadoop's measure of closeness / distance_: The network is represented as a tree / hierarchy.  The hierarchy is not fixed, however common is (internet, data center, rack, node).  The distance beween two nodes is the sum of the hierarchy levels between a node and the common anchestor.  Rational: Due Hadoop's design goals and the resulting architecture, throughput is more important than latency, so a possible measure would be bandwith between nodes. That however is difficult to measure. The given metric is an approximation.
 
 *to-do* Is the ack of the write back to the client async to replication? Even prof didnt know.
 
-_Replica placement_ (or _block placement_), i.e. which nodes store a block replica: The first block/replica is stored on the client itself, if the client is a data node in the same cluster, and a random node which is not too busy and not too fully otherwise. The 2nd replica is stored on on a node in a different rack within the same cluster (If it were stored in the same rack, that would mean that the same rack is guaranteed to store two replicas, which is a shame if the rack fails). The 3rd replica is stored on a node in the same rack as the 2nd. The further replicas are stored at random nodes, but if possible at most one replica per node (we care about a node failing as a whole, not that only parts of a single drive fail) and at most two replicas per rack.
+[[hdfs_replica_placement]]
+_Replica placement_ (or _block placement_), i.e. which nodes store a block replica: The first block/replica is stored on the client itself, if the client is a data node in the same cluster, and a `random' (load balancer prefers certain ones) node which is not too busy and not too fully otherwise. The 2nd replica is stored on on a node in a different rack within the same cluster (If it were stored in the same rack, that would mean that the same rack is guaranteed to store two replicas, which is a shame if the rack fails). The 3rd replica is stored on a node in the same rack as the 2nd. The further replicas are stored at `random' nodes, but if possible at most one replica per node (we care about a node failing as a whole, not that only parts of a single drive fail) and at most two replicas per rack.
 
 Replica placement considerations: Reliabilty (how relyable is a node), read/write bandwith (how fast is the network), block distribution (what's the distance from the data node to the client (which might be itself a data node)).
 

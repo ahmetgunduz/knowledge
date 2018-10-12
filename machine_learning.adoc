@@ -4,9 +4,9 @@
 :toclevels: 4
 
 
-= Machine learning
+= Statistics & machine learning
 
-== Misc statistic
+== Misc statistics
 
 === Formula table
 
@@ -163,6 +163,381 @@ _prediction interval_: An estimate of an interval in which a realization of a ra
 **to-do**(3) In a prediction interval it's really about the percantage of future observations (Y is a random variable after all) being within the one calculated interval (which however is based on random variables X Y), opposed to percentage of prediction intervals that will cover a value (there's no single true value, as said, Y is a random variable), right?
 
 
+=== Testing
+
+==== Hypothesis testing, basic idea and algorithm
+
+A _statistical hypothesis test_ is a method of statistical inference.
+
+A _two sided test_ (or _two tailed test_) is concerned with both regions of rejection, of the distribution.  A _one sided test_ (or _one tailed test_) is concerned with the region of rection for only one of the two tails of the distribution, and it states which one it is concerned with.  The researcher has to decide which variant he prefers.  He can do it based on his educated guess what the alternate hypothesis is, and more specifically, what distribution of the alternate hypothesis is.  The goal is to maximize power, given a type I error rate.  For a concrete alternate hypothesis, power could be calculated by simulating: Do multiple times: Simulate data under the alternate hypothesis, calculate p-value, count H~0~ rejecetions (i.e. `H~a~ acceptances'). Over all this delivers power = H~0~-rejection-count / simulation-count. This way one can calculate power for multiple alternate hypothesises.
+
+one sided vs two sided:
+
+pro one sided test: higher power, i.e. less type II error rate.
+
+*to-do* more pros & cons
+
+Hypothesis test algorithm:
+
+- Choose a suitable test statsistic T.  Compute its observed value t~obs~.
+
+- Define the _null hypothesis_ and the complementary _alternate hypothesis_.  The null hypothesis (the hypothesis to be nullified), denoted H~0~, is a statement usually along the lines ``there is no relationship'' or ``there is no effect''.  The complementary alternate hypothesis is denoted H~a~ (or H~1~).  Note that in a one side test, H~0~ should not use =, but ≤ or ≥, while the complementary H~a~ then uses > or < respectively.  However it's mathematically still correct for the H~0~ to use = (*to-do* why is that?)
+
+- Compute the p-value, see definition below.
+
+- Choose a significance level α, see definition below.  Typically the significance level is chosen to be 5% or 1%.
+
+- _Reject H~0~_ iff p-value < α.  Otherwise you _fail to reject H~0~_; you can't accept H~0~, see below.  An equivalent alternative criterion is to reject H~0~ when t~obs~ lies within the critical region, see definition below.
+
+Hypothesis testing really is ``__proof by contradiction__''.  Only that we can't really proof or disprove anything,  since we only work with probabilities.  We only can gather evidence.  We start out assuming H~0~ is true and try to build a contradiction.  If we observe a t~obs~ such that p-value < α, then that is a `contradiction' to our assumption.  It's not a contradiction in a strict sense, but it's evidence that our assumption was incorrect.  In the other case, if p-value > α, we fail to build a contradiction, i.e. we fail to reject H~0~.  However we do not accept H~0~ either.  No conclusion can be drawn if you fail to build a contradiction.  The evidence is insufficient to support any conclussion about either H~0~ or H~a~.  Recall that we optained the p-value by assuming H~0~ is true, so we certainly can't derive from a p-value that H~0~ is true.
+
+The _p-value_ (or _probability value_ or _asymptotic significance_) for a two sided test is Pr(T≥|t~obs~-E[T]| | H~0~), for a one sided test it is Pr(T≥t~obs~|H~0~) or Pr(T≤t~obs~|H~0~) respectively.  The interpretation of the p-value is: _Given_ H~0~ is true, then in (p-value)·100% of any hypothesis tests we see an result as extrem or more extrem (further away from mean) than t~obs~.  I.e. _given_ H~0~ is true, in (p-value)·100% of these tests we would incorrectly reject the null hypothesis.  The p-value is _not_ the probability that either hypothesis is correct.  Regarding the case of a one sided H~a~, where the very unlikely case occures that t~obs~ is of on the `other' side of H~0~'s distribution:  then the p-value will be very large, and we will not reject H~0~, which is correct in that we didn't accept H~a~.
+
+The _significance level_ (or _type I error rate_) α is the probability of rejecting H~0~ given that H~0~ is true. Or in other words, the probability of a false discovery.  Or equavilently, α is the area below the H~0~ distribution in the critical region.  α is choosen by the user, see algorithm above.  Typically we want to control type I error rate, since a false discovery is worse than accidentaly not making a discovery.
+
+The _type II error rate_ β is the probability of not rejecting H~0~ given that H~a~ is true.  Or equivalently, β is the area below the H~a~ distribution in the acceptance region.  Note that the distribution of H~a~ is unknown. β = 1 - power.
+
+The _power_ (or _statistical power_) of a test is the probability of making a true discovery, given that H~a~ is true.  I.e. it is the probability of rejecting H~0~ given that H~a~ is true.  Or equivalently, power equals the area below the distribution of H~a~ in the critical region.  power = 1 - β.
+
+The _critical region_ (or _rejection region_):  In a two sided test the critical region is [-∞,t~crit_a~] ∪ [t~crit_b~,∞],  where the _critical values_ crit_a and crit_b are defined via Pr(T≤t~crit_a~|H~0~) = α/2 and Pr(T≥t~crit_b~|H~0~) = α/2.  Or equivalently via the H~0~ distribution's quantile: t~crit_a~ = H0_dist_quantile(α/2) and t~crit_b~ = H0_dist_quantile(1-α/2).  In a onesided test its [-∞,t~crit~] where Pr(T≤t~crit~|H~0~) = α, or the other way round.  See also definition of significance level.
+
+The _acceptance region_ is the complement to the critical region.
+
+|=====
+|                       | H~0~ really true | H~a~ really true
+| failed to reject H~0~ | true positive | false negative, type I error, β
+| H~0~ rejected         | false postive, type II error, false discovery, significance level α | true negative, true discovery, power
+|=====
+
+
+==== Data snooping / selection effect
+
+[[data_snooping]]
+_Data snooping_ (or _data dredging_, _data snooping_, _p-hacking_) is searching patterns in data that then can be presented as statistically significant, without first devising a hypothesis.  The proper way is to first come up with a hypothesis, independently of the test data, and only afterwards test that hypothesis with test data.  Some patterns contained in large amounts of data (especially when number of predictors is huge and the number of observations is moderate) will be only due to chance.  When doing data snooping and actively searching for patterns, we are likely to find patterns, maybe ones that are there only due to chance (e.g. the few values of a predictor happen to correlate with the response by chance).  When then doing a hypothesis test with that same data, the p-value is meaningless, because the hypothesis is based on that data.
+
+[[selection_effect]]
+_Selection effect_: Any time we use the data to make a decision (e.g. select a model), we introduce a selection effect (bias). E.g. forward stepwise, lasso etc.
+
+
+See also <<inference_after_model_selection>>
+
+
+==== Multiple testing
+
+The problem we're trying to solve here is this: If we make many hypothesis tests, each with significance level α, we're bound to make a false discovery α·100% of the times, because that's what significance level α says.  See also https://xkcd.com/882/ :-).
+
+As in the case of finding the best expectedTestMSE, i.e. the best trade-off between increasing variance and decreasing bias, we now liked to find the best trade-off between inceease in type I error and increase in power.
+
+_Classificaton of multiple hypothesis tests_: Consider m hypothesis tests. The following table defines variables counting how often each case occures. Upper case variables (U V T S and R) are random variables, lower case variables (m and m~0~) are fixed. The number of tests m is known, number of tests m~0~ where H~0~ is really true is unknown, the number of rejected H~0~ R is observable, the others are unobservable.
+
+|=====
+|                       | H~0~ really true | H~a~ really true | Total
+| failed to reject H~0~ | U                | T                | m-R
+| H~0~ rejected         | V                | S                | R
+| Total                 | m~0~             | m-m~0~           | m
+|=====
+
+Q = V/R is the _false discovery proportion_ (_FDP_). By convention, if V = R = 0, then Q = 0.
+
+The case of that H~0~ is always true, i.e. m = m~0~, is called the _gobal null_ (or _complete null_).
+
+The _False discovery rate_ (_FDR_) is defined as FDR = E[Q] = E[V/R]. I.e. FDR is the expected proportion of type I errors (aka false discoveries) relative to all discoveries.
+
+The _Famility wise error rate_ (_FWER_) is defined as FWER = Pr[V≥1].  I.e. FWER is the probability that we make an type I error (aka false discovery) at all.
+
+δ = per test type I error rate +
+FWER ≥ FDR +
+FWER = FDR given global null +
+FWER = 1 - (1-δ)^m^  given global null and independend tests +
+FWER ≈ δm given global null and independend tests and small δ +
+δ ≤ FWER ≤ δm
+
+A procedure offers _weak control_ at level α if FWER ≤ α holds is guaranteed only under global null.  A procedure offers _strong control_ at level α if FWER ≤ α holds always.  Note that here α denotes _not_ the same thing as the significance level α of an individual test; here, it's the ``overall significance level''.
+
+Techniques which control FWER: <<bonferroni_correction>>, <<westfall_young>>
+
+Techniques which control FDR: <<bejamini_hochberg>>
+
+
+===== No correction
+
+*to-do*
+
+
+[[bonferroni_correction]]
+===== Bonferroni correction
+
+Control of the FWER: goal is to get an FWER ≤ α.  Do each of the m individual tests at a significance level δ = α / m. As a result we get FWER ≤ α.
+
+Neutral: Sensible if all tests are independent, because then FWER ≈ δm (assuming global null), see formulas after definition of FWER.
+
+Contra: Can be too conservative (i.e. δ is smaller than needed), especially if the test statistics are positively correlated.  This is because the Boferroni correction assumes the worst case, which is mutually independent tests.  As an extreme example, under perfect positive dependence, there is effectively only one test, and thus we could choose δ = α and still have FWER = α, but instead we `needlessly' did choose δ = α / m.
+
+Contra: As always wenn decrasing the siginificance level α, that comes at the cost of decreased statistical power, or equivalently, at the cost of increasing type II error rate.
+
+*to-do* How much of the above applies to controlling FWER in general, and how much applies to Bonferroni in particular?
+
+
+[[benjamini_hochberg]]
+===== Benjamini Hochberg
+
+Controls FDR.  *to-do*
+
+
+[[westfall_young]]
+===== Westfall Young permutation procedure
+
+Weak control of FWER. Strong control of FWER under some assumptions.  Computes a significance level δ to be used for each test.
+
+*to-do* what are these assumptions?
+
+For all (or some, to save time) permutations allowed under H~0~: Compute p-value for each test, and find the minimum p-value. Overall this gives us an empirical distribution D of the minimal p-values. Compute δ = quantile~D~(α). Use δ as significance level for each of the tests.
+
+This works because: FWER = P(V≥1) = P(p~i~≤δ for some p~i~) = P(min(p~1~, ..., p~m~)≤δ)
+
+*to-do* properly understand why this works; why does the formula for δ work. see my lecture notes.
+
+References:
+
+- Slides7.pdf
+
+
+==== Misc. test properties / characteristics
+
+_paramtetric test_: Assumes distribution family of the test statistics
+
+_non-parametric test_ (aka _distribution free_): No assumpotions on the distribution of the test statistic.
+
+
+==== One sample test
+
+_one sample test_: Only one sample, only one test statistic, treat every member of the sample the same way.
+
+
+==== Unpaired two sample test
+
+_unpaired two sample test_ (or _independent two sample test_): Two samples, e.g. one treated with treatment A and the other with treatment B (which might be `no treatment at all'). More formally, each of the two samples is drawn from another population, and the two populations have potentially different distributions.  Often the test statistic d is the difference or some kind of `difference', often standardized in some way, between the two sample means. The H~0~ is that the two population distributions are equal, which often means d = 0.
+
+Disadvantage:
+
+- The groups need to be really similar.  E.g. by chance the elements in either group might have something in common which has nothing to do with their treatment, but still influences the outcome of the test statistic.
+
+- There might be a big variance in the test static.  E.g. if we measure how long people sleep, after treatment A and after treatment B: there is anyway a rather large variance in how long different people sleep on average (opposed to how long a given person sleeps in a given night).   We don't want that variance to have an influence on our result.  In the paired two sample test, that variance cancels out in the step of building the difference.
+
+Examples:
+
+- parametric unpaired two sample tests: H~0~: X̄~1~ and X̄~2~ are equal
+
+  * <<z_test>> (assumes normal distr. with known variance): z = (X̄~1~ - X̄~2~) / (σ√(1/n~1~ + 1/n~2~)) ~ N(0, 1)
+
+  * <<t_test>> (assumes normal distr. with unknown variance):
+
+    ** equal sample sizes, equal variance: test statistic t = (X̄~1~ - X̄~2~) / (s~p~·√(2/n)) \~ t~2n-2~
+
+    ** equal variance: test statistic t = (X̄~1~ - X̄~2~) / (ŝ~p~√(1/n~1~ + 1/n~2~)) \~ t~n1+n2-2~, where s~p~ denotes the pooled variance.
+
+    ** general: Welch's t-test *to-do*
+
+- non-parametric unpaired two sample tests:
+
+  * <<permutation_test>>
+
+  * <<wilcoxon_rank_sum_test>>
+
+
+==== Paired two sample test
+
+_paired two sample test_  (or _paired difference test_ or _paired sample test_): Treat every element in the sample with treatment A and with treatment B (again, can be `no treatent at all').  The test statistic is for example the mean of the differences of each pair.
+
+Alternatively, we can match _match_ (or _pair_) every element in the treatment group with an element of the control group, the control group and the matching in a way that the matched pair shares similat observable characteristics.  Matching is however prominently critized.
+
+*to-do* I don't see how the term two sample test still applies here -- the whole point is that its _not_ two samples
+
+**to-do**(5) Are the terms "paired difference test" and "unpaired two sample test" really refering to exactly the same thing?
+
+*to-do* In case of matching, what is then the difference to unpaired two sample test?
+
+Examples: <<wilcoxon_signed_rank_test>>
+
+
+[[permutation_test]]
+==== Permutation test / randomization test
+
+A non-parametric two sample test. General idea: Use permutations of group assignments to destroy the relationship that is to be tested under H~0~ while keeping all other relevant structure.  For each permutation, compute the test statistic, which overall delivers an empirical distribution called _permutation distribution_. Provides type I error control, proof below.
+
+Informal proof for type I error control: When the data does come from H~0~, then the obtained permutation distribution is the distribution of the test statistic under H~0~. This is all we need for type I error control, since we need to control the probability of a false decision under H~0~.
+
+t-test is an approximation to a permutation test.  Permutation tests are known since long, but for a long time we didn't had the computational power to make them feasible, and as a consequence were forced to use approximations like t-test.  Nowadays permutation tests are feasible.
+
+Pro: No parametric assumptions
+
+Pro: Free to use any test statistic
+
+Pro: p-values and type I error control are exact if all permutations are considered. If only a subset of permutations are considered, it's an approximation.
+
+**to-do**(3) Also the lecture scripts list "Paired two sample test / one-sample test for symmetry" as an example (or examples?) for perumatation test.  I don't understand that.
+
+Contra: Computationally expensive
+
+Contra: Not everything can be formulated as permutation test. E.g. in linear regression, there is no straightforward permutation test for individual coefficients.
+
+
+===== As unpaired two sample test
+
+Given population F~1~ and F~2~, and a sample from each, Y~1~^(1)^, ..., Y~n1~^(1)^ \~ F~1~ and Y~1~^(2)^,...Y~n2~^(2)^ \~ F~2~. H~0~: F~1~ = F~2~ (i.e. treatment has no effect), H~a~ : F~1~ is a shifted version of F~2~ (either in a two tailed or one tailed way).  The test statistic is a function of two samples, measuring some kind of difference between the two samples. For example sum of ranks (ranks with respect to combined sample) of sample1 (i.e. <<wilcoxon_rank_sum_test>> as permutation test), or median(sample1) - median(sample2).
+
+- Compute t~obs~ using the original two samples.
+
+- For all possible permutations (i.e. group/sample assignments) (or, computationally cheaper, repeatedly for a permutation selected uniformely at random from all possible permutations): compute t~i~, where i denotes the i-th permutation.  We can permute since under H~0~ assignment to sampe 1 or sample 2 is irrelevant.
+
+- The set of t~i~ s form the emprical conditional distribution of test statistic T given the data, also calle the _permutation distribution_.
+
+- Compute the p-value using t~obs~ and the obtained permutation distribution.
+
+*to-do* What are properties of a good test statistics?  It seems often to be same sort of difference.  Note that rank sum of group1 is also sort of a difference.  It must be a function where the permutation has no effect under H~0~.
+
+*to-do* add or replace with alternative version where instead an combinedsample we have sample1 and sample2 seperately.
+
+------------------------------------------------------------
+  combinedsample <- ... # sample1 concatenate sample2
+  n1 <- ... # size of sample1
+  repetitioncount <- ... #
+
+  # function underlying test statistic T
+  g <- function(combinedsample, n1) { ... }
+
+  g_on_permuted_sample <- function(combinedsample, n1) {
+    n <- nrow(combinedsample)
+    permutedcombinedsample <- combinedsample[sample(1:n, n, replace=F)]
+    return(g(permutedcombinedsample));
+  }
+
+  t.obs.all <- replicate(repetitioncount, g_on_permuted_sample(combinedsample, n1))
+  t.obs <- g(combinedsample)
+  pvalue <- (sum(t.obs.all<=t.obs)+1) / (repetitioncount+1)
+
+  hist(t.obs.all)
+  abline(v=t.obs)
+------------------------------------------------------------
+
+
+===== As paired two sample test
+
+Same concept as before. However as in any paired two sample test, we no longer have two populations and thus two samples.  We have one single sample from one population, each element being the difference of a elementpair from sample A and sample B.  The test statistic t is a function on that sample consisting of differences.  A possible concrete test statistic is the mean (of the differences).
+
+Under H~0~, the signs of the observations are random, so we can permute them, which overall delivers the empircal distribution of t.  With that, we can conduct a normal hypothesis test.
+
+------------------------------------------------------------
+  g <- function(sample) { ... }
+
+  g_on_permuted_sample <- function(sample) {
+    n <- nrow(sample)
+    signs <- sample(c(-1,1), n, replace=T)
+    sample.new <- signs * sample
+    return(g(sample.new))
+  }
+------------------------------------------------------------
+
+
+===== Permutationt test example: Correlation
+
+Regression/classification setting. H~0~: no relationship between X and Y. Thus under H~0~, we can permute the Y values (or the X values/rows). As test statistic, we can for example use a rank correlation test statistic, for example Spearman's rank correlation coefficient.
+
+
+===== Permutationt test example: Correlation / Linear regression
+
+Given Y = β~0~ + β~1~X~1~ + ... + β~p~X~p~ + ε. H~0~: β~0~ = ... = β~p~ = 0.  Thus under H~0~, we can permute the Y values (or the X values/rows).  As test statistic, we can use for example the f-statistic of the linear regression fit.
+
+Example: Exercise series 7, exercise 3
+
+
+==== Monte Carlo test
+
+We want to make an hypothesis test, but when the distribution of the test statistic is unknown or infeasible to work with, we may can simulate it instead.  For example number of duplicates in a set of n numbers choosen from [m].  We do a number of simulations.  Each simulation chooses n numbers out of [m] and we count the duplicates.  That delivers an empirical distribution, and we can then finaly conduct a hypothesis test using that empirical distribution.
+
+
+==== Comparison of tests
+
+*to-do* flow chart with all the test: t-test, z-test, Wilcoxon, the Wald, .... Overview with pros and cons. E.g. http://health.uottawa.ca/biomech/courses/apa3381/hyp_test.pdf
+
+
+[[z_test]]
+==== Z-test
+
+A _Z-test_ is any statistical hypothesis test in which the test statistic follows approximately a Normal distribution under the null hypothesis.  Because of the central limit theorem, many test statistics are approximately normally distributed for large samples.
+
+Examples: see those of Student's t-test. Only that in an Z-test, we know the variance σ² of the population, or have a good enough estimator for it, which is often the case for large samples.  So e.g. building on t-test's example of a one sample test, see below, we just would change the test statistic to z = (x̄ - μ~0~) / sd[x̄], which is standard Normal distributed.  Recall that sd[x̄] = σ/√n, see standard error of the mean.
+
+
+[[t_test]]
+==== Student's t-test
+
+A _Student's t-test_ (or simply _t-test_) is any statistical hypothesis test in which the test statistic follows a Student's t-distribution under the null hypothesis.
+
+_As one sample test_:  Given one sample with sample mean x̄.  We hypothise that μ~0~ is the population mean and want to test that.  Let μ denote the (true) population mean and S² the unbiased sample variance.  H~0~: μ = μ~0~.  As test statistic we use the t-statistic t = (x̄ - μ~0~) / sd̂[x̄], where sd̂[x̄] = S/√n, see also estimator for standard error of the mean.  Under H~0~ it's distribution is t~n-1~.
+
+_As unpaired two sample test_:  Given two samples of equal size n and equal variance, one treated with treatment A and the other with treatment B (no treatment at all, or different treatment).  We want to test whether treatment A has an effect.  Let s~p~ denote the <<pooled_variance>>, X̄~A~ and X̄~A~ are the sample means.  H~0~: X̄~A~ = X̄~B~.  As test statistic we use the t-statistic t = (X~A~ - X~B~) / s~p~√(2/n).  Under H~0~ it's distribution is t~2n-2~.
+
+_As paired two sample test_:  Given one sample, for each member, we calculate the difference of some test statistic after treatment A and after treatment B (no effect / controll), see also paire two sample test.  We want to test whether treatment A has an effect.  Let n denote the sample size, X~D~ the average of the differences and s²~D~ the variance of the differences.  H~0~: X~D~ = μ~0~ (often 0):  As test statistic we use the t-statistic t = (X~D~ - μ~0~) / sd̂[X~D~], where sd̂[X~D~] = s~D~/√n, see also estimator for standard error of the mean.  Under H~0~ its distsribution is t~n-1~.
+
+_Linear regression_, testing wether a coefficient has an effect: see <<linear_regression_models>>
+
+
+*to-do* See also Wilcoxon, The Wald test
+
+
+==== The Wald test
+
+*to-do*
+
+
+==== F-Test & ANOVA
+
+An F-test is a generic name for a class of statistical tests that share the property that the test-statistic follows an F-distribution (given the null-hypothesis).
+
+One of the most common cases where a test-statistic `ends up' having an F-distribution, is when the ratio between two variances is calculated.
+
+An ANOVA is a specific type of procedure that produces an F-statistic, because it tests the ratio between systematic variance and error-variance.
+
+
+[[wilcoxon_rank_sum_test]]
+==== Wilcoxon rank sum test (or Mann-Whitney U test)
+
+A two sample test using the test statistic U which is the sum of ranks (ranks with respect to the combined sample) in smaple/group 1 (or sample/group 2, doesn't matter), and the null hypothesis H~0~ that the distributions of the two samples are equal.  If the two sample sizes are equal, the distribution of U under H~0~ is known.  For small sample sizes (~20), it's given by tables, for large sample sizes it can be approximated by a Normal distribution.
+
+Don't confuse with <<wilcoxon_signed_rank_test>>.
+
+Pro: No parametric assumptions
+
+Pro: Robust, because the sum of ranks of group 1 statistic is robust.  E.g. if the largest value in a sample gets even larger, the mean would change, but the sum of ranks doesn't.
+
+Pro: Doesn't require the two populations to be normally distributed, which is an advantage over the t-test.
+
+Neutral: Power almost identical to that of t-test if distributions are Normal.
+
+Pro: The null distribution (i.e. U under H~0~) is independent of F~1~ and F~2~.
+
+_As a non-parametric unpaired two sample test_:  Regular hypothesis test. Given population F~1~ and F~2~, and a sample from each.  H~0~: F~1~ = F~2~, H~a~ : F~1~ is a shifted version of F~2~ (either in a two tailed or one tailed way).  Compute u~obs~ from the given sample, and from u~obs~, using the known distribution of U, the p-value.
+
+_As unpaired two sample permutation test_:  An unpaired two sample permuatation test where the test statistic is U.
+
+
+[[wilcoxon_signed_rank_test]]
+==== Wilcoxon signed rank test
+
+Don't confuse with <<wilcoxon_rank_sum_test>>.
+
+Is a non-parametric paired two sample permutation test.  Let X~1~, ..., X~m~ \~ F~X~ and Y~1~, ..., Y~m~ \~ F~Y~ be independent, where (X~i~, Y~i~) is measured on the same subject i. Let D~i~ = X~i~ - Y~i~. The test statistic V is the following.  First remove all D~i~ = 0, resulting in a set of Dʹ~i~.  V = ∑rank~i~·H(Dʹ~i~), where rank~i~ is the rank of |Dʹ~i~| among all |Dʹ~i~|, and H(x) is the heavyside step function (0 for x < 0, 1 for x > 0).
+
+The null hypothesis H~0~: The distribution of the test statistic V is symmetric around a = 0 (or equivalently, F~X~ = F~Y~).
+
+See <<permuatation_test>> how to conduct the test as a whole. In brief: Exercise all possible permutations (or exercise a subset of N of those permutations).  Permuting here means permute (X~i~, Y~i~) for any i (or alternatively, for each D~i~, at random flip sign).  For each permutation, compute the test statistic V~i~.  Overall this delivers a empirical permutation distribution of V.  With this distribution and v~obs~ we can compute the p-value.
+
+Pro: Doesn't require the two populations to be normally distributed, which is an advantage over the t-test.
+
+Sidenote: Under H~0~, the distribution of V is a known distribution, however with no simple expression.  As the sample size increases, it converges to a normal distribution.  Thus we could also conduct a non-permutation test, and use that known distribution instead of the permuatation distribution presented here.
+
+
 === Statistical Model
 
 A _statistical model_ 𝔉 is a set of distributions or regression functions (*to-do* but regression functions are quite a different thing than distributions; I don't understand). A _parametric model_ is set 𝔉 that can be parameterized by a finite number of parameters: 𝔉 = { f(x;θ) : θ ∈ Θ}, where θ is an _parameter_, or vector of parameters, that can take values in the _parameter space_ Θ. f is a function of x, parameterized by θ.
@@ -220,40 +595,7 @@ References:
 - Statisitic Cheat Sheet: http://web.mit.edu/~csvoss/Public/usabo/stats_handout.pdf
 
 
-=== Decision theory
-
-_inference_ step/stage: Determination of the joint probability p(x,t) from training data. Is typically a very difficult problem.
-
-_decision_ step/stage: Make an optimal decision regarding the problem at hand, based on the joint probability p(x,t) retreived from the inference step. Is generally very simple, even trivial, once we solved the inference problem.
-
-A <<discrimant_function>> combines the inferance stage and the subsequent decision stage into one step.
-
-_minimizing misclassification rate_: Choose decision regions such that the probability for missclassification is minimal.
-
-_minimizing the expected loss_: Choose decision regions such that the average total loss E[L], according to a loss function / matrix, is minimized. E[L] = ∑~k~∑~j~(L~k,j~∫~Rj~p(x, C~k~)dx).
-
-_reject option_: In regions where we are relatively uncertain about the correct class, we dodge the problem and simply reject the input, i.e. answer "I don't know".  More formaly, we reject an input x if it lies within a region where the highest (with respect to k) posterior probability p(C~k~|x) is equal to or below a given threshold θ.
-
-
-[[bayesian_decision_theory]]
-==== Bayesian decision theory
-
-A form of <<cost_sensitive_classification>>.  Given a conditional distribution over labels p(y|x), a set 𝓐 of actions, and a cost function C:𝓨⨯𝓐→ℝ. Bayesian decision theory recommends to pick the action that minimizes the expected cost. This decision is called the _Bayesian optimal decision_.
-
-a^∗^ = argmin~a∈𝓐~(E~y∈𝓨~[C(y,a)|x])
-
-Actions can e.g. be:
-
-- 𝓐 = 𝓨, i.e. the action is to return the classification / regression result.
-
-- 𝓐 = {𝓨, "don't know" }. E.g. when we're really uncertain about the correct result, we admit it and return "don't know".
-
-The cost function could e.g. be the 0-1 loss for classification.
-
-
-=== Misc
-
-In the probabilistic view, we also model the uncertainty. Before we didn't do that, or only in a relatively limited form via calculating variance, confidence interval, prediction interval.
+== Misc machine learning
 
 _parameter_ θ (read hypothesis), _parameter space_ Θ, _hypothesis_ h(x) (parameterized by θ): *to-do*
 
@@ -322,9 +664,66 @@ _Baye's optimal predictor_: Let X and Y denote the random variables denoting a p
 
 _probabilistic predictions_ p(y|x,𝓓): denotes the probability distribution over possible responses, given the input vector x and training set 𝓓. I.e. it represents a probability for each possible value of the response y.
 
+_supervised learning_: The given data is composed of the features X and the respective labels Y.
+
+_unsupervised learning_: The given data has only the features X, but no labels.
+
+_active learning_ (or _semi-supervised learning_): The labels are theoretically available, but expensive to acquire, so the learning algorithm must decide which labels it wants to see.
+
+_frequentist vs bayesian_: In the probabilistic view, we also model the uncertainty. Before we didn't do that, or only in a relatively limited form via calculating variance, confidence interval, prediction interval.
+
+*to-do* explain much better frequentist vs bayesian
+
 _generative model_: Models the distribution of individual classes (i.e. the joint probability distribution p(x,y)), i.e. models how the data was generated.  However this is in general very hard. Typically less robust against outliers.
 
 _discriminative model_: Uses the data to model/learn (discriminating) decision boundaries between classes.  Learns the the function f:x→y or the conditional probability distribution p(y|x).  Simply categorize, without caring about how the data was generated.  Does not attempt to model p(x).  Thus cannot detect outliers.  Typically more robust than the generative model, since modeling x may be very difficult.  For classificiation tasks generally outperforms generative model.
+
+
+=== Decision theory
+
+_inference_ step/stage: Determination of the joint probability p(x,t) from training data. Is typically a very difficult problem.
+
+_decision_ step/stage: Make an optimal decision regarding the problem at hand, based on the joint probability p(x,t) retreived from the inference step. Is generally very simple, even trivial, once we solved the inference problem.
+
+A <<discrimant_function>> combines the inferance stage and the subsequent decision stage into one step.
+
+_minimizing misclassification rate_: Choose decision regions such that the probability for missclassification is minimal.
+
+_minimizing the expected loss_: Choose decision regions such that the average total loss E[L], according to a loss function / matrix, is minimized. E[L] = ∑~k~∑~j~(L~k,j~∫~Rj~p(x, C~k~)dx).
+
+_reject option_: In regions where we are relatively uncertain about the correct class, we dodge the problem and simply reject the input, i.e. answer "I don't know".  More formaly, we reject an input x if it lies within a region where the highest (with respect to k) posterior probability p(C~k~|x) is equal to or below a given threshold θ.
+
+
+[[bayesian_decision_theory]]
+==== Bayesian decision theory
+
+A form of <<cost_sensitive_classification>>.  Given a conditional distribution over labels p(y|x), a set 𝓐 of actions, and a cost function C:𝓨⨯𝓐→ℝ. Bayesian decision theory recommends to pick the action that minimizes the expected cost. This decision is called the _Bayesian optimal decision_.
+
+a^∗^ = argmin~a∈𝓐~(E~y∈𝓨~[C(y,a)|x])
+
+Actions can e.g. be:
+
+- 𝓐 = 𝓨, i.e. the action is to return the classification / regression result.
+
+- 𝓐 = {𝓨, "don't know" }. E.g. when we're really uncertain about the correct result, we admit it and return "don't know".
+
+The cost function could e.g. be the 0-1 loss for classification.
+
+
+[[curse_of_dimensionality]]
+=== Curse of dimensionality
+
+In general, adding additional signal predictors that are highly associated with the response will improve the fitted model in terms of decreasing test MSE.  However even if they are associated, the increase in variance might outweight the reduction in bias.  Adding noise predictors that are not truly associated with the response will detoriate the fitted model, because they increase the dimensionality of the problem, exacerbating the risk of overfitting, since noise features may be assigned nonzero coefficients due to chance.
+
+Models with no interaction suffer only little from curse of dimensionality, because they fit a predictor at a time, and when fitting a single predictor, they only `look in one direction' in the p-dimensional space.
+
+KNN suffers more than linear regression or GAM with splines. KNN looks in all directions in the p-dimensional space at the same time.
+
+See also respective paragraph in <<KNN>>.
+
+References:
+
+- Pattern Recognition and Machine Learning, chapter ``1.4 The curse of Dimensionality''.
 
 
 == Model selection, model validation
@@ -1040,7 +1439,7 @@ MLE vs Bayes estimation
 
 === Classification
 
-The goal of _classification_ is to take an input (vector) x and to assign it to one of K (or D) discrete classes C~k~, where k = 1, ..., K.  In the most common scenario the classes are disjoint.  The input space is devided into _decision regions_ whose boundaries are called _decision boundaries_ (or _decision surfaces_).
+The goal of _classification_ is to take an input (vector) x and to assign it to one of K (or D or c) discrete classes C~k~, where k = 1, ..., K.  In the most common scenario the classes are disjoint.  The input space is devided into _decision regions_ whose boundaries are called _decision boundaries_ (or _decision surfaces_).
 
 [[discrimant_function]]
 A _discrimant (function)_ is a function that takes an input (vector) x and assigns it to one of the K classes.
@@ -1052,7 +1451,7 @@ References:
 - Pattern Recognition and Machine Learning, chapter ``Linear Models for Classification''.
 
 
-==== Class inbalance
+==== Class imbalance
 
 When one class is much less frequent than the other class. By convention, the infrequent class has the `+' label, and the other the `-' label. A problem with imbalanced data is that the minority class instances contribute little to the empirical risk relative to the majority class.
 
@@ -1066,7 +1465,10 @@ Solutions:
 
 - in case of a linear classifier, shift hyperplane by parameter τ: h(x) = signʹ(w^T^x-τ)
 
-Metrics for imbalanced data. TP = true positive, TN = true negative, FP = false positive, FN = false negative, true_predictions = TP + TN.
+
+==== Metrics for imbalanced data
+
+TP = true positive, TN = true negative, FP = false positive, FN = false negative, true_predictions = TP + TN.
 
 |====
 |                    | true label positive | true label negative
@@ -1078,7 +1480,7 @@ Metrics for imbalanced data. TP = true positive, TN = true negative, FP = false 
 
 - _precision_ = TP / (TP+FP)
 
-- _recall_ (or _true positive rate_ (_TPR_)) = TP / (TP+FN)
+- _recall_ (or _true positive rate_ (_TPR_) or _sensitivity_) = TP / (TP+FN)
 
 - _false positive rate_ (_FPR_) = FP + (TN+FP)
 
@@ -1101,9 +1503,25 @@ Examples: <<bayesian_decision_theory>>
 
 ==== Multi-class classification
 
-*to-do*
+- _one-vs-all_: Train K binary classifiers, one for each class. Per classififier, use positive label for observations of the respective class, and negative label for all other observations.  Thus we get a set of scores, one score for each class.  A high score meaning a high confidence that it's the respective class, a low score meaning high condifence that it's not the respective class.  The overall classification then for example chooses the class with the highest score.  One possible way to calculate score is w^T^x, i.e. distance to decision boundary.  In that case however weights must be normalized: w=w/|w|.
 
-21.03. 00:57
+  * The K scores must be "on the same scale"
+
+  * Individual binary classifiers see imbalanced data, even if the whole data set is unbalanced
+
+  * One class might not be linearily separable from all others (e.g. consider three clusters clearly horizontally side by side, each cluster of a given class, then the middle cluster is not linearly separable from the one set of all others)
+
+- _one-vs-one_: Have C(K 2) = K(K-1)/2 binary classes, one for each pair of classes. Then do majority voting, i.e. class with highest number of positive predictions wins. Note that no scores are needed, a binary decision per classifier is good enough.
+
+- _explicit multi-class models_:
+
+  * E.g. neuronal nets, having K output units, each having a sigmoid like activation function.
+
+  * <<multi_class_SVM>>
+
+  * Multi-class Perceptron
+
+In practice, one-vs-all and one-vs-one work pretty well.
 
 
 === Comparison of models
@@ -1265,8 +1683,7 @@ Linear regression is a model of the following form, where θ = (w,σ²) are the 
 p(y|x,θ) = 𝓝(y|w^T^x,σ²) +
 p(y|x,θ) = 𝓝(y|w^T^Φ(x),σ²) [if basis functions are used]
 
-A common estimator θ̂ of the parameter θ is the MLE.  It turns out that here it is equivalen to the least squares estimator, which is based on directly minimizing the empirical risk of the training data, with MSE as loss function.
-
+A common estimator θ̂ of the parameter θ is the MLE.  It turns out that here it is equivalent to the least squares estimator, which is based on directly minimizing the empirical risk of the training data, with MSE as loss function.
 
 References:
 
@@ -1400,11 +1817,11 @@ We only look at univariate models, i.e. one predictor X.  As in ridge and lasso,
 
 Let G be a class of functions where [a, b] ⊆ ℝ dontes the data range
 
-G = {g: [a,b] → ℝ, gʺ exits and ∫~a≤x≤b~gʺ(x)²dx < ∞}
+G = {g: [a,b] → ℝ, gʺ exits and ∫~a,b~gʺ(x)²dx < ∞}
 
 The estimate f̂ of the regression function is then defined as follows.  It can be shown that f̂ is a natural cubic splines with n knots, each training data point having one knot on it.  There multiple possible such cubic splines, and we want the one satisfying the given `argmin constraint'.
 
-f̂ = argmin~g∈G~[RSS(g) + λ∫~a≤x≤b~gʺ(x)²dx]
+f̂ = argmin~g∈G~[RSS(g) + λ∫~a,b~gʺ(x)²dx]
 
 λ = 0: f̂ perfectly fits the _training_ data (RSS=0), i.e. f̂ interpolates the training data, i.e. f̂ goes through every training data point.  It's is a flexible model (n degrees of freedom), thus has low bias and high variance.
 
@@ -1780,6 +2197,27 @@ The perceptron had (*to-do* move to right place):
 In general kernelized SVM are a very good choice for classification problems up to a few tens of thousands observations, i.e. should at leasts be tried.
 
 
+[[multi_class_SVM]]
+=== Multi-class SVM
+
+An explicit multi-class classifier, i.e. it directly outputs a class {1, ..., K}. Similar to SVM (a binary classifier), but internally with K decision boundaries, thus K weights w^(1)^, ..., w^(K)^.  Instead the hinge loss, the multi-class hinge loss is used:
+
+loss~multiclasshinge~(w^(1)^, ..., w^(K)^, x, y) = max(0, 1 + max~1≤j≤K,j≠y~((w^(j)^)^T^x - (w^(y)^)^T^x))
+
+_Optimization_: E.g. SGD.
+
+_Prediction_: h(x) = argmax~j~((w^(j)^)^T^x)
+
+
+==== Rational for multi-class hinge loss
+
+For each data point (x~i~, y~i~), we would like to find weight vectors (w^(1)^, ... w^(K)^) such that
+
+(w^(y~i~)^)^T^x~i~ > max~1≤j≤K,j≠yi~((w^(j)^)^T^x~i~) + 1
+
+The max~...~(...) can also be understood as the score of the runner-up classifier.  We want that our best classifier is better than the runner-up classifer by some margin, hence the ``+1'' term.  The constant 1 is flexible good enough due to regularization.  This leads us to the multi-class hinge loss, which is 0 only if the above condition is met, and otherwise is a measure of how much the above condition is violated.
+
+
 === Clustering
 
 Unsupervised classification, i.e. can be seen as the unsupervised analog to (supervised) classification.
@@ -1857,6 +2295,70 @@ Strategies for initializing the k centers:
 - _K-Means++_: Let D(x) denote the shortest distance from a data point x to the closest center we have already chosen.  Uniformily at random choose a data point as first center. Then k-1 times: Choose data point x~i~ ∈ x as center with probability D(x~i~)²/∑~1≤j≤n~D(x~j~)².
 
 
+=== Dimension reduction
+
+Unsupervised regression, i.e. can be seen as the unsupervised analog to (supervised) regression.
+
+Assume 𝓓 = {x~1~, ..., x~n~} ⊆ ℝ^d^. The goal is to find a mapping _f_:ℝ^d^→ℝ^k^ where _k_≪d is a parameter.  I.e. f projects vectors x ∈ ℝ^d^ into a k-dimensional subspace.
+
+
+==== Linear dimension reduction
+
+We assume centered data 𝓓, i.e. zero mean.
+
+Educated guessing leads us to believe that the points {x~1~, ..., x~n~} ⊆ ℝ^d^ actually all approximately lie near a k-dimensional hyperplane.  E.g. k=1 means all lie near a line, k=2 means all lie near a 2D plane.  Thus want to find a k-dim hyperplane given by matrix _W_ ∈ ℝ^d⨯k^ going through the origin and approximately through all points.  The point __x̄~i~__ on hyperplane closest to x~i~ is x~i~'s dimension reduced version.  We constrain the matrix W to be orthogonal and having columns of length 1 in Eucledian norm.  Now it's easy to see, especially in the line case k=1, that x̄~i~ = z~i~W, for some scalar __z~i~__ ∈ ℝ.  We want to minimize the sum of squared distances.  Or in other words, we want to minimize the reconstruction error of the projection, measured in Eucledian norm.  The matrix W is given by the following optimization problem.  Here it's deliberately written down in a verbose form to express the logical background:
+
+Ŵ = argmin~W~(∑~1≤i≤n~‖x~i~-x̄~i~‖~2~²) +
+x̄~i~ = z~i~W +
+z~i~ = W^T^x~i~  [z~i~∈ ℝ is just a scalar]
+
+having the closed form optimal solution
+
+Ŵ = (v~1~|...|v~k~) +
+v~i~ = Eigenvectors of empirical covariance ∑ = 1/n ∑~1≤i≤n~x~i~x~i~^T^
+
+*to-do* really? I need k vectors
+
+The mapping can then be stated as
+
+f(x) = W^T^x
+
+Choosing k:
+
+- for visualizatoin: by inspection :-)
+
+- for feature induction: by cross validation
+
+- otherwise: so that most of the variance is explained, see also k-means
+
+
+===== Deduction of optimization problem
+
+For the k=1 case.  We want to find scalars z ∈ ℝ^n^ and a line given by w∈ℝ^d^ going through origin, such that x~i~ ≈ z~i~w.  That line is then a subspace of ℝ^d^ where we put the reduced versions of x~i~ on.
+
+ŵ,ẑ = argmin~|w|=1,z~(∑~1≤i≤n~‖x~i~-z~i~w‖~2~²)
+
+Assuming we know the optimal w, then the scalars are determined by z~i~=w^T^x~i~, since w is normalized by |w| = 1, and since z~i~ is just the base of the distance from the line to x~i~. Thus the problem becomes
+
+ŵ = argmin~|w|=1~(∑~1≤i≤n~‖x~i~-ww^T^x~i~‖~2~²) +
+
+Which can be shown (just do the squaring and a bit of math, and using that the data is normalized to have zero mean) to be equivalent to the following, where ∑ = 1/n ∑~1≤i≤n~x~i~x~i~^T^ is the empirical covariance.
+
+ŵ = argmax~|w|=1~(w^T^∑w)
+
+This optimzation problem has a closed form optimal solution:
+
+ŵ = principal eigenvector of ∑
+
+For arbitrary k, we want to find a k-dimensional hyperplane, where we want to find an orthogonal matrix W ∈ ℝ^d⨯k^, each column having unit length, leading to the following optimization problem, called the _principal component analysis_ (_PCA_) problem:
+
+Ŵ,ẑ = argmin~W,z~(∑~1≤i≤n~‖x~i~-Wz~i~‖~2~²)
+
+The PCA optimization problem has a closed form solution, nameley the principal Eigenvectors v~i~, i.e.
+
+Ŵ = (v~1~|...|v~k~)
+
+
 [[gaussian_mixture_model]]
 === Gaussian mixture model (GMM)
 
@@ -1873,26 +2375,19 @@ Fitting a GMM = Training a gaussian bayes classifier without labels
 Fit with the hard/soft EM algorithm.
 
 
-=== Dimension reduction
+=== Uncertainty sampling
 
-Unsupervised regression, i.e. can be seen as the unsupervised analog to (supervised) regression.
+Form of active learning.  Based on a probabilistic model yielding p(y|x,𝓓).  We incrementally train the model, by always quering the label y~i~ for the x~i~ we're most uncertain about.  Say we have a two-class classification problem.
 
+--------------------------------------------------
+D' = ∅
+while not satisfied
+  Train model using D'
+  i = argmin~i ∉ D'~(score(xi))
+  Query label yi, add i-th observation to D'
+--------------------------------------------------
 
-
-[[curse_of_dimensionality]]
-=== Curse of dimensionality
-
-In general, adding additional signal predictors that are highly associated with the response will improve the fitted model in terms of decreasing test MSE.  However even if they are associated, the increase in variance might outweight the reduction in bias.  Adding noise predictors that are not truly associated with the response will detoriate the fitted model, because they increase the dimensionality of the problem, exacerbating the risk of overfitting, since noise features may be assigned nonzero coefficients due to chance.
-
-Models with no interaction suffer only little from curse of dimensionality, because they fit a predictor at a time, and when fitting a single predictor, they only `look in one direction' in the p-dimensional space.
-
-KNN suffers more than linear regression or GAM with splines. KNN looks in all directions in the p-dimensional space at the same time.
-
-See also respective paragraph in <<KNN>>.
-
-References:
-
-- Pattern Recognition and Machine Learning, chapter ``1.4 The curse of Dimensionality''.
+Possible score function to be maximized: score(x) = -|p(y="+"|x)-0.5|
 
 
 == Bootstrap
@@ -2281,7 +2776,7 @@ Shrinkage/Regularization: Fight overfitting (high variance) by applying Occam's 
 | l~hinge~(ŷ, y) = max(0, 1-yŷ) |
 | l~logistic~(ŷ, y) = log(1+exp(-yŷ)) |
 | Q | cost function. More general than the loss function, e.g. sum of loss functions over all observations
-| R(h) = E~y∈𝓨,x∈𝓧~[l(h(x),y)] = ∫~y∈𝓨~∫~x∈𝓧~l(h(x),y)p(x,y)dxdy | expected risk
+| R(h) = E~y∈𝓨,x∈𝓧~[l(h(x),y)] = ∫~𝓨~∫~𝓧~l(h(x),y)p(x,y)dxdy | expected risk
 | R̂~𝓓~(h) = E~(y,x)∈𝓓~[l(h(x),y)] = 1/n ∑~(y,x)∈𝓓~l(h(x),y) | empirical risk
 | R̂~train~(h) | training error
 | R̂~test~(h) | test error
