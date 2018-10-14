@@ -571,7 +571,7 @@ In general, we can use regression only for prediction of a response variable giv
 See more statistics and definitions in <<measuring_model_performance>>.
 
 [[trainingsampe_testsample_notation]]
-Notation: In Pr~training~[·], E~training~[·], Var~training~[·], Bias~training~[·] etc. the sample space is the set of all possible training samples taken from the population.  Each training sample trains the estimate f̂.  Thus f̂, or more specically its estimated coefficients β̂, are random variables with a sample space as described before.  In Pr~test~[·], E~test~[·], Var~test~[·], Bias~test~[·] etc., the sample space is the set of all possible test samples taken from the population.
+Notation: In Pr~train~[·], E~train~[·], Var~train~[·], Bias~train~[·] etc. the sample space is the set of all possible training samples taken from the population.  Each training sample trains the estimate f̂.  Thus f̂, or more specically its estimated coefficients β̂, are random variables with a sample space as described before.  In Pr~test~[·], E~test~[·], Var~test~[·], Bias~test~[·] etc., the sample space is the set of all possible test samples taken from the population.
 
 |=====
 | n (N) | Number of samples
@@ -612,13 +612,13 @@ _expected risk_ (or _true risk_, or just _risk_, or _expected error_, or _expect
 
 _empirical risk_ (or _empirical error_) R̂~𝓓~(h) = E~(y,x)∈𝓓~[l(h(x),y)] = 1/n ∑~(y,x)∈𝓓~l(h(x),y). Since p(x,y) is often unknown, the expected risk R(h) cannot be computed. We can estimate the risk by averaging the loss on a sample data set 𝓓. Assuming iid observations, R̂~𝓓~(h)→R(h) for |𝓓|→∞ (by law of large numbers).
 
-_training error_ R̂~train~(ĥ): Empirical risk using the training set and the fitted model ĥ. In general, E~all train sets~[R̂~train~(ĥ)] < E[R(ĥ)], i.e. the estimator R̂~train~(ĥ) is an overly optimistic estimator; it underestimates the true risk R(ĥ).  The reason is that the training data can be fitted better than unseen data.  Thus never evaluate a model by using the training error.
+_training error_ R̂~trainset~(ĥ): Empirical risk of given model ĥ using the one training set. In general, E~train~[R̂~trainset~(ĥ)] < E[R(ĥ)], i.e. the estimator R̂~trainset~(ĥ) is an overly optimistic estimator; it underestimates the true risk R(ĥ).  The reason is that the training data can be fitted better than unseen data.  Thus never evaluate a model by using the training error.
 
-_test error_ R̂~test~(ĥ): Empirical risk using the test set and typically the fitted model ĥ. An unbiased estimator for the true risk, i.e. E~all train sets~[R̂~test~(ĥ)] < E[R(ĥ)], as long as the test data was not involved in any way in fitting ĥ.
+_test error_ R̂~testset~(ĥ): Empirical risk of given model ĥ using the one test set.  An unbiased estimator for the true risk, i.e. E~train~[R̂~testset~(ĥ)] < E[R(ĥ)], as long as the test data was not involved in any way in fitting ĥ.
 
 _generalization error_ gen_error~𝓓~(h) = R(h) - R̂~𝓓~(h). An algorithm is said to _generalize_ if lim~|𝓓|→∞~gen_error~𝓓~(h) = 0.  In general the generalization error cannot be computed since the risk R(h) in general cannot be computed. Instead, the aim is often to bound the generalization error in probability: p(|gen_error~𝓓~(h)|≤ε) ≥ 1-δ, where ε is called the error bound and is generally dependent on δ and n = |𝓓|.
 
-_empirical risk minimizer_ (_ERM_): ĥ = argmin~h~(R̂~train~(h))
+_empirical risk minimizer_ (_ERM_): ĥ = argmin~h~(R̂~trainset~(h))
 
 _likelihood function_ ℒ~𝓓~(θ) = p(𝓓|θ) =~iid~ ∏p(d~i~|θ): Probability of seeing the data 𝓓 given the model parameters θ.
 
@@ -784,21 +784,21 @@ All of Mallow's C~p~, AIC, BIC are asymptotically (for large n) good in the sens
 
 **to-do**(3) Adjusted training error vs estimated expected test error. When can I reasonably use adusted training error? E.g. in best subset, when can I use adjusted training error opposed to having to pay CV?
 
-Recall: The notation E~training~[·], Var~training~[·], E~test~[·], Var~test~[·] etc. is defined by <<trainingsampe_testsample_notation>>.
+Recall: The notation E~train~[·], Var~train~[·], E~test~[·], Var~test~[·] etc. is defined by <<trainingsampe_testsample_notation>>.
 
 The __bias of estimate f̂__ with respect to regression function f __at x~0~__ is defined analogous to the bias for an estimator θ̂, see there. f̂(x~0~) is a random variable since f̂, i.e. its parameters, depends on the random training data.
 
-Bias~training~[f̂(x~0~)] = E~training~[f̂(x~0~)] - f(x~0~)
+Bias~train~[f̂(x~0~)] = E~train~[f̂(x~0~)] - f(x~0~)
 
-Bias~training,test~[f̂] = E~test~[Bias~training~[f̂(x~test~)]]
+Bias~train,test~[f̂] = E~test~[Bias~train~[f̂(x~test~)]]
 
 *to-do* how is variance of f̂ formally defined ?
 
-Var~training~[f̂(x~0~)] = ...?
+Var~train~[f̂(x~0~)] = ...?
 
-*to-do* how is Var~training~[f̂(x~0~)] defined? In general, for OLS linear regression?
+*to-do* how is Var~train~[f̂(x~0~)] defined? In general, for OLS linear regression?
 
-Var~training,test~[f̂] = E~test~[Var~training~[f̂(x~test~)]
+Var~train,test~[f̂] = E~test~[Var~train~[f̂(x~test~)]
 
 *to-do* confidence interval for f̂
 
@@ -808,9 +808,9 @@ Similarily a _loss matrix_ L~k,j~ is often used in a classification setting, whe
 
 Conversely, some authors consider instead a _utility function_, whose value they aim to maximize.  These are equivalent concepts if we take the utilitiy to be simply  the negative of the loss.
 
-The _training error_ Err~training~ of a model is the average loss over the training sample.  Can theoretically be used as estimator for the expected test error, but it generally would be a rather bad one since rather biased, see also *to-do*.
+The _training error_ Err~train~ of a model is the average loss over the training sample.  Can theoretically be used as estimator for the expected test error, but it generally would be a rather bad one since rather biased, see also *to-do*.
 
-Err~training~ = 1/|trainingsample| ∑L(y~training,i~, f̂(x~training,i~))
+Err~train~ = 1/|trainingsample| ∑L(y~train,i~, f̂(x~train,i~))
 
 The _test error_ is the expected loss of a concrete trained model on a test sample (aka unseen data).  It is defined as follows.  f̂ is fixed and was trained by some training sample.  The stated two variants are equivalent.  In the 1st variant the randomness lies in repeatedly randomly picking a test sample from the population.  y~test,i~ and x~test,i~ correspond to the i-th observation in that random sample set and thus are fixed values.  In the 2nd variant the randomness lies in X and Y being random variables.
 
@@ -821,7 +821,7 @@ E~test~[L(Y, f̂(X))|f̂]
 [[expected_test_error]]
 The _expected test error_ (or _expected prediction error_) is the expected loss of a model `template' (i.e. not yet trained), when it is trained multiple times and each trained model is tested.  For a concrete example see <<expected_test_mse>>.  In respect to test error, now also the training sample is choosen at random from the population.
 
-Err = E~training~[Err~test~]
+Err = E~train~[Err~test~]
 
 Regarding `the' _MSE_, there are multiple variants, depending on what exactly we want to describe.  The basic idea is always the same, but depending on the specific MSE variant, it is calculated over different data and the used estimate f̂ is either fixed or varies by repeteadly training it with some data. See also MSE for an estimator θ̂, which is analogously defined.
 
@@ -832,27 +832,41 @@ trainingMSE = RSS/n **to-do**(3) or does denomitor subtract 1 or 2?
 [[expected_test_mse]]
 The _expected test MSE_ is conceptually calculated in two levels. One level iterates over all possible training data sets, each iteration training a new estimate f̂.  For each of those f̂, the other level iterates over all possible test data sets. See also <<expected_test_error>> for the more general concept.
 
-expectedTestMSE = E~training~[E~test~[(y~test~ - f̂(x~test~))²]] = +
+expectedTestMSE = E~train~[E~test~[(y~test~ - f̂(x~test~))²]] = +
 E~test~[expectedTestMSE(x~test~)]
 
 The __expected test MSE at x~0~__ is analogous, but here we only look at a fixed x~0~.  In the following formula, the inner E[·] is for the random variable Y~0~.   Note that the Y~0~ corresponding to x~0~ is a random variable due to the error term ε.
 
-expectedTestMSE(x~0~) = E~training~[E[(Y~0~ - f̂(x~0~))²]]
+expectedTestMSE(x~0~) = E~train~[E[(Y~0~ - f̂(x~0~))²]]
+
 
 [[bias_variance_trade_off]]
-The _bias-variance trade-off_ (or _bias-variance dilemma_) states that that the expected test MSE at x~0~ can always be decomposed into three parts as as follows.  One important point is that we can not get rid off the irreducable error Var[ε].  Recall that we saw the same pattern also with an estimator.  It is a general principle in statistics that when bias decreases, then variance must increase and vice versa which is not directly captured by the following formula.  As model flexibily increases, bias decreases, variance increases, and the expectedTestMSE will be convex, i.e. have a U-shape.  Thus the goal is to find the model with minimal expectedTestMSE.  When we say ``optimizing the bias-variance trade-off'', we really mean finding the minimal expected test MSE.
+==== Bias-variance tradeoff
 
-expectedTestMSE(x~0~) = (Bias~training~[f̂(x~0~)])² + Var~training~[f̂(x~0~)] + Var[ε]
+The _bias-variance trade-off_ (or _bias-variance dilemma_) means two related things
 
-Yes: If Var goes down, bias must go up, and vice verca. This is a principle, not a proof, in the context of our lecture.
+- The expected test MSE can be decomposed in three terms, bias, variance and irreducable error, as the following equation shows.  We directly can see that the expected test MSE cannot become better than the irreducable noise.
 
-*to-do*: Is all of the above about MSE & bias truly acurate? Be picky! E.g. I suspect I use non-standard / unusual notation.
+- That in general, if variance goes down, bias goes up (underfitting), and vice verca, i.e. if bias goes down, variance goes up (overfitting).  As model flexibily increases, bias decreases, variance increases, and the expectedTestMSE will be convex, i.e. have a U-shape.  Thus the goal is to find the model with minimal expectedTestMSE.  When we say ``optimizing the bias-variance trade-off'', we really mean finding the minimal expected test MSE.
+
+Simplified, looking only at a given point x~0~:
+
+expectedTestMSE(x~0~) = (Bias~train~[f̂(x~0~)])² + Var~train~[f̂(x~0~)] + Var[ε]
+
+More generally:
+
+E~train,X,Y~[(f̂(X)-Y)²] = +
+(E~X~[E~train~[f̂(X)]-E~Y~[Y|X]])² + [bias²] +
+E~X,train~[(f̂(X)-E~train~[f̂(X)])²] + [variance] +
+E~X,Y~[(Y-E~Y~[Y|X])²] [noise]
+
+Recall that we saw the same pattern also with an estimator.
 
 
 [[assess_model_coefficients]]
 ==== Assess model coefficients
 
-The _bias of model parameter estimator β̂_ is defined the usual way the bias of an estimator is defined: Bias~training~[β̂] = E~training~[β̂] - β
+The _bias of model parameter estimator β̂_ is defined the usual way the bias of an estimator is defined: Bias~train~[β̂] = E~train~[β̂] - β
 
 _t-statstic_ for an estimator β̂ of unknown parameter β: see <<t_statistic>>.
 
@@ -1107,7 +1121,7 @@ _Double cross validation_ (or _nested cross validation_) delivers you expected e
 
 Note that we cannot do model selection with cross validation and then use the same data set for model assessment, because the assessment would test a model with data that the model already has seen.  We would thus get a biased, i.e. too optimistic, i.e. too small estimated expected test error.
 
-Outer cross validation: `Model' assessment: Repeatedly partition the original data set into a test set and a training-valiation set.  In each of these outer iterations, pass the training-valiation set to the the inner CV which returns a trained model.  Calculate the estimated test error of that trained model using the test set.  At the end, averaging all those delivers the estimated expected test error of the precedure.  Recall that each trained model the outer layer sees was trained with slightly different training data than every other, thus overall we get this E~training,test~[...] the estimated expected test error demands.
+Outer cross validation: `Model' assessment: Repeatedly partition the original data set into a test set and a training-valiation set.  In each of these outer iterations, pass the training-valiation set to the the inner CV which returns a trained model.  Calculate the estimated test error of that trained model using the test set.  At the end, averaging all those delivers the estimated expected test error of the precedure.  Recall that each trained model the outer layer sees was trained with slightly different training data than every other, thus overall we get this E~train,test~[...] the estimated expected test error demands.
 
 Inner cross validation: Model selection: Do normal model selection via cross validation on the training-validation set received from the outer CV.  Return the trained selected model received from model selection.
 
@@ -1178,18 +1192,18 @@ _Underfitting_ occurs when the model has too few degrees of freedem. The model i
 _Least squares_ (or _LS_) is a method of fitting a model which tries to minimize the RSS.  In other words, it is a method for computing the estimators β̂ of the model coefficients β.  Let β̂^LS^ (or β̂, since LS is kind of the standard) denote the estimator, as defined by LS, of the coefficients β of the model:
 
 β̂^LS^ = argmin~β~(RSS(β)) = +
-(X^T^X)^-1^X^T^Y [linear regression]
+(X^T^X)^-1^X^T^Y [closed form solution for linear regression]
 
 There are two categories: _Ordinary least squares_ (or _OLS_ or _linear least squares_) and _non-linear least squares_.  Linear least squares has a closed-form solution, see <<linear_regression_models>>.  The nonlinear problem is usually solved by iterativie refinement.
 
 [[BLUE]]
-_Gauss-Markov theorem_: In a linear regression model with uncorreleated error terms ε, constant finite variance Var[ε~i~] = σ² and E[ε] = 0, the coefficents β̂ found by OLS are _BLUE_ (_best linear unbiased estimator_).  Here, `best' means Var~training~[β̂] is minimized compared to other unbiased estimators, and unbiased means Bias~training~[β̂] = 0.
+_Gauss-Markov theorem_: In a linear regression model with uncorreleated error terms ε, constant finite variance Var[ε~i~] = σ² and E[ε] = 0, the coefficents β̂ found by OLS are _BLUE_ (_best linear unbiased estimator_).  Here, `best' means Var~train~[β̂] is minimized compared to other unbiased estimators, and unbiased means Bias~train~[β̂] = 0.
 
 _computational cost_ in case of linear regression: Note that X^T^X is a p⨯p matrix, and solving (X^T^X)^-1^X^T^Y is then in O(p³), which is practically quite high for large p, which occurs in certain practical problems. Thus non-closed form solutions such as (stochastic) gradient descent might be a feasible alternative.
 
 *to-do* But that only works when the population regression function f (i.e. the true model) is linear, right? YES. Else also the linear function based on the coefficient β has bias. What is the appropriate terminology to phrase all this?
 
-*to-do* From BLUE follows that Bias~training~[f̂] = 0? NO. That is, only if I choose all the predictors I should pick. I.e. expectedTestMSE = (Bias~training~[f̂])² + Var~training data~[f̂] + Var[ε]?
+*to-do* From BLUE follows that Bias~train~[f̂] = 0? NO. That is, only if I choose all the predictors I should pick. I.e. expectedTestMSE = (Bias~train~[f̂])² + Var~train~[f̂] + Var[ε]?
 
 Contra: Var[β̂^LS^] is high in case of <<multicollinearity>>. <<shrinkage_method>>s try to solve this problem.
 
@@ -1204,12 +1218,12 @@ _Shrinkage methods_ (or _regularaization methods_) is a family of techniques whi
 Note that putting a penality on the weights w as done by Lasso or Ridge is just one form of regularization.
 
 [[standardize_variables]]
-_standardize variables_: Ridge and Lasso are not scale invariant, which least squares is. So we should standardize variables to have variance 1 and mean 0 beforehand : x̃~ij~ = (x~ij~-μ~j~)/σ~j~, where μ~j~ = 1/n∑~i~x~ij~ and σ~j~²=1/n∑~i~(x~ij~-μ~j~)².  Also standardize y~i~ likewise; as a consequence, the intercept will be guaranteed to be 0, thus X̃ is not required to have the artificial first column consisting of ones.  Note that if only X is standardized but not Y, i.e. there might be an non-zero intercept β~0~, then the β in the penalty term, e.g. λ‖β‖~2~² in Ridge, should be replaced by β^(0)^, where β^(0)^ means β with the intercept β~0~ removed, i.e. one element less. This is because we only want to regularize the coefficients of the features, we don't want to regularize the intercept.
+_standardize variables_: Ridge and Lasso are not scale invariant, which least squares is. So we should standardize variables to have variance 1 and mean 0: x̃~ij~ = (x~ij~-μ~j~)/σ~j~, where μ~j~ = 1/n∑~i~x~ij~ and σ~j~²=1/n∑~i~(x~ij~-μ~j~)².  Also standardize y~i~ likewise.  As a consequence, the intercept will be guaranteed to be 0, thus X̃ is not required to have the artificial first column consisting of ones.  Note that if only X is standardized but not Y, i.e. there might be an non-zero intercept β~0~, then the β in the penalty term, e.g. λ‖β‖~2~² in Ridge, should be replaced by β^(0)^, where β^(0)^ means β with the intercept β~0~ removed, i.e. one element less. This is because we only want to regularize the coefficients of the features, we don't want to regularize the intercept.
 
 Standardization is done by default in R's glmnet.
 
 [[multicollinearity]]
-_Multicollinearity_ describes the situation that a predictor can be linearly predicted from one or more other predictors.  In this situation, when using OLS, Var~training~[β̂] is hight, i.e. there's a higher chance of the estimator β̂ being far away from the real β.  Recall that in OLS, the estimators β̂ are unbiased.  Consider a model with two predictors X~1~ ≈ X~2~.  Then f̂(x) = β̂~0~ + β̂~1~X~1~ + β̂~2~X~2~ ≈ β̂~0~ + β̂~3~X~1~, where β̂~3~ = β̂~1~ + β̂~2~. If there was only one predictor as in the rhs of ≈, we could calculate β̂~3~ well. But in the model with two predictors, OLS doesn't know how to distribute β̂~3~ among β̂~1~ and β̂~2~ such that β̂~1~ + β̂~2~ = β̂~3~.  E.g in one training data sample, β̂~1~ will be large and β̂~2~ will be small, in the other training data sample the other way round, in yet another training data sample it's evenly distributed etc.  <<shrinkage_method>>s try to solve this problem.
+_Multicollinearity_ describes the situation that a predictor can be linearly predicted from one or more other predictors.  In this situation, when using OLS, Var~train~[β̂] is hight, i.e. there's a higher chance of the estimator β̂ being far away from the real β.  Recall that in OLS, the estimators β̂ are unbiased.  Consider a model with two predictors X~1~ ≈ X~2~.  Then f̂(x) = β̂~0~ + β̂~1~X~1~ + β̂~2~X~2~ ≈ β̂~0~ + β̂~3~X~1~, where β̂~3~ = β̂~1~ + β̂~2~. If there was only one predictor as in the rhs of ≈, we could calculate β̂~3~ well. But in the model with two predictors, OLS doesn't know how to distribute β̂~3~ among β̂~1~ and β̂~2~ such that β̂~1~ + β̂~2~ = β̂~3~.  E.g in one training data sample, β̂~1~ will be large and β̂~2~ will be small, in the other training data sample the other way round, in yet another training data sample it's evenly distributed etc.  <<shrinkage_method>>s try to solve this problem.
 
 [[choosing_regularization_parameter]]
 Choose regularization parameter λ with cross validation. Typically you would choose the candidate λ logarithmically spaced, e.g. {10^-4^, 10^-3^, ..., 10^4^}, since the order of magnitude matters, not the exact value.
@@ -1219,18 +1233,33 @@ References:
 - Book ``An introduction to statistical learning'', chapter ``6.2 Shrinkage Methods''
 
 
-[[regularization_vs_map_inference]]
-==== Regularization vs MAP inference
+[[bayesian_interpretation_of_regularization]]
+==== Bayesian interpretation of regression and regularization
 
 Regularization can often be understood as MAP inference.
 
 optimization view: loss-function + regularization +
 probabilistic view: likelihood * prior
 
-For example for the case of ridge regression:
+For example Ridgre regression expressed in the Bayesian view:
 
-ŵ^ridge^ = argmin~w~(RSS(w) + λ‖w‖~2~²) +
-ŵ^ridge^ = argmax~w~(p(𝓓|w) · p(w)) = argmax~w~(p(w|𝓓)), p(𝓓|w) = ∏~1≤i≤n~p(y~i~|x~i~,w)
+ŵ^ridge^ = argmax~w~(p(w|𝓓)) = argmax~w~(p(w)∏~1≤i≤n~p(y~i~|x~i~,w)) +
+p(y|w,x) \~iid 𝓝(w^T^x,σ²) [likelihood / noise] +
+p(w) ~ 𝓝(0,σ²/λ) [prior]
+
+More formally and generally, we can write the regression view as follows, where l is some loss function, and Reg(·) is some regularization:
+
+ŵ = argmin~w~(R̂(w) + Reg(w)) +
+R̂(·) = ∑~1≤i≤n~l(h(x~i~;w),y~i~)
+
+The probabilistic / Bayesian view in general can be written as follows
+
+ŵ = argmax~w~(p(w|𝓓)) = argmax~w~(p(w)∏~1≤i≤n~p(y~i~|x~i~,w))
+
+The relation between these two views is:
+
+Reg(w) = - log p(w) +
+l(h(x~i~;w),y~i~) = - log p(y~i~|x~i~,w)
 
 |=====
 | name               | loss function | regularization | likelihood  | prior
@@ -1242,9 +1271,11 @@ ŵ^ridge^ = argmax~w~(p(𝓓|w) · p(w)) = argmax~w~(p(w|𝓓)), p(𝓓|w) = �
 | Robust regression  | (non convex)  | ?              | Student     | Uniform
 |=====
 
-Large λ in regularization means that we believe the prior has a small variance, i.e. that w is close to zero.  If I believe the noise (in likelihood) is large, then I should regularize more *to-do* understand that statement better
+Large λ in regularization means that we believe the prior has a small variance, i.e. that w is close to zero.  If I believe the noise (in likelihood) is large, then I should regularize more.
 
 If you have outliers, you should consider another likelihood distribution than Gaussian, for example Student's t.  That's because with Gaussian, everything that is a few standard deviations away from the mean has a probability of practically 0, so outliers strongly disagree with the model and thus mess things up.
+
+The more your prior is away from the truth, the more observations you need to make up for it.
 
 
 [[comparison_of_regularization_methods]]
@@ -1258,17 +1289,17 @@ Lasso is good for feature selection.  Best subsetset selection is computationall
 [[ridge_regression]]
 ==== Ridge regression / L2-regularized regression
 
-_Ridge regression_ (or _Tikhonov regularization_ or _weight decay_) is a <<shrinkage_method>>. λ≥0 is a tuning parameter.
+_Ridge regression_ (or _Tikhonov regularization_ or _weight decay_) is a <<shrinkage_method>>. λ≥0 and s≥0 are tuning parameters, where there is a bijection between them.
 
-Recall to <<standardize_variables>>.
+Recall to <<standardize_variables>>.  For simplicity, here X and Y refer to the standardized variables, as opposed to the original ones. ‖β‖~2~ denotes the L2-Norm (aka Eucledian distance) of β, i.e. ‖β‖~2~² = ∑~1≤i≤p~β²~i~.  Three equivalent forms of formulating the optimization problem are:
 
-β̂^ridge^ = argmin~β~(RSS̃(β) + λ‖β‖~2~²)
+β̂^ridge^ = argmin~β~(RSS(β) + λ‖β‖~2~²) +
+β̂^ridge^ = argmin~β~(RSS(β)), subject to ‖β‖~2~²≤s +
+β̂^ridge^ = see <<bayesian_interpretation_of_regularization>>
 
-β̂^ridge^ = argmin~β~(RSS̃(β)) subject to ∑~1≤i≤p~β²~i~≤s
+The analytical closed form solution is:
 
-β̂^ridge^ = (X̃^T^X̃+λI)^-1^X̃^T^Ỹ [analytical closed form solution]
-
-Where ‖β‖~2~ denotes the L2-Norm (aka Eucledian distance) of β, i.e. ‖β‖² = ∑~1≤i≤p~β²~i~.
+β̂^ridge^ = (X^T^X+λI)^-1^X^T^Y
 
 _Geometric interpretation_: For the case of 2 predictors, i.e. also two coefficients β~1~ and β~2~: Imagine a 2D coordinate system, the x axis represents possible β~1~ values, the y axis possible β~2~ values.  Each point in the plane represents a possible β, or a possible estimate β̂.  The point (β̂^LS^~1~, β̂^LS^~2~) represents the LS estimate β̂^LS^, which minimizes RSS.  Around that point we can draw contour lines, each contour line representing another, higher, RSS.  Also, we draw a circle around center (0,0) with a diameter of √s, where s can be derived from λ and vice versa.  The geometrical interpretation of the shrinkage penalty term is that the estimate β̂ must lie within the circle.  Assuming β̂^LS^ lies outside the circle, the point where the first contour line touches the circle is the estimate β̂ found by Ridge.  β = E[β̂^LS^] is the point representing the true coefficient β. Around it we can draw ellipses with semi-axes n·Var[β̂^LS^], n={1,2,...}, represinting the area where {68%, 95%, ...} of the β̂^LS^ will lie.  Assuming β is outside the shrinkage penalty circle, the β̂^Ridge^ will only be on a comperatively small part on the shrinkage penalty circle, i.e. Var[β̂^Ridge^] is lower than Var[β̂^LS^]. However we also see that E[β̂^Ridge^] will no be away from β.
 
@@ -1285,27 +1316,20 @@ References:
 - Book ``An introduction to statistical learning'', chapter ``6.2.1 Ridge Regression''
 
 
-==== Ridge regression, proabilistic view
-
-Rigde regression can be understood as finding the Maximum A Posteriori (MAP) parameter estimate for the linear regression problem, assuming that the noise p(y|w,x) is iid Gaussian and the prior p(w) on the model parameters w is Gaussian.
-
-ŵ^ridge^ = argmax~w~(p(w)∏~1≤i≤n~p(y~i~|x~i~,w)
-
-
 [[lasso_regression]]
 ==== Lasso regression / L1-regularized regression
 
-A <<shrinkage_method>>.  See also subchapter <<ridge_expression>>, where common topics are discussed.  λ≥0 is a tuning parameter.
+A <<shrinkage_method>>.  See also subchapter <<ridge_regression>>, where common topics are discussed.  λ≥0 and s≥0 are tuning parameters, where there is a bijection between them.
 
-Recall to <<standardize_variables>>.
+Recall to <<standardize_variables>>.  For simplicity, here X and Y refer to the standardized variables, as opposed to the original ones.  ‖β‖~1~ denotes the L1-Norm of β, i.e. ‖β‖~1~ = ∑~1≤i≤p~|β~i~|.  Three equivalent forms of formulating the optimization problem are:
 
-β̂^lasso^ = argmin~β~(RSS̃(β) + λ‖β‖~1~)
+β̂^Lasso^ = argmin~β~(RSS(β) + λ‖β‖~1~) +
+β̂^Lasso^ = argmin~β~(RSS(β)), subject to ‖β‖~1~≤s +
+β̂^Lasso^ = see <<bayesian_interpretation_of_regularization>>
 
-β̂^lasso^ = argmin~β~(RSS̃(β)) subject to ∑~1≤i≤p~|β~i~|≤s
+Solution to the optimization problem:  Note that the L1 norm is not differentiable, which makes it harder to optimize.  The objective function however is still convex, which is good for optimization.  One possible optimization technique is LARS.
 
-Where ‖β‖~1~ denotes the L1-Norm of β, i.e. ‖β‖~1~ = ∑~1≤i≤p~|β~i~|.
-
-The elements of β̂^Lasso^ often are exactly 0, especially for high λ.  Look at the respective paragraph of <<ridge_regression>>.  Now in Lasso, the geometrical interpretation of the shrinkage penalty is a square rotated 45 deg, the corners on the axes.  Now it is more likely that the first contour line touches the square at an corner than at an edge.  Since the corner lies on an axis, β̂^ridge^ is 0 with respect to the other axis.
+The elements of β̂^Lasso^ often are exactly 0, especially for high λ.  Look at the respective paragraph of <<ridge_regression>>.  Now in Lasso, the geometrical interpretation of the shrinkage penalty is a square rotated 45 deg, the corners on the axes.  Now it is more likely that the first contour line touches the square at an corner than at an corner.  Since the corner lies on an axis, β̂^ridge^ is 0 with respect to the other axis.  Imagine four strips, each strip extending from one side of the square, each strip being diagonal with respect to the coordinate system.  Only if the true β lies within such a strip, the first contour line would hit the side of the square.  The area of those strips relative to the rest of the plane is small, thus it is more likely that the first contour line hits a corner.
 
 Lasso can be seen as using a tractable surrogate loss function (using L1 norm) with respect to the intractable loss function (using L0 norm) of the best subset selection. See also <<comparison_of_regularization_methods>>.
 
@@ -1319,21 +1343,19 @@ References:
 [[best_subset_selection_as_shrinkage]]
 ==== Best subset selection viewed as shrinkage
 
-<<best_subset_selection>> can also be viewed as shrinkage method.  Especially in the 2nd variant of the definition we see that it selects not more than s predictors.
+<<best_subset_selection>> can also be viewed as shrinkage method.  Especially in the 2nd variant of the definition we see that it selects not more than s predictors. λ≥0 and s≥0 are tuning parameters, where there is a bijection between them.
 
-Recall to <<standardize_variables>>.
+Recall to <<standardize_variables>>.  For simplicity, here X and Y refer to the standardized variables, as opposed to the original ones.  ‖β‖~0~ denotes the L0-Norm of β, i.e. ‖β‖~0~ = ∑~1≤i≤p~1~βi≠0~.  Three equivalent forms of formulating the optimization problem are:
 
-β̂^subset^ = argmin~β~(RSS̃(β) + λ‖β‖~0~)
+β̂^subset^ = argmin~β~(RSS(β) + λ‖β‖~0~) +
+β̂^subset^ = argmin~β~(RSS(β)), subject to ‖β‖~0~≤s +
+β̂^subset^ = see <<bayesian_interpretation_of_regularization>>
 
-β̂^subset^ = argmin~β~(RSS̃(β)) subject to ∑~1≤i≤p~1~βi≠0~≤s
-
-Where ‖β‖~0~ denotes the L0-Norm of β, i.e. ‖β‖~0~ = ∑~1≤i≤p~1~βi≠0~.
+Solution to the optimization problem: The above optimization problem is difficult since the L0 norm regularization term makes it an non-convex objetive function. To make it a tractable problem, we can use the L1 norm as surrogate for the L0 norm, resulting in the Lasso, see also <<comparison_of_regularization_methods>>
 
 The elements of β̂^subset^ often are exactly 0, especially for high λ.  Look at the respective paragraph of <<ridge_regression>>.  Now in best subset selection, the geometrical interpretation of the shrinkage penalty is a line on each axis from 0 to s. *to-do*
 
 *to-do* In the geometrical interpretation, the contour lines will almost surely either touch the tip of one line (making this β̂~i~ equal to s), or less likely some line (making this β̂~i~ somewhere between 0 and s). I don't see how it can be (apart from a tiny probability) that multiple predictors are selected.  I don't see at all how a β̂~i~ can be larger than s -- but im sure in best subset selelection when s predictors are choosen, the β̂~i~ can be larger than s.
-
-The above optimization problem is difficult since the L0 norm regularization term makes it an non-convex objetive function. To make it a tractable problem, we can use the L1 norm as surrogate for the L0 norm, resulting in the Lasso, see also <<comparison_of_regularization_methods>>
 
 See also <<choosing_regularization_parameter>> λ.
 
@@ -1380,7 +1402,7 @@ Convergence criterions:
 
 Applications:
 
-- Empirical risk minimization. Recall that empricial risk is sum of losses over all observations.
+- Empirical risk minimization. Recall that empirical risk is sum of losses over all observations.
 
 - Computing a MLE. Also here a sum over all observations appears.
 
@@ -1536,11 +1558,14 @@ When the underlying function is smooth in some regions and spiky in other region
 [[linear_regression_models]]
 === Linear regression models
 
-In the linear multiple regression model the relation between the response Y and the predictors, i.e. the design matrix X, is linear, i.e. f(X) = Xβ.  Thus the estimated model is f̂(X) = Xβ̂ and thus Ŷ = f̂(X) + ε. Often the first column of X is all ones, which then makes β~0~ the _intercept_: the hyperplane described by f̂ intercepts the y-axis at β~0~.  _Simple linear regression_ is linear regression with only one predictor variable. f(X) = Xβ defines the _population regression hyperplane_, which is the best linear approximation to the true relationship between X and Y (recall that linearity was just an assumption). f̂(X) = Xβ̂ defines the _least square hyperplane_, which is an estimate based on the training data (*to-do* Is there are more general term which does not imply the fitting method).
+In the linear multiple regression model the relation between the response Y and the predictors, i.e. the design matrix X, is linear, i.e.
+
+f(X) = Xβ [stastic notation] +
+h(x) = w^T^x [machine learning notation]
+
+Thus the estimated model is f̂(X) = Xβ̂ and thus Ŷ = f̂(X) + ε. Often the first column of X is all ones, which then makes β~0~ the _intercept_: the hyperplane described by f̂ intercepts the y-axis at β~0~.  _Simple linear regression_ is linear regression with only one predictor variable. f(X) = Xβ defines the _population regression hyperplane_, which is the best linear approximation to the true relationship between X and Y (recall that linearity was just an assumption). f̂(X) = Xβ̂ defines the _least square hyperplane_, which is an estimate based on the training data.
 
 The method to fit the model is commonly ordinary <<least_squares>>.  Other methods include <<ridge>> and <<lasso>>.
-
-In machine learning, the notation often is h(x) = w^T^x.
 
 Assumptions of the linear model:
 
@@ -1582,7 +1607,7 @@ Assumptions of the linear model:
 
 *to-do* Is it in the context of this lecture good enough to know these assumptions and their concequences as a whole and also only for linear regression fitted with least squares? If only some asumptions are fulfilled but not others, I find it pretty hairy to properly understand which consequences / formulas still hold wand which doesn't.  Also I never really know which assumptions are relative to linear regression model and which are relative to the least squares fitting method.
 
-_Projection matrix_ (or _influence matrix_ or _hat matrix_), denoted P (or H), *to-do*
+_Projection matrix_ (or _influence matrix_ or _hat matrix_), denoted P (or H), is given by P = X(X^T^X)^-1^X^T^. It is decuded from Ŷ = Xβ̂ = X(X^T^X)^-1^X^T^Y = PY.  It is an orthogonal projection on the space spanned by the columns of X.
 
 _categorial (or qualitative) predictors_: Given a categorial predictor X~j~ representing l classes {class0, ..., class(l-1)). Make (l-1) dummy variables X~j|0~, ..., X~j|l-1~. X~j|k~ is 1 if X~j~ equals classk, and 0 otherwise. Instead the value pair (0, 1) we could also use other non-equal values like e.g. (-1, 1).  The class with no dummy variable, here denoted class0, is called the baseline.
 
@@ -1707,7 +1732,7 @@ Learning (for L2-norm regularization):
 
 
 [[basic_functions]]
-=== Basic functions / basis functions
+=== Basic functions / basis functions / basis expansion
 
 We only look at univariate models, i.e. one predictor X.  We have a family of k fixed known functions b~j~(X), j ∈ [k].  This transformation delivers the new linear model
 
@@ -2142,7 +2167,7 @@ Theorem: If data is linearly seperable, the Perceptron will find a linear sepera
 
 The perceptron does not care about margin. From the perceptron's point of view, all linear seperators are equially good.  This is because for all correct classifications, the perceptron loss is 0, regardles of how `good' the classification was. *to-do* see hinge loss, which encourages a larger margin.
 
-There is not really a probabilistic interpretation, i.e. there's no likelihood function corresponding to the loss function.  See also <<regularization_vs_map_inference>>.
+There is not really a probabilistic interpretation, i.e. there's no likelihood function corresponding to the loss function.  See also <<bayesian_interpretation_of_regularization>>.
 
 References:
 
@@ -2173,7 +2198,7 @@ See also <<choosing_regularization_parameter>> λ.
 
 Despide that the difference between the SVM and the Perceptron is quite small, that difference has a big influence. In practice, the SVM often performs much better.  In practice, we almost always prefer the SVM over the Perceptron.  For educational purposes, the Perceptron is easier to understand and serves as an good introduction.
 
-There is not really a probabilistic interpretation, i.e. a likelihood function corresponding to the loss function, see also <<regularization_vs_map_inference>>.
+There is not really a probabilistic interpretation, i.e. a likelihood function corresponding to the loss function, see also <<bayesian_interpretation_of_regularization>>.
 
 
 [[kernelized_svm]]
@@ -2334,11 +2359,12 @@ Choosing k:
 
 ===== Deduction of optimization problem
 
-For the k=1 case.  We want to find scalars z ∈ ℝ^n^ and a line given by w∈ℝ^d^ going through origin, such that x~i~ ≈ z~i~w.  That line is then a subspace of ℝ^d^ where we put the reduced versions of x~i~ on.
+Let's start with the simple k=1 case. We want to find a line given by w∈ℝ^d^ which goes through the origin and approximately through all points x~i~.  That line is then a ℝ^1^ subspace of ℝ^d^.  The point x̄~i~ on the line being closest to x~i~ is the reduced version of x~i~.  The goal is to minimize the sum of squared perpendicular distances between x~i~ and the line, i.e. between x~i~ and x̄~i~.  We don't know yet what the value of x̄~i~ is, but we know it's on the line given by w, so we parameterize it by a scalar c~i~∈ℝ yielding x̄~i~ = c~i~w.  In order that the different c~i~w are comparable, we must normalize w, i.e. we demand |w|=1. The formal optimization problem then is
 
-ŵ,ẑ = argmin~|w|=1,z~(∑~1≤i≤n~‖x~i~-z~i~w‖~2~²)
+ŵ,ĉ = argmin~|w|=1,c~(∑~1≤i≤n~‖x~i~-x̄~i~‖~2~²) +
+x̄~i~ = c~i~w
 
-Assuming we know the optimal w, then the scalars are determined by z~i~=w^T^x~i~, since w is normalized by |w| = 1, and since z~i~ is just the base of the distance from the line to x~i~. Thus the problem becomes
+Assuming we know the optimal w, then the scalars are determined by c~i~=w^T^x~i~
 
 ŵ = argmin~|w|=1~(∑~1≤i≤n~‖x~i~-ww^T^x~i~‖~2~²) +
 
@@ -2350,9 +2376,9 @@ This optimzation problem has a closed form optimal solution:
 
 ŵ = principal eigenvector of ∑
 
-For arbitrary k, we want to find a k-dimensional hyperplane, where we want to find an orthogonal matrix W ∈ ℝ^d⨯k^, each column having unit length, leading to the following optimization problem, called the _principal component analysis_ (_PCA_) problem:
+For arbitrary k, we want to find a k-dimensional hyperplane, given by matrix W ∈ ℝ^d⨯k^, which goes through the origin and approximately through all points x~i~.  In order that W defines a d-dimensional hyperplane it must be orthogonal.  In order that the ``Wc~i~'' terms in the following formula below are comparable, each column vector of W must have unit length.  The goal is to minimize the sum of squared perpendicular distances from each point to the hyperplane, leading to the following optimization problem, known as _principal component analysis_ (_PCA_).
 
-Ŵ,ẑ = argmin~W,z~(∑~1≤i≤n~‖x~i~-Wz~i~‖~2~²)
+Ŵ,ĉ = argmin~W,c~(∑~1≤i≤n~‖x~i~-Wc~i~‖~2~²)
 
 The PCA optimization problem has a closed form solution, nameley the principal Eigenvectors v~i~, i.e.
 
@@ -2778,10 +2804,10 @@ Shrinkage/Regularization: Fight overfitting (high variance) by applying Occam's 
 | Q | cost function. More general than the loss function, e.g. sum of loss functions over all observations
 | R(h) = E~y∈𝓨,x∈𝓧~[l(h(x),y)] = ∫~𝓨~∫~𝓧~l(h(x),y)p(x,y)dxdy | expected risk
 | R̂~𝓓~(h) = E~(y,x)∈𝓓~[l(h(x),y)] = 1/n ∑~(y,x)∈𝓓~l(h(x),y) | empirical risk
-| R̂~train~(h) | training error
-| R̂~test~(h) | test error
+| R̂~trainset~(ĥ) | training error of given model ĥ
+| R̂~testset~(ĥ) | test error of given model ĥ
 | R(h) - R̂~𝓓~(h) | generalization error
-| ĥ = argmin~h~(R̂~train~(h)) | empirical risk minimizer (ERM)
+| ĥ = argmin~h~(R̂~trainset~(h)) | empirical risk minimizer (ERM)
 | p(𝓓\|θ) or p(y~i~\|x~i~,θ) | likelihood
 | p(θ) | prior (probability)
 | p(𝓓) = ∑~θ∈Θ~p(𝓓,θ) | model evidence (marginal likelihood)
