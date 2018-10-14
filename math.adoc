@@ -178,6 +178,180 @@ References:
 
 
 == Probability
+
+
+The _sample space_ S (or Ω) is the set of possible outcomes of an _experiment_.
+An element ω ∈ S is called an _outcome_ (or _sample outcome_ or _element_ or _realization_ (is ambigous to the realization of a random variable)).
+A subset E ⊆ S is called an _event_.
+In other words, an event is a set of outcomes.
+∅ denotes the _null event_ which is always false.
+S denotes the _true event_ which is always true.
+The set of `interesting' or `known' events is denoted 𝓕.
+A _probability space_ (or _probability triple_) is the tripe (sample space S, set of events 𝓕, probability function Pr).
+A _probability function_ (or _probability distribution_ or _propability measure_) Pr (or P or ℙ) on a sample space S is, a bit sloppily defined, a total function Pr : 𝓕 ⟶ [0, 1] having the following two properties:
+1) Pr(ω) ≥ 0 for all outcomes ω ∈ S.
+2) ∑~ω∈S~ Pr(ω) = 1.
+3) Pr(E) = ∑~ω∈E~Pr(ω).
+It's a sloppy definition because it enforces that 𝓕 contains every outcome.
+A more precise definition is that a probability function is a total function Pr : 𝓕 ⟶ [0, 1] satisfying the three _probability axioms_ (or _Kolmogorov axioms_):
+1) Pr(E) ≥ 0 for all events E ∈ 𝓕.
+2) Pr(S) = 1.
+3) If E~1~, E~2~, ... are disjoint then Pr(⋃E~i~) = ∑Pr(E~i~).
+There are multiple notations denoting the evaluation of the function Pr: Pr(...) or Pr[...] or Pr{...}.
+A finite probability space S is said to be _uniform_ if Pr(ω) is the same for every outcome ω ∈ S.
+In an uniform probability space, Pr(E) = |E| / |S| for any event E ⊆ S.
+
+_conditional probability_: The probability of event A given event B is known to be true is Pr(A|B) = Pr(A∩B) / Pr(B).
+Pr(A) is also called the _prior probability_ of A and Pr(A|B) the _posterior probability_ of A.
+Note that the order in time in which the events A and B occur does not matter.
+Note that in general Pr(A|B)≠Pr(A|B). Pr(cute_thing|pubby) is high but Pr(pubby|cute_thing) is not so high.
+
+Intuitively Pr(A|B) is the probability of event A when only considering the alternate sample space SB = B.
+
+--------------------------------------------------
+Areas are proportional to probabilities
+
+  Sample space S      Pr(⋅|B) intuitively defines
+                      a new sample space SB = B
+           A
+ S   whole 'column'
+  +----+------+       Pr(A|B) = Pr(A∩B) / Pr(B)
+  |    |      |       = Probability of A in sample space SB
+  |    |      |
+  |    |      |     SB
+  +----+--+---+       +-------+---+
+ B|       |   |      B|       |   |
+  +-------+---+       +-------+---+
+                               A∩B
+--------------------------------------------------
+
+_bayes theorem_: Pr(A|B) = Pr(B|A)Pr(A) / Pr(B). +
+From definition of conditional probability and community of ∩. +
+Pr(B) often given by law of total probability.
+
+_law of total probability_: Given a partition {A~1~, ...,A~n~} of the sample space S, then Pr(B) = ∑Pr(B∩A~i~) = ∑Pr(B|A~i~)Pr(A~i~).
+
+Pr(A∩B) = Pr(A|B)Pr(B) = Pr(B|A)Pr(A) =~if A⫫B~ Pr(A)Pr(B). +
+From definition of conditional probability and community of ∩.
+
+Pr(A∪B) = Pr(A) + Pr(B) - Pr(A∪B)
+
+[[independence]]
+Two events A and B are _independent_, denoted A⫫B (or A⟂B), if (Pr(A|B) = Pr(A) or Pr(B) = 0).
+Or equivalently, called the _product rule for independent events_, iff Pr(A∩B) = Pr(A)Pr(B).
+Note that disjoint does _not_ imply independent.
+For example say A and B are disjoint and both are non-empty, then Pr(A|B) = 0 ≠ Pr(A).
+Naturally independence is a symmetric relationship.
+That's why we usually say `A and B are independend' rather than `A is independent of B'.
+The form `Pr(A|B) = Pr(A) or if Pr(B) = 0' shows more clearly the meaning of `the occurence of B does not affect the probability of A'.
+The form `Pr(A∩B) = Pr(A)Pr(B)' shows more clearly the symmetry of indpendence.
+
+Informally stated, A and B are independend if the probability of A is independent of whether its relative to sample space S or when considering only the restricted sample space SB = B, _or_ vice versa for B.
+
+--------------------------------------------------
+Areas are proportional to probabilities
+
+                   Pr(A|B) = Pr(A) or if (Pr(B)=0)
+                   Informally: Ratio A∩B:B equals ratio A:S,
+                   i.e. probability of A is independent of whether
+                   its relative to SB or to S.
+ S          A                      S          A
+  +-------+---+                     +-------+---+
+  |       |   |                     |       |   |
+  |       |   |                     |       |   |
+  |       |   |  SB                 |       |   |
+  +-------+---+    +-------+---+    |       |   |
+ B|       |   |   B|       |   |    |       |   |
+  +-------+---+    +-------+---+    +-------+---+
+                            A∩B
+--------------------------------------------------
+
+Example where A and B _are_ dependend:
+
+--------------------------------------------------
+Areas are proportional to probabilities
+
+            A
+  +-------+---+
+  |       |   |
+  |       +---+
+  +-----+-+   |
+ B|     |     |
+  +-----+-----+
+--------------------------------------------------
+
+
+--------------------------------------------------
+Areas are proportional to probabilities
+
+            A        Pr(A∩B) = Pr(A)Pr(B)
+  +-------+---+      Considering the above drawings,
+  |       |   |      this can only be true if
+  |       |   |      both of A and B can be drawn
+  +-------+---+      with straight orthogonal lines,
+ B|       |   |      in which case
+  +-------+---+
+--------------------------------------------------
+
+
+To make that example more concrete, consider that blood can have a certain type and a certain rh factor.
+Say the probability Pr(T) for type T is known, and the probability Pr(F) for rh factor F is known.
+The previously described Venn diagram shows that the probability somebody has type T _and_ rh factor F equals Pr(T)Pr(F) _only_ if T and F are independent.
+For independence, the ratio of people having rh factor F among all people (|F| / |S| = Pr(F)) must be equal to the ratio of people having rh factor F among those having also type T (|F∩T| / |T|).
+
+The elements of α={A~1~, ..., A~n~} are _mutually independent_ iff Pr(⋂A~i~) = ∏Pr(A~i~) for _any_ subset of α.
+Mutual independence does imply pairwise indpendence, but not vice versa.
+
+The elements of α={A~1~, ..., A~n~} are _pairwise independent_ iff for all unordered pairs {A~i~, A~j~} of distinct elements (i.e. i ≠ j), A~i~ and A~j~ are independent.
+Pairwise independence does _not_ imply mutual independence.
+
+A _decision tree_ is a graphic tool for working with outcomes and events of an probability space.
+The root is the start and is not directly associated a meaning.
+Given a vertex, each outward edge represents that a given `subevent' occures.
+The definition of an edge's associated subevent includes that the the subevent associated with the edge's source vertex has occured.
+`Subevent' is an inofficial term made up by the author.
+Each vertex thus represents the subevent that all subevents of the edges of the path from the root to that vertex have occured.
+Note that the subevents on the path are not required to happen in the order implied by the path.
+One just has to compute the correct _conditional_ probabilities of the edges.
+Each outward edge of a vertex is assigned the conditional probability that the edge's associated subevent occures, given that the subevent associated with the vertex has occured.
+For each internal vertex, the sum of the probabilities of all its outward edges is 1.
+By the the above definitions, given a path, the subevents associated with the edges are independent, thus they can be multiplied to get the probability of taking that path.
+Each leaf represents an outcome of the experiment.
+Thus the set of all leaves represents the sample space.
+I.e. there is a 1 to 1 relationship between the set of all leaves and and the set of all outcomes.
+
+Alternatively, draw the tree using the treemapping method.
+You start out with a rectangle representing the root vertex of the tree.
+For each child, draw a line to create a subrectangle, the sizes of the subrectangles according to the weight of the edges. All llines mutually parallel.
+Recurse.
+At each new level in the recursion, toggle between horizontal and vertical lines.
+The result has resemblance to a Venn diagram, only that here a given event is represented by a set of possibly disconnected areas, as opposed to a single connected area.
+
+Recipe for solving many probability problems:
+
+. Consequently follow the rules.
+Don't try to be fast.
+Often the human intuition is wrong.
+
+. Define the sample space, i.e. all possible outcomes.
+
+. Define events of interest.
+
+. Compute probabilities (of required outcomes). Possibly the following way: Use the tree diagram method.  Assign a probability to each (required) edge.  Calculating the probability of an outcome is then trivial.
+
+. Compute probability of your events, which is trivial, now that you have the probabilities of the outcomes.
+
+References:
+
+- MIT course 6.042 "Mathematics for computer science", lecture notes "Mathematics for computer science", chapter "Probability"
+
+- MIT course 18.650 "Statistics for Applications", Fall 2016, https://www.youtube.com/playlist?list=PLUl4u3cNGP60uVBMaoNERc6knT_MgPKS0[videos], https://ocw.mit.edu/courses/mathematics/18-650-statistics-for-applications-fall-2016/lecture-slides/MIT18_650F16_Introduction.pdf[lecture notes]
+
+- Book ``All of statistics'', chapter ``1 Probability''
+
+- Khan Academy, ``Statistics'' playlist: https://www.youtube.com/watch?v=uhxtUt_-GyM&list=PL1328115D3D8A2566
+
+
 === Random variables and expectations
 
 Formally a random variable is a function mapping from sample space to measure space, as defined in the following.  In practice, we often think of a random variable like a random number.  In practice, the sample space associated to a random variable is rarely explicitelly mentioned, but keep in mind that it really is there.  Random variables can be interpreted as link between data and sample spaces.
