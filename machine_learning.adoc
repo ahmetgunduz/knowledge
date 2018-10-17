@@ -620,7 +620,7 @@ _generalization error_ gen_error~𝓓~(h) = R(h) - R̂~𝓓~(h). An algorithm is
 
 _empirical risk minimizer_ (_ERM_): ĥ = argmin~h~(R̂~trainset~(h))
 
-_likelihood function_ ℒ~𝓓~(θ) = p(𝓓|θ) =~iid~ ∏p(d~i~|θ): Probability of seeing the data 𝓓 given the model parameters θ.
+_likelihood function_ (or _sampling distribution_) ℒ~𝓓~(θ) = p(𝓓|θ) =~iid~ ∏p(d~i~|θ): Probability of seeing the data 𝓓 given the model parameters θ.
 
 *to-do* often p(𝓓|θ) is viewed as p(y~i~|x~i~,θ), but that isn't the same as p(y~i~,x~i~|θ). Why can we do that? Or is it just that we apply the term likelihood also to p(y~i~|x~i~,θ).
 
@@ -628,7 +628,7 @@ _log likelihood_ log p(𝓓|θ)
 
 _negative log likelihood_ (_NLL_) -log p(𝓓|θ)
 
-_prior (probability)_ p(θ): Subjective probability of model paramters θ without having seen any data yet.
+_prior (probability)_ p(θ) (or more accurately, p(θ|Θ)): Probability of model paramters θ without having seen any data yet.
 
 [[score_function]]
 _score function_ (or _score_, or _efficient score_, or _informant_) Λ (or V) Λ~𝓓~(θ) = ∇~θ~ ℒ~𝓓~(θ) = ∇~θ~ log p(𝓓|θ) = 1/p(𝓓|θ) ∇~θ~p(𝓓|θ) =~iid~ ∇~θ~ ∑ log p(d~i~|θ) = ∑((∇~θ~p(d~i~|θ))/p(d~i~|θ))
@@ -644,23 +644,29 @@ Or recursively, assuming iid data, p(θ|𝓓) = p(x~n~|θ)p(θ|𝓓^n-1^) / evid
 
 
 [[mle]]
-_maximum likelihood estimator_ (_MLE_) θ̂^MLE^ = argmax~θ~(p(𝓓|θ)), i.e. Λ(θ)=0: A frequentist point estimator which sets the model parameters θ to the values that maximize the likelihood function p(𝓓|θ).  This corresponds to choosing the model parameters θ for which the probability of the observed data set is maximized. Properties:
+_maximum likelihood estimator_ (_MLE_) θ̂^MLE^ = argmax~θ~(p(𝓓|θ)): A frequentist point estimator which sets the model parameters θ to the values that maximize the likelihood function p(𝓓|θ).  This corresponds to choosing the model parameters θ for which the probability of the observed data set is maximized. Properties:
 
 - consistent
 - asymptotically efficient
 - asymptotic normality: √n(θ-θ̂) → 𝓝(0, J^-1^IJ^-1^), where I=Var~θ~[Λ(θ)], J=-E~θ~[∇~θ^T^~Λ(θ)], and Λ denoting the score function
 - equivalence: If θ̂ is MLE of θ, then f(θ̂) is MLE of f(θ)
+- Λ(θ̂) = 0. Since θ̂ is a maxima of the likelihood.
+
+Relation to other estimators:
+
+- MLE is a special case of MAP estimator, where the prior is uniform. Recall θ̂^MAP^ = argmax~θ~(p(θ|𝓓)) = argmax~θ~(p(𝓓|θ)p(θ)) and θ̂^MLE^ = argmax~θ~(p(𝓓|θ)).
+
 - See also <<MLE_vs_bayes>>
 
 Lets express p(𝓓|θ) as p(y~1:n~|x~1:n~,w). θ̂^MLE^ = argmax~w~(p(y~1:n~|x~1:n~,w)) = argmin~w~(-log p(y~1:n~|x~1:n~,w)) =~iid data~ argmin~w~(-∑~1≤i≤n~log p(y~i~|x~i~,w)).
 
 
 [[map]]
-_maximum a posteriori probability estimate_ (or _MAP estimate_) for model parameters: θ̂^MAP^ = argmax~θ~(p(θ|𝓓)) = argmax~θ~(p(𝓓|θ)p(θ)): A estmator which sets the model parameters θ to the values that maximize the posterior probability.
+_maximum a posteriori probability estimate_ (or _MAP estimate_) _for model parameters_: θ̂^MAP^ = argmax~θ~(p(θ|𝓓)) = argmax~θ~(p(𝓓|θ)p(θ)): A estmator which sets the model parameters θ to the values that maximize the posterior probability.  MAP estimate is a generalization of MLE, see there.
 
-_MAP estimate_ for predicton ŷ = f̂(x) = argmax~y~[p(y|x,𝓓)]. I.e. the mode of the probabilistic prediction distribution.
+_MAP estimate for predicton_: ŷ = ĥ(x) = argmax~y~[p(y|x,𝓓)]. I.e. the mode of the probabilistic prediction distribution. For binary classification, i.e. 𝓨 = {+1, -1} and K=2, this can be written as ĥ(x) = signʹ(log(p(y=+1|x)/p(y=-1|x))).
 
-_Baye's optimal predictor_: Let X and Y denote the random variables denoting a predictions vector and a response respectively.  Assume data is generated iid.  Assume (unrealistically) we knew the joint distribution p(X,Y). The hypothesis h^∗^ minimizing the expected least square error E~X,Y~[(Y-h(X))²] is given by the conditional mean h^∗^(x) = E~X,Y~[Y|X=x] = ∫p(y|X=x)·y·dy and is called Baye's optimal predictor for the squared loss.
+_Bayes' optimal predictor for squared loss_: Let X and Y denote the random variables denoting a predictions vector and a response respectively.  Assume data is generated iid.  Assume (unrealistically) we knew the joint distribution p(X,Y). The hypothesis h^∗^ minimizing the expected least square error E~X,Y~[(Y-h(X))²] is given by the conditional mean h^∗^(x) = E~X,Y~[Y|X=x] = ∫p(y|X=x)·y·dy and is called Bayes' optimal predictor for the squared loss.
 
 _probabilistic predictions_ p(y|x,𝓓): denotes the probability distribution over possible responses, given the input vector x and training set 𝓓. I.e. it represents a probability for each possible value of the response y.
 
@@ -674,18 +680,127 @@ _frequentist vs bayesian_: In the probabilistic view, we also model the uncertai
 
 *to-do* explain much better frequentist vs bayesian
 
-_generative model_: Models the distribution of individual classes (i.e. the joint probability distribution p(x,y)), i.e. models how the data was generated.  However this is in general very hard. Typically less robust against outliers.
 
-_discriminative model_: Uses the data to model/learn (discriminating) decision boundaries between classes.  Learns the the function f:x→y or the conditional probability distribution p(y|x).  Simply categorize, without caring about how the data was generated.  Does not attempt to model p(x).  Thus cannot detect outliers.  Typically more robust than the generative model, since modeling x may be very difficult.  For classificiation tasks generally outperforms generative model.
+=== Generative model vs discrimantive model
+
+_generative model_: Models the distribution of individual classes (i.e. the joint probability distribution p(x,y)), i.e. models how the data was generated.  However this is in general very hard. Typically less robust against outliers, because we have to make more assumptions, i.e. we can make more mistakes.  Since it knows the joint probability p(x,y), it can then easily derive the predictive distribution p(y|x) which also the discriminative model has.  The inverse is obviously not true, i.e. given p(y|x), one can in general not derive p(x,y).
+
+p(y|x) = p(x|y)p(y)/p(x) [allows making predictions] +
+p(y) [estimated; allows to generate labels] +
+p(x|y) [estimated; allows to generate features given a label] +
+p(x) = ∑~y~p(x|y)p(y) [allows to detect outliers] +
+p(x,y) = p(x|y)p(y)
+
+_discriminative model_: Uses the data to model/learn (discriminating) decision boundaries between classes.  Learns the the function h~θ~:𝓧→𝓨 or the conditional probability distribution p(y|x,θ).  Simply categorize, without caring about how the data was generated.  Does not attempt to model p(x).  Since it doesn't know p(x), it cannot detect outliers.  Similarly, consider logistic regression and a new point x, which is far away from the decision boundary and far away from the training data, for which we should make prediction.  Logistic regression would be very confident in its answer since x is far away from the decision boundary. However it may should not be that confident, since x is very different from any training observation.  The root of the problem is that the discriminative model doesn't care about p(x).  Typically more robust than the generative model, since modeling x may be very difficult.  For classificiation tasks generally outperforms generative model.
+
+h~θ~:𝓧→𝓨 or p(y|x,θ) [allows making predictions] +
+θ [parameters of the model to be trained, e.g. via MAP or MLE] +
+θ̂^MLE^ = argmax~θ~(p(𝓓|θ)) +
+θ̂^MAP^ = argmax~θ~(p(θ|𝓓)) = argmax~θ~(p(𝓓|θ)p(θ))
+
+
+==== Generative model
+
+Typically the follwing recipe is used to estimate the joint distribution p(x,y) and the conditional distribution p(y|x).  The goal is to find the joint distribution p(x,y).  We don't do that directly, but note that by the chain rule, p(x,y) = p(x|y)p(y).  So we're left with estimating the factors p(x|y) and p(y).  We then can make predictions using the predictive distribution p(y|x) = p(x|y)p(y)/p(x), where p(x) = ∑~y~p(x|y)p(y).  More concretely, we can predict using MAP estimate.
+
+The name `generative model' comes from that the p(x|y) which we estimate can be seen as generating a feature vector given a label.  That can be usefull to impute missing data.
+
+
+===== Gaussian naive Bayes classifier (GNB)
+
+For classification problems. Special case of GBC: features are conditionally independent given a label, i.e. ∑~y~ = diag(σ²~y,1~, ..., σ²~y,d~).
+
+p̂(y) is estimated by the emprical distribution of class labels {y~1~, ..., y~n~}.  We model the given features as conditionally independent given a label, yielding p̂(x|y) = ∏~1≤j≤d~p(x^(j)^,y). I.e. given a class label y, each feature x^(j)^ of a feature vector x is `generated' independently of the other features.  That the features are conditionally independent given a label is an unrealistic assumption, but it generally works well in practice. We model features by conditionally independent Gaussians: p̂(x^(j)^,y) = 𝓝(μ~y,j~, σ²~y,j~).  Using MLE, we get μ̂~y,j~ = mean(all x~i~^(j)^ where y~i~=y) and σ̂²~y,j~ = var(analogous). Summary:
+
+p̂(y) = count(i s.t. y~i~=y)/n [K-element empirical distribution] +
+p̂(x|y) = ∏~1≤j≤d~p(x^(j)^,y) [assumes features are mutually independent] +
+p̂(x^(j)^,y) = 𝓝(μ~y,j~, σ²~y,j~) [assumes each feature is normally distributed] +
+μ̂~y,j~ = mean(all x~i~^(j)^ where y~i~=y) [by MLE] +
+σ̂²~y,j~ = var(analogous) [by MLE]
+
+The predictive distribution then is, using Bayes' rule:
+
+p̂(y|x) = p̂(x|y)p̂(y) / ∑~1≤i≤n~p̂(x|y~i~)p̂(y~i~)
+
+The Gaussian naive Bayes classifier is just a special case of Gaussian Bayes classifiers where ∑~y~ = diag(σ̂²~y,1~, ..., σ̂²~y,d~).
+
+Special case of binary classification and class independent variance σ²~j~: Starting with choosing the common discriminant function f(x) = log(p(y=+1|x)/(p(y=-1|x))), yields the following closed form solution for f(x).  If the GNB's model assumptions are met, i.e. if p(y,x) comes from a GNB model with class independent variances, p(y=1|x) is a logistic regression and hence GNB and logistic regression will make the same predictions.
+
+f(x) = w^T^x + w~0~ [discriminant function] +
+w~0~ = ... +
+w~j~ = (μ~+,j~ - μ~-,j~) / σ²~j~ +
+p(y=1|x) = sigm(w^T^x + w~0~)
+
+pro: rather simple, closed form solution
+
+contra: can be overconfident (probability close to 0 or 1), if the assumption that the features are conditionally independent given a label doesn't hold, which almost always is the case.  If we only care about he most likely class, e.g. in the case of MAP prediction, that might be fine.
+
+
+===== Gaussian Bayes Classifier (GBC)
+
+The most general form. As in Gaussian naive Bayes classifier, but we no longer assume that features are conditionally independent given a label.
+
+p̂(y) = count(i s.t. y~i~=y)/n [K-element empirical distribution] +
+p̂(x|y) = 𝓝~d~(x; μ~y~, ∑~y~) +
+μ̂~y~ = 1/count(i s.t. y~i~=y) ∑~i s.t. yi=y~x~i~  [a d-element vector] +
+∑̂~y~ = 1/count(i s.t. y~i~=y) ∑~i s.t. yi=y~(x~i~-μ̂~y~)(x~i~-μ̂~y~)^T^ [dxd covariance matrix]
+
+The predictive distribution then is, using Bayes' rule:
+
+p̂(y|x) = p̂(x|y)p̂(y) / ∑~1≤i≤n~p̂(x|y~i~)p̂(y~i~)
+
+In case of binary classification, the discriminant function f(x) fulfilling f(x) = log(p(y=+1|x)/(p(y=-1|x))) is the following
+
+f(x) = ... really complicated ... [discriminant function]
+
+Pro: Captures correlations among features
+
+Pro: Avoids overconfidence
+
+Contra: Computational complexity O(K+d²)
+
+
+===== Quadratic discriminant analysis
+
+Special case of GBC: Restricted to binary classification.
+
+The discriminant function f(x) fulfilling f(x) = log(p(y=+1|x)/(p(y=-1|x))) is:
+
+f(x) = ... really complicated ...
+
+Predictions can be made by
+
+h(x) = signʹ(f(x))
+
+
+===== Fisher's linear discriminant analysis (LDA)
+
+Special case of GBC / quadratic discriminant analyis: Restricted to binary classification, an uninformative prior p̂(y) = 0.5, and equal covariance matrices ∑ = ∑~p~ = ∑~n~.
+
+The discriminant function f(x) fulfilling f(x) = log(p(y=+1|x)/(p(y=-1|x))) is:
+
+f(x) = w^T^x + w~0~ +
+w = ∑^-1^(μ~p~-μ~n~) +
+w~0~ = 1/2(μ~n~^T^∑^-1^μ~n~ - μ~p~^T^∑^-1^μ~p~)
+
+Predictions are made with
+
+h(x) = sign(f(x)) = sign(w^T^x + w~0~)
+
+Predictive distribution (note that it has the same form as logistic regression)
+
+p(y=+1|x) = 1/(1+exp(-f(x))) = sigm(w^T^x + w~0~)
+
+If model assumptions are met, LDA makes the same predictions as Logistic Regression.
 
 
 === Decision theory
 
-_inference_ step/stage: Determination of the joint probability p(x,t) from training data. Is typically a very difficult problem.
+_inference_ step/stage: Determination of the joint probability p(x,y) from training data. Is typically a very difficult problem.
 
-_decision_ step/stage: Make an optimal decision regarding the problem at hand, based on the joint probability p(x,t) retreived from the inference step. Is generally very simple, even trivial, once we solved the inference problem.
+_decision_ step/stage: Make an optimal decision regarding the problem at hand, based on the joint probability p(x,y) retreived from the inference step. Is generally very simple, even trivial, once we solved the inference problem.
 
-A <<discrimant_function>> combines the inferance stage and the subsequent decision stage into one step.
+A <<discrimant_function>> combines the inference stage and the subsequent decision stage into one step.
 
 _minimizing misclassification rate_: Choose decision regions such that the probability for missclassification is minimal.
 
@@ -699,7 +814,8 @@ _reject option_: In regions where we are relatively uncertain about the correct 
 
 A form of <<cost_sensitive_classification>>.  Given a conditional distribution over labels p(y|x), a set 𝓐 of actions, and a cost function C:𝓨⨯𝓐→ℝ. Bayesian decision theory recommends to pick the action that minimizes the expected cost. This decision is called the _Bayesian optimal decision_.
 
-a^∗^ = argmin~a∈𝓐~(E~y∈𝓨~[C(y,a)|x])
+a^∗^ = f(x) = argmin~a∈𝓐~(E~y∈𝓨~[C(y,a)|x]) [f chooses best action a^∗^] +
+p(y|x) is given
 
 Actions can e.g. be:
 
@@ -707,7 +823,9 @@ Actions can e.g. be:
 
 - 𝓐 = {𝓨, "don't know" }. E.g. when we're really uncertain about the correct result, we admit it and return "don't know".
 
-The cost function could e.g. be the 0-1 loss for classification.
+The cost function could e.g. be the 0-1 loss for classification.  The cost function of course can be asymmetric, i.e. in case of binary classification different costs for a false positive than a false negative.  For example diagnosing an healthy person as having a deadly illness is less severe than diagnosing an ill person as healthy.
+
+Example: Bayesian optimal decision for logistic regression: p(y|x) is estimated by p̂(y|x) = Ber(y|sigm(w^T^x)). The set of actions is given by predicting a class, i.e. 𝓐 = {+1, -1}.  The cost function is the zero one loss, i.e. C(y,a) = l~0/1~(a, y).  Plugging into the formula and some math yields that the best action is the most likely class, i.e. a^∗^ = signʹ(w^T^x).
 
 
 [[curse_of_dimensionality]]
@@ -724,6 +842,11 @@ See also respective paragraph in <<KNN>>.
 References:
 
 - Pattern Recognition and Machine Learning, chapter ``1.4 The curse of Dimensionality''.
+
+
+=== Missing data
+
+Reasons for missing data: Respectvie data might be difficult / expensive / impossible to acquire.  Problems in sensor, network, storage.
 
 
 == Model selection, model validation
@@ -881,7 +1004,7 @@ A data point with high _leverage_ is one for which its predictor is unusual by b
 
 *to-do* I only understand that for simple linear regression, but not confidentaly for multiple linear regression. Is figuratively `far away' the Eucledian distance in ℝ^p^?. ISLR has an example: Figgure 3.13, middle plot, p.98. Has the red predictor higher leverage than the predictors at the right/left border of the ellipse? Its closer in Eucledian distance to the center/mean.
 
-*to-do* The notion of outlier seems to be applicable not only to linear regression, but the notion of leverage seems only to be applicable to linear regression. Correct? Why this asymetry? If not, what is the general definition / formula for leverage?
+*to-do* The notion of outlier seems to be applicable not only to linear regression, but the notion of leverage seems only to be applicable to linear regression. Correct? Why this asymmetry? If not, what is the general definition / formula for leverage?
 
 *to-do* There seem to be two intuitions for leverage: "a measure how far of a predictor is from the predictor mean" and "a measure of the influence of a response on its predicted value", and I cant bring them together in my head
 
@@ -1436,7 +1559,7 @@ References:
 
 === Bayesian learning
 
-The parameter θ is considered a random variable with unknown posterior probability distribution p(θ|𝓓).  The model evidence p(𝓓) is unknown.  The likelihood p(𝓓|θ) and the prior p(θ) are known / guessed.  The goal is to find the probability distribution p(x̃|𝓓) of a new data poiny x̃; note that θ doesn't occure directly in p(x̃|𝓓).
+The parameter θ is considered a random variable with unknown posterior probability distribution p(θ|𝓓).  The model evidence p(𝓓) is unknown.  The likelihood p(𝓓|θ) and the prior p(θ) are known / guessed.  The goal is to find the probability distribution p(x̃|𝓓) of a new data poiny x̃; note that θ doesn't occur directly in p(x̃|𝓓).
 
 p(x̃|𝓓) = +
 ∫p(x̃,θ|𝓓)dθ = +
@@ -1452,7 +1575,7 @@ MLE vs Bayes estimation
 
 - The results are equal in the asymptotic limit (for reasonable prior distributions)
 
-- Pro ML: ML only need differential calculus and can use gradient descent techniques.
+- Pro MLE: MLE only need differential calculus and can use gradient descent techniques.
 
 - Contra Bayes: Bayes needs a computationally expensive integration.
 
@@ -1464,7 +1587,7 @@ MLE vs Bayes estimation
 The goal of _classification_ is to take an input (vector) x and to assign it to one of K (or D or c) discrete classes C~k~, where k = 1, ..., K.  In the most common scenario the classes are disjoint.  The input space is devided into _decision regions_ whose boundaries are called _decision boundaries_ (or _decision surfaces_).
 
 [[discrimant_function]]
-A _discrimant (function)_ is a function that takes an input (vector) x and assigns it to one of the K classes.
+A _discrimant function_ (or just _discriminant_) f~j~(x) is a function that takes a feature vector x as input and returns a high value if x is likely to belong class j. When making predictions, we can then return ŷ = argmax~j∈[K]~(f~j~(x)). In case of binary classification, it is enough to have one discriminant function, and the x for which f(x)=0 constitute the decision boundary.
 
 The _margin_ is defined to be the smallest distance between the decision boundary an any of the observations.  Generally we prefer classifiers which result in a large margin.  The training sample is just a sample from the population, so a larger margin reduces the risk of missclassification for another (test) sample (imagine the 2D case, imagine a cloud / ellipse around each region of same-class-observations).  Also, the values of the x vector of each observation might be contaminated with measurement errors, i.e. is again a `cloud'.
 
@@ -2108,14 +2231,12 @@ References:
 
 Binary classification, despite having `regression' in the name.  It's named the way it is due to the similarity to linear regresssion.
 
-Likelihood is modeled as p(y|x,w) = Ber(y|sigm(w^T^x)), where sigm(·) denotes the sigmoid function, and Ber denotes the Bernoulli distribution.  An estimator ŵ of w yields the estimated likelihood p̂(y|x,ŵ) = Ber(y|sigm(ŵ^T^x)).
-
-Interpretation: Our noise model is that far away from the decision boundary, the probability p(y|x) should be close to 1 and 0 respectively, depending on the side.  Close to the boundary, we don't really know which class a point belongs to, so the probability p(y|x) should be close to 0.5. So logistic regression, relative to linear regression, replaces the assumption of Gaussian noise by Bernoulli noise.
+p(y|x,w) is modeled as p(y|x,w) = Ber(y|sigm(w^T^x)), where sigm(·) denotes the sigmoid function, and Ber denotes the Bernoulli distribution.  Interpretation: Our noise model is that far away from the decision boundary, the probability p(y|x) should be close to 1 and 0 respectively, depending on the side.  Close to the boundary, we don't really know which class a point belongs to, so the probability p(y|x) should be close to 0.5. So logistic regression, relative to linear regression, replaces the assumption of Gaussian noise by Bernoulli noise.
 
 ŵ^MLE^ = argmin~w~(∑loss~logistic~(w, y~i~, x~i~)) +
 loss~logistic~(w, y, x) = log(1+exp(-yw^T^x))
 
-The logistic loss is a convex function, thus we can use convex optimization techniques, e.g. SGD. It can be viewed as a smooth approximation to the hinge loss.
+The logistic loss is a convex function, thus we can use convex optimization techniques, e.g. SGD.  Logistic loss can be viewed as a smooth approximation to the hinge loss.
 
 ∇~w~loss~logistic~(w) = p̂(Y=-y|w,x)(-yx) +
 p̂(Y=-y|w,x) = 1/(1+exp(yw^T^x)) [prob. of missclassifaction with w]
@@ -2129,11 +2250,15 @@ L2(Gaussian prior): ŵ = argmin~w~(R̂(w) + λ|w|²)
 
 E.g. for L2 regularization, the gradient step in SGD is w = w(1-2λη) + ηyxp̂(Y=-y|w,x)
 
-probabilistic classification: use conditional distribution p̂(y|x,ŵ) = 1/(1+exp(-yŵ^T^x))
+probabilistic classification: use conditional distribution
+
+p̂(y|x,ŵ) = 1/(1+exp(-yŵ^T^x))
 
 Estimated Bayesian optimal decision under 0-1 loss: ŷ = a^∗^ = argmax~y~(p̂(y|x,ŵ)) = sign(ŵ^T^x). I.e. the action a^∗^ that minimizes the expected cost is the most likely the class, where set of actions 𝓐 is {+1, -1} (i.e. the action is returning the guessed class) and cost function is the 0-1 loss.
 
-As seen with bayesion optimal decision, having the distribution p̂(y|x,ŵ) is valuable when wanting to make decisions later on. Note that we also could have different cost functions, e.g. assymetric (different costs for false positive and false negative), or we also have a dontknow action (i.e. answer). With p̂(y|x,ŵ) we not only can do predictions, we also can quantify our uncertainty.  *to-do* move to a more general place
+Logistic regression makes the same regression as a special case of Gaussian naive Bayes classifier, see there.
+
+As seen with bayesion optimal decision, having the distribution p̂(y|x,ŵ) is valuable when wanting to make decisions later on. Note that we also could have different cost functions, e.g. asymmetric (different costs for false positive and false negative), or we also have a dontknow action (i.e. answer). With p̂(y|x,ŵ) we not only can do predictions, we also can quantify our uncertainty.  *to-do* move to a more general place
 
 kernelized logistic regression: *to-do* 2.5.18 00:32:29
 
@@ -2388,13 +2513,22 @@ Ŵ = (v~1~|...|v~k~)
 [[gaussian_mixture_model]]
 === Gaussian mixture model (GMM)
 
-Example of clustering.  Assume that p(x) = *to-do* is given by adding k gaussian distributions, each gaussian with a weight w~j~, ∑~1≤j≤k~w~i~=1. Each gaussian distribution has parameters mean μ~j~ and covariance matrix Σ~j~.
+Example of clustering.  As a Gaussian Bayes Classifier, but unsupervised, i.e. labels are missing.
 
-w is a k-dim vector of weights.
+p(x~i~|μ~j~,Σ~j~) = 𝓝~d~(x;μ~j~,Σ~j~) +
+p(x|w,μ,Σ) = ∑~1≤j≤K~w~j~p(x~i~|μ~j~,Σ~j~) +
+w = (w~1~, ..., w~K~) +
+w~i~ represents p(y=i) +
+μ = (μ~1~, ..., μ~K~) +
+μ~j~ is a d-dimensional vector, μ~j,l~ being mean of j-th cluster w.r.t. l-th feature +
+Σ = (Σ~1~, ..., Σ~K~) +
+Σ~j~ is the d⨯d covariance matrix of the d-dim normal distribution of the j-th cluster
 
-(w,μ,Σ) = argmin~w,μ,Σ~(∑~1≤i≤N~loss(x~i~,w,μ,Σ)) +
-loss(x~i~,w,μ,Σ) = -log∑~1≤j≤k~w~j~𝓝(x~i~|μ~j~,Σ~j~) +
-subject to: Σ~j~ s must be symmetric positive definite, ∑~1≤j≤k~w~i~=1
+The resulting nonconvex optimization problem:
+
+(w,μ,Σ) = argmin~w,μ,Σ~(∑~1≤i≤n~loss(x~i~,w,μ,Σ)) +
+loss(x,w,μ,Σ) = -log∑~1≤j≤K~w~j~𝓝~d~(x|μ~j~,Σ~j~) +
+subject to: Σ~j~ s must be symmetric positive definite, ∑~1≤j≤K~w~j~=1, w~j~≥0
 
 Fitting a GMM = Training a gaussian bayes classifier without labels
 
