@@ -650,7 +650,9 @@ _maximum likelihood estimator_ (_MLE_) θ̂^MLE^ = argmax~θ~(p(𝓓|θ)): A fre
 - asymptotically efficient
 - asymptotic normality: √n(θ-θ̂) → 𝓝(0, J^-1^IJ^-1^), where I=Var~θ~[Λ(θ)], J=-E~θ~[∇~θ^T^~Λ(θ)], and Λ denoting the score function
 - equivalence: If θ̂ is MLE of θ, then f(θ̂) is MLE of f(θ)
+- prone to overfitting if model is flexible (i.e. has many parameters)
 - Λ(θ̂) = 0. Since θ̂ is a maxima of the likelihood.
+
 
 Relation to other estimators:
 
@@ -668,6 +670,17 @@ _MAP estimate for predicton_: ŷ = ĥ(x) = argmax~y~[p(y|x,𝓓)]. I.e. the mo
 
 _Bayes' optimal predictor for squared loss_: Let X and Y denote the random variables denoting a predictions vector and a response respectively.  Assume data is generated iid.  Assume (unrealistically) we knew the joint distribution p(X,Y). The hypothesis h^∗^ minimizing the expected least square error E~X,Y~[(Y-h(X))²] is given by the conditional mean h^∗^(x) = E~X,Y~[Y|X=x] = ∫p(y|X=x)·y·dy and is called Bayes' optimal predictor for the squared loss.
 
+_conjugate distributions_ / _conjugate priors_: A pair of prior distribution and likelihood distribution is called _conjugate_ if the associated posterior remains in the same family as the prior.  Conjugate priors can be used as regularizers.  Example: Flipping a coin.  Let θ denote the probability of heads.  We assume the prior to be Beta(a, b).  We observe h heads and t tails.  Calculating the posterior (posterior = likelyhood·prior/evidence) distribution gives Beta(a+h, b+t).
+
+|======
+| prior / posterior            | likelihood
+| Beta                         | Bernoulli / Binomial
+| Dirichlet                    | Categorical / Multinomial
+| Gaussian (fixed covariance)  | Gaussian
+| Gaussian-inverse Wishart     | Gaussian
+| Gaussian process             | Gaussian
+|======
+
 _probabilistic predictions_ p(y|x,𝓓): denotes the probability distribution over possible responses, given the input vector x and training set 𝓓. I.e. it represents a probability for each possible value of the response y.
 
 _supervised learning_: The given data is composed of the features X and the respective labels Y.
@@ -683,7 +696,7 @@ _frequentist vs bayesian_: In the probabilistic view, we also model the uncertai
 
 === Generative model vs discrimantive model
 
-_generative model_: Models the distribution of individual classes (i.e. the joint probability distribution p(x,y)), i.e. models how the data was generated.  However this is in general very hard. Typically less robust against outliers, because we have to make more assumptions, i.e. we can make more mistakes.  Since it knows the joint probability p(x,y), it can then easily derive the predictive distribution p(y|x) which also the discriminative model has.  The inverse is obviously not true, i.e. given p(y|x), one can in general not derive p(x,y).
+_generative model_: Models the distribution of individual classes (i.e. the joint probability distribution p(x,y)), i.e. models how the data was generated.  However this is in general very hard. Typically less robust against outliers, because we have to make more assumptions, i.e. we can make more mistakes.  Since it knows the joint probability p(x,y), it can then easily derive the predictive distribution p(y|x) which also the discriminative model has.  The inverse is obviously not true, i.e. given p(y|x), one can in general not derive p(x,y).  The name `generative model' comes from that the p(x|y) which we estimate can be seen as generating a feature vector given a label.  That can be usefull to impute missing data.
 
 p(y|x) = p(x|y)p(y)/p(x) [allows making predictions] +
 p(y) [estimated; allows to generate labels] +
@@ -698,100 +711,7 @@ h~θ~:𝓧→𝓨 or p(y|x,θ) [allows making predictions] +
 θ̂^MLE^ = argmax~θ~(p(𝓓|θ)) +
 θ̂^MAP^ = argmax~θ~(p(θ|𝓓)) = argmax~θ~(p(𝓓|θ)p(θ))
 
-
-==== Generative model
-
-Typically the follwing recipe is used to estimate the joint distribution p(x,y) and the conditional distribution p(y|x).  The goal is to find the joint distribution p(x,y).  We don't do that directly, but note that by the chain rule, p(x,y) = p(x|y)p(y).  So we're left with estimating the factors p(x|y) and p(y).  We then can make predictions using the predictive distribution p(y|x) = p(x|y)p(y)/p(x), where p(x) = ∑~y~p(x|y)p(y).  More concretely, we can predict using MAP estimate.
-
-The name `generative model' comes from that the p(x|y) which we estimate can be seen as generating a feature vector given a label.  That can be usefull to impute missing data.
-
-
-===== Gaussian naive Bayes classifier (GNB)
-
-For classification problems. Special case of GBC: features are conditionally independent given a label, i.e. ∑~y~ = diag(σ²~y,1~, ..., σ²~y,d~).
-
-p̂(y) is estimated by the emprical distribution of class labels {y~1~, ..., y~n~}.  We model the given features as conditionally independent given a label, yielding p̂(x|y) = ∏~1≤j≤d~p(x^(j)^,y). I.e. given a class label y, each feature x^(j)^ of a feature vector x is `generated' independently of the other features.  That the features are conditionally independent given a label is an unrealistic assumption, but it generally works well in practice. We model features by conditionally independent Gaussians: p̂(x^(j)^,y) = 𝓝(μ~y,j~, σ²~y,j~).  Using MLE, we get μ̂~y,j~ = mean(all x~i~^(j)^ where y~i~=y) and σ̂²~y,j~ = var(analogous). Summary:
-
-p̂(y) = count(i s.t. y~i~=y)/n [K-element empirical distribution] +
-p̂(x|y) = ∏~1≤j≤d~p(x^(j)^,y) [assumes features are mutually independent] +
-p̂(x^(j)^,y) = 𝓝(μ~y,j~, σ²~y,j~) [assumes each feature is normally distributed] +
-μ̂~y,j~ = mean(all x~i~^(j)^ where y~i~=y) [by MLE] +
-σ̂²~y,j~ = var(analogous) [by MLE]
-
-The predictive distribution then is, using Bayes' rule:
-
-p̂(y|x) = p̂(x|y)p̂(y) / ∑~1≤i≤n~p̂(x|y~i~)p̂(y~i~)
-
-The Gaussian naive Bayes classifier is just a special case of Gaussian Bayes classifiers where ∑~y~ = diag(σ̂²~y,1~, ..., σ̂²~y,d~).
-
-Special case of binary classification and class independent variance σ²~j~: Starting with choosing the common discriminant function f(x) = log(p(y=+1|x)/(p(y=-1|x))), yields the following closed form solution for f(x).  If the GNB's model assumptions are met, i.e. if p(y,x) comes from a GNB model with class independent variances, p(y=1|x) is a logistic regression and hence GNB and logistic regression will make the same predictions.
-
-f(x) = w^T^x + w~0~ [discriminant function] +
-w~0~ = ... +
-w~j~ = (μ~+,j~ - μ~-,j~) / σ²~j~ +
-p(y=1|x) = sigm(w^T^x + w~0~)
-
-pro: rather simple, closed form solution
-
-contra: can be overconfident (probability close to 0 or 1), if the assumption that the features are conditionally independent given a label doesn't hold, which almost always is the case.  If we only care about he most likely class, e.g. in the case of MAP prediction, that might be fine.
-
-
-===== Gaussian Bayes Classifier (GBC)
-
-The most general form. As in Gaussian naive Bayes classifier, but we no longer assume that features are conditionally independent given a label.
-
-p̂(y) = count(i s.t. y~i~=y)/n [K-element empirical distribution] +
-p̂(x|y) = 𝓝~d~(x; μ~y~, ∑~y~) +
-μ̂~y~ = 1/count(i s.t. y~i~=y) ∑~i s.t. yi=y~x~i~  [a d-element vector] +
-∑̂~y~ = 1/count(i s.t. y~i~=y) ∑~i s.t. yi=y~(x~i~-μ̂~y~)(x~i~-μ̂~y~)^T^ [dxd covariance matrix]
-
-The predictive distribution then is, using Bayes' rule:
-
-p̂(y|x) = p̂(x|y)p̂(y) / ∑~1≤i≤n~p̂(x|y~i~)p̂(y~i~)
-
-In case of binary classification, the discriminant function f(x) fulfilling f(x) = log(p(y=+1|x)/(p(y=-1|x))) is the following
-
-f(x) = ... really complicated ... [discriminant function]
-
-Pro: Captures correlations among features
-
-Pro: Avoids overconfidence
-
-Contra: Computational complexity O(K+d²)
-
-
-===== Quadratic discriminant analysis
-
-Special case of GBC: Restricted to binary classification.
-
-The discriminant function f(x) fulfilling f(x) = log(p(y=+1|x)/(p(y=-1|x))) is:
-
-f(x) = ... really complicated ...
-
-Predictions can be made by
-
-h(x) = signʹ(f(x))
-
-
-===== Fisher's linear discriminant analysis (LDA)
-
-Special case of GBC / quadratic discriminant analyis: Restricted to binary classification, an uninformative prior p̂(y) = 0.5, and equal covariance matrices ∑ = ∑~p~ = ∑~n~.
-
-The discriminant function f(x) fulfilling f(x) = log(p(y=+1|x)/(p(y=-1|x))) is:
-
-f(x) = w^T^x + w~0~ +
-w = ∑^-1^(μ~p~-μ~n~) +
-w~0~ = 1/2(μ~n~^T^∑^-1^μ~n~ - μ~p~^T^∑^-1^μ~p~)
-
-Predictions are made with
-
-h(x) = sign(f(x)) = sign(w^T^x + w~0~)
-
-Predictive distribution (note that it has the same form as logistic regression)
-
-p(y=+1|x) = 1/(1+exp(-f(x))) = sigm(w^T^x + w~0~)
-
-If model assumptions are met, LDA makes the same predictions as Logistic Regression.
+_recipe for generative model_: Typically the follwing recipe is used to estimate the joint distribution p(x,y) and the conditional distribution p(y|x).  The goal is to find the joint distribution p(x,y).  We don't do that directly, but note that by the chain rule, p(x,y) = p(x|y)p(y).  So we're left with estimating the factors p(x|y) and p(y).  We then can make predictions using the predictive distribution p(y|x) = p(x|y)p(y)/p(x), where p(x) = ∑~y~p(x|y)p(y).  More concretely, we can predict using MAP estimate.
 
 
 === Decision theory
@@ -847,6 +767,7 @@ References:
 === Missing data
 
 Reasons for missing data: Respectvie data might be difficult / expensive / impossible to acquire.  Problems in sensor, network, storage.
+
 
 
 == Model selection, model validation
@@ -1528,6 +1449,29 @@ Applications:
 - Empirical risk minimization. Recall that empirical risk is sum of losses over all observations.
 
 - Computing a MLE. Also here a sum over all observations appears.
+
+
+=== EM algorithm
+
+An algorithm to solve the optimization problem often arising in unsupervised learning of a generative model, where we have to find p(x|θ), i.e. actually estimate θ̂ by MLE.
+
+E.g. for gaussian mixture models, where θ = (w,μ,Σ) and p(x|w,μ,Σ) = ∑~1≤j≤K~w~j~𝓝~d~(x;μ~j~,Σ~j~), the non-convex optimization problem is argmin~w,μ,Σ~(-∑~1≤i≤n~log∑~1≤j≤K~w~j~𝓝~d~(x|μ~j~,Σ~j~)), subject to further constraints.  However if we would know w, i.e. if we would know the labels, it has a closed form solution.
+
+_Hard-EM_ algorithm. The E-step makes a hard assignment y~i~ to x~i~.
+
+--------------------------------------------------
+Initialize θ[0]
+for t = 1, 2, ...:
+    # E-step: predict labels
+    for i = 1 to n:
+        y[i][t] = argmax~y~p(y|x[i],θ[t-1])
+                  = argmax~y~p(y|θ[t-1])p(x[i]|y,θ[t-1])
+
+    # M-step: compute *M*LE using closed form formula
+    θ[t] = argmax~θ~p({x,y[t]}|θ)
+--------------------------------------------------
+
+_Soft-EM_ (or just _EM_) algorithm. Suppose we have model p(y|θ), p(x|y,θ). Then p(y=c|x,θ) = p(y=c|θ)p(x|θ)/∑..........
 
 
 [[bagging]]
@@ -2510,13 +2454,131 @@ The PCA optimization problem has a closed form solution, nameley the principal E
 Ŵ = (v~1~|...|v~k~)
 
 
+=== Gaussian based Bayes classifiers
+
+===== Gaussian naive Bayes classifier (GNB)
+
+For classification problems. Special case of GBC: features are conditionally independent given a label, i.e. ∑~y~ = diag(σ²~y,1~, ..., σ²~y,d~).
+
+p̂(y) is estimated by the emprical distribution of class labels {y~1~, ..., y~n~}.  We model the given features as conditionally independent given a label, yielding p̂(x|y) = ∏~1≤j≤d~p(x^(j)^,y). I.e. given a class label y, each feature x^(j)^ of a feature vector x is `generated' independently of the other features.  That the features are conditionally independent given a label is an unrealistic assumption, but it generally works well in practice. We model features by conditionally independent Gaussians: p̂(x^(j)^,y) = 𝓝(μ~y,j~, σ²~y,j~).  Using MLE, we get μ̂~y,j~ = mean(all x~i~^(j)^ where y~i~=y) and σ̂²~y,j~ = var(analogous). Summary:
+
+p̂(y) = count(i s.t. y~i~=y)/n [K-element empirical distribution] +
+p̂(x|y) = ∏~1≤j≤d~p(x^(j)^,y) [assumes features are mutually independent] +
+p̂(x^(j)^,y) = 𝓝(μ~y,j~, σ²~y,j~) [assumes each feature is normally distributed]
+
+Estimating the parameters with MLE, the closed form solution is:
+
+μ̂~y,j~ = mean(all x~i~^(j)^ where y~i~=y) +
+σ̂²~y,j~ = var(analogous)
+
+The predictive distribution then is, using Bayes' rule:
+
+p̂(y|x) = p̂(x|y)p̂(y) / ∑~1≤i≤n~p̂(x|y~i~)p̂(y~i~)
+
+The Gaussian naive Bayes classifier is just a special case of Gaussian Bayes classifiers where ∑~y~ = diag(σ̂²~y,1~, ..., σ̂²~y,d~).
+
+Special case of binary classification and class independent variance σ²~j~: Starting with choosing the common discriminant function f(x) = log(p(y=+1|x)/(p(y=-1|x))), yields the following closed form solution for f(x).  If the GNB's model assumptions are met, i.e. if p(y,x) comes from a GNB model with class independent variances, p(y=1|x) is a logistic regression and hence GNB and logistic regression will make the same predictions.
+
+f(x) = w^T^x + w~0~ [discriminant function] +
+w~0~ = ... +
+w~j~ = (μ~+,j~ - μ~-,j~) / σ²~j~ +
+p(y=1|x) = sigm(w^T^x + w~0~)
+
+pro: rather simple, closed form solution
+
+contra: can be overconfident (probability close to 0 or 1), if the assumption that the features are conditionally independent given a label doesn't hold, which almost always is the case.  If we only care about he most likely class, e.g. in the case of MAP prediction, that might be fine.
+
+
+===== Gaussian Bayes Classifier (GBC)
+
+The most general form. As in Gaussian naive Bayes classifier, but we no longer assume that features are conditionally independent given a label.
+
+p̂(y) = count(i s.t. y~i~=y)/n [K-element empirical distribution] +
+p̂(x|y) = 𝓝~d~(x; μ~y~, ∑~y~)
+
+Estimating the parameters with MLE, the closed form solution is:
+
+μ̂~y~ = 1/count(i s.t. y~i~=y) ∑~i s.t. yi=y~x~i~  [a d-element vector] +
+∑̂~y~ = 1/count(i s.t. y~i~=y) ∑~i s.t. yi=y~(x~i~-μ̂~y~)(x~i~-μ̂~y~)^T^ [dxd covariance matrix]
+
+The predictive distribution then is, using Bayes' rule:
+
+p̂(y|x) = p̂(x|y)p̂(y) / ∑~1≤i≤n~p̂(x|y~i~)p̂(y~i~)
+
+In case of binary classification, the discriminant function f(x) fulfilling f(x) = log(p(y=+1|x)/(p(y=-1|x))) is the following
+
+f(x) = ... really complicated ... [discriminant function]
+
+Pro: Captures correlations among features
+
+Pro: Avoids overconfidence
+
+Contra: Computational complexity O(K+d²)
+
+Contra: Can not handle discrete features. But see <<categorial_naive_bayes_classifier>>.
+
+*to-do* how robust is it in general if `data is Gaussian' - assumption is not met?
+
+
+===== Quadratic discriminant analysis
+
+Special case of GBC: Restricted to binary classification.
+
+The discriminant function f(x) fulfilling f(x) = log(p(y=+1|x)/(p(y=-1|x))) is:
+
+f(x) = ... really complicated ...
+
+Predictions can be made by
+
+h(x) = signʹ(f(x))
+
+
+===== Fisher's linear discriminant analysis (LDA)
+
+Special case of GBC / quadratic discriminant analyis: Restricted to binary classification, an uninformative prior p̂(y) = 0.5, and equal covariance matrices ∑ = ∑~p~ = ∑~n~.
+
+The discriminant function f(x) fulfilling f(x) = log(p(y=+1|x)/(p(y=-1|x))) is:
+
+f(x) = w^T^x + w~0~ +
+w = ∑^-1^(μ~p~-μ~n~) +
+w~0~ = 1/2(μ~n~^T^∑^-1^μ~n~ - μ~p~^T^∑^-1^μ~p~)
+
+Predictions are made with
+
+h(x) = sign(f(x)) = sign(w^T^x + w~0~)
+
+Predictive distribution (note that it has the same form as logistic regression)
+
+p(y=+1|x) = 1/(1+exp(-f(x))) = sigm(w^T^x + w~0~)
+
+If model assumptions are met, LDA makes the same predictions as Logistic Regression.
+
+Contra: Not very robust against violations of assumptions.
+
+*to-do* Isn't that statement applicable to all GBC based methods?
+
+
+[[categorial_naive_bayes_classifier]]
+===== Categorial naive Bayes classifier
+
+As Gaussian naive Bayes classifier, but for discrete features.  No assumptions on the form of p̂(x|y). Instead, based on empirical distributions retreived from the given data.
+
+There is no variant which drops the assumption that features are conditionally independent given a label.  This is because we don't assume any form of p̂(x|y), i.e. each possible empirical distribution would be a candidate.  E.g. if the features are binary, then there are 2^d^ different feature vectors, and for each of those we would need a probability.  In the Gaussian case, there are only d (means) + d² (covariance matrix) parameters.
+
+*to-do* 05:15 00:10:00
+
+
+===== Mixed conditional distributions
+
+Let each feature have its own individual conditional distribution p̂(x^(j)^,y). A group of features can be assumed as conditionally independent given a label, another group can be assumed to be conditionally dependent given a label.
+
+
 [[gaussian_mixture_model]]
 === Gaussian mixture model (GMM)
 
 Example of clustering.  As a Gaussian Bayes Classifier, but unsupervised, i.e. labels are missing.
 
-p(x~i~|μ~j~,Σ~j~) = 𝓝~d~(x;μ~j~,Σ~j~) +
-p(x|w,μ,Σ) = ∑~1≤j≤K~w~j~p(x~i~|μ~j~,Σ~j~) +
+p(x|w,μ,Σ) = ∑~1≤j≤K~w~j~𝓝~d~(x;μ~j~,Σ~j~) +
 w = (w~1~, ..., w~K~) +
 w~i~ represents p(y=i) +
 μ = (μ~1~, ..., μ~K~) +
