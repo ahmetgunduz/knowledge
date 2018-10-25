@@ -455,7 +455,7 @@ Recall that this is similar to what HBase does when flushing the memstore to a s
 
 It's the reducer that asks via HTTP each mapper `send me the partition for the following set of keys'. The reduce tasks uses multiple copier threads to fetch partitions in parallel from mappers. As data is accumulated, at one place (memory or disk) per copier thread, a background thread merges it, to disk or memory.  Merging is hierarchically, i.e. tree like, as opposed to all inputs directly into a single file.  The merging is also called _sort phase_, despite it is _not_ about sorting.
 
-**to-do** Why not make it in a more streaming like fashion, i.e. make a stream of same key pairs to the reducer? Then while a mapper is still working, a reducer can already work on parts of its output. Similarily, why this hierarchical merging?
+**to-do** Why not make it in a more streaming like fashion (answer: it is done), i.e. make a stream of same key pairs to the reducer? Then while a mapper is still working, a reducer can already work on parts of its output. Similarily, why this hierarchical merging? Assistent asks for reference, I send an email.
 
 A common split size is one HDFS block.  If the splits are too small, then there is too much overhead of managing the splits.  On the other hand small splits are nice because the parallel processsing is better load balanced; a faster machine can process proportionally more splits than a slower machine.  Also, if the split size was larger than one HDFS bock, it could not be guaranteed that both HDFS blocks are on the same machine, which would be bad for data locality optimization.  However note that the last key-value pair of a split might spawn two HDFS blocks.  This is a drawback we have to live with.  Recall that HDFS allows to read parts of a HDFS block, so the problem is mitigated somewhat.
 
@@ -501,11 +501,19 @@ Hadoop Version 1.0: Master-slave architecture. The master is called _JobTracker_
 
 Issues with version 1: The JobTracker has to many responsibilities. As a consequence, scalability is limited, <4000 nodes and <40'000 tasks.  Also the task slots are allocated statically before the job starts -- as a consequence, it may turn out that the mappers of a job are working at maximum capacity, and the reducers are idle.
 
-Hadoop Version 2.0: YARN (yet another resource negotiator). The master is called YARN _ResourceManager_, the slaves are called YARN _NodeManager_.  Each NodeManager has a set of _containers_.  A container is an assignment of resources.  Say a node has 8 cores and 64KB RAM, then each container might get assigned one core and 8GB RAM.  Each container can run a map task or reduce task or ApplicationMaster. The ResourceManager now only cares about scheduling.  The monitoring is now done by an _ApplicationMaster_.  Scalability is improved, 10'000 nodes and 100'000 tasks, which is about the size of a data center.
+Hadoop Version 2.0: YARN (yet another resource negotiator). The master is called YARN _ResourceManager_, the slaves are called YARN _NodeManager_.  The ResourceManager now only cares about scheduling.  Each NodeManager has a set of _containers_.  A container is an assignment of resources.  Say a node has 8 cores and 64KB RAM, then each container might get assigned one core and 8GB RAM.  Each container can run a map task or reduce task or ApplicationMaster. The monitoring is now done by an _ApplicationMaster_, which runs in a container.  Scalability is improved (v2 relative to v1), 10'000 nodes and 100'000 tasks, which is about the size of a data center.  Fully backwards compatible.
 
 Sequence: A client sends a job to the ResourceManager.  The ResourceManager chooses one free container to be the ApplicationManager for that job.  The ApplicationManager decides how many Containers it needs to assign tasks to and then asks the ResourceManager for the locations of that many free containers.  The request can contain hints like how much RAM the container should have, on which rack or node it ideally should be (so e.g. a mapper can run on the node hosting the required HDFS block).  The ApplicationManager then directly contacts the received Containers.  Note that now, in contrast to version 1, the master is only involved at the beginning of the job.  As a consequence we get better scaling.
 
-The _ResourcManager_ must take care of cluster utilization, give capacity guarantees (e.g. hold the promise that a container has 16GB RAM), guarantee fairness (if 10 jobs are using the cluster, each shall get its fair share), and must fulfill SLAs.  The ResourceManager provides a client service API to the clients so thei can start/end jobs, get informations about jobs.  The NodeManagers repeatedly send liveliness (aka heartbeats) to the ResourceManager.  The ResourceManager knows about the Resources of all live NodeManagers.
+The _ResourceManager_ must take care of cluster utilization, give capacity guarantees (e.g. hold the promise that a container has 16GB RAM), guarantee fairness (if 10 jobs are using the cluster, each shall get its fair share, see also schedulers), and must fulfill SLAs.  The ResourceManager provides a client service API to the clients so thei can start/end jobs, get informations about jobs.  The NodeManagers repeatedly send liveliness (aka heartbeats) to the ResourceManager.  The ResourceManager knows about the Resources of all live NodeManagers.
+
+_Schedulers_ (of jobs) the ResourceManager might use:
+
+- _FIFO scheduler_
+
+- _Capacity scheduler_: There's a set of hierarchical FIFO queues, taking user applications, each queue guarantees a certain capacity (resources, e.g. cores).  Each queue has strict ACLs that control which users can use the queue.  Idle capacity can be given to the most starved queues.
+
+- _Fair scheduler_: Highly simplified: The aim is that all applications get, on average, an equal share of resources over time.  If there is an single app, it gets all the resources of the cluster.  If a new app comes in, when ressources get free, they are assigned to the apps such that over time, each app roughly gets the same amount of resources.  Apps can have priorities, which serve as weights to determine the fraction of total resources that each app gets.  The scheduler further organizes apps into queues, and shares resources fairly between these queues.  By default all users share a single queue, named `default'.
 
 **to-do** Chapter 7. I'm not sure I understand who exactly does the splits, and wether or not the splits move around in the network. I assume the client does the split logically, i.e. only by getting to know which HDFS slave hosts which HDFS block of the data. From then on, only that location information is transfered / used by involved nodes / task.  The HDFS data of the HDFS blocks is in general not transfered over the network (only if the associated mapper can't be on the same node)
 
@@ -524,18 +532,24 @@ Operations: put/get/delete (row), scan (rows)
 
 Can store billions of rows; a traditional RDBMS (single machine) can store millions.
 
+Scanninig, i.e. iterating over all rows of a table, is an relative expensive operation since its not trivial.
+
 Has low latency (relative to HDFS) because of the memstore and the block cache; latency due to access to underlying DFS falls aften away.
 
 Best practice: Keep row ids and column names short. Rational: Every KeyValue stores them.  I.e. a given row id or column name appears a lot of times.  Keeping them short lets you save space, both on disk and in memory. I.e. you can pack more KeyValues into your memory.
 
+Offers row level atomicity. Can offer it because one region is handled by exactly one region server.
+
+Good (relative to RDBMS) for sparse data (sparse meaning not every column, given a row, contains a value).
+
 
 ==== Implementation of HBase / Physical layer of HBase
 
-Partition table firsy horizontally (i.e. group rows), then vertically (as already done by column families).  We need horizontal partitioning because we can have billions of rows not even fitting on a single machine.  A horizontal partition is given by the range (min-incl, max-excl).  Such a range of rows is called a _region_.  Obviously the max-excl equals the min-incl of the next partition.  The intersection of horizontal and vertical partitioning is what is stored together and is called a _store_.
+Partition table first horizontally (i.e. group rows), then vertically (as already done by column families).  We need horizontal partitioning because we can have billions of rows not even fitting on a single machine.  A horizontal partition is given by the range (min-incl, max-excl).  Such a range of rows is called a _region_.  Obviously the max-excl equals the min-incl of the next partition.  The intersection of horizontal and vertical partitioning is what is stored together and is called a _store_. I.e. a region is composed of multiple stores.
 
-Master slave architecture.  The master is called _HMaster_, a slave is called _region server_.  The HMaster's responsibility is the meta data.  A store is stored as one or more files, called _store file_ (or _HFiles_), on a DFS.
+Master slave architecture.  The master is called HMaster, a slave is called region server.  The _HMaster_'s responsibility is the meta data.  A _region server_ is responsible for a set of regions, and thus implicitely also for the stores of that regions.  A region is assigned to one region server.
 
-One store file is actually an _SSTable_, a flat sorted list of key-value pairs, one pair also called  _KeyValue_, plus an index for faster key lookukp.  A store file is immutable.  The index is loaded into memory.  The key is logically a (rowid, column-number) pair refering to a cell of the original table, and the value storing the content of that cell.  KeyValues are stored sequentially, forming a bytestream, making it efficient for transfer.  Each KeyValue is stored as tuple (keylength, valuelength, key, value).  The length of the keylength and valuelength elements are fixed width, e.g. 32bit.  Practically the key is a tuple
+A store is stored as one or more files, called _store file_ (or _HFiles_), on a DFS.  One store file is actually an _SSTable_, a flat sorted list of key-value pairs, one pair also called  _KeyValue_, plus an index for faster key lookup.  The _index_ contains the first key of every block in the HFile.  A store file is immutable.  The index is loaded into memory.  The key is logically a (rowid, column-number) pair refering to a cell of the original table, and the value storing the content of that cell.  KeyValues are stored sequentially, forming a bytestream, making it efficient for transfer.  Each KeyValue is stored as tuple (keylength, valuelength, key, value).  The length of the keylength and valuelength elements are fixed width, e.g. 32bit.  Practically the key is a tuple
 
 (rowidlength, rowid, columnfamiliylength, columnfamily, columnqualifier, timestamp, keytype)
 
@@ -543,7 +557,9 @@ Again rowidlength, columnfamiliylength are fixed width, and their value defines 
 
 The key-value pairs of the store file are read in blocks of about 64kB; no pair is ever split.  Note that these are not the same blocks as the ones the underlying DFS might have.
 
-_put_: First write to HLog file, then to the memstore.  The _HLog_ (or _write ahead log_ or _WAL_), a journal, is a security measure in case we loose what's in the memory before the memory could be flushed to disk.  It is stored on the underlying DFS.  The _memstore_ is an in memory cache of modified KeyValues.  When certain criterions are met, the memstore is flushed to disk, creating a new storefile (as always with sorted rows).  After flushing, the log file can be discarded.  Thus we keep generetaing partially redundant store files (but remember that each KeyValue as an version, and we have a total order).  Every now and then, we do _compaction_:  Replace the existing HFiles by one new HFile by merging them.
+_put_: First write to HLog file, then to the memstore.  The _HLog_ (or _write ahead log_ or _WAL_), a journal, is a security measure in case we loose what's in the memory before the memory could be flushed to disk.  It is stored on the underlying DFS.  There is one HLog per region server.  The _memstore_ is an in memory cache of modified KeyValues.  There is one memstore per store.  When certain criterions are met, the memstore is flushed to disk, creating a new storefile (as always with sorted rows).  After flushing, the log file can be discarded.  Thus we keep generetaing partially redundant store files (but remember that each KeyValue as an version, and we have a total order).  Every now and then, we do _compaction_:  Replace the existing HFiles by one new HFile by merging them.
+
+*to-do* what exactly is the benefit of the WAL file? Now I also have to synchronously write the data. I could directly append to a speical unsorted HFile instead? Or is it to have the simple design choice that hfiles are always sorted.
 
 To reduce latency and increase throughput, besides the memstore,  there's also a read cache called _block cache_ containing the last read HBase blocks.  Thanks to the block cache and the memstore, we don't always have to access the underlying DFS.
 
@@ -571,7 +587,7 @@ Besides the memstore, there's also an in-memory _cache_ of KeyValue s.  A unit o
 
 _short circuiting_ / _colocation_ (process data where it is stored):  Is when the requested block of the underlying DFS is stored on the same physical node as the region server requesting that block runs on.  Thus effectively the region server reads the block from its own local drive, without paying network overhead.  This is a situation that occures most of the time as a result of the design of HDFS and HBase, in particular from the <<hdfs_replica_placement>> strategy of prefering to store a block on the client itself.  One could think that due to HDFS having a life, over time the HDFS data node (runing on the same physical node as the HBase region server) will no longer itself store the HDFS block.  But due to the compaction of HFiles and the HDFS replica placement strategy, we will restore colocation over time.
 
-An in-memory _bloom filter_ is used to reduce access to HFiles when searching keys.
+An in-memory _bloom filter_ is used to reduce access to HFiles when searching keys.  Size of bloom filter and number of hash functions used is subject to research.
 
 The LSM-tree structure's purpose is to minimize the number of required compactions.
 
@@ -605,7 +621,7 @@ _Key-value model_:  A data model. Some mapping from a key to a value.
 
 _Column store_ (or _column-oriented DB_): A data model. Store data by columns (as opposed to by rows). One advantage is that subsequent cells in the same row tend to be similar, thus compression algorithms tend to work well.
 
-_Wide column store_: A data model. Store data by rows, keys identify rows, group columns in families. E.g. Google's BigTable, HBase, cassandra.  In the tabular model, joins are very expensive.  In the tabular model we love to have data in normal form, and as a consequence there are many joins.  Paradigm of BigTable: store together what is accessed together (i.e. quite the opposite of normal forms). That makes batch processing better, since we only have to pay latency once (recall we want to avoid latency as much as possible), and after that it's just throughput. To fulfill the paradigm, we denormalize. That can also be seen as precomputing the joins we expect to occur often.  Thus reads become faster.  The price is that we introduced anomalies, so writes are now more expensive.
+_Wide column store_: A data model. Store data by rows, keys identify rows, `group' columns in families. However each row can have its own individual columns.  Thus a wide column store can be interpreted as a two level nested key-value store.  The key of the outer level is the row id, the key of the inner level is the column id, and the column family id is also given.  In the tabular model, joins are very expensive.  In the tabular model we love to have data in normal form, and as a consequence there are many joins.  Paradigm of BigTable: store together what is accessed together (i.e. quite the opposite of normal forms). That makes batch processing better, since we only have to pay latency once (recall we want to avoid latency as much as possible), and after that it's just throughput. To fulfill the paradigm, we denormalize. That can also be seen as precomputing the joins we expect to occur often.  Thus reads become faster.  The price is that we introduced anomalies, so writes are now more expensive. Examples: Google's BigTable, HBase, Cassandra.
 
 
 == Storages
@@ -727,7 +743,7 @@ Disadvantages:
 
 - Can't offer multiple writers, and can only append to the end of the file (i.e. can't write to arbitrary positions).
 
-- Not suited for running across data centers (**to-do** why?)
+- Not suited for running across data centers.
 
 In terms of CAP theorem: We have consistency. But due to the single master, we have neither full availability nor full partition tollerance.
 
@@ -747,7 +763,7 @@ For a _read_, as answer the client receives the block locations: For each block 
 
 *to-do* can a client read different blocks in parallel, i.e. block1 from datanode1, block2 from datanode2 etc.
 
-For a _write_, it's analogous.  Recall that writes can only append.  For each new block a client wants to write, it receives a collection of block locations from the name node.  The client doesn't need to care about replication.  Per block, the client talks to the closest name node, tells it also the other name nodes that need to replicate the block, and the name nodes take care of replication themselves by creating a _data pipeline_ which minimizes the distance from the client to the last data node.  The data node receiving the client's write request asynchronously sends an acknowldge to the client once all replicates are successfully written.  Recall from data node protocol that each node receiving a block sends a BlockReceived message to the name node.  For each client-initiated transaction, the change to the filesystem meta data is commited to the client only after the name nodes journal has been flushed to disk.  There is at most one writer to a file at any point in time, ensured by having a lock on each file.  I.e. before the write, the client has to open the file for writing to acquire the lock, and at the end he has to close the file to free the lock.
+For a _write_, it's analogous.  Recall that writes can only append.  For each new block a client wants to write, it receives a collection of block locations from the name node.  The client doesn't need to care about replication.  Per block, the client talks to the closest name node, tells it also the other name nodes that need to replicate the block, and the name nodes take care of replication themselves by creating a _data pipeline_ which minimizes the distance from the client to the last data node.  The data node receiving the client's write request asynchronously sends an acknowldge to the client once all replicates are successfully written (*to-do* the ack is passed within the pipeline in reverse direction).  Recall from data node protocol that each node receiving a block sends a BlockReceived message to the name node.  For each client-initiated transaction, the change to the filesystem meta data is commited to the client only after the name nodes journal has been flushed to disk (assistant is not sure whether name node sends an acknowledgment to the client).  There is at most one writer to a file at any point in time, ensured by having a lock on each file.  I.e. before the write, the client has to open the file for writing to acquire the lock, and at the end he has to close the file to free the lock.
 
 *to-do* fix: its the client that organizes the pipeline
 
@@ -828,7 +844,7 @@ All storage services are accessible via REST APIs.
 
 Key value model. Key-value store: state is stored as binary objects (aka blobs), identified by unique keys. ACID is _not_ offered. Offers availability and partition tolerance, giving up consistency (but at least offers eventual consistency).  No isolation guarantees are given.  Efficiency, i.e. meeting stringent SLAs (measured at 99.9% percentile of requests so all customers benefit, guaranteeing few hundred ms latency), is an important requirement. It is assumed that operation is in a non-hostile environment.  Availability is for writes (writes are never rejected), which means that reads are more complex (as always, one has to decide when to resolve update conflicts, at reads or at writes).  Replication is asynchronous, which gives better availability.  Hierarchical namespaces are not directly supported.  Relational schema is not supported.
 
-**to-do** replication is async, which means more risk of completely using all replicas (only in total), right? E.g. when the node dies between acknowledging the write and being able to send out replicas.
+*to-do* replication is async, which means more risk of completely using all replicas (only in total), right? E.g. when the node dies between acknowledging the write and being able to send out replicas.
 
 Dynamo can be characterized as a zero-hop dynamic hash table. The rational for avoiding many hops is that would increase the variance of the latency, endangering the SLA requirements.
 
