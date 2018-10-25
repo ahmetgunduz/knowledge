@@ -599,14 +599,14 @@ References:
 
 _parameter_ θ (read hypothesis), _parameter space_ Θ, _hypothesis_ h(x) (parameterized by θ): *to-do*
 
-_loss function_ l(ŷ,y) (or l(w, x, y)): Measures how different the prediction ŷ = h~w~(x) is from the true response y.  I.e. quantifies the loss of a single data point. *to-do* move / merge to correct more general place
+_loss function_ l(ŷ,y) (or l(θ, x, y)): Measures how different the prediction ŷ = h~θ~(x) is from the true response y.  I.e. quantifies the loss of a single data point. *to-do* move / merge to correct more general place
 
 [[01_loss]]
 _0/1 loss function_: Is 1 for a mistake, 0 otherwise. But is a nasty function to optimize. Is not continous, and is not convex.  Thus e.g. the gradient descent algorithm cannot be used to optimize.  If ŵ was argmin~w~[∑loss~0/1~(w,y~i~,x~i~)], the problem of finding the optimal solution would be NP hard.
 
 loss~0/1~(w, y, x) = (y != signʹ(w^T^x)) = (yw^T^x < 0)
 
-_cost function_ Q: Is more general than the loss function. It might be the sum of loss functions over a set of observations.
+_cost function_ Q (or L): Is more general than the loss function. It might be the sum of loss functions over a set of observations.
 
 _expected risk_ (or _true risk_, or just _risk_, or _expected error_, or _expected test error_, or _prediction error_, the `expected' over all that is random) R(h) = E~y∈𝓨,x∈𝓧~[l(h(x),y)] = ∫~y∈𝓨~∫~x∈𝓧~l(h(x),y)p(x,y)dxdy: The risk associated with hypothesis h(x) is defined as the expected loss. The expected risk generally cannot be computed since in general p(x,y) is unknown.
 
@@ -681,13 +681,13 @@ _conjugate distributions_ / _conjugate priors_: A pair of prior distribution and
 | Gaussian process             | Gaussian
 |======
 
-_probabilistic predictions_ p(y|x,𝓓): denotes the probability distribution over possible responses, given the input vector x and training set 𝓓. I.e. it represents a probability for each possible value of the response y.
+_probabilistic predictions_ / _predictive distribution_ p(y|x,𝓓): denotes the probability distribution over possible responses, given the input vector x and training set 𝓓. I.e. it represents a probability for each possible value of the response y.
 
 _supervised learning_: The given data is composed of the features X and the respective labels Y.
 
 _unsupervised learning_: The given data has only the features X, but no labels.
 
-_active learning_ (or _semi-supervised learning_): The labels are theoretically available, but expensive to acquire, so the learning algorithm must decide which labels it wants to see.
+_active learning_ (or _semi-supervised learning_ (_SSL_)): The labels are theoretically available, but expensive to acquire, so the learning algorithm must decide which labels it wants to see.  Semi-supervised learning can also be viewed at as the case of having some missing labels.
 
 _frequentist vs bayesian_: In the probabilistic view, we also model the uncertainty. Before we didn't do that, or only in a relatively limited form via calculating variance, confidence interval, prediction interval.
 
@@ -712,6 +712,10 @@ h~θ~:𝓧→𝓨 or p(y|x,θ) [allows making predictions] +
 θ̂^MAP^ = argmax~θ~(p(θ|𝓓)) = argmax~θ~(p(𝓓|θ)p(θ))
 
 _recipe for generative model_: Typically the follwing recipe is used to estimate the joint distribution p(x,y) and the conditional distribution p(y|x).  The goal is to find the joint distribution p(x,y).  We don't do that directly, but note that by the chain rule, p(x,y) = p(x|y)p(y).  So we're left with estimating the factors p(x|y) and p(y).  We then can make predictions using the predictive distribution p(y|x) = p(x|y)p(y)/p(x), where p(x) = ∑~y~p(x|y)p(y).  More concretely, we can predict using MAP estimate.
+
+_outlier detection_ with p(x) of generative model: We declare x an outier if p(x) is below some threshold.  If the threshold is chosen to high, we have too many false positives, if it's to low, we have too many false negatives.  If our (training) data is such that we know for each observation whether or not it is an outlier, we can find the threshold via cross-validation and some metric which balances false negatives and false positives, see <<metrics_for_imbalanced_data>>.  If our (training) data doesn't tell us wether a given observation is an outlier, finding a good threshold is challenging.
+
+*to-do* anomaly/outlier (small p(x)) vs being unsure (p(y=c1|x) isn't clearly better than p(y=c2|x), where c1 is the most likely class and c2 is the runner up class)
 
 
 === Decision theory
@@ -965,8 +969,9 @@ Rational for feature selection
 
 - Costs: Don't need to acquire respective data, less storage costs, less computational costs.
 
+
 [[inference_after_model_selection]]
-==== Inference after model/feature selection
+==== Inference after model / feature selection
 
 Say we do best subset selection, and then look at the p-values of the resulting coefficent estimates.  These p-values will be rather low, even if the data is random noise.  After all, the task of the algorithm was to select the best predictors, so obviously their p-values are among the best possible given the data.  The algorithm did data snooping. See also selection effect.
 
@@ -1062,6 +1067,44 @@ Best subset selection is computationally expensive. <<lasso_regression>> can be 
 ==== Hybrid approaches
 
 First greedely add predictors with the forward stepwise selection method, then remove predictors that no longer provide and improvement with the backward stepwise selection method.
+
+
+==== Bayesian model selection
+
+Method for model selection.  Given a set 𝓜 of candidate models. First compute posterior over models:
+
+p(m|𝓓) = p(𝓓|m)p(m)/p(𝓓) +
+p(𝓓) = ∑~m∈𝓜~p(m,𝓓)
+
+From this we can compute the MAP model
+
+m̂ = argmax~m~(p(m|𝓓))
+
+*to-do* be more conrete how to compute the required terms
+
+
+==== Ensemble learning
+
+Do predictions by making a weighted average of the predictions made by candidate models.
+
+When taking a simple (unweighted) average, bias is also averaged, and variance is as follows
+
+Var[f̂(x)] = 1/B²∑~i~Var[f̂~i~(x)] + 1/B²∑∑~i≠j~Cov[f̂~i~(x),f̂~j~(x)]
+
+Thus if the coverainces are very small, the resulting variance of the final model is approximately the averaged variance divided by B.  Consequently, we should strive for putting non-similar models into the candidate set.
+
+Machine learning competitions are often won by ensembles.
+
+Catch phrase: wisdom of crowds.  By averaging, we get rid of oddities.
+
+
+==== Bayesian model averaging (BMA)
+
+Bayesian model selection tries to selected the best model and then use that to make predictions.  BMA makes predictions by making a weigthed average of the predictions made by each model. The predictive disribution thus is
+
+p(y|x,𝓓) = ∑~m∈𝓜~p(y|x,m,𝓓)p(m|𝓓)
+
+*to-do* be more conrete how to compute the required terms
 
 
 [[model_validation]]
@@ -1453,11 +1496,11 @@ Applications:
 
 === EM algorithm
 
-An algorithm to solve the optimization problem often arising in unsupervised learning of a generative model, where we have to find p(x|θ), i.e. actually estimate θ̂ by MLE.
+An algorithm to solve the optimization problem often arising in unsupervised learning of a generative model, where we have to find p(x|θ), i.e. estimate θ̂ by MLE.
 
-E.g. for gaussian mixture models, where θ = (w,μ,Σ) and p(x|w,μ,Σ) = ∑~1≤j≤K~w~j~𝓝~d~(x;μ~j~,Σ~j~), the non-convex optimization problem is argmin~w,μ,Σ~(-∑~1≤i≤n~log∑~1≤j≤K~w~j~𝓝~d~(x|μ~j~,Σ~j~)), subject to further constraints.  However if we would know w, i.e. if we would know the labels, it has a closed form solution.
+E.g. for gaussian mixture models, where θ = (w,μ,Σ) and p(x|w,μ,Σ) = ∑~1≤j≤K~w~j~𝓝~d~(x;μ~j~,Σ~j~), the non-convex optimization problem is argmax~w,μ,Σ~(∑~1≤i≤n~log∑~1≤j≤K~w~j~𝓝~d~(x|μ~j~,Σ~j~)), subject to further constraints.  However if we would know w, i.e. if we would know the labels, it has a closed form solution, see GBC.
 
-_Hard-EM_ algorithm. The E-step makes a hard assignment y~i~ to x~i~.
+_Hard EM_ algorithm. The E-step makes a hard assignment y~i~ to x~i~.
 
 --------------------------------------------------
 Initialize θ[0]
@@ -1471,7 +1514,35 @@ for t = 1, 2, ...:
     θ[t] = argmax~θ~p({x,y[t]}|θ)
 --------------------------------------------------
 
-_Soft-EM_ (or just _EM_) algorithm. Suppose we have model p(y|θ), p(x|y,θ). Then p(y=c|x,θ) = p(y=c|θ)p(x|θ)/∑..........
+Disadvantages of the hard EM-algorithm: It makes a hard label assignment. However in regions where clusters `collide', that is a too strong decision, we should really estimate a probability for each cluster.
+
+
+_Soft EM_ (or just _EM_) algorithm. We no longer make an hard assignment of a feature vector x to only one label y, but now try to compute a probability p(y=c|x,θ) for each class c.  Suppose we know p(y|θ) and p(x|y,θ) and θ.  Then γ~c~(x) = p(y=c|x,θ) = p(y=c|θ) · p(x|θ) / (∑~1≤j≤K~p(y=j|θ)p(x|θ)).
+
+*to-do* more details
+
+The EM algorithm can be shown to be equivalent to the following:
+
+E-Step: Compute the expected complete data log likelihood
+
+Q(θ;θ^(t-1)^) = E~z1:n~[cdll|x~1:n~,θ^(t-1)^] = +
+∑~1≤i≤n~∑~1≤j≤K~γ~j~(x~i~)log(p(x~i~,y=j|θ)) +
+cdll = log p(x~1:n~,z~1:n~|θ) +
+γ~j~(x) = p(y=j|x,θ^(t-1)^) [expected sufficient statistics] +
+θ^(t-1)^ = best known estimation so far
+
+M-Step:
+
+θ^(t)^ = argmax~θ~(Q(θ,θ^(t-1)^))
+
+
+In case of semi-supervised learning, γ~c~(x) is known for the observations where we have labels, namely it's 1 for the respective class and 0 for all other classes.  Typically with only very few given labels, the EM algorithm correctly knows which cluster / Gaussian is to be associated with which class.
+
+In genral, the soft EM will typically result in higher likelihood values relative to the hard EM.
+
+One can see Lloyd's heuristic as special case of Hard-EM for GMM. Uniform weights over clusters and assuming identical, spherical covariance matrices.
+
+Number of clusters K can be found by cross-validation.  For GMM that works typically fairly well (which is in contrast to k-means).
 
 
 [[bagging]]
@@ -1514,6 +1585,9 @@ p(x̃|θ̂)
 ① p(x̃|θ,𝓓) = p(x̃|θ) since x̃ and any x~i~ ∈ 𝓓 are iid.
 ② p(θ|𝓓) ~ δ(θ-θ̂)
 
+A prior kind of represents an additional set of observations.  The more narrow a prior distribution is, i.e. the closer it is to a dirac, the more additional observations it represents.  If your prior is very narrow, then it better be correct.  Otherwise you need a huge amount of observations to clearly overrule the bogous `observations' comming from the prior.
+
+
 [[MLE_vs_bayes]]
 MLE vs Bayes estimation
 
@@ -1555,6 +1629,7 @@ Solutions:
 - in case of a linear classifier, shift hyperplane by parameter τ: h(x) = signʹ(w^T^x-τ)
 
 
+[[metrics_for_imbalanced_data]]
 ==== Metrics for imbalanced data
 
 TP = true positive, TN = true negative, FP = false positive, FN = false negative, true_predictions = TP + TN.
@@ -2456,42 +2531,9 @@ Ŵ = (v~1~|...|v~k~)
 
 === Gaussian based Bayes classifiers
 
-===== Gaussian naive Bayes classifier (GNB)
-
-For classification problems. Special case of GBC: features are conditionally independent given a label, i.e. ∑~y~ = diag(σ²~y,1~, ..., σ²~y,d~).
-
-p̂(y) is estimated by the emprical distribution of class labels {y~1~, ..., y~n~}.  We model the given features as conditionally independent given a label, yielding p̂(x|y) = ∏~1≤j≤d~p(x^(j)^,y). I.e. given a class label y, each feature x^(j)^ of a feature vector x is `generated' independently of the other features.  That the features are conditionally independent given a label is an unrealistic assumption, but it generally works well in practice. We model features by conditionally independent Gaussians: p̂(x^(j)^,y) = 𝓝(μ~y,j~, σ²~y,j~).  Using MLE, we get μ̂~y,j~ = mean(all x~i~^(j)^ where y~i~=y) and σ̂²~y,j~ = var(analogous). Summary:
-
-p̂(y) = count(i s.t. y~i~=y)/n [K-element empirical distribution] +
-p̂(x|y) = ∏~1≤j≤d~p(x^(j)^,y) [assumes features are mutually independent] +
-p̂(x^(j)^,y) = 𝓝(μ~y,j~, σ²~y,j~) [assumes each feature is normally distributed]
-
-Estimating the parameters with MLE, the closed form solution is:
-
-μ̂~y,j~ = mean(all x~i~^(j)^ where y~i~=y) +
-σ̂²~y,j~ = var(analogous)
-
-The predictive distribution then is, using Bayes' rule:
-
-p̂(y|x) = p̂(x|y)p̂(y) / ∑~1≤i≤n~p̂(x|y~i~)p̂(y~i~)
-
-The Gaussian naive Bayes classifier is just a special case of Gaussian Bayes classifiers where ∑~y~ = diag(σ̂²~y,1~, ..., σ̂²~y,d~).
-
-Special case of binary classification and class independent variance σ²~j~: Starting with choosing the common discriminant function f(x) = log(p(y=+1|x)/(p(y=-1|x))), yields the following closed form solution for f(x).  If the GNB's model assumptions are met, i.e. if p(y,x) comes from a GNB model with class independent variances, p(y=1|x) is a logistic regression and hence GNB and logistic regression will make the same predictions.
-
-f(x) = w^T^x + w~0~ [discriminant function] +
-w~0~ = ... +
-w~j~ = (μ~+,j~ - μ~-,j~) / σ²~j~ +
-p(y=1|x) = sigm(w^T^x + w~0~)
-
-pro: rather simple, closed form solution
-
-contra: can be overconfident (probability close to 0 or 1), if the assumption that the features are conditionally independent given a label doesn't hold, which almost always is the case.  If we only care about he most likely class, e.g. in the case of MAP prediction, that might be fine.
-
-
 ===== Gaussian Bayes Classifier (GBC)
 
-The most general form. As in Gaussian naive Bayes classifier, but we no longer assume that features are conditionally independent given a label.
+The most general form of the GBC based classifiers.  As in Gaussian naive Bayes classifier (GNB), but we no longer assume that features are conditionally independent given a label.  GNB has a nicer introduction than this chapter.
 
 p̂(y) = count(i s.t. y~i~=y)/n [K-element empirical distribution] +
 p̂(x|y) = 𝓝~d~(x; μ~y~, ∑~y~)
@@ -2503,9 +2545,10 @@ Estimating the parameters with MLE, the closed form solution is:
 
 The predictive distribution then is, using Bayes' rule:
 
-p̂(y|x) = p̂(x|y)p̂(y) / ∑~1≤i≤n~p̂(x|y~i~)p̂(y~i~)
+p̂(y|x) = p̂(x|y)p̂(y)/p̂(x) +
+p̂(x) = ∑~1≤i≤n~p̂(x|y~i~)p̂(y~i~)
 
-In case of binary classification, the discriminant function f(x) fulfilling f(x) = log(p(y=+1|x)/(p(y=-1|x))) is the following
+In case of binary classification, the discriminant function f(x) fulfilling f(x) = log(p(y=+1|x)/(p(y=-1|x))) is the following:
 
 f(x) = ... really complicated ... [discriminant function]
 
@@ -2517,7 +2560,51 @@ Contra: Computational complexity O(K+d²)
 
 Contra: Can not handle discrete features. But see <<categorial_naive_bayes_classifier>>.
 
-*to-do* how robust is it in general if `data is Gaussian' - assumption is not met?
+*to-do* how robust is it in general if the `data is Gaussian' - assumption is not met?
+
+
+===== Gaussian naive Bayes classifier (GNB)
+
+Special case of GBC: features are conditionally independent given a label, i.e. ∑~y~ = diag(σ²~y,1~, ..., σ²~y,d~).
+
+We follow the general recipe of estimating p(x,y) = p(x|y)p(y) by estimating p(x|y) and p(y).  p̂(y) is estimated by the emprical distribution of class labels {y~1~, ..., y~n~}.  We model the given features as conditionally independent given a label, yielding p̂(x|y) = ∏~1≤j≤d~p(x^(j)^,y). I.e. given a class label y, each feature x^(j)^ of a feature vector x is `generated' independently of the other features.  That the features are conditionally independent given a label is an unrealistic assumption, but it generally works well in practice. We model features by conditionally independent Gaussians: p̂(x^(j)^,y) = 𝓝(μ~y,j~, σ²~y,j~).  Summary:
+
+p̂(y) = count(i s.t. y~i~=y)/n [K-element empirical distribution] +
+p̂(x|y) = ∏~1≤j≤d~p(x^(j)^,y) [assumes features are mutually independent] +
+p̂(x^(j)^,y) = 𝓝(μ~y,j~, σ²~y,j~) [assumes each feature is normally distributed]
+
+Estimating the parameters with MLE means estimating the mean and variance of a population given a sample, which is done by computing the mean and variance of the sample:
+
+μ̂~y,j~ = mean(all x~i~^(j)^ where y~i~=y) +
+σ̂²~y,j~ = var(analogous)
+
+The predictive distribution then is, using Bayes' rule:
+
+p̂(y|x) = p̂(x|y)p̂(y)/p̂(x)  +
+p̂(x) = ∑~1≤i≤n~p̂(x|y~i~)p̂(y~i~)
+
+Regarding the discriminant function,
+
+pro: rather simple, closed form solution
+
+contra: can be overconfident (probability close to 0 or 1), if the assumption that the features are conditionally independent given a label doesn't hold, which almost always is the case.  If we only care about he most likely class, e.g. in the case of MAP prediction, that might be fine.
+
+
+===== GNB, binary classification and class independent variance
+
+The following discusses the special case of GNB restricted to binary classification and class independent variance σ²~j~, where j∈[d] designates the feature.
+
+Starting with choosing the common discriminant function f(x) = log(p(y=+1|x)/(p(y=-1|x))), yields the following closed form solution for f(x):
+
+f(x) = w^T^x + w~0~ [discriminant function] +
+w~0~ = ... complicated ... +
+w~j~ = (μ~+,j~ - μ~-,j~) / σ²~j~
+
+Prediction then is, as always with discriminant function:
+
+p(y=1|x) = sigm(f(x)) = sigm(w^T^x + w~0~)
+
+If the GNB's model assumptions are met, i.e. if p(y,x) comes from a GNB model with class independent variances, p(y=1|x) is a logistic regression and hence GNB and logistic regression will make the same predictions.
 
 
 ===== Quadratic discriminant analysis
@@ -2558,6 +2645,20 @@ Contra: Not very robust against violations of assumptions.
 *to-do* Isn't that statement applicable to all GBC based methods?
 
 
+===== Gaussian-Mixture Bayes classifier
+
+Each class is modeled by a set of Gaussian humps, i.e. by a Gaussian mixture.  Can be seen as bringing Gaussian mixture model (GMM) and Gaussian Bayes Classifier (GBC) together.  This allows to better model arbitrary p̂(x|y); GBC is quite restrictive by assuming that p̂(x|y) is a single Gaussian hump.
+
+GBC had
+
+p̂(x|y) = 𝓝~d~(x; μ~y~, ∑~y~)
+
+Now we have
+
+p̂(x|y) = ∑~1≤j≤humpcount(y)~w~y,j~𝓝~d~(x; μ~y,j~, ∑~y,j~) +
+w~y,j~ ≥ 0, ∑~1≤j≤humpcount(y)~w~y,j~=1
+
+
 [[categorial_naive_bayes_classifier]]
 ===== Categorial naive Bayes classifier
 
@@ -2576,30 +2677,140 @@ Let each feature have its own individual conditional distribution p̂(x^(j)^,y).
 [[gaussian_mixture_model]]
 === Gaussian mixture model (GMM)
 
-Example of clustering.  As a Gaussian Bayes Classifier, but unsupervised, i.e. labels are missing.
+Example of clustering.  As a Gaussian Bayes Classifier, but unsupervised, i.e. labels are missing.  The number of clusters K must be guessed.  For each cluster, there's a Gaussian hump, parameterized by mean μ~j~ (d-dimensional vector) and covariance matrix Σ~j~ (d⨯d matrix), in 𝓧 space.  Each hump is weighted by w~j~, where Σ~1≤j≤K~w~j~ = 1 and w~j~≥0.  I.e. w~j~ plays the role of p(y=j) in GBC.
 
+θ = (w,μ,Σ) +
+p(𝓓|w,μ,Σ) =~(iid xi)~ ∏~1≤i≤n~p(x~i~|w,μ,Σ) +
 p(x|w,μ,Σ) = ∑~1≤j≤K~w~j~𝓝~d~(x;μ~j~,Σ~j~) +
 w = (w~1~, ..., w~K~) +
-w~i~ represents p(y=i) +
+w~j~ represents p(y=j) +
 μ = (μ~1~, ..., μ~K~) +
 μ~j~ is a d-dimensional vector, μ~j,l~ being mean of j-th cluster w.r.t. l-th feature +
 Σ = (Σ~1~, ..., Σ~K~) +
 Σ~j~ is the d⨯d covariance matrix of the d-dim normal distribution of the j-th cluster
 
-The resulting nonconvex optimization problem:
+Finding the MLE with respect to p(𝓓|w,μ,Σ) yields the following nonconvex optimization problem.  We use the trick that taking the log of p(x|w,μ,Σ) doesn't affect the result of argmin, but allows us to compute a sum instead of a product, which in turn makes it an easier optimization problem.
 
-(w,μ,Σ) = argmin~w,μ,Σ~(∑~1≤i≤n~loss(x~i~,w,μ,Σ)) +
-loss(x,w,μ,Σ) = -log∑~1≤j≤K~w~j~𝓝~d~(x|μ~j~,Σ~j~) +
+(ŵ,μ̂,Σ̂) = argmax~w,μ,Σ~(p(𝓓|w,μ,Σ)) = argmax~w,μ,Σ~(∑~1≤i≤n~ log p(x|w,μ,Σ)) +
 subject to: Σ~j~ s must be symmetric positive definite, ∑~1≤j≤K~w~j~=1, w~j~≥0
 
-Fitting a GMM = Training a gaussian bayes classifier without labels
+The optimization problem doesn't has a closed form solution, partyly due to the sum inside the log.  Also it is non-convex and has constraints.  If it was only non-convex, we could e.g. use SGD.  To solve this optimization problem, for example the EM algorithm can be used.  Recall that solving the optimization problem for GBC was relatively easy.  I.e. if we had the labels, solving the above optimization problem is relatively easy.  Thus the EM algorithm is adequate, since it alternates between estimating labels and estimating the parameters of interest using the previously estimated labels.
 
-Fit with the hard/soft EM algorithm.
+
+=== Gaussian processes
+
+Informally introducing Gaussian processes with an example.  Say I measure my heart rate at 08:00 and at 08:01 on many days.  The measurements at 08:00 are represented by a random Gaussian variable, and the measurements at 08:01 by another random Gaussian variable.  Together that yields a multivariate (2 dimensions) Gaussian distribution.  The covariance matrix is likely showing a correlation, since the heart rate 1 min appart is correlated.  Now say I measure not only at 08:00 and 08:01, but also on 08:02 and 08:03 etc.  I still get a multivariat Gaussian, but this time with more dimensions.  In a time - heartrate plot, I could plot one picewise linear curve per day by connecting the measurements of that day.  Now imagine we make countably infinitely many measurements per day.  The joint distribution is a multivariate Gaussian with countably infinitly many dimensions.  Each piecewise curve of a day in the time - heartrate plot can now in the limit, as we have countably infinitely many measurements per day making the piecewise steps infinitely small, be seen as a function.  We say f(x) ~ GP.
+
+f \~ GP(m(·),k(·,·)) denotes that f is a Gaussian process.  A Gaussian process is fully defined by mean function m(·) and kernel function k(·,·).  f is a Gaussian process if (f(a~1~), ..., f(a~n~)) \~ 𝓝~n~(m(a⃗),K(a⃗,a⃗ʹ)), where a⃗ = (a~1~, ..., a~n~) is a vector of values.  The elements a~i~ are often themselves vectors, namely the feature vectors.
+
+Very often the mean function is set to zero, i.e. m(x) = 0. The really interesting part is the covariance matrix.  Also in the following, we set m(x) = 0.
+
+The prior for y is only dependent on the Gaussian noise:
+
+p(y|σ²) = 𝓝~1~(y|0,σ²)
+
+Model of joint distribution of the y s which correspond to the given n feature vectors. As always y~i~ corresponds to feature vector x~i~. The feature vectors are given by design matrix X = matrix[x⃗~1~, ..., x⃗~n~], where x⃗~i~ denotes the feature vector of the i-th observation.  Note that the labels y⃗ = (y~1~, ..., y~n~) of the data are _not_ involved.
+
+p(y⃗|X,k,σ²) = 𝓝~n~(y⃗|0⃗,C~n~) [y⃗ denotes generic variables, _not_ the labels] +
+C~n~ = K + σ²I~n~ [n⨯n covariance matrix] +
+K = (k(x⃗~1~,x⃗~1~), ..., k(x⃗~n~,x⃗~n~)) [n⨯n _Kernel matrix_ (or _Gram matrix_)] +
+k(x⃗,x⃗ʹ) [_kernel function_ (or _covariance function_)]
+
+Example with two feature vectors x~1~ and x~2~, x~1~ and x~2~ being non-similar, i.e. far apart from each other.  Because they are non-similar, k(x~1~, x~2~) will be very small, and thus the Gram matrix C~2~ will be nearly diagonal.  𝓝~2~(y⃗|0⃗,C~2~) with a nearly diagonal C~2~ means one Gaussion hump centered at (0,0) which is nearly rotation symmetric.  y~1~ and y~2~ are nearly independent.  I.e. knowing y~1~ doesn't tell much about y~2~ and vice versa.  Note that how many features there are per feature vector is irrelevant.  Only the value of k(x~1~, x~2~) is of interest, i.e. the value the resulting Gram matrix C~2~.
+
+Example as before, but with x~1~ and x~2~ being similar, i.e. close. The Gram matrix C~2~ will be dense, far from being diagonal.  The Gaussian hump will be a narrow elongated hill centered at (0,0), the long ridge being in some direction.  Knowing y~1~ tells you pretty much about y~2~ and vice versa.
+
+*to-do* Is this also regarded as a prior? We take the design matrix into account, but not yet the labels. Kind of a semi-prior.
+
+*to-do* Explain what that means, i.e. why it's usefull despite not having parameters (beside the hyperparameters of the kernel).
+
+*to-do* make clear that the above is the superposition of two gaussian processes, the function I wish to learn and the Gaussian noise
+
+*to-do* distinguish between when we have no data, an highlight this as being the prior p(y), and the case when we have data X and y⃗. I think above y⃗ is meant in a generic sense, not the actual labels of the observations y⃗.
+
+As a first step towards prediction, let's look at the joint distribution of the y s which correspond to the given (n+1) feature vectors when there's one more observation x̃⃗.  The labels of the data are _not_ used.  y⃗ and y denote generic variables.
+
+p(vector(y⃗,y)|x̃⃗,X,k,σ²) = 𝓝~n+1~(vector(y⃗,y)|0⃗,C~n+1~) +
+C~n+1~ = matrix(row(C~n~, k⃗), row(k⃗^T^, c)) [(n+1)⨯(n+1) covariance matrix] +
+k⃗ = (k(x⃗~1~,x̃⃗), ..., k(x⃗~n~,x̃⃗)) [vector length n+1, similarity x̃ to X] +
+c = k(x̃⃗,x̃⃗) + σ² [scalar]
+
+Predictive distribution of y corresponding to a new observation x̃⃗.  Now here y⃗ does denote the labels of the data.  As always, a predictive distribution communicates the uncertainty about the prediction, here pretty directly directly via the variance σ̃².  Note that each prediction of an y given a x̃⃗ involves all the data (X,y⃗), as e.g. in KNN.  The formula follows from the above joint distribution of adding a new observation and the rules for conditional Gaussian distributions (2.81 and 2.82 in Pattern Recognition and Machine Learning).
+
+p(y|x̃⃗,X,y⃗,k,σ²) = 𝓝~1~(y|μ̃,σ̃²) +
+μ̃ = k⃗^T^C~n~^-1^y⃗ [scalar] +
+σ̃² = c-k⃗^T^C~n~^-1^k⃗ [scalar]
+
+*to-do* Those plots which already have some data points, and plot the mean and an standard deviation envelop, how do they do it? Do they for each point they want to plot take the mean and the upper/lower standard deviation from p(ỹ|x̃⃗,X,y⃗), where x̃⃗ is the point on the x axis and p(ỹ|x̃⃗,X,y⃗) then delivers mean and upper/lower standard deviation?
+
+*to-do* these drawings where with no data we just see the prior as a linear band, and as we add data pionts we narrow the band near the data points. Depending on the kernel/covariance, the einschnitt around a data point is wide or narrow.
+
+*to-do* drawing with no observations, i.e. just the prior. Theres the mean, the upper/lower `bound', and a few examples of f.  The kernel defines how `wiggly' the f s will be.
+
+*to-do* drawings representing overfitting and underfitting. e.g. at 42:50
+
+*to-do* model selection (i.e. finding kernel hyperparameters) via marginal likelihood
+
+f(x) ~ GP(m(x),k(x,xʹ)):
+
+- f(x) is a random variable having a gaussian distribution with mean m(x) and variance given by k(x,xʹ), where xʹ is just some xʹ∈𝓧
+
+- f(·) is not really a function. It can be kind of viewed as function because f is a vector of jointly Gaussian variables of uncountably infinite length.
+
+- f(x) is not necessarily continous
+
+- gaussian process: think distribution over function values (_not_ functions)
+
+GP is an non-parametric model.  Non-parametric models have a finite but unbounded number of parameters that grows with the data.  This is informal definition is refinment refinment of "non-parametric models have an infinite number of parameters", which many authors use.  We see that looking at the predictive distribution.  All our data is involved in calculating p(ỹ|x̃⃗,X,y⃗).  The more data / observiations we have, the more parameters the model has, i.e. the more flexible it is.
+
+*to-do* I don't really understand why the model should be more flexible when we have more data. Having these plots in mind where the more observetions we add, the more the bands are narrowed down, implies to me that there are less functions, i.e. the model is more restricted.
+
+Predictive uncertainty (i.e. the thickness of the `bounding bands' in a plot) is data independent (the labels; the features we have). This is both a good and a bad thing.  Imagine the extreme case where we have many observations spread in the x space, but the respective y s are pretty random. Then the σ̃² at every x is pretty small, i.e. narrow band in the plot, which doesn't seem right considering that the observed y s are rather random.
+
+Note that we can just do linear algebra, though it involves inverting a two dimensional n⨯n matrix.  Despide the Baysian philosophy, we don't have to integrate, which we usually have to do all over in the Baysian world.
+
+Referennces:
+
+- MLSS 2012: J. Cunningham - Gaussian Processes for Machine Learning: https://www.youtube.com/watch?v=BS4Wd5rwNwE, https://www.youtube.com/watch?v=KcB8c3a4LYU
+
+- http://katbailey.github.io/post/gaussian-processes-for-dummies/
+
+- Book: Gaussian Processes for Machine Learning, Rasmussen & Williams
+
+
+==== Kernels & Kernel matrix
+
+See also <<kernels>> *to-do* how do the kernels of GP and the kernels of kernelized perceptron etc relate?
+
+k:𝓧⨯𝓧→ℝ
+
+A kernel _models similarity_, i.e. k(x,xʹ) returns a measure of similarity between x and xʹ.  A kernel encodes our _prior_ assumption about the function which we wish to learn.  More precisely, the similarity is actually measured in a implicitely defined Eucledian space.  x and xʹ are converted to that Eucledian space, the similarity is measured in the Euclidian space and returned.  That the similarity is actually measured in an Eucledian space is the reason for the required properties of the kernel such as symmetry and positive semi-definitness.  The notion of similarity depends on the application.
+
+k must be a Mercer kernel.  It must be symmetric (k(x,xʹ)=k(xʹ,x)).  For the continuous case, it must be positive semi-definite.  In the discrete case, the corresponding Gram matrix must be positive semi-definite.  The kernel functions often have hyper parameters.
+
+*to-do* is "mercer kernel" equivalent to "symmetric and positive semi-definit"?
+
+Different kernels have different _invariance properties_. For example, invariance to rotation or translation. E.g. in recognition of handwritten digits, translatinig an image should not affect similarity.
+
+Kernel matrix K must be positive semi-definite (i.e. x⃗^T^Kx⃗≥0 ∀x⃗), which it is if k is a Mercer kernel.
+
+The more diagonal the kernel matrix is, the more wiggly the function will be, since from knowing one x, one doesn't learn much about a close by xʹ.  If the Gram matrix is diagonal, then the y s are independent.
+
+For some concrete kernels, see <<concrete_kernels>>
+
+
+==== Application example: controller
+
+We look at the controller of a drone.  The goal is to find the set of controller parameters which maximize some performance measure.  We want to find that set in a learning by doing fashion.  We try one set, measure the performance, try another set, and so on.  However we cannot just try out any set, because some controller sets are really bad and would crash the drone. A crash makes prototyping too expensive, and we want to avoid that case.  For simplicity lets assume only there's only one controller parameter.  We make an educated guess what a first safe parameter would be and denote that x~1~.  We make a measurement of the resulting performance y~1~.  Imagine a performance vs controllerparameter plot showing the predictive distribution p(y|x⃗,𝓓).  The Gaussian process is now pretty certain about the performance near x~1~, and gets less certain the further away from x~1~ we are. When the lower two standard deviation line is below some threshold, we deem the respective parameter x as too unsafe to try out.  Or the other way round, we only try out new controller paremeters x where the lower two standard deviation line is above the threshold.  There are two reasons to try out a new parameter x.  One is trying out new parameter x at the border of the safe region, to make the save region wider, which will happen because the Gaussian process than has more data.  The other is to try out more parameters x in regions where the current mean curve of the predictive distribution indicates a maximum, to be more sure we found the precise global maximum.
+
+References:
+
+- https://www.youtube.com/watch?v=7ZkZlxXHgTY
 
 
 === Uncertainty sampling
 
-Form of active learning.  Based on a probabilistic model yielding p(y|x,𝓓).  We incrementally train the model, by always quering the label y~i~ for the x~i~ we're most uncertain about.  Say we have a two-class classification problem.
+Form of active learning.  Based on a probabilistic model yielding predictive distribution p(y|x,𝓓).  We incrementally train the model, by always quering the label y~i~ for the x~i~ we're most uncertain about.  Say we have a two-class classification problem.
 
 --------------------------------------------------
 D' = ∅
@@ -2780,6 +2991,7 @@ References:
 - ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``5 Bootsrap''
 
 
+[[kernels]]
 == Kernels
 
 Allows to work implicitly (i.e. without actually calculating Φ(x)) in high-dimensional feature spaces (see <<basic_functions>>), as long as we can compute inner products k(x,k') = Φ(x)^T^Φ(x) efficiently. Indeed often k(x,k') can be computed more efficently than computing Φ(x)^T^Φ(x) explicitely.
@@ -2791,6 +3003,7 @@ _Required properties of kernel_: Is a function k:𝓧⨯𝓧→ℝ, where 𝓧 i
 
 Verifying wether a kernel is positive semi-definit is generally not that easy, so one practical way of getting new kernels are the kernel composition rules and valid known kernels.
 
+[[kernel_engineering]]
 _Kernel composition rules_ (or _kernel engineering_):
 
 - k = k~1~ + k~2~
@@ -2841,18 +3054,31 @@ Example: Two class k nearest neighbors classifier. We can express two class k-NN
 [[concrete_kernels]]
 === Some concrete kernels
 
+See also <<kernel_engineering>> for rules how to create new kernels by composing existing kernels.
+
 - _linear kernel_: k(x,xʹ) = x^T^xʹ
 
-- _polynomial kernel_: k(x,xʹ) = (x^T^xʹ+1)^d^. The feature space contains all monomials up to degree d.
+- _polynomial kernel_: k(x,xʹ;d) = (x^T^xʹ+1)^d^. The feature space contains all monomials up to degree d.
 
-- _Gaussian kernel_ (or _Radial basis function_ (_RFB_), or _squared exp. kernel_): k(x,xʹ) = exp(-‖x-xʹ‖~2~²/h²). h is the _bandwith_ (or _length scale_) parameter. Small h means a more flexible model, i.a. a more wiggly resulting function ∑~i~α~i~k(x~i~,x~j~) which is more prone to overfitting.  A large h means an inflexible model prone to bias.  At least in case of SVM or perceptron, with a large h you almost get a linear decision boundary.  Or from another viewpoint, a small h means narrow Gaussian bumps and a large h means wide Gaussian bumps.  The decision boundary is very smooth; it's differentiable infintely many times.  Gaussian kernel is named that way only because it looks like a Guassian curve. The feature space has an infinite number of dimensions.
+- _Gaussian kernel_ (or _Radial basis function_ (_RFB_), or _squared exponential kernel_): k(x,xʹ;h) = exp(-‖x-xʹ‖~2~²/h²). h is the _bandwith_ (or _length scale_) parameter. Small h means a more flexible model, i.a. a more wiggly resulting function ∑~i~α~i~k(x~i~,x~j~) which is more prone to overfitting.  A large h means an inflexible model prone to bias.  At least in case of SVM or perceptron, with a large h you almost get a linear decision boundary.  Or from another viewpoint, a small h means narrow Gaussian bumps and a large h means wide Gaussian bumps.  The decision boundary is very smooth; it's differentiable infintely many times.  Gaussian kernel is named that way only because it looks like a Guassian curve. The feature space has an infinite number of dimensions.  Infinitely differentiable.  Canonical kernel for Gaussian processes for smooth functions.
 
-- _Laplacian kernel_: k(x,xʹ) = exp(-‖x-xʹ‖~1~/h). h works as in Gaussian kernel.  The decision boundaries are approximately piecewise linear.  I.e. the decision boundary is quite ragged.
+- _Laplacian kernel_ (or _exponential kernel_): k(x,xʹ;h) = exp(-‖x-xʹ‖~1~/h). h works as in Gaussian kernel.  The decision boundaries are approximately piecewise linear.  I.e. the decision boundary is quite ragged.
 
-- _Periodic kernel_: k(x,xʹ) = exp(-‖sin(px)-sin(pxʹ)‖~2~²/h²). Note the similarity to Gaussian kernel, x is replaced by sin(px) and xʹ is replaced likewise by sin(pxʹ).  p>0 is a further parameter.  An alternate way to define it is k(x,xʹ) = exp(-a∑~1≤i≤|x|~sin(p·(x~i~-xʹ~i~))²), where a>0 and p>0 are scaling parameters for amplitude and periodicity, respectively.
+- _Periodic kernel_: k(x,xʹ;p,h) = exp(-‖sin(px)-sin(pxʹ)‖~2~²/h²). Note the similarity to Gaussian kernel, x is replaced by sin(px) and xʹ is replaced likewise by sin(pxʹ).  p>0 is a further parameter.  An alternate way to define it is k(x,xʹ) = exp(-a∑~1≤i≤|x|~sin(p·(x~i~-xʹ~i~))²), where a>0 and p>0 are scaling parameters for amplitude and periodicity, respectively.
+
+- _sigmoid_ (_tanh_) k(x,xʹ;a,b) = tanh(ax^T^xʹ-b)
+
+- _rational quadratic_ k(x,xʹ;σ²,l,α) = σ²(1+(x-x)²/(2αl²))^-α^.
+
+- _periodic squared exponential_ k(x,xʹ;σ²,l,p) = σ²exp(-2sin²(π|x-xʹ|/p)/l²).  As squared exponential, but additionally periodic.
+
+References:
+
+- https://www.cs.toronto.edu/~duvenaud/cookbook/
 
 
-=== Artificial Neural Neutwork (ANN)
+
+== Artificial Neural Neutwork (ANN)
 
 The term _Artificial neural network_ refers to nonlinear functions which are nestsed compositions of (variable) linear functions composed with (fixed) nonlinearities.  I.e. the linearities are learned, and the non-linearities are choosen apriory and then are fixed.
 
@@ -2879,7 +3105,7 @@ Contra: User has to configure many parameters (like e.g. architecture of the net
 Contra: Not roboust. Training the same model multiple times gives different results.
 
 
-==== Feedforward neural network
+=== Feedforward neural network
 
 In case of zero hidden layers also called _singlelayer perceptron_, in case of one or more hidden layers also called _multilayer perceptron_.
 
@@ -2921,7 +3147,7 @@ There is no consensus what the n in a n-layer neuronal network counts. 1) The nu
 _Universal approximation theorem_: Neuronal networks are _universal adaptors_. A neuronal net with one hidden layer and a continuous sigmoidal activation function can approximate any continuous function on a compact input domain to arbitrary accuracy, provided sufficiently many hidden units.
 
 
-==== Avoiding overfitting
+=== Avoiding overfitting
 
 Neuronaly networks are highly flexible models due to having many parameters |W|, which might be even larger than number n of observations, thus there's considerable risk of overfitting.  If there are many hidden units, the universal approximation theorem basically guarantees overfitting.
 
@@ -2933,7 +3159,7 @@ _Regularization_: One way to mitigate the problem is to add regulariztion the us
 
 
 [[ann_invariances]]
-==== Invariances 
+=== Invariances
 
 E.g. in handwritten digit recognizition, when the written digit is translated or scaled, that should not lead to a worse recognition.
 
@@ -2946,7 +3172,7 @@ Solutions:
 In certain fields, there are feature classes which already have nice properties. E.g. in computer vision, there's _SIFT_ (scale invariant feature transosformation), in speech recognition there's _Ceptrum_.
 
 
-==== Learning a feedforward neural network
+=== Learning a feedforward neural network
 
 We need to learn the weight matrices W = (W^(1)^, ..., W^(L+1)^).  Other parameters of a neuronal network are fixed with respect to learning: number of hidden layers, number of units for each hidden layer, the activation function to be used by each unit, the activation functions themselves have no parameters which need to be learned.  Choose some loss function (e.g. percetpron loss, multi-class hinge loss, square loss etc.).  If there are multiple output units, typically the overall loss is the som of per-output losses.  Do empirical risk minimization Ŵ = argmin~W~(∑~1≤i≤n~l(W,x~i~,y~i~)). Is in general a non-convex optimization problem, even with a single hidden layer.  Typical choices are variants of gradient descent, despite the risk of only finding a local minima. In this solutions, initialization (where to start the search) really matters. Nevertheless, for reasons not well understood, gradient based algorithms tend to find good models.  Also, somehow we're much more likely to find the global optimum when we overspecify, i.e. have more hidden units than we actually minimaly need in theory for a good model to exist.
 
@@ -2964,7 +3190,7 @@ _Preventing oscillation_ around minima: Learning with momentum helps.
 
 
 [[convolutional_nn]]
-==== Convolutional neuronal network (CNN)
+=== Convolutional neuronal network (CNN)
 
 A _convolutional neuronal network_ are is an ANN for specialized applications, in particular image recognition.  It is designed to attack problem of <<ann_invariances>>.   They bake a certain degree of shift and scale invariance into the model. 
 
@@ -2977,7 +3203,7 @@ CNN layer architecture: input -> (convolution -> pooling)+ -> fullyconnected+ ->
 The convolution layer does kind of filtering. The pooling layer does kind of subsampling, having the benefit of fewer overall units, i.e. fewer parameters to learn.
 
 
-==== Common activation functions
+=== Common activation functions
 
 _rectified linear units_ (_ReLU_) φ(z) = max(z,0): Similar to the perceptron loss, just flipped at the y axis. These days kind of the standard. Pro: fast to compute, gradients do not `vanish' (important for deep networks), Contra: not differentiable.
 
