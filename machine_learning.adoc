@@ -150,6 +150,20 @@ The maximum likelihood estimator is θ̂^ML^ = x.
 The _James-Stein_ estimator is given θ̂^JS^ = (1 - (d-2)σ²/‖x‖~2~²)·x, i.e. x is weighted. For m≥3 θ̂^JS^ dominates θ̂^ML^, i.e. MSE~θ~[θ̂^JS^] ≤ MSE~θ~[θ̂^ML^].
 
 
+[[jacknife]]
+==== Jacknife
+
+A method to estimate the bias of an estimator θ̂. That can then be used to get an improved estimator θ̂^JK^, called the _jacknife estimator_.  Let θ̂^(-i)^ denote the estimator computed using the data except the i-th observation.
+
+θ̂^JK^ = θ̂ - Biaŝ[θ̂] = nθ̂ - (n-1)θ̃ +
+Bias[θ̂] ≈ Biaŝ[θ̂] = (n-1)(θ̃ - θ̂) +
+θ̃ = 1/n ∑~1≤i≤n~θ̂^(-i)^
+
+*to-do* slide 23, jacknife for bootstrap
+
+Con: Reducing Bias comes at the cost of larger variance
+
+
 === Confidence Interval & Prediction Interval
 
 Let C~n~ = (a,b) denote a 1-α _confidence interval_ for an unknown parameter θ, where a and b are statistics, and where 1-α is called the _confidence level_ (or _coverage_ of the interval).  A 1-α confidence interval is an interval such that in (1-α)·100% of the times you make an 1-α confidence interval for some parameter,  possibly each time for another parameter, the interval contains the true parameter.  See next paragraph for further explanations.  Common choices for the confidence level are 95% or 1%.
@@ -208,6 +222,11 @@ The _acceptance region_ is the complement to the critical region.
 | failed to reject H~0~ | true positive | false negative, type I error, β
 | H~0~ rejected         | false postive, type II error, false discovery, significance level α | true negative, true discovery, power
 |=====
+
+[[likelihood_ratio_test]]
+_likelihood ratio test_: Only valid for nested models. *to-do*
+
+The _Neyman-Pearson lemma_ states that a likelihood ratio test is the most powerful (i.e. has largest power) test among all tests having significance level α = Pr(likelihoodratio < c|H~0~ really true), where c is the likelihood ratio test's threshold.
 
 
 ==== Data snooping / selection effect
@@ -595,28 +614,32 @@ References:
 - Statisitic Cheat Sheet: http://web.mit.edu/~csvoss/Public/usabo/stats_handout.pdf
 
 
+[[bias_variance_trade_off]]
+=== Bias-variance tradeoff
+
+The _bias-variance trade-off_ (or _bias-variance dilemma_) means two related things
+
+- The expected test MSE can be decomposed in three terms, bias, variance and irreducable error, as the following equation shows.  We directly can see that the expected test MSE cannot become better than the irreducable noise.
+
+- That in general, if variance goes down, bias goes up (underfitting), and vice verca, i.e. if bias goes down, variance goes up (overfitting).  As model flexibily increases, bias decreases, variance increases, and the expectedTestMSE will be convex, i.e. have a U-shape.  Thus the goal is to find the model with minimal expectedTestMSE.  When we say ``optimizing the bias-variance trade-off'', we really mean finding the minimal expected test MSE.
+
+Simplified, looking only at a given point x~0~:
+
+expectedTestMSE(x~0~) = (Bias~train~[f̂(x~0~)])² + Var~train~[f̂(x~0~)] + Var[ε]
+
+More generally:
+
+E~train,X,Y~[(f̂(X)-Y)²] = +
+(E~X~[E~train~[f̂(X)]-E~Y~[Y|X]])² + [bias²] +
+E~X,train~[(f̂(X)-E~train~[f̂(X)])²] + [variance] +
+E~X,Y~[(Y-E~Y~[Y|X])²] [noise]
+
+Recall that we saw the same pattern also with an estimator.
+
+
 == Misc machine learning
 
 _parameter_ θ (read hypothesis), _parameter space_ Θ, _hypothesis_ h(x) (parameterized by θ): *to-do*
-
-_loss function_ l(ŷ,y) (or l(θ, x, y)): Measures how different the prediction ŷ = h~θ~(x) is from the true response y.  I.e. quantifies the loss of a single data point. *to-do* move / merge to correct more general place
-
-[[01_loss]]
-_0/1 loss function_: Is 1 for a mistake, 0 otherwise. But is a nasty function to optimize. Is not continous, and is not convex.  Thus e.g. the gradient descent algorithm cannot be used to optimize.  If ŵ was argmin~w~[∑loss~0/1~(w,y~i~,x~i~)], the problem of finding the optimal solution would be NP hard.
-
-loss~0/1~(w, y, x) = (y != signʹ(w^T^x)) = (yw^T^x < 0)
-
-_cost function_ Q (or L): Is more general than the loss function. It might be the sum of loss functions over a set of observations.
-
-_expected risk_ (or _true risk_, or just _risk_, or _expected error_, or _expected test error_, or _prediction error_, the `expected' over all that is random) R(h) = E~y∈𝓨,x∈𝓧~[l(h(x),y)] = ∫~y∈𝓨~∫~x∈𝓧~l(h(x),y)p(x,y)dxdy: The risk associated with hypothesis h(x) is defined as the expected loss. The expected risk generally cannot be computed since in general p(x,y) is unknown.
-
-_empirical risk_ (or _empirical error_) R̂~𝓓~(h) = E~(y,x)∈𝓓~[l(h(x),y)] = 1/n ∑~(y,x)∈𝓓~l(h(x),y). Since p(x,y) is often unknown, the expected risk R(h) cannot be computed. We can estimate the risk by averaging the loss on a sample data set 𝓓. Assuming iid observations, R̂~𝓓~(h)→R(h) for |𝓓|→∞ (by law of large numbers).
-
-_training error_ R̂~trainset~(ĥ): Empirical risk of given model ĥ using the one training set. In general, E~train~[R̂~trainset~(ĥ)] < E[R(ĥ)], i.e. the estimator R̂~trainset~(ĥ) is an overly optimistic estimator; it underestimates the true risk R(ĥ).  The reason is that the training data can be fitted better than unseen data.  Thus never evaluate a model by using the training error.
-
-_test error_ R̂~testset~(ĥ): Empirical risk of given model ĥ using the one test set.  An unbiased estimator for the true risk, i.e. E~train~[R̂~testset~(ĥ)] < E[R(ĥ)], as long as the test data was not involved in any way in fitting ĥ.
-
-_generalization error_ gen_error~𝓓~(h) = R(h) - R̂~𝓓~(h). An algorithm is said to _generalize_ if lim~|𝓓|→∞~gen_error~𝓓~(h) = 0.  In general the generalization error cannot be computed since the risk R(h) in general cannot be computed. Instead, the aim is often to bound the generalization error in probability: p(|gen_error~𝓓~(h)|≤ε) ≥ 1-δ, where ε is called the error bound and is generally dependent on δ and n = |𝓓|.
 
 _empirical risk minimizer_ (_ERM_): ĥ = argmin~h~(R̂~trainset~(h))
 
@@ -626,7 +649,7 @@ _likelihood function_ (or _sampling distribution_) ℒ~𝓓~(θ) = p(𝓓|θ) =~
 
 _log likelihood_ log p(𝓓|θ)
 
-_negative log likelihood_ (_NLL_) -log p(𝓓|θ)
+_negative log likelihood_ (_NLL_) -log p(𝓓|θ). Often used instead of the log likelihood because the negative log likelihood can be used as a cost function.  The `better' θ is, the smaller the NLL becomes.
 
 _prior (probability)_ p(θ) (or more accurately, p(θ|Θ)): Probability of model paramters θ without having seen any data yet.
 
@@ -642,16 +665,22 @@ _posterior (probability)_ p(θ|𝓓) = p(𝓓|θ)p(θ) / p(𝓓) ∝ p(𝓓|θ)p
 
 Or recursively, assuming iid data, p(θ|𝓓) = p(x~n~|θ)p(θ|𝓓^n-1^) / evidence, evidence = ∫p(x~n~,θ)p(θ|𝓓^n-1^)dθ, with the base case p(θ|𝓓^0^) = p(θ), where x~n~ denotes the n-th observation and 𝓓^n^ denotes all observations up to and including the n-th observation.  This is based on the idea that the likelihood can be recursively expressed as p(𝓓|θ) = p(𝓓^n^|θ) = p(x~n~)p(θ|𝓓^n-1^), with the same base case.  Thus with each new observation, we improve the posterior probability p(θ|𝓓).
 
+[[KL_divergence]]
+The _Kullback-Leibler divergence_ (_KL divergence_) is a measure of difference of two probability distributions.
 
 [[mle]]
-_maximum likelihood estimator_ (_MLE_) θ̂^MLE^ = argmax~θ~(p(𝓓|θ)): A frequentist point estimator which sets the model parameters θ to the values that maximize the likelihood function p(𝓓|θ).  This corresponds to choosing the model parameters θ for which the probability of the observed data set is maximized. Properties:
+_maximum likelihood estimator_ (_MLE_) θ̂^MLE^ = argmax~θ~(p(𝓓|θ)): A frequentist point estimator which sets the model parameters θ to the values that maximize the likelihood function p(𝓓|θ).  This corresponds to choosing the model parameters θ for which the probability of the observed data set is maximized. Properties when the parametric model is correct (i.e. the process generating the data can correctly be described by the parameteric model having parameter space Θ):
 
-- consistent
+- consistent (θ̂^MLE^ P→ θ)
 - asymptotically efficient
-- asymptotic normality: √n(θ-θ̂) → 𝓝(0, J^-1^IJ^-1^), where I=Var~θ~[Λ(θ)], J=-E~θ~[∇~θ^T^~Λ(θ)], and Λ denoting the score function
-- equivalence: If θ̂ is MLE of θ, then f(θ̂) is MLE of f(θ)
+- asymptotic normality: √n(θ-θ̂^MLE^) → 𝓝(0, J^-1^IJ^-1^), where I=Var~θ~[Λ(θ)], J=-E~θ~[∇~θ^T^~Λ(θ)], and Λ denoting the score function
+- equivalence: f(θ̂^MLE^) is MLE of f(θ)
 - prone to overfitting if model is flexible (i.e. has many parameters)
-- Λ(θ̂) = 0. Since θ̂ is a maxima of the likelihood.
+- Λ(θ̂^MLE^) = 0. Since θ̂^MLE^ is a maxima of the likelihood.
+
+If the parameteric model is not correct:
+
+- θ̂^MLE^ P→ θ̂^KL^, where θ̂^KL^ minimizes the <<KL_divergence>> w.r.t. to the true distribution of the data.
 
 
 Relation to other estimators:
@@ -691,7 +720,31 @@ _active learning_ (or _semi-supervised learning_ (_SSL_)): The labels are theore
 
 _frequentist vs bayesian_: In the probabilistic view, we also model the uncertainty. Before we didn't do that, or only in a relatively limited form via calculating variance, confidence interval, prediction interval.
 
+
 *to-do* explain much better frequentist vs bayesian
+
+
+=== Taxonomy of data
+
+_object_: An object of interest, e.g. a person. _measurements_: One or more measurements per object or set of objects. E.g. when the data is some distance measure between two objects, then the measurement is a mapping from two objects to ℝ. This is also called _proximity data_. Sometimes, e.g. in psychology, it is better to measure a trait relative between two people, as opposed to trying to measure a trait per person.
+
+_design space_: 𝓞 = 𝓞^(1)^ ⨯ 𝓞^(2)^ ⨯ ...
+
+_measurement space_: 𝓧
+
+_measurement_: A function 𝓞^(1)^ ⨯ 𝓞^(2)^ ⨯ ... → 𝓧
+
+_monadic data_ 𝓞^(1)^: measurements are for one object
+
+_dyadic data_ 𝓞^(1)^ ⨯ 𝓞^(2)^: mesurements are for multiple objects. E.g. measurements for each of \{users} ⨯ \{websites}, or for each of \{bag of words\} x \{websites}.
+
+_pairwise data_: special case of diadic data where the two input object spaces are equal.
+
+_nominal scale_ (or _categorial scale_): a set without any ordering. _ordinal scale_: an ordered set of values. The values are irrelevant, only their rank order matters.
+
+_quantitative scales_: _interval scale_ the relation of numerical differences carries the information. Invariant w.r.t. translation and scaling. E.g. Fahrenheit; zero point and units were chosen arbitrarily.  _Ratio scale_ Invariant w.r.t. scaling. E.g. Kelvin scale; zero point is fixed, but unit is arbitrary.  _Absolut scale_: Absolut values carry information. E.g. swiss exam grades.
+
+_data withening_: *to-do*
 
 
 === Generative model vs discrimantive model
@@ -774,12 +827,9 @@ Reasons for missing data: Respectvie data might be difficult / expensive / impos
 
 
 
-== Model selection, model validation
+== Measuring model performance & Co
 
-[[measuring_model_performance]]
-=== Measuring model performance
-
-==== Formula table
+=== Formula table
 
 |=====
 | t~i~ > 3 | Rule of thumb for identifying outliners
@@ -796,13 +846,66 @@ Reasons for missing data: Respectvie data might be difficult / expensive / impos
 |=====
 
 
-==== Model performance measures
+=== Comparison of model performance measures
 
-The _performance_ of a model is a measure of how `good' a model models a given population, most often in respect to its predictive power, i.e. its prediction capability on independent unseen test data.  For example, one could use the expected test MSE, that is, an estimate thereof.  (*to-do* is it always a property of the model, or can it also be a property of a concrete already trained estimate f̂? In what way does the difference between prediction and inference influence the topic of model performance)
+See <<comparison_of_model_selection_methods>>
 
-Let e denote <<residual>>s.
 
-The _residual sum of squares_ (_RSS_) (or _error sum of squares_) is defined as RSS = |Y-Ŷ|² = |e|² = ∑~1≤i≤n~e²~i~.  Can be thought of as the amount of variability that is left unexplained after performing the regression.  Is a training error.  When LS fit was used, decreases monotonically as more predictors are added to the model (current model is optimal with respect to RSS; if an predictor is added that cannot reduce the RSS, then the respective coefficent is set to zero).  n-p degrees of freedem are associated with RSS.
+=== Assess model performance
+
+The _performance_ of a model is a measure of how `good' a model models a given population, most often in respect to its predictive power, i.e. its prediction capability on test data. _test data_ is independent unseen data. More formaly, we compute a test error on basis of some loss function, the respective terms being defined in the following.
+
+_loss function_ l(ŷ,y) (or l(θ, x, y)): Measures how different the prediction ŷ = h~θ~(x) is from the true response y.  I.e. quantifies the loss of a single observation.
+
+Similarily a _loss matrix_ L~k,j~ is often used in a classification setting, where k denotes the true class and j denotes the estimated class.
+
+Conversely, some authors consider instead a _utility function_, whose value they aim to maximize.  These are equivalent concepts if we take the utilitiy to be simply  the negative of the loss.
+
+[[01_loss]]
+_0/1 loss function_: Is 1 for a mistake, 0 otherwise. But is a nasty function to optimize. Is not continous, and is not convex.  Thus e.g. the gradient descent algorithm cannot be used to optimize.  If ŵ was argmin~w~[∑loss~0/1~(w,y~i~,x~i~)], the problem of finding the optimal solution would be NP hard.
+
+loss~0/1~(w, y, x) = (y != signʹ(w^T^x)) = (yw^T^x < 0)
+
+_0/1 loss function with no-decision extension_: For classification problems where the prediction can not only be one of the K classes, but also `no decision'. Is as the normal 0/1 loss, only that when the prediction is `no decision', then a d is returned, where d is a parameter.
+
+_prediction error_: l(ŷ,y) = y-ŷ. References: The Elements of Statistical Learning p18 (prediction error, only indirectly defined), An Introduction to Statistical Learning p30 (prediction error, only indirectly defined)
+
+_squared loss_: l(ŷ,y) = (ŷ - y)². I.e. squared prediction error.
+
+_cost function_ Q (or L): Is a more general concept than the loss function. A loss function is w.r.t. one observation.  A cost function might be w.r.t. all the data, e.g. by summing a loss function over all the data.  A loss function is also a cost function.
+
+_consistent_ model selection criterion: A model selection criterion is consistent, if when used for model selection, the probability of selecting the true model approaches asymptotically (in n) one.  Only applicable when the true model is member of the candidate models.
+
+_expected risk_ (or _total expected risk_, or _true risk_, or just _risk_, or _expected error_, or _expected loss_) R(h) = E~y∈𝓨,x∈𝓧~[l(h(x),y)] = ∫~y∈𝓨~∫~x∈𝓧~l(h(x),y)p(x,y)dxdy: The risk associated with a given hypothesis h(·) is defined as the expected loss. The expected risk generally cannot be computed since in general p(x,y) is unknown. References: https://en.wikipedia.org/wiki/Empirical_risk_minimization (risk), aml2018 lecture slides 2 page 5/31 (total expected risk), https://en.wikipedia.org/wiki/Generalization_error (expected error), https://en.wikipedia.org/wiki/Statistical_learning_theory (expected risk), Machine Learning: a Probabilistic Perspective p 195,205 (expected loss, risk)
+
+_empirical risk_ (or _empirical error_) R̂~𝓓~(h) = E~(y,x)∈𝓓~[l(h(x),y)] = 1/n ∑~(y,x)∈𝓓~l(h(x),y). Since p(x,y) is often unknown, the expected risk R(h) cannot be computed. We can estimate the risk by averaging the loss on a sample data set 𝓓. Assuming iid observations, R̂~𝓓~(h)→R(h) for |𝓓|→∞ (by law of large numbers). References: https://en.wikipedia.org/wiki/Generalization_error (empirical error), https://en.wikipedia.org/wiki/Statistical_learning_theory (empirical risk), Machine Learning: a Probabilistic Perspective p 205 (empirical risk)
+
+_training error_ R̂~trainset~(ĥ): Empirical risk of a concrete trained model ĥ on basis of the training set. In general, E~train~[R̂~trainset~(ĥ)] < R(ĥ), i.e. the estimator R̂~trainset~(ĥ) is an overly optimistic estimator; it underestimates the true risk R(ĥ).  The reason is that the training data can be fitted better than unseen data.  Thus never evaluate a model by using the training error. References: aml2018 lecture slides 2 page 6/31 (training error), All of statistics p 219 (training error (however without the 1/n normalization))
+
+_test error_ (or _generalization error_ (conflicting with another defintion)) R̂~testset~(ĥ): Empirical risk of a concrete trained model ĥ on basis of the test set (aka unseen data).  An unbiased estimator for the true risk, i.e. E~train~[R̂~testset~(ĥ)] = E[R(ĥ)], as long as the test data was not involved in any way in fitting ĥ. References: aml2018 lecture slides 2 page 7/31 (test error), An introduction to statistical learning p37 (test error), The Elements of Statistical Learning p220 (test error, generalization error; but unclear whether its over test sample or over population), Machine Learning: a Probabilistic Perspective p 23 (generalization error)
+
+Apparently the test error is often taken to be synonymous to expected error (maybe implying that the (true) test error is based on an infitely large test set). E.g. https://lagunita.stanford.edu/c4x/HumanitiesScience/StatLearning/asset/cv_boot.pdf slide 8
+
+[[expected_test_error]]
+The _expected test error_ (or _expected prediction error_) is the expected loss of a model `template' (i.e. not yet trained), when it is trained multiple times and each trained model is tested.  With respect to test error, now also the training sample is choosen at random from the population. References: An introduction to statistical learning p 34 (indirectly via expected test MSE), The Elements of Statistical Learning p 220 (expected test error, expected prediction error)
+
+ExpectedTestError = E~train~[Err~test~]
+
+The __expected test error at new x__ is analogous, but here we only look at a fixed, new x.  Recall that the corresponding true response Y is a random variable.
+
+ExpectedTestError(x) = E~train~[E~Y~[l(Y,f̂(x))]]
+
+_MSE_: see <<MSE_of_estimator>>
+
+_training MSE_ RSS/n: I.e. training error on basis of squared loss.
+
+_test MSE_: Test error on basis of squared loss.
+
+_expected test MSE_: Expected test error on basis of squared loss.
+
+_generalization gap_ (or _generalization error_ (arguably a non-standard and conflicting usage of the therm)) gen_gap~𝓓~(h) = R(h) - R̂~𝓓~(h). An algorithm is said to _generalize_ if lim~|𝓓|→∞~gen_gap~𝓓~(h) = 0.  In general the generalization gap cannot be computed since the risk R(h) in general cannot be computed. Instead, the aim is often to bound the generalization gap in probability: p(|gen_gap~𝓓~(h)|≤ε) ≥ 1-δ, where ε is called the error bound and is generally dependent on δ and n = |𝓓|. References: https://en.wikipedia.org/wiki/Generalization_error (generalization error), https://www.reddit.com/r/MachineLearning/comments/4zu08d/definition_of_generalization_error/ (generalization gap; argues that using `generalization error' is non-standard)
+
+The _residual sum of squares_ (_RSS_) (or _error sum of squares_ (_SSE_)) is defined as RSS = |Y-Ŷ|² = |e|² = ∑~1≤i≤n~e²~i~.  Can be thought of as the amount of variability that is left unexplained after performing the regression.  Is a training error.  When LS fit was used, decreases monotonically as more predictors are added to the model (current model is optimal with respect to RSS; if an predictor is added that cannot reduce the RSS, then the respective coefficent is set to zero).  n-p degrees of freedem are associated with RSS.
 
 RSS̃ means the same as RSS but with <<standardize_variables>>.
 
@@ -822,15 +925,22 @@ The __adjusted R²__ statistic is defined as 1 - (RSS/(n-p)) / (TSS/(n-1)).  Adj
 
 **to-do**(3) I still don't get the difference between adjusted R² and R². What are pros / cons?
 
-For model fitted with LS, __Mallows's C~p~__ is an estimate of test MSE, and thus an adjusted training error, and defined as C~p~ = 1/n (RSS + 2·p·σ̂²). C~p~ is unbiased if σ̂ is unbiased.  Intuition: 2·p·σ̂² is a penalty for the fact that training error tends to underestimate the test error.
+__Mallows's C~p~__ has multiple equivalent (in the sense that they select the same model) definitions, see below.  σ̂ is often estimated by the MSE of the full model.  Used to compare models for model selection.  The second summand can be viewed as penalty for model complexity, just as in regularization.  References: https://www.jstor.org/stable/2348411?seq=1#metadata_info_tab_contents[The interpretation of Mallows Cp statistic], All of statistics p 219, https://en.wikipedia.org/wiki/Mallows%27s_Cp, An introduction to statistical learning p 211
 
-_Bayesian Information Criterion_ (_BIC_) is BIC = 1/n (RSS + log(n)·p·σ̂²).  Is an adjusted training error.
+[1] C~p~ = RSS/σ̂² + (2p-n) +
+[2] C~p~ = 1/n (RSS + 2·p·σ̂²) [σ̂² is unbiased ⇒ C~p~ unbiased w.r.t. test MSE] +
+[3] C~p~ = trainingerror + 2pσ̂²
 
-_Akaike Information Criterion_ (_AIC_) is AIC = 1/σ̂² C~p~.
+[[BIC]]
+The _Bayesian Information Criterion_ (_BIC_) is BIC = -2ln(ℒ~𝓓~(θ̂^MLE^)) + k·ln(n), where ℒ~𝓓~(θ) = p(𝓓|θ) denotes the likelihood, θ̂^MLE^ denotes the maximum likelihood estimate of parameters, and k = |θ| the number of parameters.  The first summand can be viewed as cost function, and the second summand as penalty for model complexity, just as in regularization.  In case of linear regression: BIC = 1/n (RSS + log(n)·p·σ̂²).  Is an adjusted training error.  Used to compare models for model selection where each candidate model has an parameter space Θ; the model with the lowest BIC wins.  Is a consistent model selection criterion.  Tends to be overly pessimistic for small n due to the ln(n) in the model complexity penalty term.  Tends to select too simple models (i.e. underfit) for small n.
 
-All of Mallow's C~p~, AIC, BIC are asymptotically (for large n) good in the sense that the best model out of a set will have the highest Mallow's C~p~ from all models, the highest AIC from all models etc.
+[[AIC]]
+The _Akaike Information Criterion_ (_AIC_) is AIC = -2ln(ℒ~𝓓~(θ̂^MLE^)) + 2k, where ℒ~𝓓~(·), θ̂^MLE^ and k are as in BIC.  AIC is almost as the BIC, only that the model complexity penalty term is simply 2k opposed to k·ln(n). In the case of linear regression: AIC = 1/nσ̂² (RSS + 2·p·σ̂²).  Used to compare models for model selection where each candidate model has an parameter space Θ; the model with the lowest AIC wins.  Asymptotically equivalent to LOOCV.  AIC was designed such that when doing model selection on basis of AIC, the winning model is the one that miminimizes the KL divergence to the true model.  Tends to select too complex models (i.e. overfit) for small n. References: All of statistics p220 (AIC = ln(ℒ~𝓓~(θ̂^MLE^)) + k), An Introduction to statistical learning p 212 (case linear regression: AIC = 1/nσ̂² (RSS + 2·p·σ̂²)), https://en.wikipedia.org/wiki/Akaike_information_criterion, aml2018 lecture slides 6 slide 34
 
-**to-do**(3) Adjusted training error vs estimated expected test error. When can I reasonably use adusted training error? E.g. in best subset, when can I use adjusted training error opposed to having to pay CV?
+*to-do*: "Asymptotically equivalent to LOOCV". I assume here CV uses MSE as cost function? Also, asymptotically is w.r.t. sample size, right?
+
+[[TIC]]
+_Takeuchi Information Criterion_ (_TIC_) is TIC = -2ln(ℒ~𝓓~(θ̂^MLE^)) + 2trace[I·J^-1^], where I = Var[∇ℒ~𝓓~(θ̂^MLE^)], J = -E[∇²ℒ~𝓓~(θ̂^MLE^)], and where ℒ~𝓓~(·) and θ̂^MLE^ are as in BIC.  Tries to fix AIC's problem that AIC only works properly if the true model is in the model class.  Reduces to AIC if the true model is a member of the model class.
 
 Recall: The notation E~train~[·], Var~train~[·], E~test~[·], Var~test~[·] etc. is defined by <<trainingsampe_testsample_notation>>.
 
@@ -840,79 +950,11 @@ Bias~train~[f̂(x~0~)] = E~train~[f̂(x~0~)] - f(x~0~)
 
 Bias~train,test~[f̂] = E~test~[Bias~train~[f̂(x~test~)]]
 
-*to-do* how is variance of f̂ formally defined ?
-
-Var~train~[f̂(x~0~)] = ...?
-
-*to-do* how is Var~train~[f̂(x~0~)] defined? In general, for OLS linear regression?
-
-Var~train,test~[f̂] = E~test~[Var~train~[f̂(x~test~)]
-
-*to-do* confidence interval for f̂
-
-A _loss function_ L(Y, Ŷ) (or l(Y, Ŷ)) measures the error between Y and Ŷ = f̂(X). Typical choices are squared error (Y - Ŷ)² or absolute error |Y - Ŷ|.  Obviously we want to minimize the loss.
-
-Similarily a _loss matrix_ L~k,j~ is often used in a classification setting, where k denotes the true class and j denotes the estimated class.
-
-Conversely, some authors consider instead a _utility function_, whose value they aim to maximize.  These are equivalent concepts if we take the utilitiy to be simply  the negative of the loss.
-
-The _training error_ Err~train~ of a model is the average loss over the training sample.  Can theoretically be used as estimator for the expected test error, but it generally would be a rather bad one since rather biased, see also *to-do*.
-
-Err~train~ = 1/|trainingsample| ∑L(y~train,i~, f̂(x~train,i~))
-
-The _test error_ is the expected loss of a concrete trained model on a test sample (aka unseen data).  It is defined as follows.  f̂ is fixed and was trained by some training sample.  The stated two variants are equivalent.  In the 1st variant the randomness lies in repeatedly randomly picking a test sample from the population.  y~test,i~ and x~test,i~ correspond to the i-th observation in that random sample set and thus are fixed values.  In the 2nd variant the randomness lies in X and Y being random variables.
-
-Err~test~ = +
-1/|testsample| ∑L(y~test,i~, f̂(x~test,i~)) or +
-E~test~[L(Y, f̂(X))|f̂]
-
-[[expected_test_error]]
-The _expected test error_ (or _expected prediction error_) is the expected loss of a model `template' (i.e. not yet trained), when it is trained multiple times and each trained model is tested.  For a concrete example see <<expected_test_mse>>.  In respect to test error, now also the training sample is choosen at random from the population.
-
-Err = E~train~[Err~test~]
-
-Regarding `the' _MSE_, there are multiple variants, depending on what exactly we want to describe.  The basic idea is always the same, but depending on the specific MSE variant, it is calculated over different data and the used estimate f̂ is either fixed or varies by repeteadly training it with some data. See also MSE for an estimator θ̂, which is analogously defined.
-
-The _training MSE_ is calculated using the training data and a fixed estimate f̂ which was trained using that training data:
-
-trainingMSE = RSS/n **to-do**(3) or does denomitor subtract 1 or 2?
-
-[[expected_test_mse]]
-The _expected test MSE_ is conceptually calculated in two levels. One level iterates over all possible training data sets, each iteration training a new estimate f̂.  For each of those f̂, the other level iterates over all possible test data sets. See also <<expected_test_error>> for the more general concept.
-
-expectedTestMSE = E~train~[E~test~[(y~test~ - f̂(x~test~))²]] = +
-E~test~[expectedTestMSE(x~test~)]
-
-The __expected test MSE at x~0~__ is analogous, but here we only look at a fixed x~0~.  In the following formula, the inner E[·] is for the random variable Y~0~.   Note that the Y~0~ corresponding to x~0~ is a random variable due to the error term ε.
-
-expectedTestMSE(x~0~) = E~train~[E[(Y~0~ - f̂(x~0~))²]]
-
-
-[[bias_variance_trade_off]]
-==== Bias-variance tradeoff
-
-The _bias-variance trade-off_ (or _bias-variance dilemma_) means two related things
-
-- The expected test MSE can be decomposed in three terms, bias, variance and irreducable error, as the following equation shows.  We directly can see that the expected test MSE cannot become better than the irreducable noise.
-
-- That in general, if variance goes down, bias goes up (underfitting), and vice verca, i.e. if bias goes down, variance goes up (overfitting).  As model flexibily increases, bias decreases, variance increases, and the expectedTestMSE will be convex, i.e. have a U-shape.  Thus the goal is to find the model with minimal expectedTestMSE.  When we say ``optimizing the bias-variance trade-off'', we really mean finding the minimal expected test MSE.
-
-Simplified, looking only at a given point x~0~:
-
-expectedTestMSE(x~0~) = (Bias~train~[f̂(x~0~)])² + Var~train~[f̂(x~0~)] + Var[ε]
-
-More generally:
-
-E~train,X,Y~[(f̂(X)-Y)²] = +
-(E~X~[E~train~[f̂(X)]-E~Y~[Y|X]])² + [bias²] +
-E~X,train~[(f̂(X)-E~train~[f̂(X)])²] + [variance] +
-E~X,Y~[(Y-E~Y~[Y|X])²] [noise]
-
-Recall that we saw the same pattern also with an estimator.
+*to-do* how is variance of f̂ formally defined?
 
 
 [[assess_model_coefficients]]
-==== Assess model coefficients
+=== Assess model coefficients
 
 The _bias of model parameter estimator β̂_ is defined the usual way the bias of an estimator is defined: Bias~train~[β̂] = E~train~[β̂] - β
 
@@ -921,7 +963,7 @@ _t-statstic_ for an estimator β̂ of unknown parameter β: see <<t_statistic>>.
 In a linear regression model the coefficents β̂ found by OLS are <<BLUE>>.
 
 
-==== Assess data points
+=== Assess data points
 
 An _outlier_ is a data point for which its response y~i~ is unusual by being far from the value predicted by the model. Alternatively: A data point with large studentized residual.  Observations whose studentized residuals are greater than 3 in absolute value are possible outliers [ISLR chapter 3.3.3 Potential Problems, Section 4. Outliers].  In linear regression, typically an outlier has only a small influence on the regression hyper-plane.  However it may have a big influence on RSE and R².  And since RSE is used as estimator for σ, also a big influence on confidence intervals and p-values, i.e. a big influence on the interpretation of such a fit (*to-do* are those statements restrictued to linear regression?).
 
@@ -949,15 +991,16 @@ The _Cook's distance_ D~i~ is a commonly used estimate of the <<influencial_data
 
 
 [[model_selection]]
-=== Model selection / feature selection
+== Model selection / feature selection
 
 _Model selection_ (or _model tuning_) is the task of selecting a statistical model from a set of candiate models.  That may include determining the hyper-parameters of the choosen model and it may include determining the tuning parameters of the learning algorithm. See also <<cv_for_model_selection>>.
-
-*to-do* clean up this terminolgy mess
 
 Whether or not model selection shall additionally also train the selected model is not clearly defined.
 
 Model selection is typically done by computing the empirical risk of a candidate model on _validation data_.
+
+[[occams_razor]]
+_Occam's razor_: Choose the simplest model that explains the data.
 
 _Feature selection_ (or _variable selection_, _attribute selection_, _variable subset selection_) is the task of selecting a subset of the available features (aka predictors).
 
@@ -969,9 +1012,19 @@ Rational for feature selection
 
 - Costs: Don't need to acquire respective data, less storage costs, less computational costs.
 
+_Model validation_ (or _model assessment_ or _assessing performance (of a model)_) is the task of estimating the prediction error of a model.  For a meaningfull model validation we also need to calculate the bias and the variance of the estimate.  Recall that in general we can't compute the true prediction error, since that would require us to know the true joint distribution p(x,y) of the data.
+
+The following solutions do not work in general:
+
+Use previously unseen data for model validation or model selection::
+It's not realistic to have further unseen data available.  Even so, in that case we could combine the original data and the newly available data into one data set, and be logically at the same point as in the beginning of the problem statement.
+
+Use original data for model validation or model selection::
+When we use the original data for model assessment, the retreived estimated prediction error will be heavily biased; it will be too good.  That's because we trained the model with exactly the same data as we measured the model's performance with.  It was the model trainings job to fit the model to the original data, so obviously the model will have a high performance on the original data.
+
 
 [[inference_after_model_selection]]
-==== Inference after model / feature selection
+=== Inference after model / feature selection
 
 Say we do best subset selection, and then look at the p-values of the resulting coefficent estimates.  These p-values will be rather low, even if the data is random noise.  After all, the task of the algorithm was to select the best predictors, so obviously their p-values are among the best possible given the data.  The algorithm did data snooping. See also selection effect.
 
@@ -986,20 +1039,33 @@ Analogy: Take a sample from a normal distribution. Take the max of the sample. C
 _sample splitting_: One simple way to deal with the problem is to split the data.  With one part do the feature selection, and with the other do the fit and measurement of p-values for coefficient estimates.  These p-values will be `honest'.  Disadvantages are reproducability issues due to the random split, and loss of power since we only use half of the training data (see also validation set approach).
 
 
-==== Comparison of model selection methods
+[[comparison_of_model_selection_methods]]
+=== Comparison of model selection methods
 
 Best/forward/back subset selection work for any prediction method, but are usually relatively slow.
 
 L1-regularization is faster since training and feature selection happen simultaneously. But it only works for linear models.
 
+Crossvalidation has small bias (the smaller the smaller the fold size, negectible for LOOCV), but non-small variance (the larger the smaller the fold size).
 
-==== Domain knowledge
+Bootstrap has small variance but non-small bias. Bias can e.g. be reduced via the Jacknife, which however then increases variance.
+
+The advantage of doing model selection by selecting the one having the best criterion (e.g. AIC, BIC) opposed to selecting the one having the best cross validated cost is that the former is usually computationally cheaper and can use all the available data for training.  However certain adjusted training errors, such as AIC or BIC, rely on lekelihood optimization which can limit applicability.
+
+All of Mallow's C~p~, AIC, BIC are asymptotically (for large n) good in the sense that the best model out of a set will have the highest Mallow's C~p~ from all models, the highest AIC from all models etc.
+
+BIC vs AIC: As a rule of thumb, use BIC when you have a lot of data and AIC otherwise.
+
+**to-do**(3) Adjusted training error vs estimated expected test error. When can I reasonably use adusted training error? E.g. in best subset, when can I use adjusted training error opposed to having to pay CV?
+
+
+=== Domain knowledge
 
 *to-do*
 
 
 [[best_subset_selection]]
-==== Best subset selection
+=== Best subset selection
 
 Basic idea: Try all 2^p^ different models.
 
@@ -1037,7 +1103,7 @@ References:
 - Book ``An introduction to statistical learning'', chapter ``6.1 Subset Selection''
 
 
-==== Forward stepwise selection / greedy feature selection
+=== Forward stepwise selection / greedy feature selection
 
 A greedy approach.  Similar to best subset selection, but we iteratively improve the best model so far by greedely adding the best next predictor.  So in step 1 (see best subset selection), in iteration k, we have model M~k-1~ in our hand and try out p-k predictors.  The best predictor we add, resulting in model M~k~.
 
@@ -1048,7 +1114,7 @@ Forward stepwise selection tends to do well in practice.  However its not guaran
 Pro: Usually faster than backward stepwise selection (if few relevant features)
 
 
-==== Backward stepwise selection
+=== Backward stepwise selection
 
 As forward stepwise selection, only that we start out with the full model, and iteratively remove the least useful predictor.
 
@@ -1059,17 +1125,17 @@ Pro: Can handle dependent features
 *to-do* but we still can start with the biggest possible model.  I would still think that one would call this approach backward stepwise selection, no?
 
 
-==== L1-regression to encourage sparsity
+=== L1-regression to encourage sparsity
 
 Best subset selection is computationally expensive. <<lasso_regression>> can be viewed as an computationally less expensive approximation to best subset selection with loss function being the quadratic loss.  See also <<comparison_of_regularization_methods>>.  Using L1-regularization, as the Lasso does, can also be used in other methods, e.g. SVM.
 
 
-==== Hybrid approaches
+=== Hybrid approaches
 
 First greedely add predictors with the forward stepwise selection method, then remove predictors that no longer provide and improvement with the backward stepwise selection method.
 
 
-==== Bayesian model selection
+=== Bayesian model selection
 
 Method for model selection.  Given a set 𝓜 of candidate models. First compute posterior over models:
 
@@ -1083,7 +1149,7 @@ m̂ = argmax~m~(p(m|𝓓))
 *to-do* be more conrete how to compute the required terms
 
 
-==== Ensemble learning
+=== Ensemble learning
 
 Do predictions by making a weighted average of the predictions made by candidate models.
 
@@ -1098,7 +1164,7 @@ Machine learning competitions are often won by ensembles.
 Catch phrase: wisdom of crowds.  By averaging, we get rid of oddities.
 
 
-==== Bayesian model averaging (BMA)
+=== Bayesian model averaging (BMA)
 
 Bayesian model selection tries to selected the best model and then use that to make predictions.  BMA makes predictions by making a weigthed average of the predictions made by each model. The predictive disribution thus is
 
@@ -1107,22 +1173,8 @@ p(y|x,𝓓) = ∑~m∈𝓜~p(y|x,m,𝓓)p(m|𝓓)
 *to-do* be more conrete how to compute the required terms
 
 
-[[model_validation]]
-=== Model validation
-
-_Model validation_ (or _model assessment_ or _assessing performance (of a model)_) is the task of estimating the prediction error of a model.  For a meaningfull model validation we also need to calculate the bias and the variance of the estimate.  Recall that in general we can't compute the true prediction error, since that would require us to know the true joint distribution p(x,y) of the data.
-
-The following solutions do not work in general:
-
-Use previously unseen data for model validation or model selection::
-It's not realistic to have further unseen data available.  Even so, in that case we could combine the original data and the newly available data into one data set, and be logically at the same point as in the beginning of the problem statement.
-
-Use original data for model validation or model selection::
-When we use the original data for model assessment, the retreived estimated prediction error will be heavily biased; it will be too good.  That's because we trained the model with exactly the same data as we measured the model's performance with.  It was the model trainings job to fit the model to the original data, so obviously the model will have a high performance on the original data.
-
-
 [[validation_set_approach]]
-==== Validation set approach
+=== Validation set approach
 
 The _validation set approach_ is a technique for model assessment or model selection.
 
@@ -1144,7 +1196,7 @@ References:
 
 
 [[cross_validation]]
-==== Cross Validation
+=== Cross Validation
 
 !!!!! clean up usage of terms `test set/sample/...' vs `validation set/sample/...'.
 
@@ -1182,8 +1234,6 @@ best_model_by_CV(candidatemodels, data)
     # note that we don't know estimated prediction error of returned model
 --------------------------------------------------
 
-
-
 *to-do* Chapter/paragraph about choosing a statistic for model performance. e.g. why exactly is training MSE not good.
 
 *to-do* compare and contrasts these terms: (statistical) learning method, model, estimate f̂ of f, systematic information f. More usually used terms, especially for f̂ and f?
@@ -1191,6 +1241,16 @@ best_model_by_CV(candidatemodels, data)
 *to-do* Is all of the this chapter correct, inclusive following subchapters? Be picky!
 
 See also <<oob_error_estimation>>, which computes an estimate for the test error for bagged trees.
+
+pro: The estimate is nearly unbiased w.r.t the true risk.  It is slightly too pessimistic since it doesn't use all the data for training. It slightly underfits, since we don't use all the data we have for training.  As always, the less training data we have, the larger the tendency of underfitting.  So we want want to make the training data large by making one fold small, in the extreme leading to LOOCV (which then has minimal bias but more variance).
+
+con: The variance of the finaly resulting empirical risk (i.e. the average validation of each candidate model) is quite large, especially for small folds.  Variance typically increases in an inverse exponential manner as fold sizes get smaller.  Variance is large due to highly correlated training sets.
+
+*to-do* better understand why exactly variance is large. https://stats.stackexchange.com/questions/61783/bias-and-variance-in-leave-one-out-vs-k-fold-cross-validation
+
+*to-do* both variance and bias have an exponential shape. I.e. yes it gets worse/better, but after a while only insignificanly
+
+Contra: The smaller the fold size, the more computationally expensive, especially for large n.  However for some models, e.g. for linear regression, there are short cuts for LOOCV.
 
 References:
 
@@ -1202,7 +1262,7 @@ References:
 
 
 [[double_cross_validation]]
-==== Double cross validation
+=== Double cross validation
 
 _Double cross validation_ (or _nested cross validation_) delivers you expected estimated test error of the following procedure (i.e. how good the model resulting from the procedure performs on unseen data). The procedure is to use cross validation to select the best model.
 
@@ -1216,21 +1276,17 @@ Note that different inner cross validations may select different models.  That's
 
 
 [[LOOCV]]
-==== Leave one out cross validation (LOOCV)
+=== Leave one out cross validation (LOOCV)
 
 Equals n-fold cross validation.  Do n iterations. In each iteration, make the i-th observation the test set, and the rest the training set. Let f̂^(-i)^ denote the estimate of the model fitted with training data being the original data without the i-th observation.
 
 expectedTestMSÊ = 1/n ∑(y~i~ - f̂^(-i)^(x~i~))²
 
-In linear regression, that simplifies to
+In linear regression, that simplifies to *to-do*
 
 expectedTestMSÊ = 1/n ∑(e~i~/(1-diag~i~(P)))², e = residuals, P = projection matrix
 
-Pro: Much less bias than validation set approach due to larger training set
-
 Pro: No randomization
-
-Cons: Computationally expensive, especially for large n, since we have to fit n different models.  However for some models, e.g. for linear regression, there are short cuts.
 
 References:
 
@@ -1240,11 +1296,13 @@ References:
 
 
 [[k_fold_CV]]
-==== k-fold cross validation
+=== k-fold cross validation
 
 A specialization of cross validation.  Split observations randomly in k equaly sized partitions. k = n results in <<LOOCV>>.
 
 How to choose k? If too small, we don't use enough training data. Risk of underfitting to training set. Risk of overfitting to test set. If too large, there is not really a problem, but it is computationally expensive.  In practice, k=5 or k=10 is often used.
+
+Rule of thumb: k = min(√n,10)
 
 References:
 
@@ -1253,10 +1311,34 @@ References:
 - ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``4.3.2 K-fold Cross-Validation''
 
 
-==== Monte Carlo cross validation
+=== Monte Carlo cross validation
 
 A specialization of cross validation. In each iteration, define training set by uniformily at random assign observations.  The validation set is given by the complement.  The size of the training set is a parameter of the algorithm.
 
+
+[[bootstrap_model_validation]]
+=== Bootstrap for model selection / model validation
+
+_naive bootstrap_: Train a model for each bootstrap sample. Use all the original data to compute the empirical risk corresponding of a model / bootstrap sample. Final emprical risk is the average over all models / bootstrap samples. Contra: Empirical risk is too optimistic since training data was also used for validation.  Contra: Not at all available data is used for training.
+
+*to-do* move to some good place: when all/part of the training data data is also used for validation, then the empirical risk is too optimistic, since an overfitting model gets not `punsihed' by true unseen data.
+
+_leave-one-out boostrap_: Train a model for each bootstrap sample. For each observation in the original training data, we compute an intermediate averaged empirical risk by using that one observation as validation data and averaging the empirical risk over all models which do not have that observation in their training data.  The final empirical risk is the average of these intermediate averaged empirical risks. Contra: Not at all available data is used for training. Thus empirical risk it is biased (too pessimistic).
+
+*to-do* for many (most?) training methods, having a training observation multiple times does not change anything relative to having it only once, no? I think I am wrong in assuming that it doesn't make a difference. E.g. in OLS linear regression, when one observation is repeated tons of times, it has a huge weight relative to the other obvservations. Isn't it the case that for most training methods, repeating the same observation multiple times is approximately equal to having the same amount of very closeby observations.
+
+_.632 bootsrap_: 0.368·err~train~ + 0.632·err~loo boostrap~, where err~train~ denotes the training error on the full original data set.  Tries to mitigate the problem of leave-one-out bootstrap that it doesn't use all the available observations for training.  Tends to work badly in overfitting situations.  Pro: Lower bias than leave-one-out bootstrap.
+
+_bootstrap vs cross-validation_: cross-validation has less bias, bootstsrap has less variance
+
+One can consider using the jacknife to reduce the bias of the boostrap method.
+
+
+=== Misc model selection techniques
+
+Usually one doesn't use the training error (which is based on some cost function) for model selection, since it generally is an too optimistic estimate of the true risk, since the training's goal was to minimize the training error.  A common method for model selection is cross validation, which however doesn't use all the available data for training, leading to bias which gets larger the larger one fold is.  Another method for model selection is using cost functions for the training error which try to adress the problem that a training error based on a naive cost function tends to overfit the more complex the model is, which in turn leads to an overly optimistic (i.e. biased) training error.  See <<AIC>> or <<BIC>>.
+
+Use a <<likelihood_ratio_test>> to decide between two models.
 
 
 [[model_training]]
@@ -1300,7 +1382,7 @@ Contra: Var[β̂^LS^] is high in case of <<multicollinearity>>. <<shrinkage_meth
 
 _Shrinkage methods_ (or _regularaization methods_) is a family of techniques which try to solve the problem of <<multicollinearity>>.  Altough ordenary least squares coefficient estimates are <<BLUE>> (i.e. unbiased and low variance), in case of correlated predictors the variance of a coefficent estimator might still be unacceptably high.  Shrinkage methods now trade lower variance for (hopefully only) a small increase in bias.  Also, least squares has problems wit large p or even p>n.  Shrinkage methods don't suffer from that as much.
 
-*to-do* other sources say shrinkage methods are about fighting overfitting (which in turn means high variance). Applies Occam's razor (which states that the simplest model is typically the best model), since fewer features means a simpler model, and making the coefficients smaller goes towards fewer features. Controll complexity of the model. Balance goodness of fit vs overfitting.
+*to-do* other sources say shrinkage methods are about fighting overfitting (which in turn means high variance). Applies <<occams_razor>>, since fewer features means a simpler model, and making the coefficients smaller goes towards fewer features. Controll complexity of the model. Balance goodness of fit vs overfitting.
 
 Note that putting a penality on the weights w as done by Lasso or Ridge is just one form of regularization.
 
@@ -1605,7 +1687,7 @@ MLE vs Bayes estimation
 The goal of _classification_ is to take an input (vector) x and to assign it to one of K (or D or c) discrete classes C~k~, where k = 1, ..., K.  In the most common scenario the classes are disjoint.  The input space is devided into _decision regions_ whose boundaries are called _decision boundaries_ (or _decision surfaces_).
 
 [[discrimant_function]]
-A _discrimant function_ (or just _discriminant_) f~j~(x) is a function that takes a feature vector x as input and returns a high value if x is likely to belong class j. When making predictions, we can then return ŷ = argmax~j∈[K]~(f~j~(x)). In case of binary classification, it is enough to have one discriminant function, and the x for which f(x)=0 constitute the decision boundary.
+A _discriminant function_ (or just _discriminant_) f~j~(x) is a function that takes a feature vector x as input and returns a high value if x is likely to belong class j. When making predictions, we can then return ŷ = argmax~j∈[K]~(f~j~(x)). In case of binary classification, it is enough to have one discriminant function, and the x for which f(x)=0 constitute the decision boundary.
 
 The _margin_ is defined to be the smallest distance between the decision boundary an any of the observations.  Generally we prefer classifiers which result in a large margin.  The training sample is just a sample from the population, so a larger margin reduces the risk of missclassification for another (test) sample (imagine the 2D case, imagine a cloud / ellipse around each region of same-class-observations).  Also, the values of the x vector of each observation might be contaminated with measurement errors, i.e. is again a `cloud'.
 
@@ -1655,6 +1737,8 @@ TP = true positive, TN = true negative, FP = false positive, FN = false negative
 - _Precision recall curve_: As above, but precision vs recall.
 
 - _AUC_: Area under the curve
+
+- _Balanced Multi Class Accuracy_ (_BMAC_): 1/K∑~1≤c≤K~TPR~c~
 
 
 [[cost_sensitive_classification]]
@@ -1885,6 +1969,8 @@ It is a regular linear model with k predictors b~j~(X), j ∈ [k].  Hence the sa
 More generally, including multivariate models, we can replace the measured observation (p+1)-dimensional vector x~i~ of the i-th iteration with the (d+1)-dimensional feature vector Φ(x). Let Φ~j~(x~i~) denote the j-th feature computed from the i-th observation. Φ~j~(·) can be a non-linear function. Note that Φ~0~(·) must be constant 1, such that w~0~Φ~j~(·) = w~0~ represents the intercept.
 
 h(x) = ∑~0≤j≤d~w~j~Φ~j~(x)
+
+Visualization: Image a binary classification problem with two measurements per observation. Observations for class 0 are disk shaped centered at (0, 0), and obsevations for class 1 are ring shaped, the ring more or less separated from the circle.  In the 2D measurement space (a plane), there is no linear decision boundary.  The decision boundary is a circle between the disk and the ring. However when we add a third feature x^(3)^ = x^(1)^² + x^(2)^², the x^(1)^x^(2)^ plane of the 2D measurement space is transformed into a paraboloid in the 3D feature space.  Class 0 is at the bottom of the paraboloid, class 1 is higher up on the paraboloid.  Now in that 3D feature space we can linearly seperate the two classes by a plane parallel to the x^(1)^x^(2)^ plane.  The intersection between that decision boundary plane and the paraboloid yields a decision boundary that is circular in the 2D measurement space.
 
 Examples:
 
@@ -2309,7 +2395,7 @@ loss~perceptron~(w, y, x) = max(0, -yw^T^x)
 
 Theorem: If data is linearly seperable, the Perceptron will find a linear seperator.
 
-The perceptron does not care about margin. From the perceptron's point of view, all linear seperators are equially good.  This is because for all correct classifications, the perceptron loss is 0, regardles of how `good' the classification was. *to-do* see hinge loss, which encourages a larger margin.
+There migh be no unique solution, because the perceptron does not care about margin. From the perceptron's point of view, all linear seperators are equially good.  This is because for all correct classifications, the perceptron loss is 0, regardles of how `good' the classification was.  The SVM is a variant of the perceptron that cares about the margin, see there.
 
 There is not really a probabilistic interpretation, i.e. there's no likelihood function corresponding to the loss function.  See also <<bayesian_interpretation_of_regularization>>.
 
@@ -2320,11 +2406,12 @@ References:
 
 === Kernelized perceptron
 
-Turns the perceptron, a linear model, into a non-linear model using the <<kernel_trick>>.
+ Turns the perceptron, a linear model, into a non-linear model using the <<kernel_trick>>.
 
 *to-do*
 
 
+[[SVM]]
 === Linear support vector machine (SVM)
 
 A linear two-class discriminant model.  A slight variation of the perceptron, which uses a different loss function, namely the hinge loss, and L2-regularization.  As a result, unlike the perceptron, the SVM is a _maximal margin classifier_, meaning that it maximizes the margin.
@@ -2446,6 +2533,10 @@ Pros / cons:
 - The above two are practically not a big issue if we get the initialization right
 
 - Cannot well model clusters of arbitrary shape (however see Kernel-k-Means)
+
+- Sensitive to outliers. E.g. imagine two clearly separated clouds, and one outlier far away from both clouds. With k=2, one group would be the two clouds, and another group would be the single outlier.
+
+- Similarly, indirectly assumes clusters are circular (because points are assigned to nearest center, and `nearest' implies circular around center)
 
 
 [[lloyds_heuristic]]
@@ -2583,8 +2674,6 @@ The predictive distribution then is, using Bayes' rule:
 p̂(y|x) = p̂(x|y)p̂(y)/p̂(x)  +
 p̂(x) = ∑~1≤i≤n~p̂(x|y~i~)p̂(y~i~)
 
-Regarding the discriminant function,
-
 pro: rather simple, closed form solution
 
 contra: can be overconfident (probability close to 0 or 1), if the assumption that the features are conditionally independent given a label doesn't hold, which almost always is the case.  If we only care about he most likely class, e.g. in the case of MAP prediction, that might be fine.
@@ -2600,7 +2689,7 @@ f(x) = w^T^x + w~0~ [discriminant function] +
 w~0~ = ... complicated ... +
 w~j~ = (μ~+,j~ - μ~-,j~) / σ²~j~
 
-Prediction then is, as always with discriminant function:
+Prediction then is:
 
 p(y=1|x) = sigm(f(x)) = sigm(w^T^x + w~0~)
 
@@ -2630,11 +2719,11 @@ f(x) = w^T^x + w~0~ +
 w = ∑^-1^(μ~p~-μ~n~) +
 w~0~ = 1/2(μ~n~^T^∑^-1^μ~n~ - μ~p~^T^∑^-1^μ~p~)
 
-Predictions are made with
+Prediction then is:
 
 h(x) = sign(f(x)) = sign(w^T^x + w~0~)
 
-Predictive distribution (note that it has the same form as logistic regression)
+Predictive distribution (note that it has the same form as logistic regression):
 
 p(y=+1|x) = 1/(1+exp(-f(x))) = sigm(w^T^x + w~0~)
 
@@ -2707,7 +2796,7 @@ Very often the mean function is set to zero, i.e. m(x) = 0. The really interesti
 
 The prior for y is only dependent on the Gaussian noise:
 
-p(y|σ²) = 𝓝~1~(y|0,σ²)
+p(y|σ²,k) = 𝓝~1~(y|0,σ²+k(0,0))
 
 Model of joint distribution of the y s which correspond to the given n feature vectors. As always y~i~ corresponds to feature vector x~i~. The feature vectors are given by design matrix X = matrix[x⃗~1~, ..., x⃗~n~], where x⃗~i~ denotes the feature vector of the i-th observation.  Note that the labels y⃗ = (y~1~, ..., y~n~) of the data are _not_ involved.
 
@@ -2737,7 +2826,7 @@ c = k(x̃⃗,x̃⃗) + σ² [scalar]
 
 Predictive distribution of y corresponding to a new observation x̃⃗.  Now here y⃗ does denote the labels of the data.  As always, a predictive distribution communicates the uncertainty about the prediction, here pretty directly directly via the variance σ̃².  Note that each prediction of an y given a x̃⃗ involves all the data (X,y⃗), as e.g. in KNN.  The formula follows from the above joint distribution of adding a new observation and the rules for conditional Gaussian distributions (2.81 and 2.82 in Pattern Recognition and Machine Learning).
 
-p(y|x̃⃗,X,y⃗,k,σ²) = 𝓝~1~(y|μ̃,σ̃²) +
+p(y|x̃⃗,𝓓=(X,y⃗),θ=(k,σ²)) = 𝓝~1~(y|μ̃,σ̃²) +
 μ̃ = k⃗^T^C~n~^-1^y⃗ [scalar] +
 σ̃² = c-k⃗^T^C~n~^-1^k⃗ [scalar]
 
@@ -2851,7 +2940,7 @@ E[θ̂] ≈(large n) Ê[θ̂] = E^∗^[θ̂^∗^] ≈(large B) Ê^∗^[θ̂^�
 
 Likewise for variance:
 
-E[θ̂] ≈(large n) Ê[θ̂] = E^∗^[θ̂^∗^] ≈(large B) Ê^∗^[θ̂^∗^] = 1/(B-1) ∑^B^(θ̂^∗i^ - Ê^∗^[θ̂^∗^])²
+Var[θ̂] ≈(large n) Var̂[θ̂] = Var^∗^[θ̂^∗^] ≈(large B) Var̂^∗^[θ̂^∗^] = 1/(B-1) ∑^B^(θ̂^∗i^ - Ê^∗^[θ̂^∗^])²
 
 And for bias:
 
@@ -2922,6 +3011,11 @@ The model is Y = f(x) + ε, where the error terms have unknown distribution, in 
 - Non-parametric residuals: No assumptions on error terms ε, but still assuming parametric model f(x) = Xβ.  We make estimation β̂.  This delivers residuals e = Y - f̂(x), where f̂(x)=Xβ̂.  Sampling with replacement from e~1~, ..., e~n~ gives sample of residuals e^∗^. Y^∗^ = f̂(x) + e^∗^.
 
 - Non-parametric: Resample observations (i.e. rows in cbind(Y,X) matrix), i.e. vanilla non-parametric bootstrap
+
+
+=== Bootstrap for model selection / model validation
+
+See <<bootstrap_model_validation>>.
 
 
 === Bootstrap summary
@@ -3060,7 +3154,7 @@ See also <<kernel_engineering>> for rules how to create new kernels by composing
 
 - _polynomial kernel_: k(x,xʹ;d) = (x^T^xʹ+1)^d^. The feature space contains all monomials up to degree d.
 
-- _Gaussian kernel_ (or _Radial basis function_ (_RFB_), or _squared exponential kernel_): k(x,xʹ;h) = exp(-‖x-xʹ‖~2~²/h²). h is the _bandwith_ (or _length scale_) parameter. Small h means a more flexible model, i.a. a more wiggly resulting function ∑~i~α~i~k(x~i~,x~j~) which is more prone to overfitting.  A large h means an inflexible model prone to bias.  At least in case of SVM or perceptron, with a large h you almost get a linear decision boundary.  Or from another viewpoint, a small h means narrow Gaussian bumps and a large h means wide Gaussian bumps.  The decision boundary is very smooth; it's differentiable infintely many times.  Gaussian kernel is named that way only because it looks like a Guassian curve. The feature space has an infinite number of dimensions.  Infinitely differentiable.  Canonical kernel for Gaussian processes for smooth functions.
+- _Gaussian kernel_ (or _Radial basis function_ (_RBF_), or _squared exponential kernel_): k(x,xʹ;h) = exp(-‖x-xʹ‖~2~²/h²). h is the _bandwith_ (or _length scale_) parameter. Small h means a more flexible model, i.a. a more wiggly resulting function ∑~i~α~i~k(x~i~,x~j~) which is more prone to overfitting.  A large h means an inflexible model prone to bias.  At least in case of SVM or perceptron, with a large h you almost get a linear decision boundary.  Or from another viewpoint, a small h means narrow Gaussian bumps and a large h means wide Gaussian bumps.  The decision boundary is very smooth; it's differentiable infintely many times.  Gaussian kernel is named that way only because it looks like a Guassian curve. The feature space has an infinite number of dimensions.  Infinitely differentiable.  Canonical kernel for Gaussian processes for smooth functions.
 
 - _Laplacian kernel_ (or _exponential kernel_): k(x,xʹ;h) = exp(-‖x-xʹ‖~1~/h). h works as in Gaussian kernel.  The decision boundaries are approximately piecewise linear.  I.e. the decision boundary is quite ragged.
 
@@ -3214,7 +3308,7 @@ _tanh activation function_ φ(z) = tanh(z) = (exp(z)-exp(-z))/(exp(z)+exp(-z)): 
 
 == Cheat sheet
 
-Shrinkage/Regularization: Fight overfitting (high variance) by applying Occam's Razor (simpelst model is usualy best model).
+Shrinkage/Regularization: Fight overfitting (high variance) by applying <<occams_razor>>.
 
 |====
 | l(ŷ,y) | loss function (for one observation)
