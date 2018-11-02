@@ -32,6 +32,16 @@ Data technology stack:
       local FS, NFS, GFS, HDFS, S3, Azure blob storage, DynamoDB
 |=====
 
+|=====
+|           | master              | slave
+| Hadoop v1 | job tracker         | task tracker
+| YARN      | resource manager    | node manager
+| YARN      | application manager | application master
+| YARN      | application master  | task
+| HBase     | HMaster             | region server
+| HDFS      | name node           | data nodes
+|=====
+
 The history of storage: progress made 1956-2010: capacity: 150'000'000 times more, throughput 10'000'000 times more, latency 8 times more. To increase throughput, we can parallize. To improve latency, we can do batch processing.
 
 How can we get more work done:
@@ -443,19 +453,17 @@ The input is divided into pieces called _input splits_ (or just _splits_), each 
 
 One _map_ tasks is created for each split.  Typically one mapper node will have multiple splits / map tasks under its responsibility.
 
-As an optional optimization, to reduce the amount of data that shuffle needs to process and that needs to be send across the network, a mapper node also does a _combine_ step.  Very often the combine function is the same as the reduce function.  Required conditions: associativity, commutative, same input and output types.  In Hadoop, the combiner is regarded strictly as an optimization, and there are no guarantees on how many times it is called for a given map output, if at all.
+_combiner_: As an optional optimization, to reduce the amount of data that shuffle needs to process and that needs to be send across the network, a mapper node also does a _combine_ step.  Very often the combine function is the same as the reduce function.  Required conditions: associativity, commutative, same input and output types.  In Hadoop, the combiner is regarded strictly as an optimization, and there are no guarantees on how many times it is called for a given map output, if at all.
 
-_Shuffle_: Each mapper node _sorts_ its output by key, _partitions_ by key, and sends each partition to the reducer node responsible for the respective key.  So each reducer node receives multiple partitions for a given key and merges them.
+_Shuffle_: Each mapper node _sorts_ its output by key, _partitions_ by key, and sends each partition to the reducer node responsible for the respective key.  So each reducer node receives multiple partitions for a given key and merges them.  The details of shuffling are explained further below.
 
-The _reducer_, for a given key, receives _all_ key-value pairs having that key.  As a consequence, a reducer might start bevore mapping and shuffling is finished, but a reducer can't start producing output bevore all mappers and the shuffling is finished.  Note that certain jobs don't need a reducer at all, in which case we also can omit the shuffling.
+The _reducer_, for a given key, receives _all_ key-value pairs having that key.  A reducer can be responsible for multiple key, but a key can only be assigned to exactly one reducer.  As a consequence, a reducer might start bevore mapping and shuffling is finished, but a reducer can't start producing output bevore all mappers and the shuffling is finished.  Note that certain jobs don't need a reducer at all, in which case we also can omit the shuffling.
 
-The mapper writes its output to a circular buffer, 100 MB by default.  When the percentage of of used space is about a certain threshold, by default 80%, a background thread starts to sort and spill the data to disk, as described in more detail in the following.  The data is sorted by output/intermediate key in memory.  If there's a combiner, it is run on parts with the same key (now being in sequence due to the previous sorting).  Recall that typically the combiner reduces the amount of data.  Then the data is written to the local file system.  Each spill creates a new spill file.  When the maper is finished producing output, the spill files are merged into one file, keeping the sorting.  If there are at least three spill files, the combiner is run again.  A sequence in the output file with the same key is called a partition. That processing of the mappers output is also called _copy phase_.
+_sort_ and _copy_ part of the shuffling after mapping: The mapper writes its output to a circular buffer, 100 MB by default.  When the percentage of of used space is about a certain threshold, by default 80%, a background thread starts to sort and spill the data to disk, as described in more detail in the following.  The data is sorted by output/intermediate key in memory.  If there's a combiner, it is run on parts with the same key (now being in sequence due to the previous sorting).  Recall that typically the combiner reduces the amount of data.  Then the data is written to the local file system.  Each spill creates a new spill file.  When the maper is finished producing output, the spill files are merged into one file, keeping the sorting.  If there are at least three spill files, the combiner is run again.  A sequence in the output file with the same key is called a partition. That processing of the mappers output is also called copy phase. Recall that this is similar to what HBase does when flushing the memstore to a store file.  I.e. at the end there are zero or more spill files plus what's left in memory.  As in HBase, an LSM-tree can be used to merge them into one file.  As an optimization, one can try to do all that in a more stream like fashion, e.g. merge spill files and send them to reducers while the maper is still producing output.
 
-Recall that this is similar to what HBase does when flushing the memstore to a store file.  I.e. at the end there are zero or more spill files plus what's left in memory.  As in HBase, an LSM-tree can be used to merge them into one file.
+_merge_ part of shuffling:  It's the reducer that asks via HTTP each mapper `send me the partition for the following set of keys'. The reduce tasks uses multiple copier threads to fetch partitions in parallel from mappers. As data is accumulated, at one place (memory or disk) per copier thread, a background thread merges it, to disk or memory.  Merging is hierarchically, i.e. tree like, as opposed to all inputs directly into a single file.  The merging is also called _sort phase_, despite it is _not_ about sorting.
 
-It's the reducer that asks via HTTP each mapper `send me the partition for the following set of keys'. The reduce tasks uses multiple copier threads to fetch partitions in parallel from mappers. As data is accumulated, at one place (memory or disk) per copier thread, a background thread merges it, to disk or memory.  Merging is hierarchically, i.e. tree like, as opposed to all inputs directly into a single file.  The merging is also called _sort phase_, despite it is _not_ about sorting.
-
-**to-do** Why not make it in a more streaming like fashion (answer: it is done), i.e. make a stream of same key pairs to the reducer? Then while a mapper is still working, a reducer can already work on parts of its output. Similarily, why this hierarchical merging? Assistent asks for reference, I send an email.
+*to-do* why this hierarchical merging? Assistent asks for reference, I send an email.
 
 A common split size is one HDFS block.  If the splits are too small, then there is too much overhead of managing the splits.  On the other hand small splits are nice because the parallel processsing is better load balanced; a faster machine can process proportionally more splits than a slower machine.  Also, if the split size was larger than one HDFS bock, it could not be guaranteed that both HDFS blocks are on the same machine, which would be bad for data locality optimization.  However note that the last key-value pair of a split might spawn two HDFS blocks.  This is a drawback we have to live with.  Recall that HDFS allows to read parts of a HDFS block, so the problem is mitigated somewhat.
 
@@ -494,28 +502,126 @@ If the overall problem gets more complicated, in general you should try to divid
 Some figures:  A typical job in a 1k node cluster (a large cluster) would run in a couple of hours.  The processed data is in the TBs.
 
 
-==== Hadoop Implementation / Hadoop infrastructure
+=== Hadoop 1.0 resource management
 
-
-Hadoop Version 1.0: Master-slave architecture. The master is called _JobTracker_, the slaves are called _TaskTrackers_.  The JobTracker does scheduling (i.e. distributes the tasks), i.e. manages the ressources.  It also does task monitoring.  If some task or TaskTracker has a problem, the JobTracker has to care about it, e.g. by rescheduling the task.
+Master-slave architecture. The master is called _JobTracker_, the slaves are called _TaskTrackers_.  The JobTracker does scheduling (i.e. distributes the tasks), i.e. manages the ressources.  It also does task monitoring.  If some task or TaskTracker has a problem, the JobTracker has to care about it, e.g. by rescheduling the task.
 
 Issues with version 1: The JobTracker has to many responsibilities. As a consequence, scalability is limited, <4000 nodes and <40'000 tasks.  Also the task slots are allocated statically before the job starts -- as a consequence, it may turn out that the mappers of a job are working at maximum capacity, and the reducers are idle.
 
-Hadoop Version 2.0: YARN (yet another resource negotiator). The master is called YARN _ResourceManager_, the slaves are called YARN _NodeManager_.  The ResourceManager now only cares about scheduling.  Each NodeManager has a set of _containers_.  A container is an assignment of resources.  Say a node has 8 cores and 64KB RAM, then each container might get assigned one core and 8GB RAM.  Each container can run a map task or reduce task or ApplicationMaster. The monitoring is now done by an _ApplicationMaster_, which runs in a container.  Scalability is improved (v2 relative to v1), 10'000 nodes and 100'000 tasks, which is about the size of a data center.  Fully backwards compatible.
+**to-do**  I can't properly put this chapter and the next in the stack.  Neither can I properly name the field it is about (resource management?) and distinguish it from MapReduce.  Apparently YARN is for more than just MapReduce.  Can we say the same for the equivalent thing of the version 1.0?
 
-Sequence: A client sends a job to the ResourceManager.  The ResourceManager chooses one free container to be the ApplicationManager for that job.  The ApplicationManager decides how many Containers it needs to assign tasks to and then asks the ResourceManager for the locations of that many free containers.  The request can contain hints like how much RAM the container should have, on which rack or node it ideally should be (so e.g. a mapper can run on the node hosting the required HDFS block).  The ApplicationManager then directly contacts the received Containers.  Note that now, in contrast to version 1, the master is only involved at the beginning of the job.  As a consequence we get better scaling.
 
-The _ResourceManager_ must take care of cluster utilization, give capacity guarantees (e.g. hold the promise that a container has 16GB RAM), guarantee fairness (if 10 jobs are using the cluster, each shall get its fair share, see also schedulers), and must fulfill SLAs.  The ResourceManager provides a client service API to the clients so thei can start/end jobs, get informations about jobs.  The NodeManagers repeatedly send liveliness (aka heartbeats) to the ResourceManager.  The ResourceManager knows about the Resources of all live NodeManagers.
+=== Hadoop 2.0 resource management / YARN
+
+YARN (yet another resource negotiator).  The master is called YARN ResourceManager, the slaves are called YARN NodeManager.  The main improvement is separation of scheduling and monitoring, which in version 1.0 were both done by the master.  In version 2.0 monitoring is pushed down to so called ApplicationMasters running on the slaves.  Scalability is improved (v2 relative to v1), 10'000 nodes and 100'000 tasks, which is about the size of a data center.  Since scalability is improved, also availability is improved.  Fully backwards compatible.
+
+*to-do* list multi-tenancy as an improvement
+
+The _ResourceManager_ must take care of cluster utilization, give capacity guarantees (e.g. hold the promise that a container has 16GB RAM), guarantee fairness (if 10 jobs are using the cluster, each shall get its fair share, see also schedulers), and must fulfill SLAs.  The ResourceManager provides a client service API to the clients so they can start/end jobs, get informations about jobs.  The ResourceManager's responsibilities include to know about the resources available in the cluster.   I.e. a list of the live NodeManagers and what their resources are.   New / rebooted NodeManagers have to register at the ResourceManager.  The NodeManagers repeatedly send liveliness (aka heartbeats) to the ResourceManager.  Note that the ApplicationManager has a similar but different responsibility with respect to ApplicationMasters.  The ResourceManager's responsiblities include the role of the ApplicationManager. Summary:
+
+- Top level master. First contact person for a client.
+
+- Manage resources of cluster.  List of live NodeManagers and their resources.
+
+- Give capacity guarantees, fulfill SLAs etc. via role of scheduler (_excluding_ monitoring responsibilities)
+
+- Role of ApplicationMaster
+
+The _ApplicationManager_, which is a part of the ResourceManager, tracks the jobs / applications currently running on the cluster.  Similarly it also keeps track of the current ApplicationMasters.  The ApplicationManager also maintains a list of jobs / applications waiting to be scheduled in case the cluster is full.  When a ApplicationManager is started in a container of a NodeManager, it has to register at the ApplicationManager ("Hy, all went well, I'am started").  ApplicationMasters repeatedly send liveliness (aka heartbeats) to the ApplicationManager. Summary:
+
+- Manages the running and waiting applications of the cluster.
+
+- Manages the ApplicationManagers, including tracking that they are alive
+
+Each _NodeManager_ provides a set of containers. It must track its resources, including the amount of free resources.  Resources such as memory, CPU (number of cores), disk, network.  A node manager repeatedly reports to the RessourceManager its free resources.
+
+A _container_ is an assignment of resources.  Say a node has 8 cores and 64KB RAM, then each container might get assigned one core and 8GB RAM.  Each container can run a map task or reduce task or ApplicationMaster.
+
+*to-do* Is the resource assignment to a cluster fixed? Does a cluster try to provide different types of containers (e.g. some high cpu low ram, some low cpu high ram, some averaged).
+
+An _ApplicationMaster_ runs in an container. The ApplicationMaster's primary responsibility is one application / job.  Create it, allocate containers for it via the ResourceManager, run tasks in the allocated containers, monitor the application (i.e. the tasks that make up the application).  Monitoring includes relaunching died tasks, making HBase fault tolerant.
+
+_Basic sequence of running a job / application_: A client sends a job to the ResourceManager.  The ResourceManager chooses one of the free containers to be the ApplicationMaster for that job.  The ApplicationMaster decides how many containers it needs to assign tasks to and then asks the ResourceManager for the locations of that many free containers.  The request can contain hints like how much RAM the container should have, on which rack or node it ideally should be (so e.g. a mapper can run on the node hosting the required HDFS block).  The ApplicationMaster then directly contacts containers received from the ResourceManager.  Note that now, in contrast to version 1, the master is only involved at the beginning of the job.  It is no longer involved after the job starts.  As a consequence we get better scaling.
+
+**to-do** Chapter 7. I'm not sure I understand who exactly does the splits, and wether or not the splits move around in the network. I assume the client does the split logically, i.e. only by getting to know which HDFS slave hosts which HDFS block of the data. From then on, only that location information is transfered / used by involved nodes / task.  The HDFS data of the HDFS blocks is in general not transfered over the network (only if the associated mapper can't be on the same node)
+
+
+==== HBase Schedulers
+
+_steady fair share_: Share (aka percentage) of total resources taking also empty qeues into account.  _Instantaneous fair share_: Share of total resources when not taking the empty queues into account and redistributing their share to the non-empty queues.  _Current allocations_: Percentage of resources each queue currently actually is using.  Steady fair share and instantenous fair share are goals, current allocations is the reality.  _Dominant resource fairness_ is one of multiple possible ways of computing current allocation as one single value if there are multiple resources. For each application, take the maximum resource percentage among all resources the application currently uses. Then value for a given application is its max divided by the sum of all max.
 
 _Schedulers_ (of jobs) the ResourceManager might use:
 
 - _FIFO scheduler_
 
-- _Capacity scheduler_: There's a set of hierarchical FIFO queues, taking user applications, each queue guarantees a certain capacity (resources, e.g. cores).  Each queue has strict ACLs that control which users can use the queue.  Idle capacity can be given to the most starved queues.
+- _Capacity scheduler_: There's a set of hierarchical FIFO queues, taking user applications, each queue guarantees a certain capacity (resources, e.g. cores).  The clusters resources are distributed among the queues.  E.g. say we have two queues, one gets 70% of the cluster's resources, the other gets 30%.  In the most naive variant, if one queue is empty, it's assigned resources are wasted / idle.  In an improved variant, we use instantenous fair share instead of steady fair share as target.  As a consequence, non-empty queues get the resources of empty queues.  If a new job enters a previously empty queue, it has to wait until resources get free.  However, if that new job has top priority, is possible to preempt running jobs.  Each queue has strict ACLs that control which users can use the queue.
 
 - _Fair scheduler_: Highly simplified: The aim is that all applications get, on average, an equal share of resources over time.  If there is an single app, it gets all the resources of the cluster.  If a new app comes in, when ressources get free, they are assigned to the apps such that over time, each app roughly gets the same amount of resources.  Apps can have priorities, which serve as weights to determine the fraction of total resources that each app gets.  The scheduler further organizes apps into queues, and shares resources fairly between these queues.  By default all users share a single queue, named `default'.
 
-**to-do** Chapter 7. I'm not sure I understand who exactly does the splits, and wether or not the splits move around in the network. I assume the client does the split logically, i.e. only by getting to know which HDFS slave hosts which HDFS block of the data. From then on, only that location information is transfered / used by involved nodes / task.  The HDFS data of the HDFS blocks is in general not transfered over the network (only if the associated mapper can't be on the same node)
+
+==== Authentication
+
+ApplicationMaster's are not trusted, since they run user code.
+
+When the ResourceManager creates an ApplicationMaster, it gives it an _ApplicationToken_.  The ApplicationMaster uses that token to autorize a resources request.  When an ApplicationMaster receives a list of containers it is entitled to use from the ResourceManager, it gets also a _ContainerToken_ for each container.  It uses that ContainerToken when it requests a NodeManager for a container to use, to authorize that request.
+
+*to-do* How to prevent a malicious ApplicationMaster from allocating many ressources from the RessourceManager without actually using them? Or using them in a meaningless sense, e.g. do silly computations.  I assume ACLs of the scheduler's queues?
+
+
+=== Spark
+
+A processing model based on a DAG. A node in the DAG is an RDD (see below), an edge is a _transformation_.  To _create_ RDD s corresponding to root nodes in the DAG, we can create them from local or distributed fileystem, or from a process genereting it.  To make use of the RDD s, typically the ones corresponding to leaf nodes, there are so called _actions_. An action `materializes' an RDD.  We can e.g. dump it to local or distributed filesystem, or display it on the screen.  Evaluation is lazy; only when an action is invoked, the respective subgraph of the DAG is executed. Each action createas one _job_.  Multiple jobs can share the intermediate RDD s.
+
+_Resilient distributed dataset_ (_RDD_): Collection of _values_. Each value can be anything.  Is partitioned, each partition can be on another machine.  The partitionboundary can be at any byte boundary. Thus when an RDD is for example stored on HDFS, we can take the HDFS blocks as partitioning.  A value can be an key-value pair, which case there are specific transformations and actions.  Note that potentially an RDD is distributed across multiple input machines.
+
+*to-do* per RDD, must all values have the same type? If not, it would really be an type-value pair, where the type is implicit?
+
+The DAG is executed on top of YARN.
+
+Regarding a specific transformation, if the values of an RDD can be processed independently, they can be processed in parallel on multiple machines.  If they can't be processed independently, it needs shuffling as in MapReduce, which is an expensive operation.
+
+Application interface: Write an application (e.g. in Java, Scala, Python) using the Spark library, and send the byte compiled program to the cluster.
+
+Shell interface: Nice for interactive prototyping.
+
+
+==== Overview of general transformations
+
+_filter_ (selection in relational algebra): A predicate function determines for each value in the RDD wether or not it passes.
+
+_map_: Applies a function to every value in the input RDD, producing a new output RDD of same size and possibly with different value type.  As in MapReduce, only that it doesn't have to be about key-values.
+
+_flatMap_: Applies a function to every value in the input RDD. The output of the function is a collection. Overall each element of the output collection is aggregated into an RDD. Say the function produces an collection of 5 elements, then overall 5 RDD s are created.
+
+_distinct_: Removes duplicates. May require shuffling.
+
+_sample_: Similar to filter. Lets through a random sample / subset of the input RDD.
+
+_union_: Concatenate input RDDs
+
+_intersection_: Produce one RDD per value that exists in any of the input RDD s. *to-do* understand better the details
+
+_subtract_: Produce on RDD per value that exists in the lhs RDD, except for those values that exist also in the rhs RDD.
+
+_cartesian product_: Think lhs RDD as column vector and rhs RDD as row vector. The resulting RDD corresponds to the product matrix, each value being a tuple.
+
+
+==== Overview of key-value pair transformations
+
+RDDs are not required to be lists of key-value pairs, but they can be, and some transformations make use of them.
+
+_reduce by key_:  The function must be commutative and associative and the type of the returned pair must match the type of each input pair.  Expensive since it requires shuffling.
+
+
+==== Overview of actions
+
+_collect_:  Writes the RDD to some destination
+
+_count_: Returns the number of values.
+
+_count by value_: Returns a list of tuples (value, valuecount).
+
+_reduce_ (as in MapReduce):
 
 
 == Data Stores
@@ -541,6 +647,8 @@ Best practice: Keep row ids and column names short. Rational: Every KeyValue sto
 Offers row level atomicity. Can offer it because one region is handled by exactly one region server.
 
 Good (relative to RDBMS) for sparse data (sparse meaning not every column, given a row, contains a value).
+
+*to-do* Replication, what kind of consistency is offered
 
 
 ==== Implementation of HBase / Physical layer of HBase
@@ -723,7 +831,7 @@ File update model: Only append and upsert, i.e. no random access.  Appending sho
 Master slave architecture.
 
 
-=== Hadoop (HDFS)
+=== Hadoop distributed file system (HDFS)
 
 Open source distributed file system. Open source version of GFS. MapReduce. Wide column store (HBase). Block storage (by default 128MB blocks (configurable on a file-by-file basis), 64 bit block id, see also <<block_storage>> for pro/cons of block sizes). File hierarchy model.
 
@@ -793,7 +901,7 @@ A _backup name node_ is like a secondary name node, but additionally has the fil
 
 A further way to remove the bottleneck (too many clients accessing the same name node) is _HDFS Federation_.  We have now multiple name nodes, each name node being responsible for a top level directory.  This can be seen as a form of scaling out / scaling out name nodes.  Each federated name node has then its own secondary name nodes and backup name nodes.
 
-**to-do** Is it really the client's problem to know which top level directory is associated to which name node? Because effectively we then just have a collection of completely different HDFS -- from the view of the client at last.  Internally, the data nodes can be shared by the name nodes. But can't they do that also in the case of a set of really different HDFS.
+**to-do** (email the assistant) Is it really the client's problem to know which top level directory is associated to which name node? Because effectively we then just have a collection of completely different HDFS -- from the view of the client at last.  Internally, the data nodes can be shared by the name nodes. But can't they do that also in the case of a set of really different HDFS.
 
 *to-do* read more in "HDFS High Availability" in the book
 
