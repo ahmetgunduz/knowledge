@@ -179,9 +179,9 @@ _prediction interval_: An estimate of an interval in which a realization of a ra
 
 === Statistical Model
 
-A _statistical model_ 𝔉 is a set of distributions or regression functions (*to-do* but regression functions are quite a different thing than distributions; I don't understand). A _parametric model_ is set 𝔉 that can be parameterized by a finite number of parameters: 𝔉 = { f(x;θ) : θ ∈ Θ}, where θ is an _parameter_, or vector of parameters, that can take values in the _parameter space_ Θ. f is a function of x, parameterized by θ.
+A _statistical model_ 𝔉 is a set of functions f. A _parametric model_ can be parameterized by a finite number of parameters: 𝔉 = { f(x;θ) : θ ∈ Θ}, where θ is an _parameter_, or vector of parameters, that can take values in the _parameter space_ Θ. f is a function of x, parameterized by θ.
 
-*to-do* clean up relation to <<statistical_parameter>>.
+In machine ideas are pretty analogous, though notation, terminology is typically different and interpretation is a bit more general. Tn _hypothesis space_ 𝓗 is a set of known concepts h.  A concept is often a function as in statistics.  However a concept might also be `prime numbers', `even numbers' etc, and when given a set of numbers, the problem statement might  be to tell what kind of numbers this set most likely is.  The subset of 𝓗 that is consistent with the data 𝓓 is called the _version space_.  The _extension_ of a concept is the complete set of examples.
 
 There's an loose distinction between parameters determined during fitting the model and _hyper-parameters_ which are determined before fitting the model, e.g by the user or during the higher level process of model selection.  You may think of splitting complete set of parameters into two subsets.  The values of the subset labeled parameters is computable cheaply when being provided with the values of the subset labeled hyper-parameters. References: https://stats.stackexchange.com/questions/149098/what-do-we-mean-by-hyperparameters?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa (*to-do* isn't a further difference that hyper-paremeters can influence the number of parameters, such as in polynomial regression?)
 
@@ -814,6 +814,8 @@ References:
 
 _parameter_ θ (read hypothesis), _parameter space_ Θ, _hypothesis_ h(x) (parameterized by θ): *to-do*
 
+The _hypothesis space_ 𝓗 is a set of known concepts.  The subset of 𝓗 that is consistent with the data 𝓓 is called the _version space_.  The _extension_ of a concept is the complete set of examples.
+
 _empirical risk minimizer_ (_ERM_): ĥ = argmin~h~(R̂~trainset~(h))
 
 _likelihood function_ (or _sampling distribution_) ℒ~𝓓~(θ) = p(𝓓|θ) =~iid~ ∏p(d~i~|θ): Probability of seeing the data 𝓓 given the model parameters θ.
@@ -892,7 +894,6 @@ _unsupervised learning_: The given data has only the features X, but no labels.
 _active learning_ (or _semi-supervised learning_ (_SSL_)): The labels are theoretically available, but expensive to acquire, so the learning algorithm must decide which labels it wants to see.  Semi-supervised learning can also be viewed at as the case of having some missing labels.
 
 _frequentist vs bayesian_: In the probabilistic view, we also model the uncertainty. Before we didn't do that, or only in a relatively limited form via calculating variance, confidence interval, prediction interval.
-
 
 *to-do* explain much better frequentist vs bayesian
 
@@ -1084,10 +1085,17 @@ References:
 - Pattern Recognition and Machine Learning, chapter ``1.4 The curse of Dimensionality''.
 
 
-=== Missing data
+=== Data preprocessing
+
+[[standardize_variables]]
+_standardize variables_: Ridge and Lasso are not scale invariant, which least squares is. So we should standardize variables to have variance 1 and mean 0: x̃~ij~ = (x~ij~-μ~j~)/σ~j~, where μ~j~ = 1/n∑~i~x~ij~ and σ~j~²=1/n∑~i~(x~ij~-μ~j~)².  Also standardize y~i~ likewise.  As a consequence, the intercept will be guaranteed to be 0, thus X̃ is not required to have the artificial first column consisting of ones.  Note that if only X is standardized but not Y, i.e. there might be an non-zero intercept β~0~, then the β in the penalty term, e.g. λ‖β‖~2~² in Ridge, should be replaced by β^(0)^, where β^(0)^ means β with the intercept β~0~ removed, i.e. one element less. This is because we only want to regularize the coefficients of the features, we don't want to regularize the intercept.
+
+Standardization is done by default in R's glmnet.
+
+
+==== Missing data
 
 Reasons for missing data: Respectvie data might be difficult / expensive / impossible to acquire.  Problems in sensor, network, storage.
-
 
 
 == Measuring model performance & Co
@@ -1251,6 +1259,9 @@ The _Cook's distance_ D~i~ is a commonly used estimate of the <<influencial_data
 *to-do* I still don't understand the summation definition. Why is the nominator not mostly zero?
 
 *to-do* Has a given concrete value of the Cook's distance an interpretation, or is it just qualitative, large is bad, small is good? In the later case, why square studentized residual and why not simply use leverage P~ii~).
+
+[[multicollinearity]]
+_Multicollinearity_ describes the situation that a predictor can be linearly predicted from one or more other predictors.  In this situation, when using OLS, Var~train~[β̂] is hight, i.e. there's a higher chance of the estimator β̂ being far away from the real β.  Recall that in OLS, the estimators β̂ are unbiased.  Consider a model with two predictors X~1~ ≈ X~2~.  Then f̂(x) = β̂~0~ + β̂~1~X~1~ + β̂~2~X~2~ ≈ β̂~0~ + β̂~3~X~1~, where β̂~3~ = β̂~1~ + β̂~2~. If there was only one predictor as in the rhs of ≈, we could calculate β̂~3~ well. But in the model with two predictors, OLS doesn't know how to distribute β̂~3~ among β̂~1~ and β̂~2~ such that β̂~1~ + β̂~2~ = β̂~3~.  E.g in one training data sample, β̂~1~ will be large and β̂~2~ will be small, in the other training data sample the other way round, in yet another training data sample it's evenly distributed etc.  <<shrinkage_method>>s try to solve this problem.
 
 
 [[model_selection]]
@@ -1774,7 +1785,7 @@ When the underlying function is smooth in some regions and spiky in other region
 
 
 [[linear_regression_models]]
-=== Linear regression models
+=== Linear regression
 
 In the linear multiple regression model the relation between the response Y and the predictors, i.e. the design matrix X, is linear, i.e.
 
@@ -1919,7 +1930,7 @@ References:
 - http://seismo.berkeley.edu/~kirchner/eps_120/Toolkits/Toolkit_10.pdf
 
 
-=== Linear regression, probabilistic view
+==== Linear regression, probabilistic view
 
 Linear regression is a model of the following form, where θ = (w,σ²) are the parameters of the model.
 
@@ -1933,24 +1944,8 @@ References:
 - Book ``Machine Learning, a Probabilistic Perspective'', chapter ``7 Linear regression''.
 
 
-[[kernelized_linear_regression]]
-=== Kernelized linear regression (inc. regularization)
-
-Turns a linear regression model, here Ridge regression, into a non-linear model using the <<kernel_trick>>.
-
-Recall ŵ = argmin~w~(∑~1≤i≤n~(w^T^x~i~-y~i~)² + λ‖w‖~l~^l^)
-
-Similar to kernelized perceptron, it can be shown that the optimal estimate ŵ lies in the span o the data, i.e. is of the form ŵ = ∑~1≤i≤n~α~i~x~i~.
-
-h(x) = ∑~1≤i≤n~α~i~k(x~i~,x)
-
-Learning (for L2-norm regularization):
-
-α̂ = argmin~α~(‖α^T^K-y‖~2~² + λα^T^Kα) = (K+λI)^-1^y
-
-
 [[least_squares]]
-=== Least squares regression
+==== Least squares regression
 
 _Least squares_ (or _LS_) is a method of fitting a model which tries to minimize the RSS.  In other words, it is a method for computing the estimators β̂ of the model coefficients β.  Let β̂^LS^ (or β̂, since LS is kind of the standard) denote the estimator, as defined by LS, of the coefficients β of the model:
 
@@ -1979,14 +1974,6 @@ _Shrinkage methods_ (or _regularaization methods_) is a family of techniques whi
 *to-do* other sources say shrinkage methods are about fighting overfitting (which in turn means high variance). Applies <<occams_razor>>, since fewer features means a simpler model, and making the coefficients smaller goes towards fewer features. Controll complexity of the model. Balance goodness of fit vs overfitting.
 
 Note that putting a penality on the weights w as done by Lasso or Ridge is just one form of regularization.
-
-[[standardize_variables]]
-_standardize variables_: Ridge and Lasso are not scale invariant, which least squares is. So we should standardize variables to have variance 1 and mean 0: x̃~ij~ = (x~ij~-μ~j~)/σ~j~, where μ~j~ = 1/n∑~i~x~ij~ and σ~j~²=1/n∑~i~(x~ij~-μ~j~)².  Also standardize y~i~ likewise.  As a consequence, the intercept will be guaranteed to be 0, thus X̃ is not required to have the artificial first column consisting of ones.  Note that if only X is standardized but not Y, i.e. there might be an non-zero intercept β~0~, then the β in the penalty term, e.g. λ‖β‖~2~² in Ridge, should be replaced by β^(0)^, where β^(0)^ means β with the intercept β~0~ removed, i.e. one element less. This is because we only want to regularize the coefficients of the features, we don't want to regularize the intercept.
-
-Standardization is done by default in R's glmnet.
-
-[[multicollinearity]]
-_Multicollinearity_ describes the situation that a predictor can be linearly predicted from one or more other predictors.  In this situation, when using OLS, Var~train~[β̂] is hight, i.e. there's a higher chance of the estimator β̂ being far away from the real β.  Recall that in OLS, the estimators β̂ are unbiased.  Consider a model with two predictors X~1~ ≈ X~2~.  Then f̂(x) = β̂~0~ + β̂~1~X~1~ + β̂~2~X~2~ ≈ β̂~0~ + β̂~3~X~1~, where β̂~3~ = β̂~1~ + β̂~2~. If there was only one predictor as in the rhs of ≈, we could calculate β̂~3~ well. But in the model with two predictors, OLS doesn't know how to distribute β̂~3~ among β̂~1~ and β̂~2~ such that β̂~1~ + β̂~2~ = β̂~3~.  E.g in one training data sample, β̂~1~ will be large and β̂~2~ will be small, in the other training data sample the other way round, in yet another training data sample it's evenly distributed etc.  <<shrinkage_method>>s try to solve this problem.
 
 [[choosing_regularization_parameter]]
 Choose regularization parameter λ with cross validation. Typically you would choose the candidate λ logarithmically spaced, e.g. {10^-4^, 10^-3^, ..., 10^4^}, since the order of magnitude matters, not the exact value.
@@ -2123,6 +2110,22 @@ The elements of β̂^subset^ often are exactly 0, especially for high λ.  Look 
 See also <<choosing_regularization_parameter>> λ.
 
 
+[[kernelized_linear_regression]]
+==== Kernelized regularized linear regression
+
+Turns a linear regression model, here Ridge regression, into a non-linear model using the <<kernel_trick>>.
+
+Recall ŵ = argmin~w~(∑~1≤i≤n~(w^T^x~i~-y~i~)² + λ‖w‖~l~^l^)
+
+Similar to kernelized perceptron, it can be shown that the optimal estimate ŵ lies in the span o the data, i.e. is of the form ŵ = ∑~1≤i≤n~α~i~x~i~.
+
+h(x) = ∑~1≤i≤n~α~i~k(x~i~,x)
+
+Learning (for L2-norm regularization):
+
+α̂ = argmin~α~(‖α^T^K-y‖~2~² + λα^T^Kα) = (K+λI)^-1^y
+
+
 [[basic_functions]]
 === Basic functions / basis functions / basis expansion
 
@@ -2149,6 +2152,54 @@ Examples:
 References:
 
 - ISLR, chapter ``7.3 Basic functions''
+
+
+=== Generalized Addidtive Models (GAMs)
+
+y~i~ = β~0~ + ∑~1≤j≤p~f~j~(x~ij~) + ε~i~
+
+The f~j~ are unspecified univariate (smooth) functions (aka _smoothers_).  E.g. in linear regression, f~j~(x~ij~) = β~j~x~ij~. GAMs are called additive, because there's a separate f~j~ for each predictor X~j~, and then all results are added together.  Followingly there is also no interaction, which would require functions taking multiple predictors as arguments.  That keeps GAMs simple.  From no interaction also follows only little curse of dimensionality, see there.
+
+f~j~ are constrained as follows in order to get an identifiable model. Without these constraint, one could add constant a to f~j~ and substract it from f~jʹ~.  Constraining the f~j~ s that way results in β~0~ = mean(Y).
+
+E[f~j~(X~j~)] = ∑~1≤i≤n~f~j~(x~ij~) = 0
+
+If all f~j~ are univariate models which allow to be fitted with LS, then the overall model can obviously be fitted with LS.  Interpetability is also good, since we can draw an x~j~-y plot for each f̂~j~ (recall that there's no interaction).
+
+References:
+
+- ISLR, chapter ``7.7 Generalized Additive Models''
+
+
+==== Backfitting
+
+If the f~j~ cannot be fitted using LS (e.g. smoothing splines), one possible fitting approach is backfitting.  It iteratively optimizes one coordinate (corresponding to a predictor), while keeping all others fixed.
+
+--------------------------------------------------
+backfitting(Y:n⨯1 vector, X:n⨯p matrix)
+  beta0.hat.asvector = mean(Y) * "n⨯1 vector all 1"
+  for each predictor j = 1...p:  
+    g.j = n⨯1 vector all 0
+  do:
+    for each predictor j = 1...p:
+      Yʹ = Y - beta0.hat.asvector - ∑~1≤k≤p;k≠j~g.k
+      f.hat.j = fit.j(Yʹ ~ X.j)
+      gnew.j = f.hat.j(X.j)
+      gnew.j -= mean(gnew.j) (i.e. normalize)
+    convergence = max~over all 1≤j≤p~( (|gnew.j-g.j|)/|g.j| ) < tolerance
+    for each predictor j = 1...p:
+      g.j = gnew.j
+  until convergence
+  Result: The f.hat.j s (i.e. their coefficent estimates)
+--------------------------------------------------
+
+Normalizing gnew.j is not strictly required, but gives better control of numeric errors.  The convergence criterion could also be choosen differently.  The one used here means to stop when f̂~j~(X~j~) doesn't substantially change anymore.  Tolerance might be 10^-6^.
+
+Note: In most situations, backfitting is equivalent to the Gauss-Seidel method for solving a certain liniear system of equations.
+
+pro) very general, works for all smoothers f~j~.
+
+contra) slow
 
 
 [[polynomial_regression]]
@@ -2267,54 +2318,6 @@ References:
 - ISLR, chapter ``7.5 Smoothing splines''
 
 - ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``3.4 Smoothing splines and penalized regression''
-
-
-=== Generalized Addidtive Models (GAMs)
-
-y~i~ = β~0~ + ∑~1≤j≤p~f~j~(x~ij~) + ε~i~
-
-The f~j~ are unspecified univariate (smooth) functions (aka smoothers).  E.g. in linear regression, f~j~(x~ij~) = β~j~x~ij~. GAMs are called additive, because there's a separate f~j~ for each predictor X~j~, and then all results are added together.  Followingly there is also no interaction, which would require functions taking multiple predictors as arguments.  That keeps GAMs simple.  From no interaction also follows only little curse of dimensionality, see there.
-
-f~j~ are constrained as follows in order to get an identifiable model. Without these constraint, one could add constant a to f~j~ and substract it from f~jʹ~.  Constraining the f~j~ s that way results in β~0~ = mean(Y).
-
-E[f~j~(X~j~)] = ∑~1≤i≤n~f~j~(x~ij~) = 0
-
-If all f~j~ are univariate models which allow to be fitted with LS, then the overall model can obviously be fitted with LS.  Interpetability is also good, since we can draw an x~j~-y plot for each f̂~j~ (recall that there's no interaction).
-
-References:
-
-- ISLR, chapter ``7.7 Generalized Additive Models''
-
-
-==== Backfitting
-
-If the f~j~ cannot be fitted using LS (e.g. smoothing splines), one possible fitting approach is backfitting.  It iteratively optimizes one coordinate (corresponding to a predictor), while keeping all others fixed.
-
---------------------------------------------------
-backfitting(Y:n⨯1 vector, X:n⨯p matrix)
-  beta0.hat.asvector = mean(Y) * "n⨯1 vector all 1"
-  for each predictor j = 1...p:  
-    g.j = n⨯1 vector all 0
-  do:
-    for each predictor j = 1...p:
-      Yʹ = Y - beta0.hat.asvector - ∑~1≤k≤p;k≠j~g.k
-      f.hat.j = fit.j(Yʹ ~ X.j)
-      gnew.j = f.hat.j(X.j)
-      gnew.j -= mean(gnew.j) (i.e. normalize)
-    convergence = max~over all 1≤j≤p~( (|gnew.j-g.j|)/|g.j| ) < tolerance
-    for each predictor j = 1...p:
-      g.j = gnew.j
-  until convergence
-  Result: The f.hat.j s (i.e. their coefficent estimates)
---------------------------------------------------
-
-Normalizing gnew.j is not strictly required, but gives better control of numeric errors.  The convergence criterion could also be choosen differently.  The one used here means to stop when f̂~j~(X~j~) doesn't substantially change anymore.  Tolerance might be 10^-6^.
-
-Note: In most situations, backfitting is equivalent to the Gauss-Seidel method for solving a certain liniear system of equations.
-
-pro) very general, works for all smoothers f~j~.
-
-contra) slow
 
 
 [[decision_trees]]
@@ -2445,57 +2448,38 @@ LOESS is locally weighted polynomial regression.  Loosely speaking, LOESS can al
 **to-do**(3) What exactly is meant by its getting more precise with larger n? Ssee Exerscise Set 3, exercise 3b. It seems to me that the variance drops, but the bias stays constant. Isn't that against the bias-variance tradeoff? Or is modifying n not covered by bias-variance trade off?
 
 
-=== Generative models for discrete data
+=== Bayesian concept learning
 
-==== Bayesian concept learning
+A generative model for discrete data.
 
-C: A concept, e.g. "prime numbers"
-𝓓: (example) data set, drawn from C
-x̃: test case / qeuery point
-The task is to classify x̃, i.e. to decide whether x̃ ∈ C
+C: A concept, e.g. "prime numbers" +
+𝓓: (example) data set, drawn from C +
+x̃: test case / qeuery point +
+problem statement: Classify x̃, i.e. decide whether x̃ ∈ C
 
-The _hypothesis space_ 𝓗 is a set of known concepts.  The subset of 𝓗 that is consistent with the data 𝓓 is called the _version space_.  The _extension_ of a concept is the complete set of examples.
+likelihood: p(𝓓|h) = 1/|h|^n^: The model favors the smallest concept consistent with the data.  p(𝓓|h) is the probability of getting the data 𝓓 given the data is created by independently sampling n items (with replacement) from concept h.  It get's smaller the larger the concept h is.
 
-_likelihood_ p(𝓓|h) = 1/|h|^N^: The model favors the smallest concept consistent with the data.  p(𝓓|h) is the probability of getting the data 𝓓 given the data is created by independently sampling N items (with replacement) from concept h.  It get's smaller the larger the concept h is.
+prior probability: p(h) = make a subjective decision: Assign each concept a probability, such that probabilities sum up to 1. E.g. in the numbers game, "primes except 7" is less likely (less natural) than "primes".  However this assignment probabilities is often subjective.
 
-_prior (probability)_ p(h) = subjective_definition: Assign each concept a probability, such that probabilities sum up to 1. E.g. in the numbers game, "primes except 7" is less likely (less natural) than "primes".  However this assignment probabilities is often subjective.
+model evidence: p(𝓓) = ∑~h∈𝓗~p(𝓓,h)
 
-_model evidence_ (or _marginal likelyhood_) p(𝓓) = ∑~hʹ∈𝓗~p(𝓓,hʹ)
+posterior probability: p(h|𝓓) = p(𝓓|h)p(h) / p(𝓓): Is the likelihood time the prior, normalized.
 
-_posterior (probability)_ p(h|𝓓) = p(𝓓|h)p(h) / p(𝓓): Is the likelihood time the prior, normalized.
+MAP estimate: ĥ^MAP^(𝓓) = argmax~h~(p(h|𝓓))
 
-_MAP estimate_: ĥ^MAP^(𝓓) = argmax~h~[p(h|𝓓)]
+Maximum likelihood estimate: h^MLE^(𝓓) = argmax~h~(p(𝓓|h))
 
-_Maximum likelihood estimate (MLE)_: h^MLE^(𝓓) = argmax~h~[p(𝓓|h)]
+posterior predictive distribution: p(x̃|𝓓) = ∑~h~p(x̃|h)p(h|𝓓)
 
-_Data overhelms the prior_: For N→∞, ĥ^MAP^ converges to ĥ^MLE^.
+Data overhelms the prior: For n→∞, ĥ^MAP^ converges to ĥ^MLE^.
 
-Proof: ĥ^MAP^(𝓓) = argmax~h~[p(𝓓|h)p(h)] = argmax~h~[log(p(𝓓|h)) + log(p(h))] →① argmax~h~[log p(𝓓|h)] = argmax~h~[p(𝓓|h)] = ĥ^MLE^(𝓓). ①: For N→∞. The likelyhood term depends exponentially on N, while the prior term stays constant.
-
-_posterior predictive distribution_ p(x̃|𝓓) = ∑~h~p(x̃|h)p(h|𝓓): _predictive inference_, i.e. predict the distribution of a new data point.
-
-*to-do* extract general info / topics to more general place, also the wiki link in references.
+Proof: ĥ^MAP^(𝓓) = argmax~h~[p(𝓓|h)p(h)] = argmax~h~[log(p(𝓓|h)) + log(p(h))] →① argmax~h~[log p(𝓓|h)] = argmax~h~[p(𝓓|h)] = ĥ^MLE^(𝓓). ①: For n→∞. The likelyhood term depends exponentially on n, while the prior term stays constant.
 
 References:
 
 - Book ``Machine Learning, a Probabilistic Perspective'', chapter ``3.2 Bayesian concept learning''.
 
 - https://en.wikipedia.org/wiki/Bayesian_inference
-
-
-==== Beta-binomial model
-
-Let X ∈ {0,1} \~iid Ber(θ) denote the outcome of a coin flip, θ ∈ [0,1]. After N flips, the data is 𝓓 = {x~1~, ..., n~N~}. Let N~1~ \~ Bin(N,θ) denote the number of heads and N~2~ = N - N1 the number of tails.
-
-_likelihood_ p(𝓓|θ) = θ^N1^(1-θ)^N0^
-
-_prior_ p(θ) ∝ Beta(a,b)
-
-_posterior_ p(θ|𝓓) ∝ p(𝓓|θ)p(θ) = ...
-
-References:
-
-- Book ``Machine Learning, a Probabilistic Perspective'', chapter ``3.3 The beta-binomial model''.
 
 
 === Logistic regression
@@ -2570,7 +2554,7 @@ References:
 - Pattern Recognition and Machine Learning, chapter ``4.1.7 The perceptron algorithm''.
 
 
-=== Kernelized perceptron
+==== Kernelized perceptron
 
  Turns the perceptron, a linear model, into a non-linear model using the <<kernel_trick>>.
 
@@ -2599,7 +2583,7 @@ There is not really a probabilistic interpretation, i.e. a likelihood function c
 
 
 [[kernelized_svm]]
-=== Kernelized SVM
+==== Kernelized SVM
 
 Turns the linear SVM into a non-linear model using the <<kernel_trick>>.  As in kernelized Perceptron, start with w = ∑~1≤i≤n~α~i~y~i~x~i~. Instead of w we now learn / optimize α. Note that ‖w‖~2~^2^ = w^T^w. Note that as in normal SVM, the regularization parameter λ remains.
 
@@ -2669,7 +2653,7 @@ Applications:
 
 
 [[k_means]]
-=== k-means clustering
+==== k-means clustering
 
 Example of clustering.  Assumes points x = {x~1~, ..., x~n~} are in d-dimensional Euclidean space. Represent each cluster by the position of its center.  Each point in the hyperplane is assigned to the closest center, i.e. to the cluster associated with that center.  This induces a Voronoi partition.
 
@@ -2706,7 +2690,7 @@ Pros / cons:
 
 
 [[lloyds_heuristic]]
-=== k-means algorithm / Lloyd's heuristic
+==== k-means algorithm / Lloyd's heuristic
 
 Is a heuristic to solve the optimization problem posed by k-means clustering.
 
@@ -2786,7 +2770,7 @@ The PCA optimization problem has a closed form solution, nameley the principal E
 Ŵ = (v~1~|...|v~k~)
 
 
-=== Gaussian based Bayes classifiers
+=== Gaussian based Bayes Classifiers
 
 ==== Gaussian Bayes Classifier (GBC)
 
@@ -2924,7 +2908,7 @@ There is no variant which drops the assumption that features are conditionally i
 *to-do* 05:15 00:10:00
 
 
-==== Mixed conditional distributions
+===== Mixed conditional distributions
 
 Let each feature have its own individual conditional distribution p̂(x^(j)^,y). A group of features can be assumed as conditionally independent given a label, another group can be assumed to be conditionally dependent given a label.
 
@@ -3314,7 +3298,7 @@ Shrinkage/Regularization: Fight overfitting (high variance) by applying <<occams
 | R̂~𝓓~(h) = E~(y,x)∈𝓓~[l(h(x),y)] = 1/n ∑~(y,x)∈𝓓~l(h(x),y) | empirical risk
 | R̂~trainset~(ĥ) | training error of given model ĥ
 | R̂~testset~(ĥ) | test error of given model ĥ
-| R(h) - R̂~𝓓~(h) | generalization error
+| R(h) - R̂~𝓓~(h) | generalization gap
 | ĥ = argmin~h~(R̂~trainset~(h)) | empirical risk minimizer (ERM)
 | p(𝓓\|θ) or p(y~i~\|x~i~,θ) | likelihood
 | p(θ) | prior (probability)
@@ -3324,16 +3308,13 @@ Shrinkage/Regularization: Fight overfitting (high variance) by applying <<occams
 | θ̂^MAP^ = argmax~θ~(p(θ\|𝓓)) | maximum a posteriori probability estimate (MAP estimate)
 | p(y\|x,𝓓) | probabilistic prediction
 
-| ŵ = argmin~w~(R̂(w) [+ regterm]) | general pattern. R̂(w), i.e. loss function within, better be convex
+| ŵ = argmin~w~(R̂(w) [+ regterm]) | General pattern. R̂(w), i.e. loss function within, better be convex
 | ŵ = argmin~w~(RSS̃(w)) | Least squares linear regression
 | ŵ = argmin~w~(RSS̃(w) + λ‖w‖~1~) | Lasso regression
 | ŵ = argmin~w~(RSS̃(w) + λ‖w‖~2~²) | Ridge regression
-| ŵ = argmin~w~(∑l~perceptron~(w^T^x̃~i~,ỹ~i~)) | Perceptron (classification)
-| ŵ = argmin~w~(∑l~hinge~(w^T^x̃~i~,ỹ~i~) + λ‖w‖~2~²) | Support vector machine (SVM) (classification)
-| ŵ = argmin~w~(∑l~logistic~(w^T^x̃~i~,ỹ~i~) [+ regterm]) | Logistic regression (classification)
-
-| α̂ = argmin~α~(∑~1≤i≤n~max(0, y~i~α^T^k~i~) | Kernelized perceptron (classification)
-| α̂ = argmin~α~(∑~1≤i≤n~max(0, 1-y~i~α^T^k~i~ + λα^T^D~y~KD~y~α) | Kernelized SVM (classification)
+| ŵ = argmin~w~(∑l~perceptron~(w^T^x~i~,y~i~)) | Perceptron (classification)
+| ŵ = argmin~w~(∑l~hinge~(w^T^x~i~,y~i~) + λ‖w‖~2~²) | Support vector machine (SVM) (classification)
+| ŵ = argmin~w~(∑l~logistic~(w^T^x~i~,y~i~) [+ regterm]) | Logistic regression (classification)
 
 | h(x) = w^T^x | Linear regression, Lasso regression, ridge regression
 | h(x) = signʹ(w^T^x) | Perceptron, SVM
