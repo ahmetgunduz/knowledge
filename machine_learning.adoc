@@ -816,7 +816,7 @@ _parameter_ θ (read hypothesis), _parameter space_ Θ, _hypothesis_ h(x) (param
 
 The _hypothesis space_ 𝓗 is a set of known concepts.  The subset of 𝓗 that is consistent with the data 𝓓 is called the _version space_.  The _extension_ of a concept is the complete set of examples.
 
-_empirical risk minimizer_ (_ERM_): ĥ = argmin~h~(R̂~trainset~(h))
+_empirical risk minimizer_ (_ERM_): ĥ = argmin~h~(R̂~trainset~(h)), i.e. the model which minimizes the empirical risk.
 
 _likelihood function_ (or _sampling distribution_) ℒ~𝓓~(θ) = p(𝓓|θ) =~iid~ ∏p(d~i~|θ): Probability of seeing the data 𝓓 given the model parameters θ.
 
@@ -872,7 +872,17 @@ _maximum a posteriori probability estimate_ (or _MAP estimate_) _for model param
 
 _MAP estimate for predicton_: ŷ = ĥ(x) = argmax~y~[p(y|x,𝓓)]. I.e. the mode of the probabilistic prediction distribution. For binary classification, i.e. 𝓨 = {+1, -1} and K=2, this can be written as ĥ(x) = signʹ(log(p(y=+1|x)/p(y=-1|x))).
 
-_Bayes' optimal predictor for squared loss_: Let X and Y denote the random variables denoting a predictions vector and a response respectively.  Assume data is generated iid.  Assume (unrealistically) we knew the joint distribution p(X,Y). The hypothesis h^∗^ minimizing the expected least square error E~X,Y~[(Y-h(X))²] is given by the conditional mean h^∗^(x) = E~X,Y~[Y|X=x] = ∫p(y|X=x)·y·dy and is called Bayes' optimal predictor for the squared loss.
+_Bayes' optimal predictor w.r.t. squared loss_: Let X and Y denote the random variables denoting a predictions vector and a response respectively.  Assume data is generated iid.  Assume (unrealistically) we knew the joint distribution p(X,Y). The hypothesis h^∗^ minimizing the expected least square error E~X,Y~[(Y-h(X))²] is given by the conditional mean h^∗^(x) = E~X,Y~[Y|X=x] = ∫p(y|X=x)·y·dy and is called Bayes' optimal predictor for the squared loss.
+
+_prior class probability_ p(y)
+
+_class conditional probability_ (or likelihood) p(x|y)
+
+_posterior class probability_ p(y|x) = p(y)p(x|y)/p(x), where p(x) = ∫p(y)p(x|y)dy
+
+_Bayes' optimal classifier_: h(x) = argmin~y~(∑~yʹ∈𝓨~l(y,yʹ)p(y|x)). On average (i.e. in the long run) the best possible classifier (using same loss function, prior and hypothesis space).
+
+_Bayes' optimal classifier w.r.t 0-1 loss_ is the MAP estimate. h(x) = argmax~y~(p(y|x)).  Or in case we have a doubt class 𝓓, h~with doubt~(x) = {h(x) if p(h(x),x) > 1-d, 𝓓 otherwise).
 
 _conjugate distributions_ / _conjugate priors_: A pair of prior distribution and likelihood distribution is called _conjugate_ if the associated posterior remains in the same family as the prior.  Conjugate priors can be used as regularizers.  Example: Flipping a coin.  Let θ denote the probability of heads.  We assume the prior to be Beta(a, b).  We observe h heads and t tails.  Calculating the posterior (posterior = likelyhood·prior/evidence) distribution gives Beta(a+h, b+t).
 
@@ -896,6 +906,10 @@ _active learning_ (or _semi-supervised learning_ (_SSL_)): The labels are theore
 _frequentist vs bayesian_: In the probabilistic view, we also model the uncertainty. Before we didn't do that, or only in a relatively limited form via calculating variance, confidence interval, prediction interval.
 
 *to-do* explain much better frequentist vs bayesian
+
+_credit assignement problem_: When our model is successful, how to know which parameters of the model to give the credit? Or the other way round, which is oftem more usefull to think about, mostly in the context of a learning algorithm, when our model is not successful, how to know which parameters of the model to blame (and followingly to modify). For example in of learning the perceptron, if observation is x~i~ is missclassified, we know that we have to modify the parameter w like so: w += η·x~i~.
+
+_breakpoint of an estimator_: Number of observations which can make your estimator arbitrarily bad, when you let them go to infinity. E.g. when you have an estimator based on a mean, then one sample going to infinity will make the mean go towards infinity and thus make the estimator arbitrarily bad.
 
 
 === Taxonomy of data
@@ -924,6 +938,8 @@ _data withening_: *to-do*
 === Classification
 
 The goal of _classification_ is to take an input (vector) x and to assign it to one of K (or D or c) discrete classes C~k~, where k = 1, ..., K.  In the most common scenario the classes are disjoint.  The input space is devided into _decision regions_ whose boundaries are called _decision boundaries_ (or _decision surfaces_).
+
+In a more complex model, we not only assign a predicted label ŷ ∈ [K] to a new observation x, but we can optionally alternatively assign x to a special `doubt class' or to a special `outlier class'.  Assigning x to the doubt class means we're not sure enough to which class [K] x belongs.  In that case, _expected risk_ and _0/1 loss_ are defined slightly different, see there.
 
 [[discrimant_function]]
 A _discriminant function_ (or just _discriminant_) f~j~(x) is a function that takes a feature vector x as input and returns a high value if x is likely to belong class j. When making predictions, we can then return ŷ = argmax~j∈[K]~(f~j~(x)). In case of binary classification, it is enough to have one discriminant function, and the x for which f(x)=0 constitute the decision boundary.
@@ -999,6 +1015,10 @@ Examples: <<bayesian_decision_theory>>
   * One class might not be linearily separable from all others (e.g. consider three clusters clearly horizontally side by side, each cluster of a given class, then the middle cluster is not linearly separable from the one set of all others)
 
 - _one-vs-one_: Have C(K 2) = K(K-1)/2 binary classes, one for each pair of classes. Then do majority voting, i.e. class with highest number of positive predictions wins. Note that no scores are needed, a binary decision per classifier is good enough.
+
+  * Typically the total sum of ambigous regions (where there's no winner) is smaller than in the one-vs-all variant.
+
+  * Computationally more expensive than one-vs-all
 
 - _explicit multi-class models_:
 
@@ -1092,12 +1112,50 @@ _standardize variables_: Ridge and Lasso are not scale invariant, which least sq
 
 Standardization is done by default in R's glmnet.
 
+In a binary linear classification context, within a training algorithm, we might want to transform observations like so: x̃ = {x if y is class +1, -x otherwise}. This simplifies the constraints of the optimization problem, because now we only have to fulfill w^T^x̃ > 0 (or w^T^x̃ > margin) for all observations.  This is in contrast to the vanilla constraints where we have w^T^x > 0 for class +1 and w^T^x < 0 for class -1.
+
 
 ==== Missing data
 
 Reasons for missing data: Respectvie data might be difficult / expensive / impossible to acquire.  Problems in sensor, network, storage.
 
 
+=== Lagrangian Optimization Theory
+
+The standardized optimization problem is called the _primal problem_:
+
+Minimize~over w∈Ω~ f(w)  +
+subject to g~i~(x) ≤ 0, i ∈ [k] +
+subject to h~j~(x) = 0, j ∈ [m]
+
+_Generalized Lagrangian_ L(w, α, β) = f(w) + ∑~1≤i≤k~α~i~g~i~(w) + ∑~1≤i≤k~β~i~h~i~(w)
+
+The respective (to primal problem) _Lagrangian dual problem_ is given by
+
+Maximize~over α,β~ θ(α, β) +
+subject to α~i~ ≥ 0, i ∈ [k] +
+where θ(α, β) = lowerbound~in w∈Ω~ L(w, α, β)
+
+_Duality_ (or _duality principle_) is the principle that optimization problems may be viewed from either of two perspectives, the primal problem and the dual problem, where the solution of the dual problem provides a lower bound to the solution of the primal problem.
+
+Let (α^∗^, β^∗^) denote a feasible solution to the optimization problem, then θ(α^∗^, β^∗^) is called the _value of the problem_. Analogously for the primal problem.
+
+[[duality_gap]]
+_Duality gap_ difference between value of primal problem and the value of the dual problem. No duality gap thus means f(w^∗^) = θ(α^∗^, β^∗^). _Strong duality_ means a duality gap of zero.  Given strong duality, we can solve the dual problem instsead of the primal problem.
+
+Upper bound on dual costs: f(w^∗^) ≥ θ(α^∗^, β^∗^), by definition of θ.
+
+Theoerem: L(w^∗^, α^∗^, β^∗^) is a saddle point of L iff w^∗^ and (α^∗^, β^∗^) are feasible solutions to the primal problem and dual problem respectively and there is no duality gap.
+
+[[duality_gap_theorem]]
+Theorem: If the objective function f is convex, and f's domain Ω is convex, and the g~i~ and h~i~ are affine functions, then the duality gap is zero.  Convex domain is nice because then we can search along lines to find the optimal solution.
+
+_Kuhn-Tucker Condistions_ *to-do*
+
+*to-do* write somewhere that SVM fulfils conditions of <<duality_gap_theorem>>
+
+
+[[measuriring_model_performance]]
 == Measuring model performance & Co
 
 === Formula table
@@ -1147,7 +1205,9 @@ _cost function_ Q (or L): Is a more general concept than the loss function. A lo
 
 _consistent_ model selection criterion: A model selection criterion is consistent, if when used for model selection, the probability of selecting the true model approaches asymptotically (in n) one.  Only applicable when the true model is member of the candidate models.
 
-_expected risk_ (or _total expected risk_, or _true risk_, or just _risk_, or _expected error_, or _expected loss_) R(h) = E~y∈𝓨,x∈𝓧~[l(h(x),y)] = ∫~y∈𝓨~∫~x∈𝓧~l(h(x),y)p(x,y)dxdy: The risk associated with a given hypothesis h(·) is defined as the expected loss. The expected risk generally cannot be computed since in general p(x,y) is unknown. References: https://en.wikipedia.org/wiki/Empirical_risk_minimization (risk), aml2018 lecture slides 2 page 5/31 (total expected risk), https://en.wikipedia.org/wiki/Generalization_error (expected error), https://en.wikipedia.org/wiki/Statistical_learning_theory (expected risk), Machine Learning: a Probabilistic Perspective p 195,205 (expected loss, risk)
+_expected risk_ (or _total expected risk_, or _true risk_, or just _risk_, or _expected error_, or _expected loss_) R(h) = E~y∈𝓨,x∈𝓧~[l(h(x),y)] = ∫~y∈𝓨~∫~x∈𝓧~l(h(x),y)p(x,y)dxdy: The risk associated with a given hypothesis h(·) is defined as the expected loss.  Expected risk for classification where we have a doubt class is as the normal definition, but has an additional summand term which is the number of elements in the doubt class.  The expected risk generally cannot be computed since in general p(x,y) is unknown. References: https://en.wikipedia.org/wiki/Empirical_risk_minimization (risk), aml2018 lecture slides 2 page 5/31 (total expected risk), https://en.wikipedia.org/wiki/Generalization_error (expected error), https://en.wikipedia.org/wiki/Statistical_learning_theory (expected risk), Machine Learning: a Probabilistic Perspective p 195,205 (expected loss, risk)
+
+_conditional risk_ R(h,y) = E~x∈𝓧~[l(h(x),y)|y] =~0/1loss~ Pr[h(x) ∉ {y, doubtclass}] + d·Pr[h(x) = doubtclass], where d is the constant from the loss~0/1~ for classification.
 
 _empirical risk_ (or _empirical error_) R̂~𝓓~(h) = E~(y,x)∈𝓓~[l(h(x),y)] = 1/n ∑~(y,x)∈𝓓~l(h(x),y). Since p(x,y) is often unknown, the expected risk R(h) cannot be computed. We can estimate the risk by averaging the loss on a sample data set 𝓓. Assuming iid observations, R̂~𝓓~(h)→R(h) for |𝓓|→∞ (by law of large numbers). References: https://en.wikipedia.org/wiki/Generalization_error (empirical error), https://en.wikipedia.org/wiki/Statistical_learning_theory (empirical risk), Machine Learning: a Probabilistic Perspective p 205 (empirical risk)
 
@@ -1286,16 +1346,6 @@ Rational for feature selection
 
 - Costs: Don't need to acquire respective data, less storage costs, less computational costs.
 
-_Model validation_ (or _model assessment_ or _assessing performance (of a model)_) is the task of estimating the prediction error of a model.  For a meaningfull model validation we also need to calculate the bias and the variance of the estimate.  Recall that in general we can't compute the true prediction error, since that would require us to know the true joint distribution p(x,y) of the data.
-
-The following solutions do not work in general:
-
-Use previously unseen data for model validation or model selection::
-It's not realistic to have further unseen data available.  Even so, in that case we could combine the original data and the newly available data into one data set, and be logically at the same point as in the beginning of the problem statement.
-
-Use original data for model validation or model selection::
-When we use the original data for model assessment, the retreived estimated prediction error will be heavily biased; it will be too good.  That's because we trained the model with exactly the same data as we measured the model's performance with.  It was the model trainings job to fit the model to the original data, so obviously the model will have a high performance on the original data.
-
 
 [[inference_after_model_selection]]
 === Inference after model / feature selection
@@ -1416,32 +1466,8 @@ From this we can compute the MAP model
 m̂ = argmax~m~(p(m|𝓓))
 
 
-[[validation_set_approach]]
-=== Validation set approach
-
-The _validation set approach_ is a technique for model assessment or model selection.
-
-Partition data randomly in two equaly sized partitions, one constituting the training data and the other constituting the validation data.  Train an estimate f̂ using the training data, and then calculate an estimate of the prediction error using the validation data.  Note that the validation set approach does _not_ correspond to 2-fold cross validation; in 2-fold cross validation, each split would be once test set and once validation set.
-
-Pro: Simple
-
-Pro: Fair estimate of prediction error, i.e. closer to prediction error than to (adjusted) training error.
-
-Contra: Loss of power: Fewer training data always always means a worse fit of the model.  In particular it typically means more bias.  In other words, it's too pessimistic: we get a biased (too high) estimate of the prediction error.
-
-Contra: Large variance of the validation estimate (e.g. estimated expected test MSE) because the validation estimate might depend a lot on how the partition turned out to be.
-
-References:
-
-- Book ``An introduction to statistical learning'', chapter ``5.1.1 The Validation Set Approach''
-
-- ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``4.3.1 Leave-one-out cross-validation''
-
-
 [[cross_validation]]
 === Cross Validation
-
-!!!!! clean up usage of terms `test set/sample/...' vs `validation set/sample/...'.
 
 _Cross-validation_ (or _rotation estimation_) is a coarse technique for model assessment _or_ model selection.  It's a coarse technique in the sense that it has multiple more concrete instanciations, such as <<LOOCV>> and <<k_fold_CV>>.  It tries to mitigate the problem of only having one data set (aka sample of the population) of finite size, altough we actually would like infinitely many training sets and test sets, each set of infinite size.
 
@@ -1502,20 +1528,6 @@ References:
 - Book ``All of statistics'', chapter ``13.6 Model Selection''
 
 - ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``4 Cross-Validation''
-
-
-[[double_cross_validation]]
-=== Double cross validation
-
-_Double cross validation_ (or _nested cross validation_) delivers you expected estimated test error of the following procedure (i.e. how good the model resulting from the procedure performs on unseen data). The procedure is to use cross validation to select the best model.
-
-Note that we cannot do model selection with cross validation and then use the same data set for model assessment, because the assessment would test a model with data that the model already has seen.  We would thus get a biased, i.e. too optimistic, i.e. too small estimated expected test error.
-
-Outer cross validation: `Model' assessment: Repeatedly partition the original data set into a test set and a training-valiation set.  In each of these outer iterations, pass the training-valiation set to the the inner CV which returns a trained model.  Calculate the estimated test error of that trained model using the test set.  At the end, averaging all those delivers the estimated expected test error of the precedure.  Recall that each trained model the outer layer sees was trained with slightly different training data than every other, thus overall we get this E~train,test~[...] the estimated expected test error demands.
-
-Inner cross validation: Model selection: Do normal model selection via cross validation on the training-validation set received from the outer CV.  Return the trained selected model received from model selection.
-
-Note that different inner cross validations may select different models.  That's ok, since as said at the beginning of this chapter, we asses the performance of the procedure, not of some model.
 
 
 [[LOOCV]]
@@ -1584,6 +1596,65 @@ Usually one doesn't use the training error (which is based on some cost function
 Use a <<likelihood_ratio_test>> to decide between two models.
 
 
+[[model_assessment]]
+== Model Assessment
+
+_Model validation_ (or _model assessment_ or _assessing performance (of a model)_) is the task of estimating the prediction error of a model.  For a meaningfull model validation we also need to calculate the bias and the variance of the estimate.  Recall that in general we can't compute the true prediction error, since that would require us to know the true joint distribution p(x,y) of the data.
+
+The following solutions do not work in general:
+
+Use previously unseen data for model validation or model selection::
+It's not realistic to have further unseen data available.  Even so, in that case we could combine the original data and the newly available data into one data set, and be logically at the same point as in the beginning of the problem statement.
+
+Use original data for model validation or model selection::
+When we use the original data for model assessment, the retreived estimated prediction error will be heavily biased; it will be too good.  That's because we trained the model with exactly the same data as we measured the model's performance with.  It was the model trainings job to fit the model to the original data, so obviously the model will have a high performance on the original data.
+
+Model assessment and model selection are intertwined, so most is discussed in chapter <<model_selection>>
+
+
+=== Why never use the test set for any decision
+
+When doing model selection with validation set approach: Say we only have one model, but multiple training data sets, and one test data set. Then the scores will have some distribution. If we do model selection, then we choose a model that just happened to be good by chance. Thats why a separate test set can be used to compute a good estimate of the true risk, but at the same time it can't be used to choose a model and at the same time use that score for an estimate of the trues risk.
+
+*to-do* merge with other text spread around in the document, maybe even including <<inference_after_model_selection>>
+
+
+[[validation_set_approach]]
+=== Validation set approach
+
+The _validation set approach_ is a technique for model assessment or model selection.
+
+Partition data randomly in two equaly sized partitions, one constituting the training data and the other constituting the validation data.  Train an estimate f̂ using the training data, and then calculate an estimate of the prediction error using the validation data.  Note that the validation set approach does _not_ correspond to 2-fold cross validation; in 2-fold cross validation, each split would be once test set and once validation set.
+
+Pro: Simple
+
+Pro: Fair estimate of prediction error, i.e. closer to prediction error than to (adjusted) training error.
+
+Contra: Loss of power: Fewer training data always always means a worse fit of the model.  In particular it typically means more bias.  In other words, it's too pessimistic: we get a biased (too high) estimate of the prediction error.
+
+Contra: Large variance of the validation estimate (e.g. estimated expected test MSE) because the validation estimate might depend a lot on how the partition turned out to be.
+
+References:
+
+- Book ``An introduction to statistical learning'', chapter ``5.1.1 The Validation Set Approach''
+
+- ETH, Script ``Computational Statistics'', Peter Bühlmann und Martin Mächler, chapter ``4.3.1 Leave-one-out cross-validation''
+
+
+[[double_cross_validation]]
+=== Double cross validation
+
+_Double cross validation_ (or _nested cross validation_) delivers you expected estimated test error of the following procedure (i.e. how good the model resulting from the procedure performs on unseen data). The procedure is to use cross validation to select the best model.
+
+Note that we cannot do model selection with cross validation and then use the same data set for model assessment, because the assessment would test a model with data that the model already has seen.  We would thus get a biased, i.e. too optimistic, i.e. too small estimated expected test error.
+
+Outer cross validation: `Model' assessment: Repeatedly partition the original data set into a test set and a training-valiation set.  In each of these outer iterations, pass the training-valiation set to the the inner CV which returns a trained model.  Calculate the estimated test error of that trained model using the test set.  At the end, averaging all those delivers the estimated expected test error of the precedure.  Recall that each trained model the outer layer sees was trained with slightly different training data than every other, thus overall we get this E~train,test~[...] the estimated expected test error demands.
+
+Inner cross validation: Model selection: Do normal model selection via cross validation on the training-validation set received from the outer CV.  Return the trained selected model received from model selection.
+
+Note that different inner cross validations may select different models.  That's ok, since as said at the beginning of this chapter, we asses the performance of the procedure, not of some model.
+
+
 [[model_training]]
 == Model training
 
@@ -1609,6 +1680,14 @@ until convergence:
 --------------------------------------------------
 
 t denotes the current iteration and η~t~ denotes the learning rate of the t-th iteration.
+
+_optimal learning rate_ variant 1/2: η^opt^ = ‖∇R̂‖~2~²/(∇R̂^T^H∇R̂), where H is the Hessian matric H = ∂²R̂/(∂w~i~∂w~j~)
+
+*to-do* optimal in what sense
+
+_optimal learning rate_ variant 2/2 (_Newton's algoritm_): η^opt^ = H^-1^, where H is as in optimal learning rate. Intuition: For each dimension seperately, the step in that direction is large if the slope in that direction is rather flat, and small if the slope is rather steep. Then we make fast progres in rather flat areas, and don't overshoot the valley in steep areas.  Con: Computationally expensive due to computing inverse of H. Pro: Cost is decreased faster than with variant 1/2 of the optimal learning rate.
+
+*to-do* what is better now, i.e. why
 
 Say we use the same learning rate η for all iterations. If η is too small, it takes a long time until we find the minimum. If η is too large, after some time we overshoot the minimum in each iteration and thus oscillate. A possible class of solutions to this problem is adaptive learning rate. Those are topics in optimization and out of the scope of this document.
 
@@ -2534,7 +2613,7 @@ Learning: The parameter vector w is learned as follows, based on the stochastic 
 
 Intuition: Given an training observation. If the current w results in a correct classification, leave w as is. Otherwise, i.e. in case of misclassification, add the distance vector from the decision boundary to the observation to w.
 
-We actually would like to minimize the number of missclassifications, i.e. use the <<01_loss>> function, but the resulting minimization optimization problem would be NP hard.  So instead we use a surrogate loss function, here the _perceptron loss function_ (or just _perceptron_), which is convex.  However when evaluationg the model, e.g. via cross-validation, use the original loss function, here the 0/1 loss function.
+We actually would like to minimize the number of missclassifications, i.e. use the <<01_loss>> function, but the resulting minimization optimization problem would be NP hard. It is a stepwise constant function.  Thus it almost never has a non-zero gradient and it is not differentiable at certain points,  both of which are very bad for many optimization algorithms. So instead we use a surrogate loss function, here the _perceptron loss function_ (or just _perceptron_), which is convex.  However when evaluationg the model, e.g. via cross-validation, use the original loss function, here the 0/1 loss function.
 
 *to-do* the perceptron loss is a convex surrogate function for the 0-1 loss, we actually care about 0-1 loss, but optimize something else, the surrogate, here the perceptron loss.
 
@@ -2542,10 +2621,13 @@ here we work directly with x opposed to Φ(x) (*to-do* integrate more nicely)
 
 ŵ = argmin~w~[∑loss~perceptron~(w,y~i~,x~i~)] +
 loss~perceptron~(w, y, x) = max(0, -yw^T^x)
+loss~perceptron~(w, y, x) = {0 if missclassified, -w^T^x otherwise} [equivalent variant]
 
 Theorem: If data is linearly seperable, the Perceptron will find a linear seperator.
 
-There migh be no unique solution, because the perceptron does not care about margin. From the perceptron's point of view, all linear seperators are equially good.  This is because for all correct classifications, the perceptron loss is 0, regardles of how `good' the classification was.  The SVM is a variant of the perceptron that cares about the margin, see there.
+There migh be no unique solution, because the perceptron does not care about margin. From the perceptron's point of view, all linear seperators are equially good.  This is because for all correct classifications, the perceptron loss is 0, regardles of how `good' the classification was.  Say we have two featrues, i.e. w has two elemenst (apart from the first 1).  Imagine the surface of Q(w) = ∑loss~perceptron~(w,y~i~,x~i~) in a 3D plot, where the `ground' axes are w[1] and w[2]. It's global minimum, i.e. the solution to the minimization problem, is most likely a flat horizontal surface, as oppose to a point or line. Gradient descent will most likely find a point near the edge of that surface, as opposed to a point in the middle of that surface.  Thus the found ŵ, i.e. the decision boundary, will is likely to have a rather small margin.  The SVM is a variant of the perceptron that cares about the margin, see there.
+
+If the data is linearly seperatble, the gradient descent algorithm will proovably find the solution in a finite  number of steps.
 
 There is not really a probabilistic interpretation, i.e. there's no likelihood function corresponding to the loss function.  See also <<bayesian_interpretation_of_regularization>>.
 
@@ -2564,7 +2646,7 @@ References:
 [[SVM]]
 === Linear support vector machine (SVM)
 
-A linear two-class discriminant model.  A slight variation of the perceptron, which uses a different loss function, namely the hinge loss, and L2-regularization.  As a result, unlike the perceptron, the SVM is a _maximal margin classifier_, meaning that it maximizes the margin.
+A linear two-class discriminant model.  A slight variation of the perceptron, which uses a different loss function, namely the hinge loss, and L2-regularization.  As a result, unlike the perceptron, the SVM is a _maximal margin classifier_, meaning that it maximizes the margin, i.e. yw^T^x ≥ m, where m is the margin.
 
 ŵ = argmin~w~(∑loss~hinge~(w, y~i~, x~i~) + λ‖w‖~2~^2^) +
 loss~hinge~(w, y, x) = max(0, 1-yw^T^x)
@@ -2712,9 +2794,13 @@ Unsupervised regression, i.e. can be seen as the unsupervised analog to (supervi
 Assume 𝓓 = {x~1~, ..., x~n~} ⊆ ℝ^d^. The goal is to find a mapping _f_:ℝ^d^→ℝ^k^ where _k_≪d is a parameter.  I.e. f projects vectors x ∈ ℝ^d^ into a k-dimensional subspace.
 
 
-==== Linear dimension reduction
+==== Principal Component Analysis (PCA)
 
-We assume centered data 𝓓, i.e. zero mean.
+A orthogonal linear transformation yielding a dimension reduction. It is such that the greatest variance by some projection of the data comes to lie on the first coordinate (called the first principal component), the second greatest variance on the second coordinate, and so on. PCA can be thought of as fitting an n-dimensional ellipsoid to the data, where each axis of the ellipsoid represents a principal component. If some axis of the ellipsoid is small, then the variance along that axis is also small, and by omitting that axis and its corresponding principal component from our representation of the dataset, we lose only a commensurately small amount of information.
+
+*to-do* this other view with maximizing variances. I.e. imagine ellipsoid shaped data cloud. Then we search an axis (PC1) on a hyperplane (d-1), which maximizes variance along the axis, and project (how?) points to the hyperplane. Repeat. PCA = Dimension reduction with the goal of preserving as much variance as possible. Should probably not be used when after dimension reduction we want to make classification, because due to the goal, it is likely we destroy class separation. Imagine 2D data, two ellipsoid clouds, both having their long axis about in the same direction. Then the PC1 will be about parallel to those two long axes, and the seperation between the two clouds is completely destroyed. See also LDA, which kind of does the opposite, it tries to find a line which maximizes separation.
+
+We assume centered data 𝓓, i.e. each feature has zero mean.
 
 Educated guessing leads us to believe that the points {x~1~, ..., x~n~} ⊆ ℝ^d^ actually all approximately lie near a k-dimensional hyperplane.  E.g. k=1 means all lie near a line, k=2 means all lie near a 2D plane.  Thus want to find a k-dim hyperplane given by matrix _W_ ∈ ℝ^d⨯k^ going through the origin and approximately through all points.  The point __x̄~i~__ on hyperplane closest to x~i~ is x~i~'s dimension reduced version.  We constrain the matrix W to be orthogonal and having columns of length 1 in Eucledian norm.  Now it's easy to see, especially in the line case k=1, that x̄~i~ = z~i~W, for some scalar __z~i~__ ∈ ℝ.  We want to minimize the sum of squared distances.  Or in other words, we want to minimize the reconstruction error of the projection, measured in Eucledian norm.  The matrix W is given by the following optimization problem.  Here it's deliberately written down in a verbose form to express the logical background:
 
@@ -2735,7 +2821,7 @@ f(x) = W^T^x
 
 Choosing k:
 
-- for visualizatoin: by inspection :-)
+- for visualization: by inspection :-)
 
 - for feature induction: by cross validation
 
@@ -2761,13 +2847,15 @@ This optimzation problem has a closed form optimal solution:
 
 ŵ = principal eigenvector of ∑
 
-For arbitrary k, we want to find a k-dimensional hyperplane, given by matrix W ∈ ℝ^d⨯k^, which goes through the origin and approximately through all points x~i~.  In order that W defines a d-dimensional hyperplane it must be orthogonal.  In order that the ``Wc~i~'' terms in the following formula below are comparable, each column vector of W must have unit length.  The goal is to minimize the sum of squared perpendicular distances from each point to the hyperplane, leading to the following optimization problem, known as _principal component analysis_ (_PCA_).
+For arbitrary k, we want to find a k-dimensional hyperplane, given by matrix W ∈ ℝ^d⨯k^, which goes through the origin and approximately through all points x~i~.  In order that W defines a d-dimensional hyperplane it must be orthogonal.  In order that the ``Wc~i~'' terms in the following formula below are comparable, each column vector of W must have unit length.  The goal is to minimize the sum of squared perpendicular distances from each point to the hyperplane.  In other words, we want to minimize the reconstruction error in Eucledian space.  This leads to the following optimization problem, known as _PCA optimization problem_:
 
 Ŵ,ĉ = argmin~W,c~(∑~1≤i≤n~‖x~i~-Wc~i~‖~2~²)
 
 The PCA optimization problem has a closed form solution, nameley the principal Eigenvectors v~i~, i.e.
 
 Ŵ = (v~1~|...|v~k~)
+
+Formally, PCA is an orthogonal linear transformation.
 
 
 === Gaussian based Bayes Classifiers
@@ -2846,7 +2934,7 @@ p(y=1|x) = sigm(f(x)) = sigm(w^T^x + w~0~)
 If the GNB's model assumptions are met, i.e. if p(y,x) comes from a GNB model with class independent variances, p(y=1|x) is a logistic regression and hence GNB and logistic regression will make the same predictions.
 
 
-==== Quadratic discriminant analysis
+==== Quadratic discriminant analysis (QDA)
 
 Special case of GBC: Restricted to binary classification.
 
@@ -2863,11 +2951,21 @@ h(x) = signʹ(f(x))
 
 Special case of GBC / quadratic discriminant analyis: Restricted to binary classification, an uninformative prior p̂(y) = 0.5, and equal covariance matrices ∑ = ∑~p~ = ∑~n~.
 
+The optimization problem in the binary case, called the _Fisher's Separation Criterion_, is the following. The class centroids in the projected space (normal to the decision boundary) should be as far away as possible and, simultaneously, the variance in the projection space of the class specific data should be as small as possible:
+
+J(w) = ‖μ̃~1~-μ̃~2~‖~2~²/(∑̃~1~ + ∑̃~2~) [objective function] +
+μ̃~c~ = w^T^μ~c~ [projected mean] +
+∑~c~ = ∑~x s.t. y=c~(x-μ~c~)(x-μ~c~)^T^ [scalar. scatter of class, _not_ covariance matrix] +
+∑̃~c~ = ∑~x s.t. y=c~(x̃-μ~c~)(x̃-μ~c~)^T^ = w^T^∑~c~w  [projected scatter] +
+∑ = ∑~1~ + ∑~2~
+
 The discriminant function f(x) fulfilling f(x) = log(p(y=+1|x)/(p(y=-1|x))) is:
 
 f(x) = w^T^x + w~0~ +
-w = ∑^-1^(μ~p~-μ~n~) +
-w~0~ = 1/2(μ~n~^T^∑^-1^μ~n~ - μ~p~^T^∑^-1^μ~p~)
+w = ∑^-1^(μ~1~-μ~2~) +
+w~0~ = 1/2(μ~2~^T^∑^-1^μ~2~ - μ~1~^T^∑^-1^μ~1~)
+
+*to-do* involvment of eigenvalue, geometrical interpretation: video 11_08 10:00
 
 Prediction then is:
 
@@ -2877,11 +2975,13 @@ Predictive distribution (note that it has the same form as logistic regression):
 
 p(y=+1|x) = 1/(1+exp(-f(x))) = sigm(w^T^x + w~0~)
 
-If model assumptions are met, LDA makes the same predictions as Logistic Regression.
+If model assumptions are met, LDA makes the same predictions as Logistic Regression. Yields the bayes optimal classifier *to-do* copy to logistic regression or link
 
-Contra: Not very robust against violations of assumptions.
+Contra: Not very robust against violations of assumptions. Is sensitive to outliers. Or more generally, if the means of the classes are not about equidistant from where we would like to have the decision boundary.  Imagine 2D binary classification, red and blue.  Say there many points deep inside the blue class' territory, and the two `intersting' clouds (one per class) are more or less close to each other, then the decision boundary will be shifted towards the blue territory, misslabeling some blue points as red.
 
 *to-do* Isn't that statement applicable to all GBC based methods?
+
+Other viewpoint: Imagine 2D data, two same-shaped ellipsoid clouds. We want to project the data on a line, such that the means of the two resulting 1D clouds are separated as much as possible. That line is the line orthogonal to the LDA decision boundary line.
 
 
 ==== Gaussian-Mixture Bayes classifier
