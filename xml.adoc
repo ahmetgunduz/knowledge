@@ -1,0 +1,35 @@
+// The markup language of this document is AsciiDoc
+:encoding: UTF-8
+:toc:
+:toclevels: 4
+
+
+= XML
+
+== Intro
+
+_well-formed_: A well formed document adheres to the grammar. I.e. it is a member of the language (in the theoretical computer science meaning).
+
+Simplification of SGML.
+
+Misc: case-sensitive. Loosely speaking, doesn't care about whitespace.
+
+_document_: Must have at least one top level element. May optionally start with an "xml" preprocessing instruction.
+
+_element_: <foo [attributelist]>...</foo>. _empty element_: <foo.../>. <foo> is an _opening tag_, <foo/> is a _closing tag_. The _attribute list_: List of attributename="attributevalue" or attributename=\'attributevalue'.  You can use references within attribut values.  Attribute values may not contain the literal "<", "&" or the character denoting the end of the string.  Attributenames cannot be repeated in the same list.
+
+_XML Names_: Composed of ASCII {alphanumeric, underscore, dash, point}, however may not start with {numbers, dash, point}. The prefix "xml" (independent of case) is reserved for W3C.
+
+_XML Namespaces_: <foo xmlns:bar="fred-url"> Defines "bar" to be a _namespace binding_ (aka shorthand) for the namespace "fred-url". The scope is the foo element itsels and it's descendants.  Within the scope the namespace can be used by prepending "bar:" to a _local name_, e.g. "lorem", resulting in the _qualified name_ (or _QName_) "bar:lorem". "bar" is then called a _prefix_.  The prefix is really just a shorthand, i.e. when comparing qualified names, what matters is the pair (url, local name). _default namespace_: In the namespace binding definition, the prefix can be absent (xmlns="fred-url"). Any local tag name (i.e. default namespace does not apply to attribute names) in the tree without prefix will take that namespace.
+
+The "..." between opening and closing tag is _text_ (or _character data_); however that text can be interrupted by further elements. Following text cannot apear at the document top level. It may not contain literal "<" and "&".
+
+_comment_: <!--...--> Comments are part of the document, i.e. an application reading an XML document will see it after the parser. Cannot contain "--".
+
+_enitity references_: \&foo; There are exactly five: "lt" -> <, "gt" -> >, "apos" -> ', "quot" -> " and "amp" -> &.
+
+_character references_: \&#x...; where "..." is a unicode code point in hex. Leave out the "x" and its in decimal.
+
+_processing instruction_: <?...?>
+
+_CDATA section_: <![CDATA[...]]>. For literal text (aka verbatim).
