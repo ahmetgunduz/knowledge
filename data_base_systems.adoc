@@ -25,7 +25,7 @@ Data technology stack:
 | data models |
       Tables: Relational model, column store, wide column store / trees: XML Infoset, XDM / graphs: RDF / Cubes: OLAP / key-value model
 | syntax |
-      text, CSV, XML, JSON, RDF/XML, Turtle, XBRL
+      text, CSV (table), XML (tree), JSON (tree), RDF (graph), Turtle (graph), XBRL (cubes)
 | encoding |
       ASCII, ISO-8859-1, UTF-8, BSON
 | storage |
@@ -34,6 +34,7 @@ Data technology stack:
 
 |=====
 |           | master              | slave
+| Spark     | cluster manager     | worker node
 | Hadoop v1 | job tracker         | task tracker
 | YARN      | resource manager    | node manager
 | YARN      | application manager | application master
@@ -42,17 +43,44 @@ Data technology stack:
 | HDFS      | name node           | data nodes
 |=====
 
+_througphut_: amount of data per time
+
+_transfer time_: time to transmitt a given amount of data, excluding latency.
+
+_latency_: Time between asking for something and receving the first bit of that something. Some authors use the term latency to mean what is defined here as total response time.
+
+_total response time_ (or, conflictlingly, latency): Latency + transfer time
+
 The history of storage: progress made 1956-2010: capacity: 150'000'000 times more, throughput 10'000'000 times more, latency 8 times more. To increase throughput, we can parallize. To improve latency, we can do batch processing.
+
+Very rough typical measures:
+
+|=====
+| Instruction    | 1 ns
+| Fetch L1 cache | 1 ns
+| Fetch memory   | 100 ns
+| Disk           | 100-300 Mbit/s
+| Ethernet       | 1-10 Gbit/s
+| Roundtrip packet US Europe | 150ms
+|=====
 
 How can we get more work done:
 
 1) Make SW efficient. ``You can have a second computer once you've shown you know how to use the first one'' (Paul Barham). We can gain factors of speed, and we have to pay once the development costs, and can apply it to all machines we ever will have.
 
-2) _horizontal scaling_ (or _scale out_): Add more nodes, typically commodity HW. Price grows about linearly with overall computing power.
+2) _horizontal scaling_ (or _scale out_): Add more nodes, typically commodity HW. Price grows about linearly with overall computing power.  Typically useful when the bottleneck is disk throughput, as opposed to CPU.
 
-3) _vertical scaling_ (or _scale up_): Replace a node with a more powerfull node. Either by completely replacing, or by adding more RAM and/or CPUs. Price grows about exponentially with overall computing power.
+3) _vertical scaling_ (or _scale up_): Replace a node with a more powerfull node. Either by completely replacing, or by adding more RAM and/or CPUs. Price grows about exponentially with overall computing power.  Nowadays scaling up the CPU typically means more cores, as opposed to not long ago, where it typically meant faster.
 
-_Design principles_ of big data (by Fourny Ghislain Gilles)
+_Amdahl's law_: speedup = 1 / ((1-p) + p/s). Say in the current configuration, p percent of the execution time is directly affected by the following parallelization. The raw speedup (newtime/olddtime) in isolation is s. Reflects the viewpoint of constant problem size (but in reality, the parallization makes the problem harder).
+
+_Gustafson's law_: speedup = (1-p) + sp. For p and s, see Amdahl's law. Reflects the viewpoint of constant computing power. A higher Gustafson's speedup means you can fit more people on a single cluster.
+
+_Scalability! But at What COST?_: The paper reminds that scalability is only a mean to achieve the real goal, which is performance. So in a way it re-states Paul Barham's ``You can have a second computer once you've shown you know how to use the first one''.  They showed multiple different real-world scalabale programs solving a given problem running on 128 cores. They were however beaten by a single thread program. Even more so if the single threaded program did use an efficient non-parallel algorithm. They proposed the measurement `COST': Configuration that Outperforms a Single Thread. Or more colloquially, how many cores does the scalable system require until it gets faster than an single threaded system solving the same problem. Note that clusters may have other benefits besides (hopefully) better performance through scalability. For example fault tollerance. But even then you still have to ask yourselve, wether the increased complexity of the cluster really helps you.
+
+*to-do* https://www.youtube.com/watch?v=6bWBEJBMNG0. I still don't get why he can be so much faster. Both in examples with single threaded, and when he also parallelizes with a few cores on his laptop. I think it's neither the case that he's a genius, nor that the others are dumb. Or were the others _really_ that careless?
+
+_Design principles_ of big data (by ourny Ghislain Gilles)
 
 - Learn from the past
 
@@ -71,6 +99,12 @@ _Design principles_ of big data (by Fourny Ghislain Gilles)
 - Shard the data
 
 - Replicate the data
+
+- Use lots of commodity HW
+
+_choosing optimal chunk size_. One extreme is to do the splitting of the data shuch that one split / chunks fills the capacity of one `executor', the other is really small splits. When the splits are too small, we run into latency issues. We have to pay latency for each access to the many chunks.  If the splits are too large, theres not enough flexibility; in reality the splits don't have exact sizes; it is difficult to completely make use of the ressources of an executor if the chunks are too big (think a bar which is filled horizontally with different chunks, if the chunks are around half the size of the bar, 50% of the bar is unused). As a rule of thumb, make the split size one tenth of the executors capacity.
+
+_optimize network usage_: Try to push down prejection and selection as close as possible to the source. Then less data has to be transmitted. That's e.g. what Spark's DataFrame do, as opposed to Spark's RDDs.
 
 A database _transaction_, by definition, must be _ACID_: All the following must be guaranteed even in the event of errors, power failures etc. _Atomicity_ (each transaction succeeds completely or fails completely), _Consistency_ (each transaction brings DB from one valid state to another valid state, maintaining DB's invariants), _Isolation_ (result is as if transactions were executed in strict sequence), _Durability_ (once a transactin has been committed, will remain committed).
 
@@ -517,7 +551,7 @@ YARN (yet another resource negotiator).  The master is called YARN ResourceManag
 
 *to-do* list multi-tenancy as an improvement
 
-The _ResourceManager_ must take care of cluster utilization, give capacity guarantees (e.g. hold the promise that a container has 16GB RAM), guarantee fairness (if 10 jobs are using the cluster, each shall get its fair share, see also schedulers), and must fulfill SLAs.  The ResourceManager provides a client service API to the clients so they can start/end jobs, get informations about jobs.  The ResourceManager's responsibilities include to know about the resources available in the cluster.   I.e. a list of the live NodeManagers and what their resources are.   New / rebooted NodeManagers have to register at the ResourceManager.  The NodeManagers repeatedly send liveliness (aka heartbeats) to the ResourceManager.  Note that the ApplicationManager has a similar but different responsibility with respect to ApplicationMasters.  The ResourceManager's responsiblities include the role of the ApplicationManager. Summary:
+The _ResourceManager_ must take care of cluster utilization, give capacity guarantees (e.g. hold the promise that a container has 16GB RAM), guarantee fairness (if 10 jobs are using the cluster, each shall get its fair share, see also schedulers), and must fulfill SLAs.  The ResourceManager provides a client service API to the clients so they can start/end jobs, get informations about jobs.  The ResourceManager's responsibilities include to know about the resources available in the cluster.   I.e. a list of the live NodeManagers and what their resources are.   New / rebooted NodeManagers have to register at the ResourceManager.  The NodeManagers repeatedly send liveliness (aka heartbeats) to the ResourceManager.  Note that the ApplicationManager has a similar but different responsibility with respect to ApplicationMasters.  The ResourceManager's responsiblities include the role of the ApplicationManager.  The RessourceMassager can contact the NodeManager to ask it to kill containiers in order to free resources.  Summary:
 
 - Top level master. First contact person for a client.
 
@@ -527,7 +561,7 @@ The _ResourceManager_ must take care of cluster utilization, give capacity guara
 
 - Role of ApplicationMaster
 
-The _ApplicationManager_, which is a part of the ResourceManager, tracks the jobs / applications currently running on the cluster.  Similarly it also keeps track of the current ApplicationMasters.  The ApplicationManager also maintains a list of jobs / applications waiting to be scheduled in case the cluster is full.  When a ApplicationManager is started in a container of a NodeManager, it has to register at the ApplicationManager ("Hy, all went well, I'am started").  ApplicationMasters repeatedly send liveliness (aka heartbeats) to the ApplicationManager. Summary:
+The _ApplicationManager_, which is a part of the ResourceManager, tracks the jobs / applications currently running on the cluster.  There is at most one ApplicationManager per node, else we would have again (as Hadoop v1) have a bottleneck. Similarly it also keeps track of the current ApplicationMasters.  The ApplicationManager also maintains a list of jobs / applications waiting to be scheduled in case the cluster is full.  When a ApplicationManager is started in a container of a NodeManager, it has to register at the ApplicationManager ("Hy, all went well, I'am started").  ApplicationMasters repeatedly send liveliness (aka heartbeats) to the ApplicationManager.  ApplicationMaster can allocate/deallocate containers during the application.  Think also when one container, i.e. its parent node, dies.  Summary:
 
 - Manages the running and waiting applications of the cluster.
 
@@ -535,18 +569,20 @@ The _ApplicationManager_, which is a part of the ResourceManager, tracks the job
 
 Each _NodeManager_ provides a set of containers. It must track its resources, including the amount of free resources.  Resources such as memory, CPU (number of cores), disk, network.  A node manager repeatedly reports to the RessourceManager its free resources.
 
-A _container_ is an assignment of resources.  Say a node has 8 cores and 64KB RAM, then each container might get assigned one core and 8GB RAM.  Each container can run a map task or reduce task or ApplicationMaster.
+A _container_ is a non-static assignment of resources.  Currently CPU and memory; a generalized model can also support things like network bandwidth or GPUs. Say a node has 8 cores and 64KB RAM, then each container might get assigned one core and 8GB RAM.  Each container can run a map task or reduce task or ApplicationMaster.
 
 *to-do* Is the resource assignment to a cluster fixed? Does a cluster try to provide different types of containers (e.g. some high cpu low ram, some low cpu high ram, some averaged).
 
 An _ApplicationMaster_ runs in an container. The ApplicationMaster's primary responsibility is one application / job.  Create it, allocate containers for it via the ResourceManager, run tasks in the allocated containers, monitor the application (i.e. the tasks that make up the application).  Monitoring includes relaunching died tasks, making HBase fault tolerant.
 
-_Basic sequence of running a job / application_: A client sends a job to the ResourceManager.  The ResourceManager chooses one of the free containers to be the ApplicationMaster for that job.  The ApplicationMaster decides how many containers it needs to assign tasks to and then asks the ResourceManager for the locations of that many free containers.  The request can contain hints like how much RAM the container should have, on which rack or node it ideally should be (so e.g. a mapper can run on the node hosting the required HDFS block).  The ApplicationMaster then directly contacts containers received from the ResourceManager.  Note that now, in contrast to version 1, the master is only involved at the beginning of the job.  It is no longer involved after the job starts.  As a consequence we get better scaling.
+_Basic sequence of running a job / application_: A YARN application starts with a client resource request to the ResourceManager; a notification that the client wants to submit an application.  The ResourceManager responds with an ApplicationId and information about the capabilities of the cluster that will aid the client in requesting resources. The client sends an application submission context and an container launch context to the ResourceManager.  The _application submission context_ contains the ApplicationID, user, queue and other information needed to start a respective ApplicationMaster.  The _container launch context_ (_CLC_) contains resource requirements, job files, security tokens and other information needed to set up an container and within it an environment to launch the ApplicationMaster.  The ResourceManager picks an available container for the ApplicationMaster, then often called _container0_.  The ResourceManager contacts the respective NodeManager and lets it start the ApplicationMaster. The just started ApplicationManager sends a _registration request_ to the ResourceManager, which responds with information about minimum and maximum capabilities of the cluster.  Based on that information, the ApplicationMaster will request containers from the ResourceManager, which will respond as best possible based on scheduling policies and send information about the now assigned containers. The ApplicationManager contacts the respective NodeManagers, and starts containers by sending the NodeManager CLCs.  The ApplicationMaster continously sends heartbeats to the ResourceManager.  A heartbeat contains progress information.  It can be used to request more ressource or to release resources.  The ResourceManager can direct NodeManagers to kill containers.  When a job is finished, the ApplicationMaster informs the ResourceManager that the job completed successfully.  The ResourceManager then asks the NodeManager to aggregate logs, and asks all involved NodeManager to kill the respective containers, including the one for the ApplicationMaster.
+
+A client sends a job to the ResourceManager.  The ResourceManager chooses one of the free containers to be the ApplicationMaster for that job.  The ApplicationMaster decides how many containers it needs to assign tasks to and then asks the ResourceManager for the locations of that many free containers.  The request can contain hints like how much RAM the container should have, on which rack or node it ideally should be (so e.g. a mapper can run on the node hosting the required HDFS block).  The ApplicationMaster then directly contacts containers received from the ResourceManager.  Note that now, in contrast to version 1, the master is only involved at the beginning of the job.  It is no longer involved after the job starts.  As a consequence we get better scaling.
 
 **to-do** Chapter 7. I'm not sure I understand who exactly does the splits, and wether or not the splits move around in the network. I assume the client does the split logically, i.e. only by getting to know which HDFS slave hosts which HDFS block of the data. From then on, only that location information is transfered / used by involved nodes / task.  The HDFS data of the HDFS blocks is in general not transfered over the network (only if the associated mapper can't be on the same node)
 
 
-==== HBase Schedulers
+==== Yarn Schedulers
 
 _steady fair share_: Share (aka percentage) of total resources taking also empty qeues into account.  _Instantaneous fair share_: Share of total resources when not taking the empty queues into account and redistributing their share to the non-empty queues.  _Current allocations_: Percentage of resources each queue currently actually is using.  Steady fair share and instantenous fair share are goals, current allocations is the reality.  _Dominant resource fairness_ is one of multiple possible ways of computing current allocation as one single value if there are multiple resources. For each application, take the maximum resource percentage among all resources the application currently uses. Then value for a given application is its max divided by the sum of all max.
 
@@ -570,28 +606,71 @@ When the ResourceManager creates an ApplicationMaster, it gives it an _Applicati
 
 === Spark
 
-A processing model based on a DAG. A node in the DAG is an RDD (see below), an edge is a _transformation_.  To _create_ RDD s corresponding to root nodes in the DAG, we can create them from local or distributed fileystem, or from a process genereting it.  To make use of the RDD s, typically the ones corresponding to leaf nodes, there are so called _actions_. An action `materializes' an RDD.  We can e.g. dump it to local or distributed filesystem, or display it on the screen.  Evaluation is lazy; only when an action is invoked, the respective subgraph of the DAG is executed. Each action createas one _job_.  Multiple jobs can share the intermediate RDD s.
+A processing model based on a DAG. Is primarly intended for immutable data. For immutable data, see streaming.
 
-_Resilient distributed dataset_ (_RDD_): Collection of _values_. Each value can be anything.  Is partitioned, each partition can be on another machine.  The partitionboundary can be at any byte boundary. Thus when an RDD is for example stored on HDFS, we can take the HDFS blocks as partitioning.  A value can be an key-value pair, which case there are specific transformations and actions.  Note that potentially an RDD is distributed across multiple input machines.
+A node in the DAG (also called _lineage graph_) is a RDD (see below), an edge is a _transformation_.  To _create_ RDD s corresponding to root nodes in the DAG, we can create them from local or distributed fileystem, or from a process genereting it.  To make use of the RDD s, typically the ones corresponding to leaf nodes, there are so called _actions_. An action `materializes' an RDD.  We can e.g. dump it to local or distributed filesystem, or display it on the screen. Each action createas one _job_.  Multiple jobs can share the intermediate RDD s.
+
+_Lazy evaluation_. Only when an action is invoked, the respective subgraph of the DAG is executed.  Lazy evaluation helps to reduce the number of passes over intermediate data by grouping operations together.  In Hadoop MapReduce, developers often have to spend a lot of time considering how to group together operations to minimize the number of MapReduce passes. In Spark users are free to organize their program into smaller, more managable operations.
+
+_Resilient distributed dataset_ (_RDD_): An immutable collection of _values_ (or _objects_). Each value can be anything.  Is partitioned, each _partition_ can be on another machine.  The partitionboundary can be at any byte boundary. Thus when an RDD is for example stored on HDFS, we can take the HDFS blocks as partitioning.  _RDD types_: In a vanilla RDD, the values are of any type. There are _pair RDDs_ where each value is a key/value pair and _numeric RDDs_ where each value is of numeric type.  For these specialized RDDs there are additional transformations and actions.  Note that all RDDs can be viewed as vanilla RDDs and thus support all vanilla transformations and vanilla actions. Note that potentially an RDD is distributed across multiple input machines.
+
+A transformation with _narrow dependency_ is one that can produce one output value of the output RDD by only seeing one or a few values of the input RDDs. Thus it can be easily parallelized, maybe even on the same machine.  The complementary concept is _wide dependecy_.  There one value in the output RDD depends on a lot of values in the input RDDs. hose transformations require shuffling as in MapReduce, which is an expensive operation. The wide dependency transformations having multiple input RDDs and a single output result in a _join_, the ones having a single input single output in a _simple shuffle_.
+
+These paths in the DAG (of RDDs & transformations/creations/actions) that consist only of narrow dependency transformations can be combined into one node, called a _stage_, which procudes a DAG of stages transformations/creations/actions. Each stage can be parallelized on multiple machines, without the need for network communication.  The transformations between stages require shuffling and thus typically network communication.
 
 *to-do* per RDD, must all values have the same type? If not, it would really be an type-value pair, where the type is implicit?
 
-The DAG is executed on top of YARN.
+_Persisting RDDs for optimization_ (more accurately: caching): Recall that RDD s are by default always recomputed.  However a RDD can be requested to persist itself, i.e. each RDD has a persist attribute.  After computingthe RDD for the first time, its content is persisted (more accurately: cached).  As a consequence, if multiple actions depend on that RDD, the sub DAG consisting of that RDD and all its anchestors needs only be computed once.  There are options to specify how to persists, e.g. when memory/disk shall/shallnot be involved.  If memory is used up, Spark will evict some partitions to make room to persists new partitions.  Note that persisting is not an action, thus calling persist does not trigger evaluation.
 
-Regarding a specific transformation, if the values of an RDD can be processed independently, they can be processed in parallel on multiple machines.  If they can't be processed independently, it needs shuffling as in MapReduce, which is an expensive operation.
+[[prepartition_rdd]]
+_partitioning RDDs_: Explicitely partitioning (and persisting) an pair RDD may improve performance if that RDD (more precisely, the stage containing it) is used multiple times as input for an transformation or action which internally shuffles.  The partitioning is such that same keys are in the same partition, i.e. the partitioning internally does shuffling.  Consider e.g. a join. If one of the two stages being input the the join is pre-partitioned, then the join can overtake that input without shuffling and only needs to shuffle the other input stage.  Partitioning is a transformation.  Since it only makes sense to prepartition if a following transformation internally shuffles, it in general doesn't make sense to not also persist the RDD resulting from the partitioning transformation. Each RDD stores as a property its _partitioning information_, such that transformation can make use of it. Each transformation knows wheter it retains / creates / destoys the partitioning and sets the partitioning information property of the output accordingly.  Some generic transformation which destroy partitioning (that is, Spark cannot guarantee that it is retained, given a user specified function) have counterparts which retaing partitioning. E.g. map and mapValues. Example of prepartitioning: "myrdd2 = myrdd1.partitionBy(new HashPartitioner(100)).persist()".
+
+The DAG is executed on top of YARN.
 
 Application interface: Write an application (e.g. in Java, Scala, Python) using the Spark library, and send the byte compiled program to the cluster.
 
 Shell interface: Nice for interactive prototyping.
 
+Data model summary: The entities are the RDD s. The things that can be done with the entites are creation, transformation and action.
 
-==== Overview of general transformations
+Spark's and MapReduce's design goal was to address disk throughput bottlenecks (since disk throughput did not increase as much as capacity), rather than CPU / Memory / Network bottlenecks. That we now also can use multiple CPUs / memories in parallel is merely a nice side effect.
+
+One goal was also that the sytem uses as much of the available ressources of the cluster as possible.  So companies owning the cluster can actually use what they invested money in.  So Spark works well when many people use the same cluster. This in contrast to when only one person uses the cluster -- in that case, maybe another system than Spark is appropriate.  So it was _not_ so much desisgned to having a particular high response time.
+
+
+==== DataFrames & SparkSQL
+
+A logical layer providing the relational model. Provides transformations and SQL on relations, called DataFrames. Sits on top of Spark's RDDs.
+
+_DataFrame_: An RDD where a value represents a row. Thus the RDD as a whole represents a table. One can convert back and forth between a DataFrame and a RDD. When converting from RDD to DataFrame, a schema must be given, unless it can be infered automatically.
+
+_SchemaInference_: Infere the relational schema from the source of a table; that source can be in various formats which may not explicitely and/or formally describe a schema.
+
+_Logicial transformations_. One can write a program by using DataFrames, transformations & SQL on them as building blocks.
+
+_Catalyst_ compiles and optimizes a program into an RDD DAG: The program is converted into a logical plan. The logical plan is optimized. It is converted to multiple physical plans. Based on a cost model, the best physical plan is selected. It is converted into an RDD DAG.
+
+Think of RDD transformations as byte code.  DataFrame transformations are compiled into that byte code.  The prof said that on the RDD layer Spark will exactly do the user provided DAG, while on the logical DataFrame level spark will heavily optimize.  I suspect that also on the RDD level there can be internal optimizations, just usually not with a same big impact.
+
+_ColumnarStorage_: A DataFrame is stored in memory by column, i.e. one column in memory is a sequence of cells. An advantage is that a query often only looks at some rows of a table. The name of the column needs only to be stored once, wheras in a naive RDD each table field redundantly has to store the row & column name.
+
+
+==== Some creations
+
+_SparkContext.parallelize_(collection): Depending on collection type, a vanilla RDD or a pair RDD is created.
+
+
+==== Some general transformations
 
 _filter_ (selection in relational algebra): A predicate function determines for each value in the RDD wether or not it passes.
 
 _map_: Applies a function to every value in the input RDD, producing a new output RDD of same size and possibly with different value type.  As in MapReduce, only that it doesn't have to be about key-values.
 
-_flatMap_: Applies a function to every value in the input RDD. The output of the function is a collection. Overall each element of the output collection is aggregated into an RDD. Say the function produces an collection of 5 elements, then overall 5 RDD s are created.
+_map values_: As map, but only for pair RDDs; the user supplied function only operates on the values.
+
+_flatMap_: Applies a function to every value in the input RDD. The output of the function is a collection. Thus logically from a initial point of view is a list of collections. The actual output is the flatening, i.e. just a list of elements.
+
+_flat map values_: analogous to map values
 
 _distinct_: Removes duplicates. May require shuffling.
 
@@ -605,23 +684,90 @@ _subtract_: Produce on RDD per value that exists in the lhs RDD, except for thos
 
 _cartesian product_: Think lhs RDD as column vector and rhs RDD as row vector. The resulting RDD corresponds to the product matrix, each value being a tuple.
 
+_group by_: Applies a function to every value. The function returns a key, and thus logically yields a key/value pair. Then it continuous like groupByKey.
 
-==== Overview of key-value pair transformations
+==== Some key-value pair transformations
 
 RDDs are not required to be lists of key-value pairs, but they can be, and some transformations make use of them.
 
-_reduce by key_:  The function must be commutative and associative and the type of the returned pair must match the type of each input pair.  Expensive since it requires shuffling.
+_group by key_: Groups by key. The result is a list of (key,value-collection) pairs.
+
+_cogroup_: Like a group by key, but for multiple input RDDs. Each resulting value has the logical form (key, (Iterable, Iterable, ...)), where each iterable is w.r.t. its corresponding input RDD.
+
+_join_: Joins the two input RDD s by key. The output RDD is a list of (key,value-collection) pairs, where each value-collection contains either one or two values.
+
+_reduce by key_:  Groups by key, and then reduces each group to a single key-value pair by an user given function.  The function must be commutative and associative and the type of the returned pair must match the type of each input pair.  Expensive since it requires shuffling.
+
+_map values_: Each value is transformed by a user given function.
+
+_keys_: Drop the values, resulting in a list of keys. I.e. the output is no longer a list of key-value pairs, but technically a list of values.
+
+_values_: Analogous to the `keys' transformation.
+
+_subtract by key_: Given two input RDD, keep only those key-value pairs of the lhs RDS where the key does _not_ appear in the rhs RDD.
+
+_reduce by key_: As reduce action, but for the values of each key seperately.
+
+_fold by key_: As fold action, but for the values of each key seperately.
+
+_combine by key_: Most general of reduceByKey and foldByKey. In each partition individually, the first time a key is encountered that hasn't been seen before, a user supplied createCombiner function is called which creates an initial value out of the value associated with that key.  When it's a key that has been seen before, the user supplied mergeValue function is called. When merging partitions, the user supplied mergeCombiners function is called to merge the collection values of each key.
+
+_partitionBy_: *to-do* Book p62. I don't understand why partitioning should help.
 
 
-==== Overview of actions
+==== Some actions
 
-_collect_:  Writes the RDD to some destination
+*to-do*
+
+_collect_: Access the RDD in memory. I.e. the RDD must fit into memory, and thus collect can't be used on large RDDs.
+
+_saveAs(Text|Sequence|...)File_: As the name sais.
 
 _count_: Returns the number of values.
 
 _count by value_: Returns a list of tuples (value, valuecount).
 
-_reduce_ (as in MapReduce):
+_reduce_ (as in MapReduce): User provides a binary function returning a value of the same type as the two arguments. The function is applied to (1st, 2nd), then (result, 3rd) and so on. E.g. to sum all elements, the function would would e.g. be "lambda x,y: x+y".
+
+_fold_: As reduce, but gets passed a "zero value" to be used for the initial call on each partition.
+
+_take_: Return the first n values.
+
+
+==== Some key-value pair actions
+
+_collect as map_: As collect, but using the language's dictionary data type.
+
+_count by key_: For each key, return the number of occurences.
+
+_lookup_: Return value for a given key.
+
+
+=== Tail latency
+
+When computation is parallelized among many nodes, it is almost guaranteed that one or more node needs substantially more time than all the other nodes.  When a single node has a probability of p of requiring less time than 1s (SLA), then when having n machines, the probability that at least one needs more than 1s is (1-p)^n^, which goes to 1 quickly.
+
+Some reasons why some taks take substantially longer than the average:
+
+- When resources are shared, some tasks might be unlucky an have to wait longer to get access than on average.
+
+- A background deamon doesn't use much time on average, but every now and then it might use quit a bit of resources.
+
+- Periodic maintenance activities, e.g. log compaction, (heap) garbage collection, garbage collection in SSDs, data reconstruction in a DFS.
+
+- Multiple layers of queueing in intermediate servers and network switches.
+
+- Computers might throttle under high CPU load to avoid overheadting. There's a delay when waking up a computer or some piece of HW from a power-saving mode.
+
+_(naive) hedge request_: Execute each task / request twice, the one first done wins. Trades time for ressources.
+
+_(defered) hedge request_: Duplicate a task / request only after the execution time of the original tasks exceeds the x percentile (say 95%) of the empirical response time, where the empirical response time was measured by some past benchmark.  Possibly one benchmark for each class of tasks.
+
+_tied request_: Put the task into two queues. The task which starts first wins, the other is removed from the queue. That helps to mitigate the problem that a few tasks wait long in their queue.
+
+_micro-partitions_: 100 or 1000 partitions per machine. When benchmarks show that a node is slower, assign less partitions to it, or in an extreme case shut it down completely.
+
+_good enough_: If the true / optimal result is not mandatory, we can just ignore tasks that take too long.
 
 
 == Data Stores
@@ -730,6 +876,55 @@ _Key-value model_:  A data model. Some mapping from a key to a value.
 _Column store_ (or _column-oriented DB_): A data model. Store data by columns (as opposed to by rows). One advantage is that subsequent cells in the same row tend to be similar, thus compression algorithms tend to work well.
 
 _Wide column store_: A data model. Store data by rows, keys identify rows, `group' columns in families. However each row can have its own individual columns.  Thus a wide column store can be interpreted as a two level nested key-value store.  The key of the outer level is the row id, the key of the inner level is the column id, and the column family id is also given.  In the tabular model, joins are very expensive.  In the tabular model we love to have data in normal form, and as a consequence there are many joins.  Paradigm of BigTable: store together what is accessed together (i.e. quite the opposite of normal forms). That makes batch processing better, since we only have to pay latency once (recall we want to avoid latency as much as possible), and after that it's just throughput. To fulfill the paradigm, we denormalize. That can also be seen as precomputing the joins we expect to occur often.  Thus reads become faster.  The price is that we introduced anomalies, so writes are now more expensive. Examples: Google's BigTable, HBase, Cassandra.
+
+_relational database_: Homogenous collection of flat items.
+
+_document store_ (or _document-oriented database_): Heterogenous collection of arborescent items.
+
+_unstructured document_: text?
+
+_semi-structered document_  (or _document-oriented information_): Database model of document store.
+
+_structured documents_: table
+
+
+== Syntax
+
+_well-formed_: A well formed document adheres to the grammar. I.e. it is a member of the language (in the theoretical computer science meaning).
+
+
+=== XML
+
+Simplification of SGML.
+
+Misc: case-sensitive. Loosely speaking, doesn't care about whitespace.
+
+_document_: Must have at least one top level element. May optionally start with an "xml" preprocessing instruction.
+
+_element_: <foo [attributelist]>...</foo>. _empty element_: <foo.../>. <foo> is an _opening tag_, <foo/> is a _closing tag_. The _attribute list_: List of attributename="attributevalue" or attributename=\'attributevalue'.  You can use references within attribut values.  Attribute values may not contain the literal "<", "&" or the character denoting the end of the string.  Attributenames cannot be repeated in the same list.
+
+_XML Names_: Composed of ASCII {alphanumeric, underscore, dash, point}, however may not start with {numbers, dash, point}. The prefix "xml" (independent of case) is reserved for W3C.
+
+_XML Namespaces_: <foo xmlns:bar="fred-url"> Defines "bar" to be a _namespace binding_ (aka shorthand) for the namespace "fred-url". The scope is the foo element itsels and it's descendants.  Within the scope the namespace can be used by prepending "bar:" to a _local name_, e.g. "lorem", resulting in the _qualified name_ (or _QName_) "bar:lorem". "bar" is then called a _prefix_.  The prefix is really just a shorthand, i.e. when comparing qualified names, what matters is the pair (url, local name). _default namespace_: In the namespace binding definition, the prefix can be absent (xmlns="fred-url"). Any local tag name (i.e. default namespace does not apply to attribute names) in the tree without prefix will take that namespace.
+
+The "..." between opening and closing tag is _text_ (or _character data_); however that text can be interrupted by further elements. Following text cannot apear at the document top level. It may not contain literal "<" and "&".
+
+_comment_: <!--...--> Comments are part of the document, i.e. an application reading an XML document will see it after the parser. Cannot contain "--".
+
+_enitity references_: \&foo; There are exactly five: "lt" -> <, "gt" -> >, "apos" -> ', "quot" -> " and "amp" -> &.
+
+_character references_: \&#x...; where "..." is a unicode code point in hex. Leave out the "x" and its in decimal.
+
+_processing instruction_: <?...?>
+
+_CDATA section_: <![CDATA[...]]>. For literal text (aka verbatim).
+
+
+=== JSON
+
+https://www.json.org/
+
+Technically, an object can have multiple occurences of the same key, but one should not do that.
 
 
 == Storages
