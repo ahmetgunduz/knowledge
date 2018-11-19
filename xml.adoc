@@ -10,26 +10,238 @@
 
 _well-formed_: A well formed document adheres to the grammar. I.e. it is a member of the language (in the theoretical computer science meaning).
 
+A _valid_ document is one that includes a document type declaration and satisfies the respective DTD. Otherwise the document is said to be _invalid_; however one typically says that checking for validity requires a DTD.
+
 Simplification of SGML.
 
 Misc: case-sensitive. Loosely speaking, doesn't care about whitespace.
 
-_document_: Must have at least one top level element. May optionally start with an "xml" preprocessing instruction.
+_document_: Must have exactly one root element. May optionally start with an "xml" preprocessing instruction. The _root element_ (or _document element_) is the one element that does not have a parent.
 
-_element_: <foo [attributelist]>...</foo>. _empty element_: <foo.../>. <foo> is an _opening tag_, <foo/> is a _closing tag_. The _attribute list_: List of attributename="attributevalue" or attributename=\'attributevalue'.  You can use references within attribut values.  Attribute values may not contain the literal "<", "&" or the character denoting the end of the string.  Attributenames cannot be repeated in the same list.
+_element_: <foo [attributelist]>...</foo>. <foo> is an _start-tag_, </foo> is a _end-tag_. Everything between the start-tag and the end-tag (exclusive) is called the element's _content_. Whitespace is part of the content. An _empty element_ is one that has no content. It's syntax is like so: <foo [attributelist]/>.
 
-_XML Names_: Composed of ASCII {alphanumeric, underscore, dash, point}, however may not start with {numbers, dash, point}. The prefix "xml" (independent of case) is reserved for W3C.
+The content is generally a mixture of _text_ (or _character data_) and child elements. Elements containing only text are said to have _simple content_, elements containing only child elements are said to have _complex content_, and elements containing both are said to have _mixed content_.  Elements containing nothing (not even whitespace) are called _empty_. Text may not contain the literals "<" and "&".
 
-_XML Namespaces_: <foo xmlns:bar="fred-url"> Defines "bar" to be a _namespace binding_ (aka shorthand) for the namespace "fred-url". The scope is the foo element itsels and it's descendants.  Within the scope the namespace can be used by prepending "bar:" to a _local name_, e.g. "lorem", resulting in the _qualified name_ (or _QName_) "bar:lorem". "bar" is then called a _prefix_.  The prefix is really just a shorthand, i.e. when comparing qualified names, what matters is the pair (url, local name). _default namespace_: In the namespace binding definition, the prefix can be absent (xmlns="fred-url"). Any local tag name (i.e. default namespace does not apply to attribute names) in the tree without prefix will take that namespace.
+Simple content = text (but no child elelements)
 
-The "..." between opening and closing tag is _text_ (or _character data_); however that text can be interrupted by further elements. Following text cannot apear at the document top level. It may not contain literal "<" and "&".
+complex content = child elements (but no text)
 
-_comment_: <!--...--> Comments are part of the document, i.e. an application reading an XML document will see it after the parser. Cannot contain "--".
+mixed content = both child elements and text
 
-_enitity references_: \&foo; There are exactly five: "lt" -> <, "gt" -> >, "apos" -> ', "quot" -> " and "amp" -> &.
-
-_character references_: \&#x...; where "..." is a unicode code point in hex. Leave out the "x" and its in decimal.
-
-_processing instruction_: <?...?>
 
 _CDATA section_: <![CDATA[...]]>. For literal text (aka verbatim).
+
+_attribute list_: List of attributes. Each _attribute_ is a name-value pair like so: attributename="attributevalue" or attributename=\'attributevalue'.  You can use references within attribut values.  Attribute values may not contain the literals "<", "&" or the character denoting the end of the string (i.e. single or double quote).  Attributenames cannot be repeated in the same list.
+
+_XML Names_ (applies to all sort of names, tag names, attribute names etc.): Composed of ASCII {alphanumeric, underscore, dash, point} and Unicode letters, numbers, and ideograms. However may not start with {numbers, dash, point}.  Names starting with "xml" (independent of case) are reserved for W3C. XML names are case sensitive.
+
+_entity references_: \&foo; There are exactly five: "lt" -> <, "gt" -> >, "apos" -> ', "quot" -> " and "amp" -> &.
+
+_numeric character references_: \&#x...; where "..." is a unicode code point in hex. Leave out the "x" and its in decimal.
+
+_references_ in general: Can appear in attribute values and element content.
+
+_comment_: <!--...--> Cannot contain "--", which also rules out an comment ending like so "-\->". Comments may appear at the document top level and within element content. Comments are markup, i.e. an application reading an XML document will see it after the parser. However when a computer program should interpret the XML document, you should prefer processing instructions over comments. Comments can appear anywhere outside a tag.
+
+_processing instruction_: <?foo ...?>. To pass information to an application processing the XML document. `foo' is an XML name called the _target_, possibly the name of the application for which this processing instruction is intended, or possibly the name of this particular processing instruction. The rest, up to "?>", is anything. Processing instructions can appear anywhere outside a tag.
+
+The _XML declaration_ looks like a processing instsruction with target foo, but is not a processing instruction, but really just a thing called the XML declaration.  XML documents should beginn with an XML declaration, but are not required to. If there is one, it must be the first character in the document; not even whitespace may precede it.  Thus the XML parser can make reasonable guesses about the document's character encoding by reading the first 5 characters ("<?xml"). The `standalone' attribute should be set to `yes' if the document has an external DTD.
+
+_About character encoding_: By default XML documents are assumed to be encoded in UTF-8. This can be overwritten by an _encoding declaration_ inside the XML declaration like so encoding="ISO-8859-1".
+
+
+== Namespaces
+
+_XML Namespaces_: <foo xmlns:bar="fred-uri"> Defines "bar" to be a _namespace binding_ (aka shorthand) for the _namespace name_ "fred-uri". The scope is the foo element itsels and it's descendants.  Within the scope the namespace can be used by prepending "bar:" to a _local name_, e.g. "lorem", resulting in the _qualified name_ (or _QName_, ot _raw name_) "bar:lorem". "bar" is then called a _prefix_.  The prefix is really just a shorthand, i.e. when comparing qualified names, what matters is the pair (uri, local name). Prefixes are XML names.  _default namespace_: In the namespace binding definition, the prefix can be absent (xmlns="fred-uri"). Any local tag name (i.e. default namespace does not apply to attribute names) in the tree without prefix will take that namespace.
+
+By default you already get namespace "xml". It contains e.g. "lang" or "id". See https://www.w3.org/XML/1998/namespace.
+
+Style guide: Put all namespace bidnings in the root element. Rational: It's simpler to understand.
+
+
+
+== Document Type Definitions (DTDs)
+
+Old schema for XML. Superseeded by XML Schema.
+
+DTDs are written in a formal syntax that explains precisely which elements may appear where in the document and what the elements’ contents and attributes are.  A valid document includes a reference to the DTD to which it should be compared. This is given in the document’s single _document type declaration_, which looks like this: <!DOCTYPE person SYSTEM "foo-uri">, where foo-uri refers to the file containing the DTD. You also can make the DTD inline, called _internal DTD subset_, by using <!DOCTYPE person [...]>. The SYSTEM "foo-uri" is called _external DTD subset_.  Both of the two can appear in the document type declaration. As a general rule, the two different subsets must be compatible. Neither can override the element declara- tions the other makes. For example, name.dtd cannot declare the person element because the internal DTD subset already declares it. However, entity declarations can be overridden.
+
+DTDs don't know about XML namespaces (because DTD predate the introduction of XML namespaces). foo:bar is just some valid name.
+
+<!ELEMENT foo content_specification> is an _element declaration_ for the element named foo. content_specification is an expression composed of the following operators and terminals.
+
+Expression operators (as in regex): ?, *, +, |, (), concatenation (ordered) is with comma
+
+Terminals: EMPTY (empty element), #PCDATA (parsed character data; mixed content can only be specified by a choices list (pipe operator) with #PCDATA as first element), ANY (element is always valid), foo (element named foo).
+
+<!ATTLIST elementname attribute_specification+> is an _attribute declaration_ for element elementname. Each attribute specification looks like "attributename type attribute_default"
+
+Attribute types:
+
+CDATA:: Any well-formed text
+
+NMTOKEN:: XML name token, which is not the same as an XML name. A string constituting a valid XML name, however without the restriction that the first character must be a subset of the characters that's allowed elsewhere in the name.
+
+NMTOKEN:: Whitespace separated list of NMTOKEN
+
+(...|... ...):: Enumeration; pipe separated list of NMTOKEN.
+
+ID:: An XML name (not XML name token) being an unique within the document. I.e. no other ID type attribute in the document can have the same value. Since numbers are not valid XML names, often an underscore is used as prefix in the document for the value of an ID type attribute.
+
+IDREF:: Reference to an ID
+
+IDREFS:: Whitespace separated list of IDREF.
+
+ENTITY:: Is actually not about attributes; *to-do*
+
+ENTITIES:: Whitespace separated list of of ENTITY.
+
+Attribute defaults:
+
+#REQUIRED:: Attribute must occur exactly once
+
+#IMPLIED:: Attribute is optional
+
+#FIXED value:: The attribute value is the specified value. If the document explicitely states the attribute, it must have the specified value.
+
+value:: Use the specified value as default.
+
+
+=== General Entity Declarations
+
+<!ENTITY name value!> is an _internal ENTITY declaration_, declaring `name' as an abbreviation for `value', the same way XML character entities work.  The value is enlosed in either single or double quotes.  The value can contain markup; however the value must be well-formed.  It can contain entity references that are resolved bevore the text is replaced. Self-referential and circular references are forbidden, however.
+
+<!ENTITY name SYSTEM "foo-uri"> is an _external parsed ENTITY declaration_, declaring `name' as an abbreviation for the content of the file identified by foo-uri. References to external entities are not allowed in attribute values.  Note that a parser is not required to resolve an external entity reference; the XML standard gives it some leeway.  Loosely speaking, the content must be well-formed.
+
+The external entity document may start with a _text declaration_, which practically looks and feels the same as an XML declaration <?xml encoding="MacRoman">.  It is mostly about the encoding attribute to specifiy the encoding of the external entity document.  There is no `standalone' attribute however.
+
+_external unparsed entities_ are a way of embedding any data, text or binary, into an XML document.
+
+
+== XML Schema
+
+Newer, alternate, more powerful technology relative to DTD. Uses XML syntax. Provides namespace http://www.w3.org/2001/XMLSchema. By convention you should bind it to prefix "xs" in your schema. By convention schema files have file extension "xsd".
+
+The document containing the schema is called the _schema document_.  An XML document described by a schema is called an _instance document_.  If an instance document satisfies all the constraints specified by the schema, it is considered to be _schema-valid_.
+
+To associate a schema with an XML document, use an xsi:noNamespaceSchemaLocation or xsi:schemaLocation  attribute on an element and set the attribute value to the schema's uri, where xsi is a prefix bound to http://www.w3.org/2001/XMLSchema-instance. You can also explicitely give a validation parser both the XML document and the schema.
+
+Bind a prefix, commonly xs, to namespace http://www.w3.org/2001/XMLSchema. The root element of a XML schema must be the xs:schema element.
+
+Elements are declared using the xs:element element. The `name' attribute of xs:element specifies the name of the target element. The type of the target element is either specified via the `type' attribute of the xs:element, or via child elements of xs:element. An element that is declared to have a simple type cannot have any attributes.
+
+There are a number of built-in simple types. Such as string, Name (XML name), integer, boolean, anyURI, ....
+
+Attributes are declared using the xs:attribute element. Attributes are optional by default. To specify that the attribute is required, use the `use' attribute, and set it to "required". The `default' attribute lets you specifiy a default value. The `fixed' attribute lets you specify a value that is automatically assigned to the attribute which cannot be overwritten.
+
+
+=== Namespaces
+
+To associate a namespace to a schema, specify the namespace's URI as value of the targetNamespace attribute of the xs:schema element. In the instance document, set the value of the xsi:schemaLocation attribute to "namespace-uri schema-uri", where namespace-uri must match the URI specified as value of the targetNamespace attribute in the schema.  The elements and attributes specified in the schema are in the specified namespace.
+
+--------------------------------------------------
+<xs:schema ... targetNamespace="http://mynamespace">
+  <xs:element name="myelement" ...>...<xs:element>
+</xs:schema>
+
+<myprefix:myelement ...
+  xsi:schemaLocation="http://mynamespace myschema.xsd">
+  xmlns:myprefix="http://mynamespace">
+  ...
+</myprefix:myelement>
+--------------------------------------------------
+
+If the schema is not associated with an namespace, the specified elements and attributes are in no namespace.
+
+
+
+=== Types
+
+Types form a _type hierarachy_. An edge in the tree represents derivation. There are are four kinds of _derivation_: _restriction_ (limits the allowed content of the base type), _extension_ (adds to the allowed content of the base type), _list_ and _union_. _anyType_ is the root. From it derive all complex types, and the type _anySimpleType_, which is the root of the subtree of simple types. A _simple type_ cannnot have element children or attributes, where as a _complex type_ can. Complex types are divisible into two kinds: simple content and complex content (where here the term `complex content' doesn't yet specify wether or not it includes mixed content, see attribute `mixed' of xs:complexType).
+
+The default syntax for complex types is complex content that restricts anyType. That is the following
+
+--------------------------------------------------
+<xs:complexType name="myType">
+  ...
+</xs:complexType>
+--------------------------------------------------
+
+is an abbreviation for the following
+
+--------------------------------------------------
+<xs:complexType name="myType">
+  <xs:complexContent>
+    <xs:restriction base="anyType">
+      ...
+    </xs:restriction>
+  </xs:complexContent>
+</xs:complexType>
+--------------------------------------------------
+
+New types are defined using xs:complexType or xs:simpleType elements. They can be `inline', i.e. child of an xs:element.  They can be `global', in which case they must be named via a name attribute.  That name lives in the target namespace of the schema.  They can then be used as value for the type attribute of an xs:element element or xs:attribute element.
+
+xs:element s can have the attributes minOccurs and maxOccurs, which define how many times the element can be repetead, analogous to quantifiers in DTDs / regexes. Both default to 1. maxOccurs can also have the value unbounded.
+
+empty element: Via xs:complexType (and implicitely or explicitely xs:complexContent) containing no xs:element childs (but possibly xs:attribute childs).
+
+simple content and no attributes: xs:simpleType
+
+simple content and attributes: xs:complexType and within it xs:simpleContent.
+
+complex content: xs:complexType, attribute `mixed' at default "false", and implicitely or explicitely xs:complexContent.
+
+mixed content: xs:complexType, attribute `mixed' set to "true", and implicitely or explicitely xs:complexContent.
+
+
+facets: *to-do*
+
+xs:sequence: The elements the refered to element contains must appear in exactly the same order which which they appear within the xs:sequence element.
+
+xs:choice: The refered to element must contain exactly one of the child elements of xs:choice.
+
+xs:all: The refered to element must contain each of the listed child elements exactly once, in any order.
+
+
+== XPATH
+
+XPath is a non-XML language for identifying particular parts of XML documents.
+
+From the perspective of XPath, the XML document is a tree made up of nodes, where there are the following kinds of nodes: Root (representing document, not root element), element, text, attribute, comment, processing-instruction, namespace. Thus notably CDATA sections, references, the document type declaration and the XML declaration are already washed away by the parser.  The root node represents the entire document, that is _not_ the document's root element.
+
+The xmlns and xmlns:foo attributes are not considered attribute nodes. Instead, the respective information is within a namespace node, which is attached to _every_ element node which is in the scope of the binding.
+
+
+=== Location paths
+
+A _location path_ is a subset of XPath expressions. A location path identifies a set of nodes. A location path is built out of successive location steps. Each _location step_ is evaluated relative to a particular node in the document called the _context node_. Which node currently the context node is, is specified by the application using XPath. Every location step is composed of an axis test, a node test, and optionally a predicate.  In an abbreviated location path, the axis test and the node test are combined.  In an unabbreviated location path, they are separated by a double colon (::). "child::people" selects along the element child axis all people elements.  "attribute::foo" selects along the attribute axis all foo attributes.
+
+_available axes_: child element (foo), parent (..), self (.), attribute (@foo), descendant-or-self (//), descendant, ancestor-or-self, ancestor, following-sibling, preceding-sibling, following, preceding, namespace.
+
+_Root location path_: The root node in the XPath tree is identified by a forward slash "/".
+
+_Child element location step_: An XPATH being a single element name refers to the set of child elements of the context node with the specified namae.
+
+_attribute location step_: Analogously to the child element location step, but the name is prefixed by @.
+
+_comment(), text(), processing-instruction()_ location step: Match the set of child elements of the context node being of the specified node type.
+
+_wildcard_ location step: "\*" matches any child element. "foo:*" matches any child element in the namespace URI which the prefix foo refers to. "@\*" matches all child attribute nodes.  "@foo:*" matches all child attribute nodes in the namespace URI which the prefix foo refers to. "node()" matches all child nodes.
+
+_compound path_: Constructed from location steps. Forward slash "/" moves down in the hierarchy. E.g. "/people" refers to the root element, here people. "/people/person" refers to all person child elements of the people element. "/people/person/name" refers to all name child elements of those. "." refers to the context node. ".." refers to the parent node of the context node. "//" refers to the descendants of the context node (inclusive). E.g. "person//@id" selects the id attributes of all elements rooted at all person child elements of the context node. 
+
+_alternation_: The pipe "|" denotes alternation. There is a match if either expression matches.
+
+_predicates_: An location step refers to a set of nodes. You can filter that set, producing a new set, by providing a predicate expression which, when true, keeps the node. The syntax is to append "[expression]" to a location step. Relational operators are =, >, >=, <, \<=, and !=. For example "//person[@born\<=1976]" selects all person elements in the document whose born attribute has a numerical value of less than or equal to 1976. "//name[initial]" selects all name elements in the document which have at least one initial child element.  Boolean operators are "and", and "or". Predicate (sub) expressions that evaluate to numbers select the i-th element from the sequence, where counting starts at 1. E.g. "//foo[2]" selects the 2nd foo element of the document.
+
+=== General XPath expressions
+
+Recall that a location path returns a node set. General XPath expressions can return numbers, Booleans and strings.
+
+_numbers_: All numbers are floating point (8-byte IEEE 754, same as Java's double).
+
+_strings_: Delimited by either single or double quotes. A string is an ordered sequence of Unicode characters. The operators = != can be used to compare strings.
+
+_booleans_: Either true or false. There are no boolean literals, however you can use the XPath functions true() and false(). Operators are "and", and "or".
+
+_basic arithmetic_: + - * div mod. The operators behave as their counterparts in Java.
