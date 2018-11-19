@@ -105,11 +105,11 @@ Proof for sd[x̄] = σ / √n if independent and same variance σ²:  Var[x̄] =
 
 An _estimator_ (or _point estimator_ or _(point) estimate_), denoted θ̂ (or θ̂~n~), of a parameter θ, is technically a statistic g(X~1~, ..., X~n~) plus conceptually stating which paramater θ its an estimator of.  In other words, an estimator θ̂ is a single ``best guess'' of parameter θ.  An estimator is a random variable since a statistic is one, see there.
 
-Note that a program such as an machine learning algorithm that learns the parameters of a model is also an estimator.  Thus statements about how good an estimator can be, see e.g. Cramér-Rao bound, are important to machine learning. 1/(var[θ̂]𝓘(θ))
+Note that a program such as an machine learning algorithm that learns the parameters of a model is also an estimator.  Thus statements about how good an estimator can be, see e.g. Cramér-Rao bound, are important to machine learning.
 
 Recall that an estimator is a statistic and thus a random variable, so the _mean_ E~θ~[θ̂] and the _variance_ Var~θ~[θ̂] of an estimator are defined the usual way.
 
-The _bias_ of an estimator θ̂ with respect to an unknown parameter θ is defined as Bias~θ~[θ̂] = E~θ~[θ̂] - θ = E~θ~[θ̂ - θ].  An estimator with zero bias is called _unbiased_.  Otherwise the estimator is said to be _biased_.  It can be shown that unbiasdness is not necessarily the goal. There exists biased estimators which are better in the least sequares sense than any unbiased estimators, see Cramér–Rao bound.
+The _bias_ of an estimator θ̂ with respect to an unknown parameter θ is defined as Bias~θ~[θ̂] = E~θ~[θ̂] - θ = E~θ~[θ̂ - θ].  An estimator with zero bias is called _unbiased_.  Otherwise the estimator is said to be _biased_.  It can be shown that unbiasdness is not necessarily the goal. There exists biased estimators which are better (w.r.t. MSE) than any unbiased estimators, see Cramér–Rao bound.
 
 [[MSE_of_estimator]]
 The _mean squared error_ (or _MSE_) of an estimator θ̂ with respect to an unknown parameter θ is defined as follows. The MSE can be used to assess the quality of the estimator θ̂. Note that there's also an analogously defined MSE for the estimate f̂ of an regression function f, see there.
@@ -121,12 +121,13 @@ _Consistent estimator_: An estimator θ̂ with respect to an unknown parameter �
 
 If bias[θ̂]→0 and se[θ̂]→0 as sample size n→∞, then estimator θ̂ is consistent.
 
-_Cramér–Rao bound_ (_CRB_) or (or _Cramér–Rao inequality_, or _information inequality_):  Tells you how good (in the least squares sense) an estimator possibly can be.  𝓘 is the <<fisher_information>>.  Note that in general it cannot be computed, since for that we would need to know p(𝓓|θ), but it's still important that there is a lower bound.
+_Cramér–Rao bound_ (_CRB_) or (or _Cramér–Rao inequality_, or _information inequality_):  Tells you how good (w.r.t MSE) an estimator possibly can be.  Note that there might exist biased estimators which are better (w.r.t MSE) than any unbiased estimator.  Note that in general it cannot be computed, since for that we would need to know p(𝓓|θ), but it's still important that there is a lower bound.  𝓘 denotes the <<fisher_information>>.
 
-Var~θ~[θ̂] ≥ 1/𝓘(θ) [if unbiased estimator and some other assumptions] +
-Var~θ~[θ̂] ≥ (1+∇~θ~Bias~θ~[θ̂])²/𝓘(θ) +
 MSE~θ~[θ̂] ≥ (1+∇~θ~Bias~θ~[θ̂])²/𝓘(θ) + (Bias~θ~[θ̂])² +
-MSE~θ~[θ̂] ≥ (1+∇~θ~Bias~θ~[θ̂])²/(nE~θ~[Λ²(θ)]) + (Bias~θ~[θ̂])² [which assumptions?]
+MSE~θ~[θ̂] ≥ (1+∇~θ~Bias~θ~[θ̂])²/(nE~θ~[Λ²(θ)]) + (Bias~θ~[θ̂])² [which assumptions?] +
+Var~θ~[θ̂] ≥ (1+∇~θ~Bias~θ~[θ̂])²/𝓘(θ) +
+MSE~θ~[θ̂] = Var~θ~[θ̂] ≥ 1/𝓘(θ) [unbiased estimator and some other assumptions]
+
 
 *to-do* assumptions for 𝓘(θ) = nE~θ~[Λ²(θ)]
 𝓘(θ) = Var[Λ(θ)]
@@ -2598,6 +2599,8 @@ kernelized logistic regression: *to-do* 2.5.18 00:32:29
 
 multi-class logistic regression: *to-do*
 
+_logistic function_ f(x) = 1/(1+exp(-k(x-x0))): Is a sigmoid curve (i.e. S-shaped). k is the steepness of the curve, x0 the middle point of the curve.
+
 References:
 
 - Book ``Machine Learning, a Probabilistic Perspective'', chapter ``1.4.6 Logistic regression''.
@@ -3044,7 +3047,7 @@ f \~ GP(m(·),k(·,·)) denotes that f is a Gaussian process.  A Gaussian proces
 
 Very often the mean function is set to zero, i.e. m(x) = 0. The really interesting part is the covariance matrix.  Also in the following, we set m(x) = 0.
 
-The prior for y is only dependent on the Gaussian noise:
+Say the prior for y is only dependent on the Gaussian noise:
 
 p(y|σ²,k) = 𝓝~1~(y|0,σ²+k(0,0))
 
@@ -3074,7 +3077,7 @@ C~n+1~ = matrix(row(C~n~, k⃗), row(k⃗^T^, c)) [(n+1)⨯(n+1) covariance matr
 k⃗ = (k(x⃗~1~,x̃⃗), ..., k(x⃗~n~,x̃⃗)) [vector length n+1, similarity x̃ to X] +
 c = k(x̃⃗,x̃⃗) + σ² [scalar]
 
-Predictive distribution of y corresponding to a new observation x̃⃗.  Now here y⃗ does denote the labels of the data.  As always, a predictive distribution communicates the uncertainty about the prediction, here pretty directly directly via the variance σ̃².  Note that each prediction of an y given a x̃⃗ involves all the data (X,y⃗), as e.g. in KNN.  The formula follows from the above joint distribution of adding a new observation and the rules for conditional Gaussian distributions (2.81 and 2.82 in Pattern Recognition and Machine Learning).
+Predictive distribution of y corresponding to a new observation x̃⃗.  Now here y⃗ does denote the labels of the data.  As always, a predictive distribution communicates the uncertainty about the prediction, here pretty directly directly via the variance σ̃².  Note that each prediction of an y given a x̃⃗ involves all the data 𝓓=(X,y⃗), as e.g. in KNN.  The formula follows from the above joint distribution of adding a new observation and the rules for conditional Gaussian distributions (formula 2.81 and 2.82 in Pattern Recognition and Machine Learning).
 
 p(y|x̃⃗,𝓓=(X,y⃗),θ=(k,σ²)) = 𝓝~1~(y|μ̃,σ̃²) +
 μ̃ = k⃗^T^C~n~^-1^y⃗ [scalar] +
@@ -3304,9 +3307,9 @@ Allows to work implicitly (i.e. without actually calculating Φ(x)) in high-dime
 [[kernel_trick]]
 _Kernel trick_ (or _kernelization_): Express current learning algorithm s.t. it only depends on inner products. Replace those inner products by kernels.
 
-_Required properties of kernel_: Is a function k:𝓧⨯𝓧→ℝ, where 𝓧 is the data space, satisfying symmetry (k(x,xʹ)=k(xʹ,x) ∀ x,xʹ∈𝓧) and positive semi-definitess (kernel matrix (or gram matrix K = (k(x~i~,x~j~))~1≤i≤n,1≤j≤n~ must be positive semi-definit for any sample {x~1~, ..., x~n~} of 𝓧, for any n).
+_Required properties of kernel_: Is a function k:𝓧⨯𝓧→ℝ, where 𝓧 is the data space, satisfying symmetry (k(x,xʹ)=k(xʹ,x) ∀ x,xʹ∈𝓧) and positive semi-definitess (kernel matrix (or gram matrix K = (k(x~i~,x~j~))~1≤i≤n,1≤j≤n~ must be positive semi-definite for any sample {x~1~, ..., x~n~} of 𝓧, for any n).
 
-Verifying wether a kernel is positive semi-definit is generally not that easy, so one practical way of getting new kernels are the kernel composition rules and valid known kernels.
+Verifying wether a kernel is positive semi-definite is generally not that easy, so one practical way of getting new kernels are the kernel composition rules and valid known kernels.
 
 [[kernel_engineering]]
 _Kernel composition rules_ (or _kernel engineering_):
@@ -3400,13 +3403,15 @@ Shrinkage/Regularization: Fight overfitting (high variance) by applying <<occams
 | R̂~testset~(ĥ) | test error of given model ĥ
 | R(h) - R̂~𝓓~(h) | generalization gap
 | ĥ = argmin~h~(R̂~trainset~(h)) | empirical risk minimizer (ERM)
-| p(𝓓\|θ) or p(y~i~\|x~i~,θ) | likelihood
+| ℒ~𝓓~(θ) = p(𝓓\|θ) or p(y~i~\|x~i~,θ) | likelihood / likelihood function
 | p(θ) | prior (probability)
 | p(𝓓) = ∑~θ∈Θ~p(𝓓,θ) | model evidence (marginal likelihood)
 | p(θ\|𝓓) = p(𝓓\|θ)p(θ) / p(𝓓) ∝ p(𝓓\|θ)p(θ) | posterior (probability)
 | θ̂^MLE^ = argmax~θ~(p(𝓓\|θ)) | maximum likelihood estimator (MLE)
 | θ̂^MAP^ = argmax~θ~(p(θ\|𝓓)) | maximum a posteriori probability estimate (MAP estimate)
 | p(y\|x,𝓓) | probabilistic prediction
+| Λ~𝓓~(θ) = ∇~θ~ ℒ~𝓓~(θ) | score function
+| 𝓘(θ) = Var[Λ(θ)] | Fisher information
 
 | ŵ = argmin~w~(R̂(w) [+ regterm]) | General pattern. R̂(w), i.e. loss function within, better be convex
 | ŵ = argmin~w~(RSS̃(w)) | Least squares linear regression
