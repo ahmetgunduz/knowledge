@@ -4,8 +4,11 @@
 :toclevels: 4
 
 
+= Big Data
+
 == Intro
 
+[[data_technology_stack]]
 Data technology stack:
 
 [cols="1,3"]
@@ -23,9 +26,9 @@ Data technology stack:
 | validation |
       XML schema, JSON schema, Relational schemas, XBRL taxonomies
 | data models |
-      Tables: Relational model, column store, wide column store / trees: XML Infoset, XDM / graphs: RDF / Cubes: OLAP / key-value model
+      Tables: Relational model, column store, wide column store / trees: XML Infoset, XDM / graphs: RDF / Cubes: OLAP / Unstructured text / key-value model
 | syntax |
-      text, CSV (table), XML (tree), JSON (tree), RDF (graph), Turtle (graph), XBRL (cubes)
+      Tables: CSV / trees: XML, JSON / graphs: RDF, graph / Cubes: XBRL / Unstructured text
 | encoding |
       ASCII, ISO-8859-1, UTF-8, BSON
 | storage |
@@ -80,21 +83,21 @@ _Scalability! But at What COST?_: The paper reminds that scalability is only a m
 
 *to-do* https://www.youtube.com/watch?v=6bWBEJBMNG0. I still don't get why he can be so much faster. Both in examples with single threaded, and when he also parallelizes with a few cores on his laptop. I think it's neither the case that he's a genius, nor that the others are dumb. Or were the others _really_ that careless?
 
-_Design principles_ of big data (by ourny Ghislain Gilles)
+_Design principles_ of big data (by Fourny Ghislain Gilles)
 
-- Learn from the past
+- Learn from the past / don't reinvent the wheel (e.g. we need schemas, query languages encapsulating the used data model)
 
 - Simplicity
 
-- Modularize the architecture / make good abstractions
+- Modularize the architecture / make good abstractions (see <<data_technology_stack>>)
 
-- Homogeneity in the large (e.g. blocks in HDFS, regions in HBASE, virtual nodes in chords). So at the large, things are easy to handle.
+- Homogeneity in the large (e.g. blocks in HDFS, regions in HBASE, virtual nodes in chords). So at the large, things are easy to handle, which allows us to scale out.
 
-- Heterogeneity in the small (a.g. add columns in HBase). Heterogenity gives flexibility to the client.  But the cost of increased complexity does not affect the system in the whole.
+- Heterogeneity in the small (e.g. be able to add columns in HBase, a document might be missing a field or have an additional field). Heterogenity gives flexibility to the client.  But the cost of increased complexity does not affect the system in the whole.
 
-- Separate metadata from data
+- Separate metadata from data (i.e. make schema optional, aka schema on read)
 
-- Abstract logical model from its physical implementation
+- Abstract (separate) logical model from its physical implementation
 
 - Shard the data
 
@@ -106,7 +109,7 @@ _choosing optimal chunk size_. One extreme is to do the splitting of the data sh
 
 _optimize network usage_: Try to push down prejection and selection as close as possible to the source. Then less data has to be transmitted. That's e.g. what Spark's DataFrame do, as opposed to Spark's RDDs.
 
-A database _transaction_, by definition, must be _ACID_: All the following must be guaranteed even in the event of errors, power failures etc. _Atomicity_ (each transaction succeeds completely or fails completely), _Consistency_ (each transaction brings DB from one valid state to another valid state, maintaining DB's invariants), _Isolation_ (result is as if transactions were executed in strict sequence), _Durability_ (once a transactin has been committed, will remain committed).
+A database _transaction_, by definition, must be _ACID_: All the following must be guaranteed even in the event of errors, power failures etc. _Atomicity_ (each transaction succeeds completely or fails completely), _Consistency_ (each transaction brings DB from one valid state to another valid state, maintaining DB's invariants), _Isolation_ (result is as if transactions were executed in strict sequence), _Durability_ (once a transaction has been committed, will remain committed).
 
 _Consistency models_: _Strict consistency_: Changes are atomic and appear to take effect instantaneously. _Sequential consistency_: Every client sees all changes in the same order they were applied. _Causial consistency_: All changes that are causally related are observed in the same order by all clients.  _Eventual consistency_: If no updates are made, then eventually all accesses will return the last updated value. However in practice there's a continous stream of updates, so consistency will never happen.  In other words: Every update will eventually be propagated. _Weak consistency_: Clients may see updates out of order, or may not see an update at all.
 
@@ -126,11 +129,21 @@ _batch processing_: *to-do*
 
 _data independence_: *to-do*
 
-_shard_: *to-do*
+_sharding_ (or _horizontal partitioning_): Partition the data, and give each shard (aka partition) to a different machine. Thus the load per machine is reduced, we can operate in parallel, and it allows for scaling out. Having one shard per customer (or one shard for european customers, one for north american customers etc)  is also considered a typical form of sharding.
+
+_vertical partitioning_: *to-do*
 
 _Replication_: Rational: Fault tolerance. Local: node failure. With a lot of nodes, you are almost guaranteed that a node will fail. Regional: natural catastrophe. Thus spreading datacenters gives proximity to client (gives smaller latency) and protects against regional failures.
 
 _Storage classes_: High availability at high costs on one end and low availability (hours to access data) at low cost on the other end. The low end is typically for backups.
+
+_structred_ vs _unstructred_: As so often, there are shades of gray. Text is unstructured. A `messy' XML / JSON document is semi-structured, close to unstructured. A `nice'  XML / JSON document is semi-structured, close to structured. ProtocolBuffer / XML-with-DTD is structured.
+
+_schema_ / _validation_: One validates a document against a schema.
+
+_scema on write_ means that you first need to define a schema before you can insert new data. When inserting it is ensured that the data is valid w.r.t. the schema. E.g. a relational DB. _schema on read_ means that data is verified against a schema only upon request, e.g. after reading the data. I.e. data and schema are decoupled. E.g. XML.
+
+_value space_: What the set of valid values of a type logically are. _lexical space_: how these values are represented on disk.
 
 Random notes:
 
@@ -178,6 +191,32 @@ Doing updates (i.e. propagation to other nodes) asynchronous gives you availabil
 === REST
 
 _REST_ API (Representational State Transfer): REST is the way HTTP should be used. It's always a method (GET, PUT, DELETE, POST, ...) plus a resource (URI). PUT must be idempotent (when issued multiple times, the 2nd plus requests have no effect). GET must be side-effect free.  POST is the most generic, it can have side effects.
+
+
+=== OLAP, OLTP, Data Warehouse
+
+_On-Line Transaction Processing_ (_OLTP_): `Traditional' database operations. Typically there are _lots_ of operations (aka transactions), each only touching a small portion of the database. E.g. there are millions of customers, or products, but you query only one.  Tables are typically normalized to avoid anomalies. Typically there are a lot of writes (but as any operation in OLTP, touches only a small portion of the database, e.g. insert a new record or modify one existing record). Typically very fast, i.e. usable in an interactive environment.
+
+_On-Line Analytic Processing_ (_OLAP_) is examination of data for patterns or trends in order to make decisions. This generally involves few highly complex queries that typicially touch large portions of the database. Typically tables are denormalized (introducing risk of anomalies) in order to make queries fast. Typically there are a lot of reads and (almost) no writes. Typically quite slow, e.g. grab a coffe or overnight. The term OLAP can be viewed in a wide sense where it includes also things such as Spark and MapReduce, but historically some people view it in a more narrow sense where OLAP means data cubes.
+
+OLAP applications commonly take place in a readonly copy of the master database (or multiple source data bases), called a _data warehouse_. OLAP queries and OLTP querries are generally different, so a dataware house has a different architecture than a traditional database. The data warehouse is readonly; however there might be incremental updates from the source data bases. Typically implemented via data cubes.
+
+The process of creating the data warehouse from the source databases is also called _extract transform and load_ (_ETL_). The subject of the query (is it about customers, or sales, or ...) might influence the resulting data warehouse. Often the copy is made overnight, and thus is up to one day out of date. The transform step includes things such as normalizing data (not in the RDBMS sense) (e.g. turn all of {mister, monsieur, Herr, ...} into one single form, say mister), otherwise cleanup the data for easier OLAP queries, filter, join etc. The load step means actually creating the dataware house data (often a cube) from the data comming out of the transformation step. The load step includes checking integrity constraints, store in sorted order, build indicies, partition the data.
+
+Implementations of OLAP:
+
+[[ROLAP]]
+_ROLAP_ (_relational OLAP_): OLAP is implemented on top of a RDBMS by using a so called _star schema_. There is one table which stores the facts table. The facts table is visually the center of the star. The columns representing the dimensions are the key of the facts table, the columns representing the measures are the dependend columns. Each dimension (i.e. column in the facts table), can optionally have satelite data, which is stored as another table, called _dimension table_. E.g. the customer dimension / column in the facts table stores customer ids, and there is a "customer" dimension table having customer id as key, and further dependend columns such as name, address etc. So a dimension table describes all possible values of a given dimension. The facts table column this dimension table is associated with is a foreign key. As an extension to the star schema, if you normalize the dimension tables, you get the so called _snow-flake schema_.
+
+_MOLAP_ (_multi-dimensional OLAP_): OLAP which stores its data in an optimized multi-dimensional array storage. The physical layer is typically directly memory and/or disk.
+
+_HOLAP_ (_hybrid OLAP_): Mix of ROLAP and MOLAP.
+
+OLAP query Langagues (recall that in a wide sense, OLAP is not restricted to cubes):
+
+- In case of ROLAP: SQL as a low level query language, on top of which higher level OLAP query languages such as MDX can sit.
+
+- In case of cubes: MDX.
 
 
 == Relational model
@@ -475,6 +514,204 @@ Buffer leak: when a page request can't comply because all pages in buffer are pi
 Disk space manager provides about this API: allocate/free a page, read/write a page. Higher levels expect that sequencial access to pages has an especially good performance.
 
 
+== Data Store
+
+
+=== MongoDB
+
+A document store. Each document stores a tree via JSON.
+
+Features:
+
+- Indexing. generic secondary indicies, unique index, compound index, geospatial index, full-text indexing.
+
+- Aggregation pipeline (framework for data aggregation)
+
+- Special collection types: time-to-live collections, fixed-size collections
+
+- Can be used as file storage *to-do* inclusive metadata?
+
+Notable absent features: joins and complex multirow transactions. An architectural decision to allow for greater scalability.
+
+A _document_ is an ordered map (i.e. ordered set of keys with associated values). However you should not rely on ordering; apparantly even some tools ignore / mess-up the order. Values have types. A value can be again an document (called _embedded document_), resulting in a nested structure, i.e. a tree. Every document must have an ___id key__, the value of which must be unique within a collection. The type is unrestricted, but defaults to ObjectId. _id is always indexed.
+
+A _collection_ is a set of documents. Indicies are defined per collection. Collections are hierarchical, giving raise to _subcollections_. However, a subcollection does not have any special properties. A fully qualified collection name consists of dot (.) separated parts.
+
+A _database_ is a set of collections. As a rule of thumb, store all data for a single application the the same database.
+
+A _MongoDB instance_ is a set of databases.
+
+_Names_: The keys are cassensitive strings. Any Unicode character is allowed except for the null character. Also, the characters "." and "$" have special meanings. The prefix "system." is reserved.
+
+Writing is atomic with granularity of one document. _Write concern_ is a client setting which specifies whether writes should be _acknowledged_ or _unacknowledged_. Unacknowledged writes return immediately and don't return any error.
+
+_document order_ / _padding_: The storage format is BSON. The data is stored on the local drive, see also <<mongodb_shard_data>>. The documents of a collection are stored one after another, each with some padding (given by the _padding factor_), which allows a document to grow. However, if the padding doesn't suffice, the document is relocated, usually to the end of the collection. The padding factor is initially 1 (no padding), and is dynamically adjusted depending on how many documents outgrow their padding and how many updates are within the existing padding.
+
+_cursor snapshots_ / _snapshot query_: The problem: "cursor = db.mycollection.find(myquery); while (cursor.hasNext()) { var doc = cursor.next(); doc = process(doc); db.mycollection.save(doc); }". When a document outgrows its padding, it is relocated, usually to the end of the collection.  In that case, the loop visits the document a 2nd time.  The solution is to snapshot the query: "db.mycollection.find(myquery).snapshot();" Snapshotting makes the query slower.
+
+[[mongodb_shard_data]]
+Shard data (group documents). Each shard is replicated. Each shard is stored via an master (called primary) - slave (called secondary) architecture. Writes are made a bit faster by trading durability for availability. Say there are 5 secondaries. A client writes to the primary, the primary writes to all 5 secondaries. Once the primary gets acknowlodgments from say two secondaries, it acknowledges to the client. The primary/secondary use their local drive, i.e. they are not on top of say MapReduce / Spark / HDFS etc.
+
+Replication brings:
+
+- Fault tolerance / prevent data loss
+
+- More availability since if one source is busy, we use another source.
+
+- Lower latency if a data center geographically closer to the client
+
+- Faster due to parallel processing *to-do* does this apply to MongoDB?
+
+
+==== Tutorial
+
+Run +mongod+ to start the MongoDB network server. Run +mongo+ to start the MongoDB JavaScript shell. That shell is also a standalone MongoDB client. By default it connects to the `test' database and assigns this database connection to the global variable +db+.
+
++use <databasename>+ switches to the specified database, i.e. db will afterwards refer to the specified database.
+
+------------------------------------------------------------
+mydoc = { "mykey1" : "myvalue1", "mykey2" : 42 }
+db.mycollection.insert(mydoc)
+db.mycollection.find({"mykey2": 42})
+------------------------------------------------------------
+
+
+==== Operations
+
+The query language is very primitive / simple which looks like JSON. Is intended to be used via high level programming langauge.
+
+Provides CRUD operations (on documents): create (+insert(newdoc)+), read, update (+update(matchexpr, newdoc)+), delete (+remove(matchexpr)+, matching documents will be removed)
+
+===== update
+
+db.collection.update(query:document, update:document, options:document) : WriteResult
+
+Modifies the document(s) matching the query according to the specified update. By default, only a single document is updated; set the `multi' parameter to true to update all documents that match the query.
+
+update(query, newdoc): replaces the existing document with the new document.
+
+update(query, {"<modifier>" : {"keypath" : newvalue}})
+
+- $set: sets the value of given key to the specified value, creating it if doesn't yet exist
+- $unset: removes the key (use 1 as newvalue)
+- $inc: increments the value by newvalue
+- $push: appends newvalue to the array of given key. To append multiple values, use suboperator $each, i.e. newvalue = {"$each" : [newvalue_1, newvalue_2, ...]}
+- ...
+
+
+===== find
+
+db.collection.find(query:document, projection:document) : cursor
+
+Returns a set (via a cursor) of documents matching the query.
+
+find({"foo.bar": myvalue}): Selects all documents where myvalue matches value of the element specified by the path. Interprets foo.bar as path, i.e. bar is the child of foo. The path may appear anywhere in the tree.  If the foo.bar element has an array as value, it is a match if any array element matches myvalue. When the query is the empty document ({}), all documents are returned.
+
+_query conditionals_: find({"foo.bar": {"<op>" : myvalue}}): op can be {$eq, $ne, $gt, $lt, $lte, $gte, $in, $nin, $or, $not}. $in ($nin): the value of the element specified by path is (not) in the array specified by myvalue. $or: myvalue is an array of query:document. $not: myvalue is an query:document.
+
+_projection_: find(query, {"foo": 1, "bar": 1}). Selection (query) and projection at the same time. Returns only the specified keys, here foo and bar. Note that the _id key is still returned by default. Use value 0 instead 1 to return all keys but the state one.
+
+_cursor_ / _cursor modifiers_: The order in which cursor modifiers are specified has no effect *to-do* so in which order are they then executed/applied?
+
+- pattern: cursor = db.mycollection.find(...); while (cursor.hasNext()) { doc = cursor.next(); ... }.
+
+- _sort_: cursor.sort(sort:document). Specifies the order in which the query returns matching documents. You must apply sort to the cursor before retreiving any documents from the database.
+
+- _limit_: cursor.limit(value). Limits the the number of returned documents to the specified value. You must apply limit() to the cursor before retrieving any documents from the database.
+
+_query modifiers_ (or _wrapped queries_): db.mycollection.find(myquery).sort(mysort) is wrapped in a larger document, resulting in {"$query" : myquery, "$orderby" : mysort}. The more general form is { "$query" : myquery, <option>:optionvalue }, where <option> can be $max, $min, $orderby etc.
+
+How to identify nodes in the tree, i.e. different schemes for assigning ID s to tree nodes:
+
+- integers: enumerate nodes in a preorder traversal
+
+- floating point: as integers, but allows for insertion
+
+- dewey IDs: hierarchical as enumrating book chapters
+
+- ORDPATH IDs: *to-do* as dewey ids, but initially only with odd numbers. Unlike dewey, allows for insertion by using even numbers in some way.
+
+
+==== Indexes
+
+As in relational data bases to make selection faster. MongoDB's indexes work almost identically to typical relational database indexes. B-trees or Hash tables. At the large scales MongoDB is intended for, indexes are essential. A query that does not use an index is called a _table scan_.
+
+The _id key is always indexed.
+
+A _compound index_ is an index on more than one field / key.
+
+_Cardinality_ refers to how many distinct values a field can have. "gender" traditionally only two, "email" is likely to be unique for each document in the collection, "age" is somewhere inbetween.
+
+_Creating an index_: db.mycollection.ensureIndex({"mykey" : 1}). For compound indexes, it's analogous {"mykey1" : 1, "mykey2" : 1, ...}. The value 1 is for ascending, the value -1 for descending, "hashed" for an hash index, "text" for a text index. _Indexing embedded documents_: Keys in embedded documents can also be indexed the natural way: ensureIndex({"mykey1.mykey2": 1}).
+
+Rational for specifying order of an index: Makes sense when sorting on multiple criteria. Say you want to sort first by key1 ascending, then key2 descending, but the index is ascending for both key1 and key2. Then for each distinct key1, the associated key2s are in the wrong order in the index and we have to jump around in the index.
+
+_unique index_: ensureIndex({...}, {"unique": true}): Establishses a contract that each value will only appear once in the index. Inserting/updating a document which violates that contract will cause an error. Creating an unique index on a collection which violates that will cause an error (in which case you might want to use dropDups to drop duplicates).  If a document doesn't contain the respective field, it appears as null in the index. Followingly there can be at most one document in the collection omitting the respective field (see sparse index as a possible remedy).  Note that the implicit index on \_id is a unique index. _Compound unique index_: Only the concatenation of the index's fields must be unique.
+
+_sparse index_: ensureIndex({...}, {"sparse": true}): Sparse indexes only contain entries for documents that have the indexed field, even if the index field contains a null value. The index skips over any document that is missing the indexed field. Note that MongoDB's sparse indexes are a completely different concept from RDBMS' sparse indexes.
+
+index {"key1" : 1, "key2" : 1}, query find({"key1" : ...}).sort({"key2"}): Called _point query_. The index can be used very efficiently.
+
+index {"key1" : 1, "key2" : 1}, query find({"key1" : {"$gt": ..., "$lt": ...})): Called _multi value query_. The index can be used very efficiently; however here the 2nd field (key2) of the index is not used.
+
+index {"key1" : 1, "key2" : 1}, query find({"key1" : {"$gt": ..., "$lt": ...})).sort({"key2" : 1}): The index only helps for the find part. The documents found by find have to be sorted in memory explicitely; the index on key2 only helps directly if all the document currently in question have the same key1.
+
+As before, but now with a index which switches the keys, i.e. {"key2" : 1, "key1" : 1}: Now MongoDB can iterate over each key2 in the index, and for each key2 efficiently find the key1 matching the find query.
+
+_Only one index is used_: (Currently) MongoDB can only use one index per query (that is actually per $or clause). Thus if the query asks for two keys (find({"key1":..., "key2":...})), only one index can be used.
+
+_hint_: We can use hint to force MongoDB to use a certain index, as for example in db.mycollection.find(...).sort(...).hint({"key1":1, "key2":1}). See also patterns below. If you want a _table scan_ (i.e. don't use any index), say hint({"$natural":1}).
+
+_explain_: db.mycollection.find(myquery).explain(): Describes what the query is doing.
+
+_covered indexes_: When an index contains all the values requested by a query, it is said to be a _covering query_. In that case the document an index entry refers to must not even be looked at.
+
+_implicit indexes_: A compound index can be used for any query which uses prefix of the index's keys. I.e. if the index is (key1, key2, key3, key4), then it can be used for queries on (key1) or (key1, key2) or (key1, key2, key3) and so on.
+
+
+patterns / tips:
+
+- index {"sortkey":1, "query_criteria":1} often works well, because most apps don't want all possible results for a query but only the first few. *to-do* how does that relate to _right-balanced_ index?
+
+- Create index on fields with high cardinality, to narrow down the set of matching documents quickly.
+
+- Creating on existing documents is slightly faster than creating the index first and then inserting all the documents.
+
+
+=== Neo4j
+
+A graph database, the labeled property graph variant. Uses Cypher as query language.
+
+
+==== Neo4j Internals
+
+Does replication, but not sharding. Uses a master-slave architecture for replication. That also increases availability.
+
+Transactions (by definition ACID) are semantically identical to traditional RDBMS transactions.
+
+Data structure: Labels of a node are stored as a singly linked list attached to a node. Same goes for properties. The edges of a node are stored as a doubly linked list (called _relationship chain_), where the pointers are stored in the edge data structure. Each edge has each a pointer to the source node and the target node. Properties for a node / responsibility are stored in a singly linked list.
+
+The graph is stored in multiple store files. Each _store file_ contains a certain aspect: nodes, relationships, properties etc. Ids use 4 bytes. Note that the fixed size records allow for O(1) lookup of a specific record.
+
+The _node store_ stores all the nodes. Each node is stored in a fixed sized record of 9 bytes. 1 byte as `isInUse' flag, id of the node's first relation in the relationship chain, id of the node's first property.
+
+The _relationship store_ stores all the relationships. Each relationship is stored in a fixed sized record of 33 bytes.  1 byte as `isInUse' flag, ids of to source and destination node, id of relationship type, ids of the next / prev relationship for the source / destination node, id of edge's first property.
+
+The _property store_ stores all the properties (both of relations and nodes). Fixed size records. Four property blocks, the id of the next property in the chain. One to four property blocks are required to store a single property. *to-do* better understand the details how a single property is stored
+
+The _cache architecture_ consists of the operating system's file cache and a high-level cache.  The file system cache is intended for modifications.  The _high-level cache_ (or _object cache_) stores nodes, relationships and properties and is optimized for arbitrary read patterns.  Here the data structure is different from the one on disk. A node also stores its properties and pointers to its relations, sorted first by relation type, then by relationship direction (in/out). A relationship stores its properties; but no longer pointers to next/prev relationship in the relationship chain.
+
+_Indexes_: Indexes are used to quickly find the starting node of a query, see also START clause in cypher.
+p
+_Latency_: Most queries flollow a pattern wherby an index is used to quickly find starting nodes; the remainder of the graph traversal then uses a combination of pointer chasing and pattern matching. That is, performance does not depend on the graph size, but only on the size of the graph bequing queried. Contrast this with RDBMS where joins depend on the size of the two involved tables.
+
+_API hierarchy_: From low-level to high-level: Kernel, Core API, Traverser API, Cypher.
+
+*to-do* I don't understand how to scale out. So with neo4j, we have the same limitations in size as a traditional RDMS, right? It must fit on a single machine.
+
+*to-do* Despite the caches (which as all caches are tiny compared to the data on disk), I don't see how can all this pointer chasing be efficient. Isn't the query time totally dominated by disc seeks?
+
+
 == Processing
 
 === MapReduce
@@ -686,6 +923,7 @@ _cartesian product_: Think lhs RDD as column vector and rhs RDD as row vector. T
 
 _group by_: Applies a function to every value. The function returns a key, and thus logically yields a key/value pair. Then it continuous like groupByKey.
 
+
 ==== Some key-value pair transformations
 
 RDDs are not required to be lists of key-value pairs, but they can be, and some transformations make use of them.
@@ -879,13 +1117,247 @@ _Wide column store_: A data model. Store data by rows, keys identify rows, `grou
 
 _relational database_: Homogenous collection of flat items.
 
-_document store_ (or _document-oriented database_): Heterogenous collection of arborescent items.
+_document store_ (or _document-oriented database_): Heterogenous collection of arborescent items. Replaces the concept of a `row' in a relational database with a more flexible model, the `document'. Scaling out is much easier than with a relational database. Scales to billions of documents and PBs of total storage.  We have project and select, but not join.  Join is less important, since we already denormalized (i.e. pre-joined).  Can also be interpreted as a key-value model if the documents have ids (as MongoDB does).  Implementations: mongoDB, CosmosDB (Azure) CouchDB, elasticsearch, existdb, Cloudant, ArangoDB, basex, MarkLogic. There are ways to store trees in an relational database, but its not really nice. It works better if the trees are (almost) heterogneous. It works even better if they are (almost) flat.
+
+_graph databases_: see <<graph_databases>>
 
 _unstructured document_: text?
 
 _semi-structered document_  (or _document-oriented information_): Database model of document store.
 
 _structured documents_: table
+
+*to-do* diagram which plots (# entities, # storage per entity (or total storage)) where document store, relational data base, object store etc.
+
+
+=== Cube
+
+A _data cube_ (or _OLAP cube_ or just _cube_ or _multidimensional dataset_) is a data model meant for OLAP. You can also view it as a multidimensional spread sheet (spread sheet as in Excel). Each cell has one or more value in it, also called _measure_. The number of measures and type of each measure is uniform for each cell of the cube. Each dimension might be a property such as name, country etc. A _facts table_ is a data cube flatened to a table. Each dimension gets a column, and there's an additional column for each measure. Each row in the facts table is called a _fact_.
+
+*to-do* compare and contrast _raw-data cube_ and _formal data cube_; make the above paragraph correct regarding this distinction.
+
+Operations on a data cube:
+
+_Aggregation_ (loosely equivalent to SQL group-by on the facts table): `Remove' one dimension by aggregating all values along that dimension, resulting in a new data cube with one dimension less. E.g. if one dimension is date, but we don't care about the date, we can ignore the date by aggregating over it.
+
+_Slicing_ (equivalent to SQL selection (WHERE clause) on the facts table): Regarding a given dimension, only care about values fulfilling a given predicate, and drop the other values. E.g. if one dimension is customer_firstname, the predicate might be (customer_firstname = "Bob" or customer_firstname = "Alice"). The dimensions of the cube remain the same.
+
+_Dicing_ (equivalent to SQL group-by): Partition each dimension. Possibly turn one dimension into one single partition. (Only relevant if you try to imagine this: Each partition / `slice' must not be continuous along its dimension. So you might mentally want first to reorder such that each partition is continous along its dimension and then truly a slice). So the cube is diced into dices. Each die, consisting of multiple cells along each dimension, becomes a cell of the new cube by aggregating all cells of the die. Say one of the many dimensions is product, which has satelite data which has a color column, then `dicing by product.color' means that we partition the product dimension by product.color, and each other dimension is turned into one single partion.
+
+*to-do* so dicing by dim1 is the same as aggergating over all other dimensions?
+
+_Drill-down_ is the process of making the dicing partitions more finely (which includes dicing more dimensions) and / or make the slicing predicates more specific (which includes making the predicate look at more dimensions). _Role-up_ is the opposite: make the dicing partitions more coarse (which includes dicing less dimensions) and / or make the slicing predicates less specific (which includes making the predicate look at less dimensions).
+
+Assuming OLAP is implemented as <<ROLAP>>, and assuming a star schema (see ROLAP) is used. The above data cube operations can be implemented in SQL as follows:
+
+Aggregating over dim1:
+
+--------------------------------------------------
+SELECT /* all dimension cols except dim1,
+          SUM(measi), i for all measure cols */
+FROM factstable
+GROUP BY /* all dimension cols except dim1 */
+--------------------------------------------------
+
+Slice on (dim1 = 42 or dim = 77). The core part is the WHERE clause. So if you add that core part to another query, you added "slice on (dim1 = 42 or dim = 77)" to that query.
+
+--------------------------------------------------
+SELECT *
+FROM factstable
+WHERE /* filter on dim1, e.g. "dim1 = 42 or dim = 77" */
+--------------------------------------------------
+
+Dice by dim1Table.color:
+
+------------------------------------------------------------
+SELECT dim1Table.color,
+       /* SUM(measi), i for all measure cols */
+FROM factstable JOIN dim1Table on dim1 = dim1Table.id
+GROUP BY dim1Table.color
+------------------------------------------------------------
+
+Dice by dim1Table.color and dim2 (i.e. every value of dim2 gets its own partition):
+
+------------------------------------------------------------
+SELECT dim1Table.color, dim2,
+       /* SUM(measi), i for all measure cols */
+FROM factstable JOIN dim1Table on dim1 = dim1Table.id
+GROUP BY dim1Table.color, dim2
+------------------------------------------------------------
+
+As syntactic sugar, to make the union of multiple dicers less verbose: The following is the union of the the tables produced by (dicing by dim1 and dim2, dicing by dim1, dicing by no dimension (i.e. aggregate all the cells of the cube)). The produced data can be used to create a cross tabulation table (only that the totals for dim2 are missing)
+
+------------------------------------------------------------
+SELECT dim1, dim2,
+       /* SUM(measi), i for all measure cols */
+GROUP BY GROUPING SETS ((dim1, dim2),(dim1),())
+------------------------------------------------------------
+
+As syntactic sugar, the previous can even be made more concise:
+
+------------------------------------------------------------
+SELECT dim1, dim2,
+       /* SUM(measi), i for all measure cols */
+GROUP BY ROLLUP (dim1, dim2)
+------------------------------------------------------------
+
+The previous produced the data required for a cross tabulation table, however the totals for dim2 were missing. To get the data required for a complete cross tabulation table:
+
+------------------------------------------------------------
+SELECT dim1, dim2,
+       /* SUM(measi), i for all measure cols */
+GROUP BY CUBE (dim1, dim2)
+------------------------------------------------------------
+
+
+[[MDX]]
+==== Query Language: MDX
+
+_MDX_ (Multi-Dimensional eXpressions) is a query language for cubes. A dimension can be hierarchical. E.g. in the geography dimension, the top level values are Europe, Asia, America etc., Europa in turn can be zoomed in to yield Switzerland, Germany etc., Switzerland can be zoomed in to yield Zürich, Schwyz, etc.
+
+
+==== Syntax: XBRL
+
+_XBRL_ (eXtensible Business Reporting Language) is a XML based syntax for storing cubes. Each fact (i.e. row of the facts table) is stored as an XML element. The attributes of which define the dimension values, the content the measurements.
+
+
+[[graph_databases]]
+=== Graph Database
+
+Motivation:
+
+- Tables have exensive joins. In the worst case, there are multiple joins, e.g. when we traverse tables. Trees (document store) try to solve the problem by pre-joining (aka denormalization). However the downside is that we need to know in advance the joins we want to pre-join for. In graph databases, relationships are first-class citzens. No joins required, everything is pre-joined. In RDBMS, performance of a join degrates with table size. In a graph database, query cost is proportional to only the size of the part of the graph traversed to satisfy that query.
+
+- In a RDBMS, one has to decide on a schema up front. In a graph database, the schema can evolve in tandem with the actual data.
+
+Relationships are first-class citizens of the graph data model. In RDBMS, they are implemented indirectly, e.g. via foreign-keys.
+
+There are two kinds of graph databases, (labeled) property graph and triple stores (RDF):
+
+A _graph compute engine_ does global graph computations / queries.
+
+_labeled property graph_: A kind of graph database. A _node_ can have properties and labels. An _edges_ (aka _relationships_) and can have properties and one label. Relationships are directional. A _property_ (or _attribute_) is a key-value pair. A _label_ can also be thought of as a _type_ or role, but in this view note that a node can be of multiple types. Technically a label is the same as an additional property with key "type" and as value a set of strings, however labels are more explicit and allow for more direct / convenient querying. Examples: Neo4j (native graph database, i.e. has its own physical way of storing, opposed to be on top of say an RDBMS). Note that unlike in many other areas, currently in graph data bases we don't do sharding, because the whole point of a graph is to go from any place to any place quickly, and with sharding it would mean that we may go from one machine to another machine while traversing the graph. However in near future we might find ways how to do sharding efficiently.
+
+_Triple stores (RDF)_: A kind of graph database, see <<triple_store>>. Examples: Semantic Web.
+
+_index-free adjacency_ (or _native graph processing_): Nodes point to each other via pointers. The key message of index-free adjacency is, that the complexity to traverse the whole graph is O(n), where n is the number of nodes.
+
+
+==== Cypher
+
+A declarative query language  for querying and updating a labeled property graph, specifically Neo4j. Based on the concept of _specification by example_.
+
+_Transactions_: Any updating query will run in a transaction and thus will always either fully succeed, or not succeed at all. If there is already a transiction in the running context, that one will be used. That can be used to run multiple updating queries by opening a transaction, running all the queries, finish the transaction.  If there is no transaction in the running context, the updating query will automatically be wrapped into a transaction.
+
+A _pattern_ consists of nodes and relationships connecting the nodes. A _relationship_ is one of: $$--$$, $$-->$$, $$<--$$. A _relationship restriction_ is enclosed in brackets, and the whole thing is inserted into the relationship ASCII arrows like so: $$-[mylabel]->$$. The previous example states that the relationship must have a label mylabel. If you later want to refer to that relationship, [myvar:mylabel] will bind the found relation to the variable myvar. To match either of multiple relationship labels, seperate them by pipes like so [:mylabel1|mylabel2]. To match properties, put them in curly braces (possibly preceded by label stuff) like so [{myproperty:somevalue}]. A _node_ is put in parenthesis like so: (). You can also say (myvar): if myvar is already defined, that defines a node, otherwise the found node is bound to myvar.
+
+Cypher is composed of _clauses_. Each clause starts with a keyword.
+
+_START_: To specify nodes and / or relationships and bind them to variables. For example ``START myvarname=node:myindexname1(mypropkey1="somevalue")'' uses the index myindexname1 to find all nodes with matching property, and assigns the result to myvarname.
+
+_MATCH_: A comma separted list of patterns. Patterns are described above.
+
+_WHERE_: To further conastrain matches
+
+_RETURN_: To specify which nodes, relationships, and properties to be returned.
+
+_CREATE_ / _CREATE UNIQUE_: Creates nodes and relationships. ``CREATE (mynode), (mynode2:label1:label2 {key1:'value1', key2:'value2'})'' creates a new node and binds it to the variable mynode, and it creates another node with the given labels and properties and binds it to mynode2. ``Create (node1)->[myrelation:label1]->(node2)'' creates a relation from node1 to node2, attaches label label1 to it, and assigns the new relation to the variable myrelation.
+
+_DELETE_: DELETES nodes, relationships, and properties.
+
+
+[[triple_store]]
+=== Triple store / Resource description framework (RDF)
+
+A way of defining a graph database. A triple (subject, property, object) defines a directed edge in a graph. The object is the source node, the property is the property of the edge, the subject is the destination node.
+
+*to-do* slides 121 122 123 etc (RDF schema, classes, types, ontology, simple entailment, OWL (Web Ontology Language) )
+
+*to-do* what's the difference between triple store and rdf? Is triple store more generic than rdf? Are there things which are an triple store but not rdf?
+
+Formats: RDF/XML, Turtle, JSON-LD, RDFa, N-Triples
+
+
+==== RDF/XML
+
+A syntax for RDF.  A prefix:localname is semantically concatened to build an IRI. The IRI the prefix is bound to typically ends with a sharp sign (#).
+
+The +rdf:about+ attribute of an +rdf:Description+ element specifies the subject. Property / object can be defined either by an simple element where the element name is the property and the text content the object (a value). Alternatively it's an empty element where the element name is the property and the +rdf:resource+ attribute specifies the object and optionally the +rdf:datatype+ attribute defines the XML type of the text content. The child element +rdf:type+ is as any another property (the propert being rdf:type and the object being the value of the rdf:resource attribute) and is not required.
+
+--------------------------------------------------
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    xmlns:foo="myIRI#">
+    <rdf:Description rdf:about="Subject1IRI#self">
+        <rdf:type rdf:resource="myIRI#mytype"/> <!-- also a property -->
+        <foo:Property1 rdf:resource="Object1_IRI"/>
+        <foo:Property2>Object2 literal value</foo:Property2>
+        <foo:Property3 rdf:datatype="...">1990-07-04</foo:Property3>
+    </rdf:Description>
+</rdf:RDF>
+--------------------------------------------------
+
+The above rdf:Description with an rdf:type child element can be abbreviated to, i.e. rdf:Description and it's child element rdf:type are merged into one element:
+
+--------------------------------------------------
+<foo:mytype rdf:about="Subject1IRI#self">
+   ... the three properties foo:Property(1|2|3) ...
+</foo:mytype>
+--------------------------------------------------
+
+
+==== JSON-LD
+
+A syntax for RDF.
+
+--------------------------------------------------
+{
+  "@context" : {
+    "rdf" : "specialIRI",
+    "myprefix1" : "namespaceIRI1",
+  }
+  "@id" : "myIRI",
+  "rdf:type" : "someIRI",
+  "myprefix1:myproperty1" : "someotherIRI",
+  "myprefix1:myproperty2" : somevalue
+}
+--------------------------------------------------
+
+==== RDF Schema
+
+A schema for RDF.
+
+indentation = rdf:subClassOf:
+
+--------------------------------------------------
+rdfs:Resource
+  rdfs:Class
+--------------------------------------------------
+
+
+==== SPARQL
+
+A query language for triple stores (aka RDF).
+
+--------------------------------------------------
+PREFIX myprefix1: namespaceURI1
+
+SELECT ?s
+WHERE {
+  ?s myprefix:myproperty1 myprefix:someValue1 .
+  ?s myprefix:myproperty2 myprefix:someValue2 .
+}
+--------------------------------------------------
+
+
+==== Turtle
+
+--------------------------------------------------
+@prefix myprefix1: namespaceURI1 .
+@prefix myprefix2: namespaceURI2 .
+eth:self myprefix1:myproperty1 someURI1 , someURI2, someURI3 ;
+         myprefix2:myproperty2 somevalue .
+--------------------------------------------------
 
 
 === JSON
