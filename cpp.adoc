@@ -44,9 +44,7 @@ Mixed value categories:
 
 glvalue (generalized lvalue);; Properties: May be polymorphic, ... (few more).
 
-rvalue;; (Flori's words:
-
-Hence if we do have an (rvalue) reference to it, we can do with it what we want (since nobody will care),
+rvalue;; Flori's words: Hence if we do have an (rvalue) reference to it, we can do with it what we want (since nobody will care),
 except for bringing it into an invalid state, in order that the ctor can run
 without errors)).  Properties: Address can't be taken, can't be used as lhs of
 the built-in assignment operator, may be used to initialize a const lvalue
@@ -178,140 +176,140 @@ the multiple viable overloaded methods. Concerning the cases of th above table, 
 == Initialization
 
 
-static	thread local	local	member, initialized in initializer list	member, initialized in class body	heap/new	temporary	return value	parameter	exception obj when throwing	exception obj when catching
-initializers for locals:
+C&plus;&plus;11 adds _uniform initialization_ using the brace syntax. Unlike C&plus;&plus;98's different syntaxes of initialization, it an be used anywhere (locals, members, statics etc.) an express anything (e.g. now we also can initialize collections).
 
-blank
-()
-(x), interpretable as types yes/no. Direct initialization, possibly narrowing conversions when initializing builtin types.
-(2plusargs), interpretable as types yes/no
-{}
-{x}. initializer_list ctor is prefered over ctor taking x's type (possibly with conversions). No narrowing conversion when initializing builtin types. Called direct initialization.
-{2plusargs}
-\= arg
-\= {}
-\= {x}
-\= {2plusargs}
+--------------------------------------------------
+// C++98
+rectangle        a(origin(),extends());  // oops, vexing parse
+complex<double>  c( 2.71828, 3.14159 );
+mystruct         m = { 1, 2 };
+int              a[] = { 1, 2, 3, 4 };
+vector<int>      v;                              // urk, need more code
+for( int i = 1; i <= 4; ++i ) v.push_back(i);    //   to initialize this
 
-unsorted:
+// C++11 (note: "=" is mostly optional)
+rectangle       w   = {origin(), extents()};
+complex<double> c   = {2.71828, 3.14159};
+mystruct        m   = {1, 2};
+int             a[] = {1, 2, 3, 4};
+vector<int>     v   = {1, 2, 3, 4};
+--------------------------------------------------
 
-- the standard is explicit that an empty ++{ }++ list means to call the default constructor if available
+Some rules
+
+- Uniform initialization prohibits narrowing conversions.
+
+- "T foo = bar" (copy initialization) means the same as "T foo(T(bar))" (conversion to T, then copy or move ctor using the temporary).
+
+- "T foo = \{bar}" (copy list initialization) is the almost same as "T foo\{bar}" (direct initialization), only that the former can't use explicit ctors.
+
+- If there is at leas one std::initializer_list ctor, and using the uniform initialization, it is _strongly_ preferred over other ctors; if there is any way to call it, it will be called. E.g. if a class has a ctor with signature "(int, bool)" and a ctor "(std::initializer_list<long double>)", the initializer "{10, true}" calls the initializer list constructor by converting the arguments to long double. Say in the previous example the class also has a convertion operator "operator float() const" and a copy ctor and a move ctor. Then, say x is of the class' type, the initializers "\{x}" and "{std::move(x)}" will both call the initializer list ctor, as opposed to the copy ctor or the move ctor respectively.
+
+- An empty ++{}++ list as initializer calls the default constructor if both the default ctor and the std::initializer_list ctor are available. If you want to call the std::initializer_list ctor, use "foo({})".
+
+- See <<auto_type_deduction>>.
+
+- _Most vexing parse_: The standard says ``If it can be a function declaration, it is.''. Thus both of the following are function declarations, not object definitions: ++T obj();++ and ++T obj(foo(),bar())++, given foo and bar are types. Another reason not to use initializers based on parens.
+
+- zero initialization: static T t; T(); T t = {}; T t{}; *to-do* more details https://en.cppreference.com/w/cpp/language/zero_initialization
 
 Guidelines:
 
-- If you provide an initializer-list constructor, also provide a default
-  constructor with the same semantics as though you were initializinng with a
-  zero-size initializer_list.
+- If you provide an initializer-list constructor, also provide a default constructor with the same semantics as though you were initializinng with a zero-size initializer_list.
+
+- Scott Meyers: Choose between either using uniform initalization by default and resort to paranthesis when you must, or vice verca, and then be consistent.
+
+- Herb Sutter: Use uniform initialization by default and resort to parenthesis when you must, but those cases should be rare.
 
 
-
-Most vexing parse::
-The standard says ``If it can be a function declaration, it is.''. Thus both of
-the following are function declarations, not object definitions: ++T obj();++
-and ++T obj(foo(),bar())++, given foo and bar are types. Another reason not to
-use initializers based on parens.
+References:
 
 - http://herbsutter.com/2013/05/09/gotw-1-solution/
 
+- Book "Effective Modern C&plus;&plus;", Chapter 3
 
 
 == auto
 
+See also <<auto_type_deduction>>.
 
-Strips top-level cv-qualifier (but there's a universal references exception with const) and all kind of references.
+++auto foo = ...++ vs ++const auto& = ...++ or ++auto&& = ...++
 
-``Avoid creating unnecessary objects'' -- quote from whom?. ++[const] auto++
-creates a new object, ++const auto&++ / ++auto&&++ only gives a name / an alias to an
-already existing object.
+- The general pattern ``avoid creating unnecessary objects'' suggest using the late
 
-++auto foo = initializer++ is bad because
-- case initializer is an lvalue (i.e. move ctor is not applycable): the type might not be copyable. In other words: for this to work, a copy ctor is required
+- For the former to compile, the type of the initializer must be copy-able. A restriction the later doesn't have.
+
 - in the case initializer is a call returning a refernce to some internal object, e.g. +at()+ of containers: foo is a copy, and modifying foo does not modify the original object, which might not be what was intended
 
+References:
 
-const auto& / auto&&: give an already existing object (another) name: the returned object (a temporary or an lvalue) a name (avoids creating an unneccessairy copy)
-const auto / auto: creates a new object: create a copy / initialize a new object with a literal
-
-??? how to store result of addrof operator?
-
-Herbs suggestion for input parameters (i.e. const local) where we don't know
-properties of type's ctors is 'const T&'. In contrast to function parameters, a
-local ref does not need to be implemented as pointer, so there is no indirection
-overhead relative to auto. Herb's suggestion for in/out (i.e. writable)
-parameters where properties of type is not know is T&. However that has the
-disadvantage that rvalues can't be passed, which is ok, since the caller does
-not see the modified rvalue, since rvalues or nearly always temporaries. Isn't
-for templates which modify the parameter the recomendation to use 'template<class
-T> foo(auto&&)'?
-
-also use const auto & / auto&& for result of operators. After all we don't know
-the type, i.e. member functions could be called.
-
-range-based for loop: the collection object, and its elements, most probably
-don't get destroyed, i.e. the const auto& / auto&& variable most probably
-continues to refer to an valid object. Also when calling a method. Due to
-structured lifetimes, its very probable that the const T& param continues to
-refer to an valid obj. Not so with local references: when bound to an object
-that was returned via an reference to it, it is not that easy to detect that the
-local reference still exists, but the refered to object has been deleted.
-
-
-
-+for+ can is almost identical to:
-----
-{
-  init_statement
-  while ( condition ) {
-    statement
-    iteration_expression ;
-  }
-}
-----
-
-+for ( __range_declaration__ : __range_expression__ ) loop_statement+
- is similar to
-----
-
-{
-  auto&& __range = range_expression ;
-  for (auto __begin = begin_expr, __end = end_expr; __begin != __end; ++__begin) {
-    range_declaration = *__begin;
-    loop_statement
-  }
-}
-----
-
-and thus
-----
-{
-  auto&& __range = range_expression ;
-  auto __begin = begin_expr, __end = end_expr
-  while (__begin != __end) {
-    range_declaration = *__begin;
-    loop_statement
-     ++__begin;
-  }
-}
-----
-
-
-- http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3853.htm
-- http://en.cppreference.com/w/cpp/language/range-for:
-  * It is safe, and in fact, preferable in generic code, to use deduction to forwarding reference, for(auto&& var : sequence).
-  * Examples show
-    ** for (const int &i : v)
-    ** for (auto&& i : v)
 - http://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/
-- Scott Meyers, Effictive Modern C&plus;&plus;
- * Item 41: Consider pass by value for copyable parameters that are cheap to move and always copied
+- Scott Meyers, Effictive Modern C&plus;&plus;, Item 5 6 41
 - Stephan T. Lavavej: https://github.com/CppCon/CppCon2014/tree/master/Presentations/STL%20Features%20And%20Implementation%20Techniques
+
 
 
 == Type deduction
 
+Recall that temporary objects are (non-const) rvalues, and that there are no
+const rvalues (only 99% sure about the latter statement). Also recall after declaring a reference, e.g. "int& ri = i;", the expression "ri" in almost all cases means the referee, and thus is of type int, not int&.
+
+Function template type deduction (since C&plus;&plus;98):
+
+--------------------------------------------------
+int i = 42;
+const int ci = 42;
+
+template<typename T> void f(T);
+        // arg's value category     T           param's type
+f(i);   // lvalue                   int         int
+f(ci);  // const lvalue             int         int
+f(42);  // rvalue                   int         int
+
+template<typename T> void f(T&); // T* is analous
+        // arg's value category     T           param's type
+f(i);   // lvalue                   int         int&
+f(ci);  // const lvalue             const int   const int&
+f(42);  // rvalue                   compile error, lvalue expected
+
+template<typename T> void f(const T&); // const T* is analogous
+        // arg's value category     T           param's type
+f(i);   // lvalue                   int         const int&
+f(ci);  // const lvalue             int         const int&
+f(42);  // rvalue                   int         const int&
+
+template<typename T> void f(T&&); // template param's type is universal reference
+        // arg's value category     T           param's type
+f(i);   // lvalue                   int&        int&
+f(ci);  // const lvalue             const int&  const int&
+f(42);  // rvalue                   int         int&&
+--------------------------------------------------
+
+In the pass by value case (f(T)) with a const lvalue argument, the const is
+dropped since the parameter is an independent object.  In the pass by reference
+/ pointer cases (f(T&) or f(const T&)), the result is such that the type of the
+referee / pointee matches from both viewpoints (argument and parameter).
+
+[[auto_type_deduction]]
+Type deduction with auto, added in C&plus;&plus;11, works by definition the same as function template type deduction, see following code snipet, with one exception: In "auto foo = \{42};" the type of foo is std::initializer_list<int>, opposed to int as function template type deduction would do it.  Note that in "auto foo\{42};", the type of foo is int (corrected by N3922, a defect of C++11. Without N3922, the type is std::initializer_list<int>).
+
+--------------------------------------------------
+// function template            // auto type deduction
+// type deduction
+template<typename T>            ...auto... foo = expr;
+void f(...T...);
+f(expr);
+--------------------------------------------------
+
+
+
+References:
+
 - Type deduction and why you care, by Scott Meyers.
   https://www.youtube.com/watch?v=wQxj20X-tIU[Video],
   https://github.com/CppCon/CppCon2014[Presentation]
+
+- Book "Effective Modern C&plus;&plus;", Chapters 1-4
 
 
 == Undefined behaviour
