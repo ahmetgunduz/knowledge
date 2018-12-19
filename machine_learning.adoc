@@ -184,7 +184,7 @@ A _statistical model_ 𝔉 is a set of functions f. A _parametric model_ can be 
 
 In machine ideas are pretty analogous, though notation, terminology is typically different and interpretation is a bit more general. Tn _hypothesis space_ 𝓗 is a set of known concepts h.  A concept is often a function as in statistics.  However a concept might also be `prime numbers', `even numbers' etc, and when given a set of numbers, the problem statement might  be to tell what kind of numbers this set most likely is.  The subset of 𝓗 that is consistent with the data 𝓓 is called the _version space_.  The _extension_ of a concept is the complete set of examples.
 
-There's an loose distinction between parameters determined during fitting the model and _hyper-parameters_ which are determined before fitting the model, e.g by the user or during the higher level process of model selection.  You may think of splitting complete set of parameters into two subsets.  The values of the subset labeled parameters is computable cheaply when being provided with the values of the subset labeled hyper-parameters. References: https://stats.stackexchange.com/questions/149098/what-do-we-mean-by-hyperparameters?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa (*to-do* isn't a further difference that hyper-paremeters can influence the number of parameters, such as in polynomial regression?)
+There's an loose distinction between parameters determined by fitting / learning the model and _hyper-parameters_ which are determined before fitting the model, e.g by the user or during the higher level process of model selection.  You may think of splitting complete set of parameters into two subsets.  The values of the subset labeled parameters is computable cheaply when being provided with the values of the subset labeled hyper-parameters. References: https://stats.stackexchange.com/questions/149098/what-do-we-mean-by-hyperparameters?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa (*to-do* isn't a further difference that hyper-paremeters can influence the number of parameters, such as in polynomial regression?)
 
 A _tuning parameter_  if the parameter's job is primarily a transient parameter of the learning algorithm.  Tuning parameters are also called hyper-parameters, conflicting somewhat the previous definition.  (*to-do* 1) But in this sence, a hyper 2) Clean up that parameter - hyper-parameter - tuning parameter mess)
 
@@ -257,6 +257,9 @@ E~X,Y~[(Y-E~Y~[Y|X])²] [noise]
 
 Recall that we saw the same pattern also with an estimator.
 
+References:
+
+- Caltec, Learning from Data, Lecture 8 "Bias-Variance Tradeoff": https://www.youtube.com/watch?v=zrEyxfl2-a8&list=PLXIPmvMlpicGPhDuIDYWSSUeV8JVElsei&index=8
 
 == Testing
 
@@ -817,6 +820,12 @@ _parameter_ θ (read hypothesis), _parameter space_ Θ, _hypothesis_ h(x) (param
 
 The _hypothesis space_ 𝓗 is a set of known concepts.  The subset of 𝓗 that is consistent with the data 𝓓 is called the _version space_.  The _extension_ of a concept is the complete set of examples.
 
+[[concep]]
+A _concept_ c is a subset c⊂𝓧. In binary classifications, the labels are definied by a concept c, i.e the label is +1 if c∈𝓒 and -1 otherwise.
+
+[[learner]]
+The task of a _learner_ L is to find the hypothesis ĥ∈𝓗 which approximates the concept c the best.
+
 _empirical risk minimizer_ (_ERM_): ĥ = argmin~h~(R̂~trainset~(h)), i.e. the model which minimizes the empirical risk.
 
 _likelihood function_ (or _sampling distribution_) ℒ~𝓓~(θ) = p(𝓓|θ) =~iid~ ∏p(d~i~|θ): Probability of seeing the data 𝓓 given the model parameters θ.
@@ -911,6 +920,8 @@ _frequentist vs bayesian_: In the probabilistic view, we also model the uncertai
 _credit assignement problem_: When our model is successful, how to know which parameters of the model to give the credit? Or the other way round, which is oftem more usefull to think about, mostly in the context of a learning algorithm, when our model is not successful, how to know which parameters of the model to blame (and followingly to modify). For example in of learning the perceptron, if observation is x~i~ is missclassified, we know that we have to modify the parameter w like so: w += η·x~i~.
 
 _breakpoint of an estimator_: Number of observations which can make your estimator arbitrarily bad, when you let them go to infinity. E.g. when you have an estimator based on a mean, then one sample going to infinity will make the mean go towards infinity and thus make the estimator arbitrarily bad.
+
+_understanding vs controlling_: Prof. Joachim Buhmann: Many models which are successful in practice such as (non-trivial) neuronal nets or (non-trivial) decision trees are too complex for a human to truly understand.  E.g. most of us can't truly grasp what a concrete 10-level decision tree really does; we understand the mechanisms of decision trees in general, but we can't memorize a given non-trivial decision tree.  However we can control these models.  And that is good enough for real world problems in machine learning.
 
 
 === Taxonomy of data
@@ -1151,9 +1162,93 @@ Theoerem: L(w^∗^, α^∗^, β^∗^) is a saddle point of L iff w^∗^ and (α^
 [[duality_gap_theorem]]
 Theorem: If the objective function f is convex, and f's domain Ω is convex, and the g~i~ and h~i~ are affine functions, then the duality gap is zero.  Convex domain is nice because then we can search along lines to find the optimal solution.
 
-_Kuhn-Tucker Condistions_ *to-do*
+_Kuhn-Tucker Condistions_ *to-do* see also video 15.11. 36:12
 
 *to-do* write somewhere that SVM fulfils conditions of <<duality_gap_theorem>>
+
+
+=== Probably approximately correct (PAC)
+
+Provides a bound on some error measure of a model ĥ∈𝓗 without assumptions on the joint distribution p(x,y) (i.e. something we can't control).
+
+See also terms <<learner>> L and <<concept>> c.
+
+In the following, we look at the error of a model ĥ in a general way. The following are variants how such an error could be defined.  h^optimal bayes^ denotes Bayes' optimal classifier, i.e. the best possible model.  min~h∈𝓗~[R(h)] is the best (w.r.t. R(·)) model h in our hypothesis class 𝓗, i.e. the best we can achieve given R and 𝓗.
+
+error(ĥ) = R(ĥ) [expected risk] +
+error(ĥ) = R(ĥ) - R(h^optimal bayes^) +
+error(ĥ) = R(ĥ) - min~h∈𝓗~(R(h))
+
+A concept class 𝓒 is _PAC learnable_ (or _distribution-free PAC learnable_ or A is a _PAC learning algorithm_) iff there exists a learner L (some authors say algorithm A) using hypothesis class 𝓗 which will output a hypothesis ĥ∈𝓗, such that error(ĥ) is upper bounded by ε (called _precision_ or _error parameter_) with probability at least 1-δ (δ is called _confidence_). The learner is given a (training) sample of 𝓧 drawn according to the distribution 𝓓 on 𝓧 (i.e. the distribution p(x)), and the associated labels according to c (in the literature formalized by EX(c,𝓓) which produces said sample and labels).  The learner knows 𝓒 (but obviously not c). All this for every c∈𝓒, every distribution 𝓓 on 𝓧, 0<δ<1/2, 0<ε<1/2.
+
+Pr~train drawn according to 𝓓~[error(ĥ)≤ε|ĥ] > 1-δ [note error(·) also depends on 𝓓]
+
+A concept class 𝓒 is _efficiently PAC learnable_ if 𝓒 is PAC learnable and L runs in polynomial time in 1/δ and 1/ε.
+
+Note that the true concept c∈𝓒 might not be in hypothesis class 𝓗.
+
+The _sample complexity_ is the smallest sample size n (in PAC related literature often m) such that concept class 𝓒 is PAC learnable:
+
+n ≥ 1/ε·ln(|𝓒|/δ)
+
+*to-do* apparently that assumes c∈𝓗
+
+*to-do* is it |𝓒| or |𝓗|
+
+The probability that our expected risk is larger than ε is non-zero because for example when EX(c,𝓓) draws a sample from 𝓧 for the learner L, we might be unlucky and and it is a very `bad' / unrepresentative sample.
+
+A fitted model ĥ∈𝓗 is _approximately correct_ if its expected error R(ĥ) is bounded by some 0<ε<1/2 (called _precision_):
+
+error(ĥ) < ε
+
+The concept of PAC learnable expressed from the perspective of the learner: A learner L is _probably (1-δ) approximately (ε) correct_ if it will output an approximately correct (error upper bounded by ε) trained model ĥ∈𝓗 with probability at least 1-δ.
+
+References:
+
+- https://www.youtube.com/watch?v=e37nlms7Zi0
+
+- https://www.youtube.com/watch?v=qOMOYM0WCzU
+
+- https://cs.nyu.edu/~mohri/mls/ml_learning_with_finite_hypothesis_sets.pdf
+
+- *to-do* lecture
+
+
+=== Vapnik-Chervonenkis inequality
+
+Let R(·) denote the expected risk, and let R̂(·) denote the empirical risk on the training set. 0≤δ≤1 is a parameter (called confidence), and ε is called precision. The following inequality delivers a way of knowing how large n should be, given a confidence and precision.
+
+Pr[R̂(h) - R(h) ≤ ε] ≥ 1-δ ∀h∈𝓗 +
+ε = √( ln(2|𝓗|/δ) / 2n ) +
+R̂(h) - R(h) ≤ ε ⇔ R̂(h) [expected error] ≤ R(h) [empirical error] + ε [variance]
+
+
+==== Derivation
+
+Let ĥ^OPT^ = argmin~h∈𝓗~(R(h)) a denotes the best possible classifier in 𝓗 (or from another viewpoint, let R(ĥ^OPT^) = min~h∈𝓗~(R(h))), ĥ^ERM^ = argmin~h∈𝓗~(R̂~trainset~(h)) denotes the empirical risk minimizer. Note that ĥ^opt^ might not be member of 𝓗.
+
+R(ĥ^ERM^) - R(ĥ^OPT^) =① +
+(R(ĥ^ERM^) - R̂(ĥ^ERM^)) + (R̂(ĥ^ERM^) - R(ĥ^OPT^)) ≤② +
+max~h∈𝓗~|R(h)-R̂(h)| + (R̂(ĥ^OPT^) - R(ĥ^OPT^)) ≤③ +
+max~h∈𝓗~|R(h)-R̂(h)| + max~h∈𝓗~|R(h)-R̂(h)| = +
+2max~h∈𝓗~|R(h)-R̂(h)|
+
+① just add "- R̂(ĥ^ERM^) + R̂(ĥ^ERM^) = 0"  +
+② R(ĥ^ERM^) - R̂(ĥ^ERM^) ≤ max~h∈𝓗~|R(h)-R̂(h)|: max is neccessairy and sufficient. Here pointwise convergence is not good enough, because in the term R̂(ĥ^ERM^) two things happen simultanously as we increase n. We optimze, thus ĥ^ERM^ changes with a different training set, and there's convergence as n tends towars infinity. We need uniform convergence. +
+② R̂(ĥ^ERM^) ≤ R̂(ĥ^OPT^) by definition of empirical risk minimizer +
+③ (R̂(ĥ^OPT^) - R(ĥ^OPT^)) ≤ max~h∈𝓗~|R(h)-R̂(h)|: This bound could be made tighter, but it wouldn't help us overall. Also here pointwise convergence would be sufficient, since ĥ^OPT^ is independent of the training set.
+
+Based on the above inequality, we do large deviation: *to-do* what?!
+
+Pr[R(ĥ^ERM^)-R(ĥ^OPT^)>εʹ] ≤ Pr[max~h∈𝓗~|R̂(h)-R(h)|>εʹ/2]
+
+Now we want to get a bound for the above rhs. With ε = εʹ/2
+
+Pr[max~h∈𝓗~|R̂(h)-R(h)|>ε] ≤ 2|𝓗|exp(-2nε²) ≡ δ +
+prooveable by union bound and hoeffding's inequality
+solving the definition of δ for ε delivers the above formula for ε +
+
+As n goes to infinity, the empirical risk approaches the expected risk. However mind that if |𝓗| also goes to infinity, that is offseted, i.e. we still overfit. I.e. when n increases, |𝓗| should not grow faster than exp(-2nε²). |𝓗| depends on n for example when you use splines.
 
 
 [[measuriring_model_performance]]
@@ -1206,7 +1301,7 @@ _cost function_ Q (or L): Is a more general concept than the loss function. A lo
 
 _consistent_ model selection criterion: A model selection criterion is consistent, if when used for model selection, the probability of selecting the true model approaches asymptotically (in n) one.  Only applicable when the true model is member of the candidate models.
 
-_expected risk_ (or _total expected risk_, or _true risk_, or just _risk_, or _expected error_, or _expected loss_) R(h) = E~y∈𝓨,x∈𝓧~[l(h(x),y)] = ∫~y∈𝓨~∫~x∈𝓧~l(h(x),y)p(x,y)dxdy: The risk associated with a given hypothesis h(·) is defined as the expected loss.  Expected risk for classification where we have a doubt class is as the normal definition, but has an additional summand term which is the number of elements in the doubt class.  The expected risk generally cannot be computed since in general p(x,y) is unknown. References: https://en.wikipedia.org/wiki/Empirical_risk_minimization (risk), aml2018 lecture slides 2 page 5/31 (total expected risk), https://en.wikipedia.org/wiki/Generalization_error (expected error), https://en.wikipedia.org/wiki/Statistical_learning_theory (expected risk), Machine Learning: a Probabilistic Perspective p 195,205 (expected loss, risk)
+_expected risk_ (or _total expected risk_, or _true risk_, or just _risk_, or _expected error_, or _expected loss_) R(h) = E~(x,y)∈𝓓~[l(h(x),y)] = ∫~y∈𝓨~∫~x∈𝓧~l(h(x),y)p(x,y)dxdy: The risk associated with a given hypothesis h(·) is defined as the expected loss.  Expected risk for classification where we have a doubt class is as the normal definition, but has an additional summand term which is the number of elements in the doubt class.  The expected risk generally cannot be computed since in general p(x,y) is unknown. References: https://en.wikipedia.org/wiki/Empirical_risk_minimization (risk), aml2018 lecture slides 2 page 5/31 (total expected risk), https://en.wikipedia.org/wiki/Generalization_error (expected error), https://en.wikipedia.org/wiki/Statistical_learning_theory (expected risk), Machine Learning: a Probabilistic Perspective p 195,205 (expected loss, risk)
 
 _conditional risk_ R(h,y) = E~x∈𝓧~[l(h(x),y)|y] =~0/1loss~ Pr[h(x) ∉ {y, doubtclass}] + d·Pr[h(x) = doubtclass], where d is the constant from the loss~0/1~ for classification.
 
@@ -1615,7 +1710,9 @@ Model assessment and model selection are intertwined, so most is discussed in ch
 
 === Why never use the test set for any decision
 
-When doing model selection with validation set approach: Say we only have one model, but multiple training data sets, and one test data set. Then the scores will have some distribution. If we do model selection, then we choose a model that just happened to be good by chance. Thats why a separate test set can be used to compute a good estimate of the true risk, but at the same time it can't be used to choose a model and at the same time use that score for an estimate of the trues risk.
+When doing model selection with validation set approach: Say we only have one model, but multiple training data sets, and one test data set. Then the scores (on the training data) will have some empirical distribution. If we do model selection, then we choose a model that just happened to be good by chance (imagine some distribution, say gaussian, we will pick the score which is furthest to the right, not the one which is at the mean). A separate test set can be used to compute a good estimate of the true risk, since the _expected_ value of the empirical risk computed on the test test equals the expected risk, i.e. the mean value of the distribution. But we can't make any decision based on the test score, since this particular test score might just be good by chance. I
+
+If we always would use the same test set to compare different models, we would start to overfit on the test set.
 
 *to-do* merge with other text spread around in the document, maybe even including <<inference_after_model_selection>>
 
@@ -1798,9 +1895,59 @@ _Out-of_bag (OOB) error estimation_ / _OOB MSE_:  Is an alternative to cross val
 
 Bagging of decision trees reduces variance, at the cost of lower interpretability. For more pros & cons, see <<comparison_of_tree_based_methods>>.
 
+_model selection_: "First compare, then bag". To select one model out of many candidate models, first train each candidate model on each boostrap sample.  For two models θ^(1)^ and θ^(2)^. For each bootstrap sample, calculate the difference Δ~b~ = R̂(θ~b~^(2)^) - R̂(θ~b~^(1)^) of the empirical loss.  At the end, choose the model based on the median. I.e. if median(Δ~1~, ..., Δ~B~) > 0, choose θ^(1)^, i.e. h(x) = mean(h(θ~1~^(1)^), ..., h(θ~B~^(1)^)). This way the variations of empirical risks stemming from different bootstrap samples are washed away, because the empirical risk comparison is per bootstrap sample.  Instead of the median, also some other criterion could be used which is based on the empirical distribution Δ~1~, ..., Δ~B~.
+
 References:
 
 - ISLR, chapter ``8.2.1 Bagging''
+
+
+=== Boosting
+
+Idea: An adaptive combination of M poor learners with sufficient _diversity_ leads to an excelent (complex) classifier. Based on question "Can a set of weak learners create a single strong learner?". A _weak learner_ is defined to be a classifier that is only slightly correlated with the true classification (it can label examples better than random guessing). In contrast, a _strong learner_ is a classifier that is arbitrarily well-correlated with the true classification.
+
+Most author's use decision stumps as weak learners, since they are nice for illustration. However boosting works with any classifiers.
+
+References:
+
+- MIT 6.034 Artificial Intelligence, Fall 2010, Lecture 17 "Learning: Boosting": https://www.youtube.com/watch?v=UHBmv7qCey4&list=PLaslQpv_LmSKxSCBPdKWEI7lLHrTCeewl&index=7&t=0s
+
+
+==== Ada Boost
+
+Binary classifier with labels {+1, -1}. Combines M simple/weak classifiers h~m~(x), m∈[M]. The final classifier h(x) is a weighted (by α~m~) majority vote:
+
+h(x) = sign(∑~1≤m≤M~α~m~h~m~(x))
+
+Learning algorithm which finds the weights α~m~ (and internally w~i~) and trains the simple classifiers h~m~(·): Each observation has a weight w~i~, initially uniform 1/n. Start with some classifier, train it with the weighted observations. For each miss-classified training observation, increase the weight of that observation. Iterate, this time choosing the another classifier.
+
+Algorithm in more details:
+
+Initialization:
+
+w~i~ = 1/n | for all i +
+define weak classifiers h~i~(·), e.g. decisition stump and/or perceptron etc.
+
+For M iterations, m being the loop variable:
+
+fit h~m~ to weighted (by w~i~) training data +
+err = 1/W ∑w~i~mc~i,m~ [weighted error. equivalently: 1/W ∑~i-th obs missclassified by hm~w~i~] +
+α~m~ = log((1-err)/err) +
+w~i~ = w~i~·exp(α~m~mc~i,m~) | for all i +
+where W = ∑w~i~ +
+where mc~i,m~ = I(y~i~≠h~m~(x~i~)) [i-th observation is missclassified by h~m~]
+
+The consequence of doing a (weighted) majority vote is that for the final classifier to be wrong, the majority (after weighting) of the individual classifiers must be wrong.
+
+catch phrase: wisdom of the (weighed) crowds
+
+The way α~m~ are calculated guarantee an upper bound on the err of the final classifier h. That upper bound is exponentially decaying with number of iterations.
+
+It can be shown that the ada boost algorithm minimizes the empirical risk based on the exponential loss loss~exp~(y,x) = exp(-y·h(x)).
+
+_overfitting_: For reasons poorly understood, boosting in general and Ada Boost in particular is pretty robust to overfitting, despite that the algorithm uses all the training data for fitting.  The intuitive rational is that this is a property of ensemble methods in general, not of boosting or Ada Boost in particular. See also https://jeremykun.com/2015/09/21/the-boosting-margin-or-why-boosting-doesnt-overfit/
+
+*to-do* but the algorithm only uses one model, not many, which contradicts the sentence above
 
 
 === Ensemble learning
@@ -1816,6 +1963,16 @@ Thus if the coverainces are very small, the resulting variance of the final mode
 Machine learning competitions are often won by ensembles.
 
 Catch phrase: wisdom of crowds.  By averaging, we get rid of oddities.
+
+Diversity
+
+- Use diffrent subsets of the training data for each model
+
+  * bagging
+
+- Use diffrent features for each model
+
+
 
 
 === Bayesian model averaging (BMA)
@@ -2419,6 +2576,8 @@ Note that interactions are allowed.
 
 If the number of data points per region is too small (e.g. when tree is too deep), we are suffering from overfitting.
 
+A _decision stump_ (or just _stump_ or _1-rule_) is a one-level decision tree.  I.e. a decision stump makes a prediction based on the value of just a single input feature.
+
 References:
 
 - ISLR, chapter ``8 Tree-Based Methods''
@@ -2608,7 +2767,7 @@ References:
 
 === Perceptron
 
-A linear two-class discriminant model. The input vectcor x is first transformed using a nonlinear transformation yielding a feature vector Φ(x).  The first column of Φ(x) is typically all ones, aka the bias component.  The model is then signʹ(w^T^Φ(x)), where sign is similar to the sign function, only that signʹ(x) = 1 for x=0.  Output +1 means class C~1~, -1 means class C~2~.
+A linear two-class discriminant model. The input vectcor x is first transformed using a nonlinear transformation yielding a feature vector Φ(x).  The first column of Φ(x) is typically all ones, aka the bias component.  The model is then signʹ(w^T^Φ(x)), where signʹ is similar to the sign function, only that signʹ(x) = 1 for x=0.  However in the literature the value of signʹ for the case x=0 doesn't seem to be a large issue, it could also be -1 or to randomly choose from {-1, +1}.  Output +1 means class C~1~, -1 means class C~2~.
 
 Interpretation: Consider the case of 2 predictors, an intercept of 0 and Φ(x) = x.  Make a scatter plot of the training data in the x~1~-x~2~ plane, each observation represented by one of two symbols/colors.  The decision boundary is a line (being 1D = (2-1)D).  The line is determined by its normal rooted at the origin, the vector w.  Region R~1~ (class C~1~) is determined by signʹ(w^T^x) = 1, i.e. w^T^x ≥ 0, i.e. one side of the line plus the line itself, and region R~2~ is the complement.
 
@@ -2623,7 +2782,7 @@ We actually would like to minimize the number of missclassifications, i.e. use t
 here we work directly with x opposed to Φ(x) (*to-do* integrate more nicely)
 
 ŵ = argmin~w~[∑loss~perceptron~(w,y~i~,x~i~)] +
-loss~perceptron~(w, y, x) = max(0, -yw^T^x)
+loss~perceptron~(w, y, x) = max(0, -yw^T^x) +
 loss~perceptron~(w, y, x) = {0 if missclassified, -w^T^x otherwise} [equivalent variant]
 
 Theorem: If data is linearly seperable, the Perceptron will find a linear seperator.
@@ -2649,26 +2808,92 @@ References:
 [[SVM]]
 === Linear support vector machine (SVM)
 
-A linear two-class discriminant model.  A slight variation of the perceptron, which uses a different loss function, namely the hinge loss, and L2-regularization.  As a result, unlike the perceptron, the SVM is a _maximal margin classifier_, meaning that it maximizes the margin, i.e. yw^T^x ≥ m, where m is the margin.
+References:
+
+- Caltec, Learning from Data, Lecture 8 "Support Vector Machines": https://www.youtube.com/watch?v=eHsErlPJWUU&index=14&list=PLXIPmvMlpicGPhDuIDYWSSUeV8JVElsei
+
+==== Hard Margin SVM
+
+A linear two-class discriminant linear model for cases where data is linearly seperable. Is very similar to the perceptron. Is still a linear model. But unlike the perceptron, the SVM is a maximal margin classifier.  I.e. if the data is linearly seperable, the perceptron finds any feasible decision boundary, but the SVM finds the decision boundary which maximizes the margin.
+
+**in this chapter the intercept w~0~ is seperate**
+
+h(x) = signʹ(w^T^x + w~0~)
+
+A _maximal margin classifier_ maximizes the margin m/|w|.  The margin is the region between each a line on both sides of the decision boundary going through the point closest to the decision boundary. The distance between decision boundary and margin boundary is m/|w| (derived from that a point's distance to the decision boundary is w^T^x/|w|).  The y~i~ with y~i~w^T^x~i~ = m are the so called _support vectors_, i.e. the training data points closest to the decision boundary, i.e. the training data points on the margin boundary.
+
+y~i~w^T^x~i~ ≥ m  ∀ (x~i~, y~i~) ∈ 𝓓, m/|w| to be maximized
+
+To maximize m/|w|, we either can maximize m for a fixed |w| (typically 1), which is called _geometric margin problem_, or we can minimize |w| for a fixed m (typically 1), which is called _functional margin problem_.  We take the later router:
+
+minimize: |w| ∝ 1/2 w^T^w
+subject to: y~i~(w^T^x~i~ + w~0~) ≥ m = 1 ∀i
+
+Generalized Lagrange Function:
+
+L(w, w~0~, α) = 1/2 w^T^w - ∑~1≤i≤n~α~i~(y~i~(w^T^x~i~+w~0~)-1) = +
+∑~1≤i≤n~α~i~ - 1/2 ∑~1≤i≤n~∑~1≤j≤n~α~i~α~j~y~i~y~j~x~i~^T^x~j~
+
+Resulting dual problem:
+
+maximize~for α~: ∑~1≤i≤n~α~i~ - 1/2 ∑~1≤i≤n~∑~1≤j≤n~α~i~α~j~y~i~y~j~x~i~^T^x~j~
+subject to: α~i~ ≥ 0 ∀i
+subject to: ∑~1≤i≤n~y~i~α~i~ = 0
+
+The weight vector of the original problem is given by
+
+w = ∑~1≤i≤n~α~i~y~i~x~i~ +
+w~0~ = -1/2 (min~i s.t yi=1~(w^T^x~i~) + max~i s.t yi=-1~(w^T^x~i~))
+
+α~i~ corresponds to the i-th observation. Most α~i~ are zero (or nearly zero and set to zero `manually').  The non-zero α~i~ correspond to the observations being support vectors.
+
+Bound on expected risk (risk based on 0/1 loss):
+
+R~0/1~ ≤ E~train~[# of support vectors] / (n - 1)
+
+
+==== Soft Margin SVM
+
+A linear two-class discriminant model supporting also data that is not linearly seperable.  A slight variation of the perceptron, which uses a different loss function, namely the hinge loss, and L2-regularization.
+
+The hinge loss proveably maximizes the margin. The resulting optimization problem is the following. Gradient based algorithms can be used for this optimization problem (i.e. to find argmin~w~).
 
 ŵ = argmin~w~(∑loss~hinge~(w, y~i~, x~i~) + λ‖w‖~2~^2^) +
 loss~hinge~(w, y, x) = max(0, 1-yw^T^x)
 
-Gradient based algorithms can be used for this optimization problem (i.e. to find argmin~w~).
-
-The regularization parameter can be viewed as a measure on how much we insist on the maximal margin classifier constraint. A small λ means we strongly insist.
+The regularization parameter can be viewed as a measure on how much we insist on the maximal margin classifier constraint. A small λ means we strongly insist. Thus a sufficiently small λ yields the Hard Margin SVM.
 
 See also <<choosing_regularization_parameter>> λ.
 
 *to-do* what are SVMs in general. It seems that the above is just one example for classification, which choosed to choose loss~hinge~ as loss function.
 
-Despide that the difference between the SVM and the Perceptron is quite small, that difference has a big influence. In practice, the SVM often performs much better.  In practice, we almost always prefer the SVM over the Perceptron.  For educational purposes, the Perceptron is easier to understand and serves as an good introduction.
+Despide that the technical difference between the SVM and the Perceptron is quite small,  that difference has a big influence. In practice, the SVM often performs much better.  In practice, we almost always prefer the SVM over the Perceptron.
+
+In general, soft margin SVM generalizes better than the hard margin SVM.  Imagine two clearly separated parallel ellipsoid clouds.  If there is a single outlier in the sense that it is close to the other cloud, that outlier drastically changes, relative to no outlier, the solution which the hard margin SVM spits out.  The solution of the soft margin SVM isn't influenced much.
 
 There is not really a probabilistic interpretation, i.e. a likelihood function corresponding to the loss function, see also <<bayesian_interpretation_of_regularization>>.
 
 
+
+We introduce some slack per observation. Some observations can violate the margin m; their individual margin now is m(1-ξ~i~), ξ~i~ ≥ 0.
+
+minimize~over w and ξi~: 1/2 w^T^w + C∑~1≤i≤n~ξ~i~ [functional Lagrangian] +
+subject to: y~i~(w^T^x~i~ + w~0~) ≥ m(1-ξ~i~) = (1-ξ~i~) ∀i +
+subject to: ξ~i~ ≥ 0 ∀i
+
+The corresponding dual problem is almost the same as in the hard margin SVM, only that now we additionally have the constraints α~i~ ≤ C.
+
+*to-do* is the hinge-loss the equivalent to what was on the lecture slides where some of the data points were given some slack, formalized by ξ~i~
+
+
+
 [[kernelized_svm]]
 ==== Kernelized SVM
+
+Note that the margin m is in the feature space, not the measurement space.  Thus in the measurement space, the margin might be different.
+
+
+===== Explanation 1
 
 Turns the linear SVM into a non-linear model using the <<kernel_trick>>.  As in kernelized Perceptron, start with w = ∑~1≤i≤n~α~i~y~i~x~i~. Instead of w we now learn / optimize α. Note that ‖w‖~2~^2^ = w^T^w. Note that as in normal SVM, the regularization parameter λ remains.
 
@@ -2681,17 +2906,34 @@ The resulting model is:
 
 h(x) = signʹ(∑~1≤i≤n~α~i~y~i~k(x~i~,x))
 
-The perceptron had (*to-do* move to right place):
-
-α̂ = argmin~α~(∑~1≤i≤n~max(0, y~i~α^T^k~i~)
-
 In general kernelized SVM are a very good choice for classification problems up to a few tens of thousands observations, i.e. should at leasts be tried.
+
+
+===== Explanation 2
+
+hard margin SVM:
+
+h(x) = +
+signʹ(w^T^Φ(x) + w~0~) = +
+signʹ(∑~1≤i≤n~α~i~y~i~k(x~i~,x) + w~0~) +
+w~0~ = y~j~ - ∑~1≤i≤n~α~i~y~i~k(x~i~,x~j~) where (x~j~,y~j~) is some support vector
+
+The dual problem of the hard/soft margin SVM shows that we only deal with inner products, i.e. we never need to compute the basic function Φ(·). Even w^T^x turns out to depend on inner products since w = ∑~1≤i≤n~α~i~y~i~x~i~.
+
+References:
+
+- https://www.youtube.com/watch?v=XUj5JbQihlU&hd=1
 
 
 [[multi_class_SVM]]
 === Multi-class SVM
 
-An explicit multi-class classifier, i.e. it directly outputs a class {1, ..., K}. Similar to SVM (a binary classifier), but internally with K decision boundaries, thus K weights w^(1)^, ..., w^(K)^.  Instead the hinge loss, the multi-class hinge loss is used:
+An explicit multi-class classifier, i.e. it directly outputs a class {1, ..., K}. Similar to SVM (a binary classifier), but internally with K linear decision boundaries, thus there are K weights {w^(1)^, ..., w^(K)^}.
+
+
+==== Explanation 1
+
+Instead the hinge loss, the multi-class hinge loss is used:
 
 loss~multiclasshinge~(w^(1)^, ..., w^(K)^, x, y) = max(0, 1 + max~1≤j≤K,j≠y~((w^(j)^)^T^x - (w^(y)^)^T^x))
 
@@ -2700,13 +2942,46 @@ _Optimization_: E.g. SGD.
 _Prediction_: h(x) = argmax~j~((w^(j)^)^T^x)
 
 
-==== Rational for multi-class hinge loss
+==== Explanation 2
 
-For each data point (x~i~, y~i~), we would like to find weight vectors (w^(1)^, ... w^(K)^) such that
+minimize~over w and ξi~: 1/2 W^T^W + C∑~1≤i≤n~ξ~i~ +
+W = concatenate all w^(i)^ +
+subject to: ((w^(y~i~)^)^T^x~i~ + w~0~^(y~i~)^) - max~1≤j≤K,j≠yi~((w^(j)^)^T^x~i~ + w~0~^(j)^) ≥ m(1-ξ~i~) = 1-ξ~i~ ∀ i ∈ [n] +
+subject to: ξ~i~ ≥ 0 ∀ i ∈ [n]
 
-(w^(y~i~)^)^T^x~i~ > max~1≤j≤K,j≠yi~((w^(j)^)^T^x~i~) + 1
+alternate formulation:
 
-The max~...~(...) can also be understood as the score of the runner-up classifier.  We want that our best classifier is better than the runner-up classifer by some margin, hence the ``+1'' term.  The constant 1 is flexible good enough due to regularization.  This leads us to the multi-class hinge loss, which is 0 only if the above condition is met, and otherwise is a measure of how much the above condition is violated.
+minimize~over w1,...,wK~: 1/2 ∑~1≤j≤K~(w^(y)^)^T^w^(y)^ + C∑~1≤i≤n~ξ~i~
+
+The max~...~(...) can also be understood as the score of the runner-up classifier.  We want that our best classifier is better than the runner-up classifer by some margin.  This leads us to the multi-class hinge loss, which is 0 only if the above condition is met, and otherwise is a measure of how much the above condition is violated.
+
+There is no direct geometrical interpreation of the constraint.
+
+
+=== Structural SVM (SSVM)
+
+Multi-classification; generalization of multi-class SVM. We introduce the function Ψ:𝓧⨯𝓨→ℝ^d^ called _feature map_. It creates a d-dimensional feature vector for each observation (x~i~, y~i~). Similar to a basis function Φ, only that now also the label is taken into account. Here w is a d-dimensional weight vector.  In case Ψ does the same as multi-class SVM, you can imagine w as a concatenation of K weight vectors w^(0)^, ..., w^(K)^.
+
+_hard structural SVM_:
+
+minimize~over w~: 1/2 w^T^w +
+subject to: w^T^Ψ(x~i~,y~i~) - max~1≤j≤K,j≠yi~w^T^Ψ(x~i~,y~j~) ≥ m = 1 ∀ i ∈ [n]
+
+_soft structural SVM_: Introduce _loss function_ Δ:K⨯K→ℝ, where Δ(y,yʹ) is the loss of predicting yʹ when the correct label is y.
+
+minimize~over w and ξi~: 1/2 w^T^w + C∑~1≤i≤n~ξ~i~ +
+subject to: w^T^Ψ(x~i~,y~i~) - max~1≤j≤K,j≠yi~(w^T^Ψ(x~i~,y~j~)+Δ(y~j~,y~i~)) ≥ -ξ~i~ ∀ i ∈ [n]
+
+alternatively:
+
+subject to: w^T^Ψ(x~i~,y~i~) - w^T^Ψ(x~i~,y~j~) ≥ Δ(y~j~,y~i~) - ξ~i~ ∀ i∈[n], 1≤j≤K, j≠yi
+
+_prediction_ then is:
+
+ŷ = h(x) = argmax~y~(f~w~(x,y)) +
+f~w~(x,y) = w^T^Ψ(x,y) [scoring function]
+
+
 
 
 === Clustering
@@ -3085,7 +3360,7 @@ p(y|x̃⃗,𝓓=(X,y⃗),θ=(k,σ²)) = 𝓝~1~(y|μ̃,σ̃²) +
 
 *to-do* Those plots which already have some data points, and plot the mean and an standard deviation envelop, how do they do it? Do they for each point they want to plot take the mean and the upper/lower standard deviation from p(ỹ|x̃⃗,X,y⃗), where x̃⃗ is the point on the x axis and p(ỹ|x̃⃗,X,y⃗) then delivers mean and upper/lower standard deviation?
 
-*to-do* these drawings where with no data we just see the prior as a linear band, and as we add data pionts we narrow the band near the data points. Depending on the kernel/covariance, the einschnitt around a data point is wide or narrow.
+*to-do* these drawings where with no data we just see the prior as a linear band, and as we add data points we narrow the band near the data points. Depending on the kernel/covariance, the einschnitt around a data point is wide or narrow.
 
 *to-do* drawing with no observations, i.e. just the prior. Theres the mean, the upper/lower `bound', and a few examples of f.  The kernel defines how `wiggly' the f s will be.
 
@@ -3238,7 +3513,7 @@ _Universal approximation theorem_: Neuronal networks are _universal adaptors_. A
 
 Neuronaly networks are highly flexible models due to having many parameters |W|, which might be even larger than number n of observations, thus there's considerable risk of overfitting.  If there are many hidden units, the universal approximation theorem basically guarantees overfitting.
 
-_Early stopping_ (a form of regularization): Don't run SGD until it converges, i.e. finds a local minima. For example, monitor empirical risk on the valdation set, and stop once validation error starts to increase.  Due to the universal approximation theorem, the global optimum tends to overfitt, i.e. fit the noise,  and we want to stop at the piont overfitting starts to happen. 
+_Early stopping_ (a form of regularization): Don't run SGD until it converges, i.e. finds a local minima. For example, monitor empirical risk on the valdation set, and stop once validation error starts to increase.  Due to the universal approximation theorem, the global optimum tends to overfitt, i.e. fit the noise,  and we want to stop at the point overfitting starts to happen.
 
 _Dropout regularization_: During training, in each iteration, ignore some hidden units (`remove' them from the net, but only for this iteration).  Each hidden unit has a probability of p (e.g. 1/2) of being ignored.  At the end, multiply all weights with p.
 
@@ -3302,12 +3577,16 @@ _tanh activation function_ φ(z) = tanh(z) = (exp(z)-exp(-z))/(exp(z)+exp(-z)): 
 [[kernels]]
 == Kernels
 
-Allows to work implicitly (i.e. without actually calculating Φ(x)) in high-dimensional feature spaces (see <<basic_functions>>), as long as we can compute inner products k(x,k') = Φ(x)^T^Φ(x) efficiently. Indeed often k(x,k') can be computed more efficently than computing Φ(x)^T^Φ(x) explicitely.
+A _kernel function_ k(x,k') = Φ(x)^T^Φ(x) is an inner product in a high dimensional space.  Allows to work implicitly (i.e. without actually calculating Φ(x)) in high-dimensional feature spaces (see <<basic_functions>>), as long as we can compute k(x,k') efficiently.  Often k(x,k') can be computed more efficently than computing Φ(x)^T^Φ(x) explicitely. Note that we don't even need to know Φ(·) or that high-dimensional space.  Recall that basis functions are used to transform a non-linear problem into a linear one.
+
+The dimensionality of the optimization problem depends on the number of observations, not on the dimensionality of the feature space.
+
+*to-do* relation to similarity function
 
 [[kernel_trick]]
 _Kernel trick_ (or _kernelization_): Express current learning algorithm s.t. it only depends on inner products. Replace those inner products by kernels.
 
-_Required properties of kernel_: Is a function k:𝓧⨯𝓧→ℝ, where 𝓧 is the data space, satisfying symmetry (k(x,xʹ)=k(xʹ,x) ∀ x,xʹ∈𝓧) and positive semi-definitess (kernel matrix (or gram matrix K = (k(x~i~,x~j~))~1≤i≤n,1≤j≤n~ must be positive semi-definite for any sample {x~1~, ..., x~n~} of 𝓧, for any n).
+_Required properties of kernel_: Is a function k:𝓧⨯𝓧→ℝ, where 𝓧 is the data space (or feature space), iff it is symmetric (k(x,xʹ)=k(xʹ,x) ∀ x,xʹ∈𝓧) and positive semi-definite (The kernel matrix (or gram matrix) K = (k(x~i~,x~j~))~1≤i≤n,1≤j≤n~ must be positive semi-definite for any sample {x~1~, ..., x~n~} of 𝓧. This is called _Mercer's condition_).
 
 Verifying wether a kernel is positive semi-definite is generally not that easy, so one practical way of getting new kernels are the kernel composition rules and valid known kernels.
 
@@ -3320,6 +3599,8 @@ _Kernel composition rules_ (or _kernel engineering_):
 - k = p(k~1~), where p is a polynomial with positive coefficients
 - k = exp(k~1~)
 - preprocess data: k(x,xʹ) = k~1~(foo(x),foo(xʹ))
+- k(x,xʹ) = f(x)f(xʹ) [f being a real-valued function]
+
 
 _Prediction_: Prediction is often roughly of the form h(x) = ∑~1≤i≤n~α~i~k(x~i~,x). That intuitively means that at there's a kernel function centered at each data point x~i~, weighted with α~i~, and that all these kernel functions are summed up.
 
@@ -3332,6 +3613,11 @@ Kernels provide a principled way of deriving non-parametric models from parametr
 Pro of kernelized perceptron: h(x) = signʹ(∑~i~α~i~y~i~k(x~i~,x)) shows that computation can be cheap if relatively to n only a few α~i~ are non-zero.
 
 _How to choose a suitable kernel and kernel parameters_: See <<model_selection>>, <<concrete_kernels>> and recall the kernel composition rules.  _Avoid overfitting_: Kernels map to (very) high-demensional feature spaces, which indicates that we might suffer from overfitting. The problem of overfitting however is not as bad as it first sounds, because the number of parameters equals the number of observations, i.e. |α| =  n, which usually is much less than the number of dimensions in the feature space. Still we can apply regularization, as for example in <<kernelized_linear_regression>> or <<kernelized_svm>>.
+
+References:
+
+- https://stats.stackexchange.com/questions/152897/how-to-intuitively-explain-what-a-kernel-is
+- https://www.youtube.com/watch?v=XUj5JbQihlU&hd=1
 
 
 === Kernel application examples
@@ -3364,11 +3650,11 @@ Example: Two class k nearest neighbors classifier. We can express two class k-NN
 
 See also <<kernel_engineering>> for rules how to create new kernels by composing existing kernels.
 
-- _linear kernel_: k(x,xʹ) = x^T^xʹ
+- _linear kernel_: k(x,xʹ) = x^T^xʹ. Is a similarity function in the sense that the dot product projects one vector on the other, i.e. is high for parallel vectors and zero for orthogonal vectors.
 
-- _polynomial kernel_: k(x,xʹ;d) = (x^T^xʹ+1)^d^. The feature space contains all monomials up to degree d.
+- _polynomial kernel_: k(x,xʹ;d) = (x^T^xʹ+1)^d^. The feature space contains all monomials up to degree d. Φ(·) transforms to that feature space, with some factor bevor each monomial. k(x,xʹ) = (x^T^xʹ+1)^d^ = Φ(x)Φ(xʹ).
 
-- _Gaussian kernel_ (or _Radial basis function_ (_RBF_), or _squared exponential kernel_): k(x,xʹ;h) = exp(-‖x-xʹ‖~2~²/h²). h is the _bandwith_ (or _length scale_) parameter. Small h means a more flexible model, i.a. a more wiggly resulting function ∑~i~α~i~k(x~i~,x~j~) which is more prone to overfitting.  A large h means an inflexible model prone to bias.  At least in case of SVM or perceptron, with a large h you almost get a linear decision boundary.  Or from another viewpoint, a small h means narrow Gaussian bumps and a large h means wide Gaussian bumps.  The decision boundary is very smooth; it's differentiable infintely many times.  Gaussian kernel is named that way only because it looks like a Guassian curve. The feature space has an infinite number of dimensions.  Infinitely differentiable.  Canonical kernel for Gaussian processes for smooth functions.
+- _Gaussian kernel_ (or _Radial basis function_ (_RBF_), or _squared exponential kernel_): k(x,xʹ;h) = exp(-‖x-xʹ‖~2~²/h²). h is the _bandwith_ (or _length scale_) parameter. Small h means a more flexible model, i.a. a more wiggly resulting function ∑~i~α~i~k(x~i~,x~j~) which is more prone to overfitting.  A large h means an inflexible model prone to bias.  At least in case of SVM or perceptron, with a large h you almost get a linear decision boundary.  Or from another viewpoint, a small h means narrow Gaussian bumps and a large h means wide Gaussian bumps.  The decision boundary is very smooth; it's differentiable infintely many times.  Gaussian kernel is named that way only because it looks like a Guassian curve. The feature space has an infinite number of dimensions.  Canonical kernel for Gaussian processes for smooth functions.
 
 - _Laplacian kernel_ (or _exponential kernel_): k(x,xʹ;h) = exp(-‖x-xʹ‖~1~/h). h works as in Gaussian kernel.  The decision boundaries are approximately piecewise linear.  I.e. the decision boundary is quite ragged.
 
@@ -3435,3 +3721,13 @@ Shrinkage/Regularization: Fight overfitting (high variance) by applying <<occams
 | k(x,xʹ) = exp(-‖x-xʹ‖~1~/h) | Laplacian kernel
 | k(x,xʹ) = exp(-‖sin(px)-sin(pxʹ)‖~2~²/h²) | Periodic kernel
 |====
+
+
+== References
+
+- Caltec, Learning from Data https://www.youtube.com/watch?v=mbyG85GZ0PI&list=PLXIPmvMlpicGPhDuIDYWSSUeV8JVElsei
+
+- MIT course 6.034 Artificial Intelligence, Fall 2010: https://www.youtube.com/watch?v=TjZBTDzGeGg&list=PLUl4u3cNGP63gFHB6xb-kVBiQHYe_4hSi
+
+- MIT course 18.650 Statistics for Applications, fall 2016: https://ocw.mit.edu/courses/mathematics/18-650-statistics-for-applications-fall-2016/lecture-slides/[lecture notes], https://www.youtube.com/watch?v=VPZD_aij8H0&list=PLUl4u3cNGP60uVBMaoNERc6knT_MgPKS0[videos]
+
