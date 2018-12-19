@@ -22,34 +22,40 @@ subquery_operator =
 
 ## The result of a query is a table. The order of processing is:
 ##
-## FROM [ON]: Joins [crossproduct + select] the given tables based on the given condition.
+## FROM [ON]: Joins [crossproduct + select] the specified tables based on the
+## given condition.
+##
+##     table
+##
 ## WHERE: [select] Discard failing rows.
+##
+##     table
+##
 ## GROUP BY: Sort by given columns, creating set of aggregations for identical
-##   (over given colums) columns, each aggregation being a table. 1)
+## (over given colums) columns, each aggregation being a table. 1)
+##
+##     set of tables (one per aggregation)
+##
 ## HAVING: discard failing aggregations.
+##
+##     set of tables (one per aggregation)
+##
 ## SELECT: [build table + project] create table, one row per aggregation, columns as
-##   specified, the given expressions defining the values of the cells.
+## specified, the given expressions defining the values of the cells.
+##
+##     table
+##
 ## ORDER BY: order by given columns.
+##
+##     table
+##
 ## DISTINCT: discard duplicate rows.
+##
+##     table
+##
 ## LIMIT: discard excess rows
 ##
-##                  set of tables
-## FROM(join(crossproduct+select(discard failing rows)))
-##                  table
-## WHERE(select(discard failing rows))
-##                  table
-## GROUP BY(sort + build aggregations)
-##                  set of tables (one per aggregation)
-## HAVING(discard failing aggregations)
-##                  set of tables (one per aggregation)
-## SELECT(project / build aggregation value, concatenate these row-wise)
-##                  table
-## ORDER BY
-##                  table
-## DISTINCT
-##                  table
-## LIMIT
-##                  table
+##     table
 ##
 ## 1) When from now on columns are refered in another way than within expression
 ## being argument to an aggregate function, depending on sql version/flavour
