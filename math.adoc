@@ -97,7 +97,7 @@ Intuition: Just imagine the generic Venn diagram of sets A and B.
 _Inclusion-exclusion rule_: Is a generalisation of the inclusion rule.
 For the special case of three sets: |A∪B∪C| = |A| + |B| + |C| - |A∩B| - |A∩C| - |B∩C| + |A∩B∩C|. For the formula of the general case of n sets, the internet is your friend.
 
-_Boole's inequality_: |A∪B| ≤ |A| + |B|. Intuition: Follows from the inclusion rule.
+_Boole's inequality_: |A∪B| ≤ |A| + |B|. Intuition: Follows from the inclusion rule. Is a tight bound if A and B do not overlapp (i.e. A∩B=∅).
 
 _Union Bound_: |⋃A~n~| ≤ |A~n~|. Intuition: Generalization of Boole's inequality.
 
@@ -178,7 +178,6 @@ References:
 
 
 == Probability
-
 
 The _sample space_ S (or Ω) is the set of possible outcomes of an _experiment_.
 An element ω ∈ S is called an _outcome_ (or _sample outcome_ or _element_ or _realization_ (is ambigous to the realization of a random variable)).
@@ -566,7 +565,7 @@ CDF(x) = { +
 
 ==== Normal distribution / Gaussian distribution
 
-X ~ 𝓝(μ, σ²), where μ∈ℝ is the mean and σ>0 the standard deviation, if
+X ~ 𝓝(μ, σ²), where μ∈ℝ is the mean and σ>0 the standard deviation.
 
 PDF(x) = 1/(σ√(2π)) exp(-1/(2σ²) (x-μ)²)
 
@@ -912,6 +911,7 @@ In the 2D case:
 
 The geometric interpretation is that, when you think about the matrix representing a linear transformation, the absolute value of the determinant is the factor applied to an area (in the 2D case, volume in 3D case and so on).  Also, in the 2D case, if A is build by combining column vectors v1 and v2 side by side, the determinant is positive when v1 is clockwise from v2 (their tails coinciding), negative when v1 is counterclockwise, and zero when the two are colinear.
 
+A symmetric n×n real matrix A is said to be _positive definite_ if the scalar v^T^Av is strictly positive for every non-zero n×1 vector v of real numbers. _Positive semi-definite_ matrices are defined similarly, except that additionally v^T^Av might be zero.  A is positive semi definite iff there exists a matrix B such that A = B^T^B.
 
 
 == Geometry
@@ -972,8 +972,6 @@ stirlings approximation: n! ~ √(2πn)*(n/e)^n^
   * spring 2015, textbook: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-spring-2015/readings/MIT6_042JS15_textbook.pdf
   * fall 2010, video lectures: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2010/video-lectures/
   * fall 2010, readings: https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-042j-mathematics-for-computer-science-fall-2010/readings/
-
-- MIT course 18.650 Statistics for Applications, fall 2016: https://ocw.mit.edu/courses/mathematics/18-650-statistics-for-applications-fall-2016/lecture-slides/[lecture notes], https://www.youtube.com/watch?v=VPZD_aij8H0&list=PLUl4u3cNGP60uVBMaoNERc6knT_MgPKS0[videos]
 
 - Book ``Algorithmics for Hard Problems: Introduction to Combinatorial Optimization, Randomization, Approximation, and Heuristics'', 2nd Edition, Juray Hromkovič. The Introduction chapter serves as good summary of computer science fundamentals.
 

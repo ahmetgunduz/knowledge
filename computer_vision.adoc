@@ -149,7 +149,7 @@ _Radiant energy Q_ = ∫Φ∂t [J]: Energy of electromagnetic and gravitational 
 
 _Radiant flux Φ_ (or just _flux_ or _power_) = ∂Q/∂t [W=J/S] ``Photons entering/leaving a source/sink per unit time''
 
-pRadiant flux of a surface Φ(A) = ∂Q(A)/∂t = ∫~A~∫~hemisphere~L·cosθ·∂ω·∂A.
+Radiant flux of a surface Φ(A) = ∂Q(A)/∂t = ∫~A~∫~hemisphere~L·cosθ·∂ω·∂A.
 
 _Radiant intensity I_ = ∂Φ/∂ω [W/sr]: Directional density of flux.
 
