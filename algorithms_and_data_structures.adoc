@@ -1025,6 +1025,25 @@ Has the same asymptotic complexities as AVL tree and red-black tree, but is opti
 
 Is just are another variant of a binary search tree. Is easier to implement than a AVL tree or red-black tree, especially when considering the respective concurrent data structure variants.  However a skip list has a worst-case running time of O(n), opposed to the O(log n) of most BBSTs, however with low probability.  The space complexity is O(n) w.h.p. but O(n log n) in the worst-case, opposed to O(n) worst-case of most other data structures. Concurrent variants of AVL trees or red-black trees often trade concurrency for balancedness, so their worst case guarantees drops, which was one of their main benefits over skip lists.  Skip lists have more pointers per key, thus are less chache friendly. *to-do* better explicitely state that skip lists have concurrency advantages
 
+
+.Binary heap vs BBST
+
+Mainly from a priority queue perspective. The killer feature of heaps is insertion in O(1) average, opposed to O(log n) for BBST.  Worst case is O(log n) for both.  Creating a binary tree from n elements is O(n), whereas it's O(n log n) for a BBST.  Altough most operations are of same time complexity, constants in binary heap are smaller and thus better.  Binary heaps have better locality of reference since they are array based, all elements are consequtive in the array.  Similarly, BBSTs waste more space for pointers.  Note that a BBST can be easily augmented such that it also supports find-min in O(1).  The killer feature of BBSTs over heaps is their O(log n) search time, opposed to heaps' O(n). https://stackoverflow.com/questions/6147242/heap-vs-binary-search-tree-bst, https://www.geeksforgeeks.org/why-is-binary-heap-preferred-over-bst-for-priority-queue/
+
+
+[[trie_vs_hash_table]]
+.Compressed trie vs hash table:
+
+- A trie can have (depending on how nodes are represented) predictable look-up time +O(k)+.  A hash table has +O(k+n)+ time complexity worst case:  O(k) is used to generate the key, looking up the key is O(1) average but O(n) worst case.
+- A trie does not need a hash function
+- A trie can provide an ordering of the entries by key.  I.e. a trie supports ordered traversal.
+- Locality is worse for a key, since it randomly accesses the nodes.
+- A trie typically uses more space than a hash table, since the graph uses quite a lot pointers.
+
+.Compressed trie vs binary tree:
+
+- Binary tree has +O(k * (lg n))+ time complexity for look-up, insertion, deletion.  Mind that comparing a key requires +O(k)+; in many times the worst-case occurs, due to long prefixes towards the leaves.
+
 *to-do*: data strucures optimized for secondary memory, e.g. B-trees.
 
 *to-do*: cache-oblivious data structures
@@ -1757,15 +1776,6 @@ Randomly permute the input before building the <<naive_BST>>.
 *to-do*
 
 Expected height E[height]=O(lg(n))
-
-
-=== Treap
-
-A randomized binary search tree.  At the same time a Cartesian tree in which each key is given a randomly chosen numeric priority, the heap property applies to the priority.
-
-*to-do*
-
-Etymology: A portmanteau of tree and heap.
 
 
 [[avl_tree]]
@@ -2530,7 +2540,7 @@ Modification::
 - insert: +Θ(lg(n))+ binary, +Θ(1)+ others
 - decrease-(increase-)key: +Θ(lg(n))+ binary & binomial & pairing,  +O(1)+ others
 
-Binary heap vs BBST (balanced binary search tree), mainly from a priority queue perspective:  The killer feature of heaps is insertion in O(1) average, opposed to O(log n) for BBST.  Worst case is O(log n) for both.  Creating a binary tree from n elements is O(n), whereas it's O(n log n) for a BBST.  Altough most operations are of same time complexity, constants in binary heap are smaller and thus better.  Binary heaps have better locality of reference since they are array based, all elements are consequtive in the array.  Similarly, BBSTs waste more space for pointers.  Note that a BBST can be easily augmented such that it also supports find-min in O(1).  The killer feature of BBSTs over heaps is their O(log n) search time, opposed to heaps' O(n). https://stackoverflow.com/questions/6147242/heap-vs-binary-search-tree-bst, https://www.geeksforgeeks.org/why-is-binary-heap-preferred-over-bst-for-priority-queue/
+See also <<data_structure_comparison>>.
 
 Practical use of advanced heaps like Fibonacci or Brodal: ``To the best of my knowledge, there are no major applications that actually use Fibonacci heaps or Brodal queues. [...]  the data structures were not developed to meet practical needs, but rather to push forward our theoretical understanding of the limits of algorithmic efficiency. [...] the constant factors hidden in a Fibonacci heap or Brodal queue are very high. [...] If you're working on huge graphs, it's more common to use other techniques to improve efficiency, such as using approximation algorithms for the problem at hand, better heuristics, or algorithms that use specific properties of the underlying data.'' https://stackoverflow.com/questions/30782636/are-fibonacci-heaps-or-brodal-queues-used-in-practice-anywhere
 
@@ -2905,7 +2915,7 @@ pack any amount less than that per material into the knapsack.
 
 online knapsack problem:: <<online_knapsack_problem>>
 
-Notable problems that reducable easily to the knapsack problem, but not notable enough to give them their own chapter:
+Notable problems that reduce easily to the knapsack problem, but not notable enough to give them their own chapter:
 
 Change-making problem:: How can a given amount of money be made with the least
 number of coins of given denominations. Similar to UKP, however capacity of
@@ -4552,6 +4562,7 @@ Comparision *to-do*: Small/big T, small/big P, small/big Σ, repeatedly searchin
 
 ==== Misc string problems
 
+[[string_predecessor_problem]]
 - Predecessor problem: Given k strings T~i~, and search pattern P which is one of these k strings, find P's predecessor / successor according to the lexicographical order of the k strings.
 
 - Associative array ADT where key is a string
@@ -4618,38 +4629,44 @@ O(n+m) worst case
 [[tries_comparision]]
 === Tries / suffix tree/arrays comparison
 
-For terms and notations, see <<string_searching>>. Additionally, k is the number of stored strings.
+For terms and notations, see <<string_searching>>. N is the number of nodes, which is smaller or equal to |T|. Recall that T = T~1~ + ... + T~k~. In case of suffix trees, N = O(n), see suffix tree chapter, where here n is the length of the string stored by the suffix tree.
 
-The data structure implementing a node of the global tree stores the edges of a global tree node to its global tree node childs.  In other words, for each node in the global tree, its parent node in the global tree uses O(1) space.  Thus O(k) space in total.
+Compressed trie:
 
 |=======
-|                                                  | query     | space  | construction | notes
-| c. trie / nodes as array                         | O(P)      | O(k·Σ) |              |
-| c. trie / nodes as BST ②                        | O(P·lg Σ) | O(k)   |              |
-| c. trie / nodes as hash table                    | O(P)      | O(k)   |              | no ordering
-| c. trie / nodes as vEB tree                      | O(P·lglgΣ)| O(k)   |              | randomized
-| c. trie / nodes as vEB tree and hash table ①    | O(P+lglgΣ)| O(k)   |              | randomized
-| c. trie / global tree weight balanced            | O(P+lg k) | O(k)   |              |
-| c. trie / ... plus indirection                   | O(P+lg Σ) | O(k)   |              |
+| storing nodes as            | query      | space  | notes
+| array                       | O(P)       | O(N·Σ) |
+| BST ②                      | O(P·lg Σ)  | O(N)   |
+| hash table                  | O(P)       | O(N)   | no ordering
+| vEB tree                    | O(P·lglgΣ) | O(N)   | randomized
+| vEB tree and hash table ①  | O(P+lglgΣ) | O(N)   | randomized
+| global tree weight balanced | O(P+lg k)  | O(N)   |
+| above plus indirection      | O(P+lg Σ)  | O(N)   |
 |=======
 
 ① Use redundantely both vEB tree and hash table.  Normally use the hash table.  However if a query letter is not on an edge, i.e. not not in the hash table, use the vEB tree to find the previous/next child node of the global tree.  Note that the vEB will at most be used once per query.
 
 ② We're considering here static problems, thus we can balance the BSTs upon construction because we know all the nodes.
 
-*to-do* is ``tray'' really a data structure distinct from suffix tray which solves the problem of finding a key in a collection of keys? 
+|=======
+|                      | query     | space    | construction   | notes
+| suffix tray          | O(P+lg Σ) | O(n)     | ?              |
+| suffix tree          | see trie  | O(n·S)① | O(n²)②, O(n)③|
+| suffix array         | O(P·lg Σ) | O(n)     | O(n)           |
+| suffix array + LPC   | O(P+lg Σ) | O(n)     | O(n)           |
+| suffix array + ?     | O(P)      | ?        | ?              | Abouelhoda, Kurtz & Ohlebusch (2004)
+| FM index             | ?         | ?        | ?              |
+|=======
 
-|=======
-|                      | query     | space    | construction | notes
-| suffix tray          | O(P+lg Σ) | O(k)     | ?            |
-| suffix tree          | see trie  | see trie | see trie     |
-| suffix array         | O(P·lg Σ) | O(n)     | O(n)         |
-| suffix array + LPC   | O(P+lg Σ) | O(n)     | O(n)         |
-| suffix array + ?     | O(P)      | ?        | ?            | Abouelhoda, Kurtz & Ohlebusch (2004)
-| FM index             | ?         | ?        | ?            |
-|=======
+① S denotes space used for one node, see trie. Assuming the edges don't explicitely store strings, but only indicies of start/end pos into the original string.
+
+② Naive algorithm
+
+③ Ukkonen’s suffix tree construction
 
 *to-do* relation radix sort vs trie, ...
+
+*to-do* is ``tray'' really a data structure distinct from suffix tray which solves the problem of finding a key in a collection of keys?
 
 References:
 
@@ -4675,7 +4692,14 @@ Trivia: The name trie is a pun on re__trie__val.  Originally pronounced it as `t
 
 ==== Storing nodes
 
-There multiple ways to actually store a trie.  Subchapter <<tries_comparision>> gives an overview.  The more simple methods are not further explained.  The more complex ones are explained in the following subchapters.  Recall that most of the time, we will use a compressed trie rather than a (uncompressed) trie.
+There multiple ways to actually store a trie.  Subchapter <<tries_comparision>> gives an overview.  The more simple methods are not further explained.  The more complex ones are explained in the following subchapters.  Recall that most of the time, we will use a compressed trie rather than a naive / uncompressed trie.
+
+
+==== Storing nodes, BST
+
+A node stores its up to |Σ| children are stored as BST, with the first char of the edge label as key.
+
+Space complexity: O(1) per node. Lets look at an internal trie node. It has up to |Σ| children. We use a BST to store these children. That BST has no more than |Σ| leaf nodes, thus O(Σ) internal nodes, each of which uses O(1) space, so O(Σ) space for the BST, i.e. the internal node of the trie. When looking at it the other way round, and attributing the space to the children of the internal trie node, each of the |Σ| children uses O(Σ/Σ) = O(1) space.
 
 
 ==== Storing nodes, global tree weigth balanced
@@ -4694,24 +4718,10 @@ Cut edges below all maximall deep nodes that have at least |Σ| descendat leaves
 Analysis: O(P + log Σ) query time and O(n) space.  Space for each bottom trie is linear. Space for the parent tree becomes O(n) because it has O(n / Σ) nodes, each using O(Σ) space.  Query time in the parent tree is linear.  The size of a bottom tree is O(Σ), thus, being a balanced tree, query time in a bottom tree is O(log Σ).
 
 
-
 [[compressed_trie]]
 === Compressed trie (aka radix tree, radix trie, compact prefix tree)
 
 Based on <<trie>>, see there for terms and symbols. Is an implementation of the ordered <<associative_array>> ADT.  A radix tree is a space-optimized trie, where a node with only one child is removed, merging its two adjacent edges into one, which is then labeled with the concatenation of the labels of the two previous edges.  That is each edge is no longer labeled with a single character but potentially with a string.  Typically the nodes/edges do not store the string leading to a child, but the pair (startindex, endindex) into the original text.  Each internal node consequently has at least two children, so there are less internal nodes than leaves.  The [[letter_depth]]_letter depth_ of a node is the lenght of the key/path that leads to it.
-
-[[trie_vs_hash_table]]
-Compared to a hash table:
-
-- A trie can have (depending on how nodes are represented) predictable look-up time +O(k)+.  A hash table has +O(k+n)+ time complexity worst case:  O(k) is used to generate the key, looking up the key is O(1) average but O(n) worst case.
-- A trie does not need a hash function
-- A trie can provide an ordering of the entries by key.  I.e. a trie supports ordered traversal.
-- Locality is worse for a key, since it randomly accesses the nodes.
-- A trie typically uses more space than a hash table, since the graph uses quite a lot pointers.
-
-Compared to a binary tree:
-
-- Binary tree has +O(k * (lg n))+ time complexity for look-up, insertion, deletion.  Mind that comparing a key requires +O(k)+; in many times the worst-case occurs, due to long prefixes towards the leaves.
 
 References:
 
@@ -4721,13 +4731,23 @@ References:
 [[suffix_tree]]
 === Suffix tree (aka PAT tree, suffix trie)
 
-Based on compressed trie, see there for terms and symbols. Given a text T, append $ (see <<trie>>), then store all suffixes of T in a (compressed) <<trie>>. The value associated with a leaf is the starting position of the suffix in T.
-
-When given multiple documents T^i^, i=1, 2, ..., n, append $~1~, $~2~, ... and $~n~ to each T^i^ respectively, and then throw all suffixes of each document into the suffix tree.
-
-The suffix tree contains O(T) nodes, thuse O(T) space needed (using reasonable representations of the trie, see there).
+Based on a compressed <<trie>>, see there for terms and symbols. Given a text T, append $, then store all suffixes of T in a compressed trie. The value associated with a leaf is the starting position of the suffix in T.
 
 Details: Seeing a letter as a string of size one, all edges in a compressed trie have strings on them. Such a string can be stored in O(1) by storing only the indicies (within T) of its first and last letter.
+
+Space analysis: The suffix tree has exactlty n = |T| leaf nodes, and so O(n) nodes in total. Since edges don't store their associated string explicitely, but only implicitely via indices into the original string, see above, the space per edge is O(1).  Thus the overall space complexity is O(n·spacePerNode), see also trie.
+
+Construction:
+
+- Naive in O(n²) time: Sequentially throw each suffix of T into a compressed trie.
+
+- Ukkonen's Algorithm in O(n) time and being an online algorithm (assuming constant-size alphabet)
+
+- many more ...
+
+Variations:
+
+- When given multiple documents T^i^, i=1, 2, ..., n, append $~1~, $~2~, ... and $~n~ to each T^i^ respectively, and then throw all suffixes of each document into the suffix tree.
 
 Applications:
 
@@ -4754,24 +4774,24 @@ A _suffix array_ (or _SA_) is an index into a string T.
 Given a string T of length n over alphabet Σ.  The last character of T is a special character $ ∉ Σ which is lexicographically smaller than all characters in Σ.  Conceptually sort all suffixes of T.  The cell SA[i] in the suffix array SA provides the position within T at which the i-th sorted suffix starts.
 
 --------------------------------------------------
-      sorted             T = bananas$
-      suffixes               01234567
- row  of T       SA LCP      
-  0   $           7  -
-  1   as$         5  0
-  2   anas$       3  1
-  3   ananas$     1  3
-  4   bananas$    0  0
-  5   nas$        4  0
-  6   nanas$      2  2
-  7   s$          6  0
+                   T = bananas$
+ sorted                01234567
+ suffixes  row  SA LCP
+ $         0    7  -
+ ananas$   1    1  0
+ anas$     2    3  3
+ as$       3    5  1
+ bananas$  4    0  0
+ nanas$    5    2  0
+ nas$      6    4  2
+ s$        7    6  0
 --------------------------------------------------
 
 To query a string P in T:
 
 _trivial binary search_: O(P log n) query time.  Do a binary search of P in T via SA.
 
-_LPC + binary search_: O(P + log n) query time.  As a preprocessing step, construct longest common prefix (LCP) array which stores the length of two consecutive suffixes.  LCP[i] = |i-th suffix| - |(i-1)-th suffix|. With the information provided by the LCP array, individual comparisons during the binary search can compare fewer characters than the trivial binary search.  Algorithms exists which construct LCP together with SA in O(n) time.
+_LPC + binary search_: O(P + log n) query time.  As a preprocessing step, construct longest common prefix (LCP) array which stores the length of the common prefix of two consecutive suffixes.  LCP[i] = length_common_prefix(i-th suffix, (i-1)-th suffix). With the information provided by the LCP array, individual comparisons during the binary search can compare fewer characters than the trivial binary search.  Algorithms exists which construct LCP together with SA in O(n) time.
 
 Construcing SA: Constructible in O(n log n) time with simple methods and O(n) time with complex methods.
 
@@ -4781,6 +4801,7 @@ References:
 Computation in Suffix Arrays and Its
 Applications: http://alumni.cs.ucr.edu/~rakthant/cs234/01_KLAAP_Linear%20time%20LCP.PDF
 
+- https://www.cs.helsinki.fi/u/tpkarkka/teach/14-15/SPA/lecture09-2x4.pdf
 
 === (Suffix) tray
 
@@ -4831,7 +4852,7 @@ Example of many things introduced in the following:
  anas$     2   anas$ban  3  -   5  0    0 1 0 1 0 1 0 | b     1  4
  as$       3   as$banan  5  -   6  1    0 1 0 2 0 1 0 | .     0  5
  bananas$  4   bananas$  0  0   0  0    0 1 0 2 0 1 0 | n     2  5
- anas$     5   nanas$ba  2  -   1  0    1 1 0 2 0 1 0 | .     0  7
+ nanas$    5   nanas$ba  2  -   1  0    1 1 0 2 0 1 0 | .     0  7
  nas$      6   nas$bana  4  4   2  1    2 1 0 2 0 1 0 | s     1  7
  s$        7   s$banana  6  -   3  2    3 1 0 2 0 1 0 | .     0  8
 ----------------------------------------------------------------------
@@ -8441,7 +8462,9 @@ https://www.youtube.com/playlist?list=PLxc4gS-_A5VDvP_9W8JJ04zk6m1qTolzG
 
 - Book "Introduction to algorithms" aka CLRS (3rd Edition), Cormen, Leiserson, Rivest, Stein
 
-- MIT course 6.006 Introduction to Algorithms: 
+- Book "Computational Geometry: Algorithms and Applications (3rd Edition)"
+
+- MIT course 6.006 Introduction to Algorithms:
   * Umbrella over all semesters: https://courses.csail.mit.edu/6.006
   * Fall '11: https://courses.csail.mit.edu/6.006/fall11/notes.shtml[lecture notes], https://www.youtube.com/playlist?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb[videos]
 
