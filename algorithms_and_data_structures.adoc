@@ -4539,7 +4539,7 @@ References:
 [[string_searching]]
 === String searching / matching problem
 
-Problem: Find all/some occurences of a pattern P in a given text T.  Let _Σ_ be an alphabet (finite set), _T_ a string of length _n_, _P_ a string of length _m_.  Both the pattern and searched text are vectors of elements of Σ.
+Problem: Find all/some occurences of a pattern P in a given text T.  Let _Σ_ be an alphabet (finite set), _T_ a string of length _n_, _P_ a string of length _m_.  Both the pattern P and searched text T are vectors of characters from alphabet Σ. In related problems, e.g. <<string_predecessor_problem>>, instead of one text T, there are k texts T~1~, ..., T~k~, where the total length is |T| = ∑~1≤i≤k~|T~i~|.
 
 With preprocessing, idealy we don't want to spend more than O(P) query time, since we at least have to look at the queried string P, and no more than O(T) auxillary space, since the data structure should not be much bigger than the orginal text T.
 
@@ -4741,7 +4741,7 @@ Construction:
 
 - Naive in O(n²) time: Sequentially throw each suffix of T into a compressed trie.
 
-- Ukkonen's Algorithm in O(n) time and being an online algorithm (assuming constant-size alphabet)
+- <<ukkonens_algorithm>> in O(n) time and being an online algorithm (assuming constant-size alphabet)
 
 - many more ...
 
@@ -4764,6 +4764,178 @@ Applications:
 * Longest common prefix of two substrings in T in O(1) time: Take the two leaves corresponding to the indexes where the substring start, <<LCA_problem,find LCA>> in O(1) time, and the letter depth of the found node is the answer.
 
 * Find all occurences of T[i:j]: Instead of, as in a normal search, finding the node from the root in O(j-i) time, find the (j-i)the ancestor of leaf i in O(1) time (via an _LA_query_)
+
+References:
+
+- See also <<ukkonens_algorithm>>
+
+
+[[ukkonens_algorithm]]
+==== Ukkonen's algorithm
+
+A O(n) time online algorithm (assuming constant-size alphabet) for constructing a suffix tree.
+
+High level conceptual perspective of the algorithm: Append the special letter $ to T. For each prefix P = T[0..i], 0 ≤ i < |T|, insert all suffixes of P in a compressed trie. Note that except for the last prefix, the prefixes don't end with $, and thus the suffixes of that prefixes also dont end in $.
+
+As we will see, we can insert all suffixes of a prefix P in O(1) amortized time.
+
+
+===== Introductory terms and concepts
+
+An _implicit suffix tree_ is the trie you get when the special letter $ is _not_ appended to the string T before throwing all T's suffixes into the trie. As a consequence, all the suffixes of T that appear also elsewhere in T, don't end in a leaf node. They end somewhere before. Thus it's nowhere explicitely stored that such a suffix is actually part of the trie. Such a suffix is called _implicitly stored suffix_.
+
+----------------------------------------
+  implicit suffix tree     suffix tree for
+  for "abcab"              "abcab"
+  = trie containing all    = trie containing all
+  suffixes of "abcab"      suffixes of "abcab$"
+
+  o--abcab--o              o--ab--o--cab$--o   
+  |                        |      +--$-----o
+  +--bcab---o              |
+  |                        +--b---o--cab$--o 
+  +--cab----o              |      +--$-----o
+                           |
+  implicitely stored       +--cab$---------o
+  suffixes: "ab", "b"
+----------------------------------------
+
+The _active path_ (a term invented by me) is the path starting at the root which corresponds to the longest implicitely stored suffix. In the above example that is "ab". The end of the active path, and thus the active path, is specified via the _active point_, which is the tuple (active node, active edge, active length). _Active node_ is the last node on the active path, _active edge_ identifies the outgoing edge of that node (e.g. by storing the first char of that edge), and _active length_ counts the numbers of characters on that edge which are still part of the active path. The _active path length_ is the length of the active path. Some authors use the term _remainder_ to denote the the active path length, since, as we will see (*to-do* why exactly?), it equals the number of implicitely stored suffixes, i.e. the remaining number of suffixes we still have to properly store. If the active node is the root, the active path length equals the active length. Otherwise we don't know directly the active path length. As we will see, we also don't need to. We will only need to know wether or not it's zero.
+
+
+===== Algorithm in medium detail
+
+*to-do* use i instead phase to index phases
+
+Recall that at the beginning, we append the special character $ to T. The algorithm is composed of |T| _phases_ (aka _transitions_), starting with phase = 0. Let _end_ be an alias for phase, i.e. end ≡ phase. A phase inserts all suffixes of the prefix P = T[0..end] (i.e. T[0..end], T[1..end], ..., T[end:end]).  In other words, at the end of a phase, we have an (implicit) suffix tree T~phase~ containing all suffixes of P = T[0:end].  Note that the end of the last phase, we get a true suffix tree, at the end of all other phases we get an implicit suffix tree. This is because only the last phase inserts the special character $.
+
+The j-th suffix U = T[j..end] of P is a substring of T. When inserting U, its prefix U[0:|U|-2] = T[j:end-1] is already stored in the trie. This was done by the previous phase. Followingly we conceptually only have to append U[|U|-1] = T[end] to the path (starting at the root) given by U[0:end-1] = T[j:end-1], called _substring path_ (a term invented by me to contrast such a path with the active path). Inserting U is also called a _suffix extension_, since as just said we just extend a suffix which is already in the tree by T[end]. There are three rules, called _extension rules_, how to actually do a suffix extension:
+
+*to-do* Note that in case of |U| = 1, the substring path is of length 0. The empty string / suffix is always an implicitely stored suffix.
+
+*to-do* stress that the tree T~phase~ is built from the tree T~phase-1~ in an incremental way
+
+_Rule 1_: If the substring path ends at a leaf: Append T[end] to that leaf edge. As we will see, this is an implicit operation, i.e. costing us O(0), catchword `end variable', and in general applies to most suffix entensions of a phase.
+
+_Rule 2_: Otherwise, if the substring path can _not_ be extended by T[end] (i.e. in the tree, there does _not_ exist a character T[end] directly following the substring path): Insert a new leaf edge labeled with string T[end] at the end of the substring path. As we will see, we end up doing that O(1) amortized times per phase. *to-do*
+
+_Rule 3_: Otherwise (i.e. the substring path can be extended by T[end]): Implicitely insert T[end] at the end of the substring path (some sources also say that no action is taken). Thus the substring U is stored only implictely in the tree. As we will see, we end up doing that at most once per phase. *to-do*
+
+*to-do* Rule 1 cares about exending (with T[end]) suffixes of T[0:end-1] which end at a leaf, rule 2 and 3 about implicitely stored suffixes of T[0:end-1].
+
+Now we describe how to make the extension rule 1 an O(0) operation. Recall that practical implementations of a compressed suffix tree store the string associated with an edge via a `begin' and `end' index or pointer into the original string, opposed to as via an explicit string. For Ukkonen's algorithm to work, that is required. As a further twist, each leaf edge stores the end index not as explicitly via a value, but implicitely via the tree-global variable `end'. Thus if end is incremented by 1, that implicitely adds T[end] to all leaf edges. That makes appending T[end] to a rule 1 substring path an implicit operation, i.e. O(0). See also ① in the description of a phase below.
+
+Further tricks, which make the algorithm a O(n) time algorithm, are within the following complete description.
+
+
+===== Complete algorithm
+
+The active path initially is the empty string, i.e. active point is initially (root, null, 0). Append the special character $ to the string T.  Iterate over all phases, 0 ≤ phase < |T| (recall that end is an alias for phase). The loop increment, i.e. incrementing phase / end, has noteworthy consequences described in ① below. An individual phase is as follows:
+
+1) If we can extend the active path by T[end], we do it, and we finish the phase. ③ +
+2) Loop while active path length is non-zero ②. After the loop, do step 2.1 once *to-do* this is not really a rule, it's something else, isn't it?.  +
+2.1) Insert a new leaf edge labeled "T[end]" at active point. ⑤ +
+2.2) Create suffix link. ⑥ +
+3.3) Conceptually remove first character of active path by adapting active point accordingly. ④
+
+The following are details and background explanations to the above algorithm:
+
+① Background: This implements extension rule 1 at once for all suffix extensions of current phase where rule 1 applies. It does so because it implicitely adds T[end] to all leaf edges, since the string of a leaf edge is given by the range [some_number, end]. Here I find it easiest to think of the loop increment being at the beginning of a phase, so that rule 1 is applied at the beginning of the phase. In that view, at beginning of phase 0, ① does not exist, and at the beginning of phase 1, we incremented phase / end to 1, and so on.
+
+② Background: This implements extension rule 2 for all suffix extensions of current phase where rule 2 applies. More precisely, executing step 2.1 means applying rule 2. The loop and the other substeps of 3 are boiler plate to iterate over all substring paths where rule 2 applies. It can be shown that in the current phase, rule 3 will never apply. Recall that each suffix of the active path is already stored in the tree, but only as implicitely stored suffix. Thus the loop can be viewed as iterating over all implicitely stored suffixes.  Each implicitely stored suffix is extended by T[end] in Step 2.1 / rule 2, which turns it into a properly stored suffix, since it now ends in a leaf node. After the loop, the active point will be (root, null, 0), since by definition the loop ends when active path is the empty string.
+
+③ Details: If active length is 0, set active edge to T[end]. Increase active length. If active length now equals the length of the edge specified by active node and active edge, set active node to the child node at the end of that edge, set active edge to null, and active length to 0. +
+Background: This implements extension rule 3 at once for all suffix extensions of current phase where rule 3 applies. It can be shown that in the current phase, rule 2 will never apply. Since we already did apply rule 1, we're done with the current phase.
+
+④ Details: Let _active path suffix_ (a term invented by me) denote the string starting at active point and ending at the end of the active path. Remember the current active path suffix by making a copy of active point. Set the active node to the node the suffix link of the active node points to (If the link is null, set the active node to the root. The suffix link of the root node is always null.). Set active edge to null, and active length to 0. Skip over the first character of the remembered active path suffix. Then let active point follow, character by character, the path imposed by the characters of the remaining remembered active path suffix. Each step in the iteration is already described in ③.
+
+⑤ Details: At the active point, insert a new leaf edge labeled with "T[end]" to a newly created leaf node. If active point points in the middle of an edge (opposed to a node), that requires first splitting the edge at active point by inserting a new internal node.
+
+⑥ Details: Unless it's the first iteration of the loop: Let the child-taking-node of the previous iteration point to the child-taking-node created in this iteration. That pointer is called _suffix link_. If the current active node is the root, it's optional to create the suffix link, since by definition trying to follow a suffix link which is null brings us to the root.
+
+Note that appending $ to T enforces that in the last phase we always apply rule 2 but never rule 3, because we never can extend the active path by $. Thus we're guaranteed that the last phase processes a non-zero length active path, and followingly, after the last phase, it's guaranteed that there are no implicitly stored suffixes in the tree.
+
+
+===== Example
+
+As an example, let's build the suffix tree for string T = "abcabxabcd", i.e. actually "abcabxabcd$".
+
+------------------------------------------------------------
+ abcabxabcd$
+ 012345678910
+
+ Legend: r/R root, n new node, o/O existing node,
+ upercase node letter = active node, = = active path, | = active point,
+ ap = active path/point, overbar = T[end] implicitely added to leaf edges,
+ ! = suffix link edge
+
+ initial   phase=0    phase=1    phase=2    phase=3      phase=4
+                          _           _            _             _  
+ R|        R|-a--n    R|-ab-o    R|-abc-o   R==a|bca-o   R==ab|cab-o
+                      |          |   _      |    _       |     _    
+                      +--b--n    +--bc--o   +--bca---o   +--bcab---o
+                                 |          |   _        |    _     
+                                 +--c---n   +--ca----o   +--cab----o
+           insert a   insert b   insert c   extend ap    extend ap  
+           at ap      at ap      at ap      by a         by b       
+
+
+ phase=5
+         +--x----n          +--x----o              +--x----o
+         |     _            |                      |
+ R==ab|--n--cabx-o   R--ab--o--cabx-o       R|-ab--o--cabx-o      
+ |                   |      !               |      !
+ +--bcabx--------o   +==b|--n--cabx-o       +--b---o--cabx-o
+ |     _             |      |               |      |               
+ +--cabx---------o   |      +--x----n       |      +--x----o      
+                     |                      |                      
+                     +--cabx--------o       +--cabx--------o      
+ insert x at ap      remove 1st ch of ap,   remove 1st char of ap, 
+                     insert x at ap,        insert x at ap        
+                     create suffix link     [create suffix link to root]
+                               
+                                     ...             
+ phase=6: extend ap by a             |         _      
+ phase=7: extend ap by b      r==ab==O==c|abxabc-o  
+ phase=8: extend ap by c      |      !                
+                              ...    ...            
+
+ phase=9        _
+        +---xabcd--------o          +---xabcd--------o 
+        |     +--d-------n          |     +--d-------o 
+        |     |        _            |     |           
+ r==ab==O==c--n--abxabcd-o   R--ab--o--c--o--abxabcd-o 
+ |      !                    |      !     !
+ |      !         _          |      !     !            
+ +--b---o--cabxabcd---o      +==b===O==c--n--abxabcd-o    
+ |      |      _             |      |     |               
+ |      +--xabcd------o      |      |     +--d-------n
+ |         _                 |      +--xabcd------o   
+ +--cabxabcd----------o      |                         
+ insert d at ap              +--cabxabcd----------o  
+                             remove 1st ch of ap,    
+                             insert d at ap,         
+                             create suffix link
+------------------------------------------------------------
+
+*to-do* complete example
+
+*to-do* as a follow up example, use T = "abcabxabcdbxa" to show how it works when T ends with a suffix, here bxa, that appeared earlier as a substring in T.
+
+References:
+
+- See also those of <<suffix_tree>>
+
+- Main source for my text: https://stackoverflow.com/questions/9452701/ukkonens-suffix-tree-algorithm-in-plain-english
+
+- I also used for definition of terms: https://www2.cs.duke.edu/courses/fall14/compsci260/resources/suffix.trees.in.detail.pdf
+
+- Dynamically visualize Ukkonen's algorithm: http://brenden.github.io/ukkonen-animation/
+
+- http://web.stanford.edu/~mjkay/gusfield.pdf
+
+- https://www.geeksforgeeks.org/ukkonens-suffix-tree-construction-part-1/
+
 
 
 [[suffix_array]]
