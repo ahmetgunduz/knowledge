@@ -25,15 +25,17 @@ General notes:
   ressources.
 
 
-=== Types for parameters
+=== Parameter passing guidelines
 
 General notes:
 
 - Top level const is an implementation detail, it's _not_ part of the
   interface. See also const correctness.
+
 - Prefer references over pointers. Use pointers when `there is no pointee'
   (i.e. nullptr) is a valid case. Rational: It's easier to do right, because
   you don't have to remember to do nullptr checks before dereferencing.
+
 - Observer: Use structured lifetimes to ensure the object passed will not be
   destructed before the function returns: Only pass objects that are only
   reachable by the set of current and ancestor scopes.  If you have a shared
@@ -47,77 +49,43 @@ General notes:
 3+| (Composed) type | When to use for a parameter
 
 4+| No indirection
-| `T [const]` | |  | Names: Pass by value / observer (aka in-param)
+| `T [const]` | |  | Names: Pass by value / observer / in-parameter
 
-- For builtin types. Or more generally: When indirection to the parameter
-  object is more costly than constructing plus destructing the parameter
-  object.
-
-Tweaks:
-
-- When function needs to construct a _new_ object anyway. Don't use pass by
-  value to assign to an existing object. Rational, looking at objects directly
-  or indirectly owning resources (typically memory): The constructor of the
-  parameter object was forced to allocate resources. But if we passed the
-  parameter by some indirection, we might be able to re-use the resource(s) of
-  the existing object. Notes: It's now also easier to make the function
-  noexcept. Note however that this can be seen as a white lye, since now it's
-  the caller's job to create the parameter object, and if the constructor she
-  chooses does throw, then technically our function's no-throw guarantees
-  holds, but arguably the complete act of calling the function, inclusive
-  constructing paramters, can potentially throw.
-
+For builtin types. Or more generally: When the indirections in the function body
+to the parameter object are more costly than constructing plus destructing the
+parameter object.
 
 4+| One level of indirection
 
-| `T const` | `*[const]\|&` |  | Name: Pass by ptr-to-const / const-ref / (Continuous) observer (aka in-param)
+| `T const` | `*[const]\|&` |  | Names: Pass by ptr-to-const / const-ref / (Continuous) observer / in-parameter
 
-- When function does not want to assume ownership.
+When function does not want to assume ownership.
 
-- Note: Pointee must outlive duration of function call, which is guaranteed
-  when it's an local, thanks to structured lifetimes.
+| `T` | `*[const]\|&\|&&` |  | Names: Pass by ptr-to-non-const / non-const-ref / in-out-parameter
 
+When in addition to the above, the function needs to modify the referee / pointee.
 
-| `T` | `*[const]\|&\|&&` |  | Name: Pass by ptr-to-non-const / non-const-ref / In-Out parameter
+| `T[const]` | `{up\|sp} [const]` | | Names: Pass smart pointer by value / sink (unique_ptr) / share (shared_ptr)
 
-- When in addition to the above, the function needs to modify the pointee.
-
-Tweaks:
-
-- +++T&&+++: When function want's to move from the parameter (but not to
-  construct a new object, see pass by value). But note that now you can't pass
-  lvalue arguments. So the guideline is that in general you should _not_ have
-  an +++T&&+++ parameter, only a +++T const&+++. If you really want the
-  benefits of +++T&&+++, the next best practical thing is to overload: one
-  taking +++T const&+++, the other taking +++T&&+++. You could also write a
-  template to remove the redundancy of two implementations, but the way you
-  would do that is ``unteachable''.
-
-
-| `T[const]` | `{up\|sp} [const]` | | Name: Pass smart pointer by value
-
-**Sink** (+unique_ptr+) / **share** (+shared_ptr+).
-
-- Function want's to retain (shared) ownership.
+When function _definitely_ retains (shared) ownership.
 
 4+| Two level of indirection, usefull variants
 
-| `T[const]` | `up\|sp\|*` |  `*[const]\|&` | Name: Pass non-const smart/raw ptr by ptr/lvalue-ref
+| `T[const]` | `up\|sp\|*` |  `*[const]\|&` | Names: Pass non-const smart/raw ptr by ptr/lvalue-ref
 
-*Might reseat*: Callee will or might reseat.  `&` makes the most sense.
-`*[const]` in the seldom case that `no unique_ptr object' (+nullptr+) is a
-valid option.
+When the function _might_ reseat. & makes the most sense.  `*[const]` in the
+seldom case that `no smart ptr object' (i.e. passing nullptr) is a valid option.
 
-| `T[const]` | `sp const` | `*[const]\|&`  | Name: Pass const shared ptr by ptr/lvalue-ref
+| `T[const]` | `sp const` | `*[const]\|&`  | Names: Pass const shared ptr by ptr/lvalue-ref
 
-*Might share*.  Callee might retain shared ownership.  `&` makes the most
-sense.  `*[const]` in the seldom case that `no shared_ptr object' (+nullptr+)
+When function _might_ retain shared ownership.  & makes the most
+sense.  `*[const]` in the seldom case that `no shared_ptr object' (i.e. passing nullptr)
 is a valid option.
 
 4+| Two level of indirection, variants being mostly meaningless or invalid
 
 
-| `T[const]` | `{up\|*} const` | `*[const]\|&` | Name: Pass const unique/raw ptr by ptr/
+| `T[const]` | `{up\|*} const` | `*[const]\|&` | Names: Pass const unique/raw ptr by ptr/
 lvalue-ref
 
 Mostly meaningless.  Having read-only access to an smart_ptr object usually
@@ -125,14 +93,52 @@ doesn't make sense.  Also having read-only access via indirection to an raw
 pointer usually doesn't make sense -- use `T*` instead, i.e. pass the pointer
 by value.
 
-| `T[const]` | `{up\|sp\|*}[const]` | `&&` | Name: Pass [const] smart/raw ptr by rvalue-ref
-
-??
-
 | `T[const]` | `{&\|&&}[const]` | `*[const]\|&\|&&` |
 Ptr/ref to ref is invalid.
 
 |======
+
+Use cases which potentially using overloads:
+
+- As an optimization, you want to move-from (but not to construct a new object,
+  see next point) the parameter and still allow that also lvalues are passed:
+
+  * Recomended: Forget about the optimization and just pass by const T&
+
+  * Recomended if you really do want the optimization: Overload with T&& and
+    with const T&. As a down-side, we have to deal with redundancy.
+
+  * Implement the former point via a template to remove the redundancy. But the
+    way you would do that is ``unteachable'' (quote Bjarne Stroustrup).
+
+  * Pass by value. Also removes redundancy. But in comparision with the T&& and
+    const T& overload solution, it is less optimal.
+
+   ** When the caller passes an lvalue, we're forced to allocated resources in
+      the copy (not move) constructor the parameter object. In case of const T&,
+      when internally moving from the paramter in a move assignment to an
+      existing object, we might be able to reuse the resources of the existing
+      object.
+
+   ** When the caller passes an rvalue, in comparision to the overload solution,
+      we additionally have to move construct the parameter object and later
+      destruct it.
+
+   ** As an advantage it's now easier to make the function noexcept. However
+      this can be seen as a white lye, since now it's the caller's job to create
+      the parameter object, and if the constructor she chooses does throw, then
+      technically our function's no-throw guarantees holds, but arguably the
+      complete act of calling the function, inclusive constructing paramters,
+      can still potentially throw.
+
+- As an optimization, you want to move-from the parameter to construct a new
+  object and still allow that also lvalues are passed:
+
+  * Recomended: Pass by value. Same pros and cons as the `pass by value' point of the
+    previous use case, however now the disvantage concerning passing lvalues
+    vanishes.
+
+  * The points stated in the previous use case
 
 
 References:
@@ -140,25 +146,14 @@ References:
 - http://herbsutter.com/2013/06/05/gotw-91-solution-smart-pointer-parameters/[GotW #91: Smart Pointer Parameters]
 
 
-=== Types for return value
+=== Types for return value & how to return objects
 
 Guidelines:
 
 - Return by value. Move semantics ensure that caller has no expensive copy costs.
+
 - Except for types where move is expensive (effectively is a copy, either more
   than 1kB and/or at least one allocation). Use an out-parameter for those.
-
-Tweaks:
-
-- When returned type T is a collection (vector, string, ...), and you know
-  that callers often do a certain insertion operation with the result
-  (e.g. +++myString.append(readline())+++), consider adding an overload
-  (e.g. +++void readline(string& target)+++) which does the insertion
-  internally. Rational: The return by value variant has the disadvantage that
-  the returned object _always_ must allocate memory to hold the payload, and
-  the return value object must be destroyed.
-
-Furthe Notes:
 
 - Don't return by +++const T+++. It's even illegal for builtin types. It
   destroys move semantics since it's no longer a valid argument for a
@@ -166,17 +161,55 @@ Furthe Notes:
   caller, not the callee, shall decide whether that object should be const
   or not.
 
+Tweaks:
 
-=== auto
+- When returned type T is a collection (vector, string, ...), and you know that
+  callers often do a certain insertion operation with the result
+  (e.g. +++myString.append(readline())+++), consider adding an overload
+  (e.g. +++void readline(string& target)+++) which does the insertion
+  internally. Rational: The return by value variant has the disadvantage that it
+  creates an additional object.  I.e. we have to pay construction, which
+  requires allocating memory to hold the payload, and we have to destroy that
+  object at some time.
+
+*to-do* Guidelines regarding RVO / elision
+
+
+=== Type deduction with auto
+
 - Guarantees no implicit conversion will take place, i.e. it's also more
   performant.
+
 - DRY
+
 - less verbose, i.e. less distracting clutter
+
 - Program against interfaces and concepts, not implementations and concrete
   types.  Note that in expression using temporaries (i.e. nearly all
   expressions) and in templates we also don't state the concrete type
   explicitly.
 
+++auto foo = ...++ vs ++const auto& = ...++ or ++auto&& = ...++
+
+- The general pattern ``avoid creating unnecessary objects'' suggest using the later
+
+- For the former to compile, the type of the initializer must be copy-able. A restriction the later doesn't have.
+
+- in the case initializer is a call returning a refernce to some internal object, e.g. +at()+ of containers: foo is a copy, and modifying foo does not modify the original object, which might not be what was intended
+
+References:
+
+- http://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/
+
+- Scott Meyers, Effictive Modern C&plus;&plus;, Item 5 6 41
+
+- Stephan T. Lavavej: https://github.com/CppCon/CppCon2014/tree/master/Presentations/STL%20Features%20And%20Implementation%20Techniques
+
+
+
+== Misc
+
+- When overriding, explicitely use +override+.
 
 === Namespaces
 
@@ -199,8 +232,6 @@ change in that they add, remove names or modify signatures), that silently might
 
 - http://stackoverflow.com/questions/1452721/why-is-using-namespace-std-considered-bad-practice
 - C++ Coding Standards: 101 Rules, Guidelines, and Best Practices.
-
-== Misc
 
 === Declare functions +noexcept+ whenever possible
 
@@ -320,7 +351,7 @@ class A {
 http://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
 
 
-=== implicit defined ctor/dtor vs user defined
+=== Implicit defined ctor/dtor vs user defined
 
 - ability to be POD / aggregate
  - since many members have that property not, also the whole often cant be it anyway
@@ -345,17 +376,15 @@ http://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
   detail, i.e. should not be part of the interface. After all, there's still
   the implicitly declared versions.
 
-== References
 
-- http://herbsutter.com/gotw/
-
-== Raw/smart pointers
+=== Raw/smart pointers
 
 Use unique_ptr by default, use shared_ptr when you _know_ you need shared
 ownership.  unique_ptr can always be moved to a shared_ptr.  If you _know_ you
 need shared ownership, use make_shared.
 
-== Copy-and-swap idiom
+
+=== Copy-and-swap idiom
 
 A recipe how to write copy/move constructor/assignment aimed to be general,
 simple and correct, as oppsed to specialized and/or efficient.
@@ -375,25 +404,50 @@ way.
 - Code duplication: swap and copy-ctor are now pretty redundant, no?
 
 
+=== Initialization, provided constructors
 
-== Misc
+- Use uniform initialization by default and resort to parenthesis when you must, but those cases should be rare. ^1)^
 
-- When overriding, explicitely use +override+.
+- A slighly more general view: Choose between either using uniform initalization by default and resort to paranthesis when you must, or vice verca, and then be consistent. ^2)^
+
+- If you provide an initializer-list constructor, also provide a default constructor with the same semantics as though you were initializinng with a zero-size initializer_list.
+
+References:
+
+1. <<core_guidelines>> https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Res-list[ES.23: Prefer the {} initializer syntax]
+
+2. <<effective_modern>> ``Item 7: Distinguish between () and {} when creating objects.''
 
 
 == References
 
 - Book: Effective C&plus;&plus; (3rd Edition). Scott Meyers.
+
+[[effective_modern]]
 - Book: More Effective C&plus;&plus;. Scott Meyers.
-- Book: Effective Moder C&plus;&plus;. Scott Meyers.
+
+- Book: Effective Modern C&plus;&plus;. Scott Meyers.
+
 - Book: Effective STL. Scott Meyers.
+
 - Book: A tour of C&plus;&plus;. Bjarne Stroustrup.
+
 - Book: The C++ Programming Language (4th Edition). Bjarne Stroustrup.
+
+[[core_guidelines]]
+- Webpage: C++ Core Guidelines: https://isocpp.github.io/CppCoreGuidelines/
+
 - Webpage: The Definitive C&plus;&plus; Book Guide and List: https://stackoverflow.com/questions/388242/the-definitive-c-book-guide-and-list
+
 - Video: CppCon 2015: Bjarne Stroustrup "Writing Good C+&plus;14": https://www.youtube.com/watch?v=1OEu9C51K2A&t=1494s
+
 - Video: CppCon 2015: Herb Sutter "Writing Good C&plus;&plus;14... By Default": https://www.youtube.com/watch?v=hEx5DNLWGgA
+
 - Video: CppCon 2014: Herb Sutter "Back to the Basics! Essentials of Modern C&plus;&plus; Style": https://www.youtube.com/watch?v=xnqTKD8uD64&t=3470s
+
 - Video: CppCon 2016: Herb Sutter "Leak-Freedom in C&plus;&plus;... By Default.": https://www.youtube.com/watch?v=JfmTagWcqoE&t=4780s
+
+- http://herbsutter.com/gotw/
 
 
 //  LocalWords:  noexcept Callee Reseat reseat Scott's
