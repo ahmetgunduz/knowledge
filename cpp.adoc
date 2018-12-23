@@ -6,175 +6,149 @@
 This is about the rules and terms of the C&plus;&plus; programming language. It is my summary of the C&plus;&plus; standard.  Best practices / guidelines are in +programming_practices.txt+ and ++cpp_guidelines.txt++.
 
 
-== Expressions / Object / Value categories
+== Basic / misc. concepts
 
-An _object_ is a region of storage (simplified). Don't confuse with notion of
-class object.  Functions (although it often occupies storage), references,
-classes and other types, namespaces, enumerators, and templates are not
-objects.  Std [intro.object] ... An object is created by a definition (3.1),
-by a new-expression (5.3.4) or by the implementation (12.2) when needed.  ...
+=== Undefined behavior
 
-An _expression_ is a sequence of operators and their operands.  The operands
-of any operator may be other expressions or primary expressions.  Each
-expression has some non-reference type, and each expression belongs to exactly
-one of the tree primary value categories.  _Literals_ and _identifiers_ are
-primary expressions.
+- http://en.cppreference.com/w/cpp/language/ub
+- https://blog.regehr.org/archives/1520[Undefined Behavior in 2017]
+- https://www.youtube.com/watch?v=v1COuU2vU_w[CppCon 2017: John Regehr “Undefined Behavior in 2017 (part 1 of 2)”]
+- https://www.youtube.com/watch?v=yG1OZ69H_-o&t=1215s[CppCon 2016: Chandler Carruth “Garbage In Garbage Out: Arguing about Undefined Behavior"]
+- https://www.youtube.com/watch?v=g7entxbQOCc&t=2340s[CppCon 2016: Michael Spencer “My Little Optimizer: Undefined Behavior is Magic"]
+- http://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html[What Every C Programmer Should Know About Undefined Behavior #1/3]
 
-=== Value categories
 
-Introduction and description of all value types:
+=== References
 
-lvalue;; Identifies a non-temporary object or a non-member function.
-Properties: Those of glvalue, address may be taken, can be lhs operand of
-built-in assignment operator unless non-modifiable, may be used to initialize
-an lvalue reference.  Note that an lvalue can be non-modifiable.  Flori:
-Examples for lvalues which don't have a name: literal string, objects on heap,
-array elements
+C&plus;&plus;98 references are covered by the `references' koan in cppkoans.
 
-prvalue (pure rvalue);; A temporary object or a value that is not an object.
-Properties: those of rvalue, cannot be polymorphic, a non-class prvalue cannot
-be cv-qualified, cannot have incomplete type
+_rvalue references_: C&plus;&plus;11 adds rvalue references.  An rvalue reference can bind to rvalues (e.g. temporaries), thus now we can also modify rvalues (e.g. temporaries) through rvalue references.
 
-xvalue;; Simplified: Things whose return type is an rvalue reference.
-Properties: those of rvalue, those of glvalue.  [Flori: Saying it's about an
-eXpiring object is misleading IMHO, since that also applies to rvalues in
-general.]
-
-Mixed value categories:
-
-glvalue (generalized lvalue);; Properties: May be polymorphic, ... (few more).
-
-rvalue;; Flori's words: Hence if we do have an (rvalue) reference to it, we can do with it what we want (since nobody will care),
-except for bringing it into an invalid state, in order that the ctor can run
-without errors)).  Properties: Address can't be taken, can't be used as lhs of
-the built-in assignment operator, may be used to initialize a const lvalue
-reference or a rvalue reference [that's the point which makes it movable].
-Flori's note: Note that although the address can't be taken, we still can
-initialize references, so internally the compiler can take the address.  Note
-that it can be the lhs of an overloaded assignment operator.
-
-The same information presented other way round: Which expressions has which value type:
+_Which reference binds to which value categories_: The following table specifies which expressions can bind to which references. The numbers specify which viable match is better, see overload resolution below.
 
 |===
-| Literal string                                                 | lvalue
-| Function                                                       | lvalue (*to-do*: but it is not an object, how does that fit together?)
-| Cast to rvalue reference to function                           | lvalue
-| Variable                                                       | lvalue
-| Lambda                                                         | prvalue
-| Literal, not string                                            | prvalue
-| Function / overloaded operator call / cast when return / cast-to type is an lvalue reference  | lvalue
-| Function / overloaded operator call / cast when return / cast-to type is not a reference  | prvalue
-| Function / overloaded operator call / cast when return / cast-to type is an rvalue reference to object type  | xvalue
-| builtin operators: pre inc/dec, dereference, (compound) assignment, subscript (except on array xvalue), comma when if the rhs is lvalue, ternary if 2nd and 3rd are lvalues, ... (*to-do*) member stuff | lvalue
-| builtin operators: post inc/dec, arithmetic, logical, comparison, address-of, comma when rhs is rvalue, ternary when either 2nd or 3rd is not lvalue, ... (*to-do* member stuff) | prvalue
-| ... (*to-do*: member stuff) | xvalue
+.2+| syntax .2+| name              4+| can bind to ...
+                                     | mut lvalue | immut lvalue | mut rvalue | immut rvalue
+| T&&       | rvalue reference       |            |              | y 1  ①    |
+| const T&&②| const rvalue reference |            |              | y 2       | y 1
+| T&        | lvalue reference       | y 1        |              |            |
+| const T&  | const lvalue reference | y 2        | y            | y 3        | y 2
 |===
 
-Visualization of how the value categories relate to each other:
+① The one important change in C&plus;&plus;11: Having an rvalue reference which
+can bind to a (mutable) rvalue _and modify_ it through the reference.  Using a
+const lvalue reference we could already bind to an rvalue before, but we could not
+modify it through the reference.
 
-----------------------------------------------------------------------
-                                 C++11
-                                   | As Venn diagram
-         i !m     i m      !i  m   |     __________ ___________
-primary: lvalue   xvalue   prvalue |    /           X           \
-             \     /   \    /      |   /           / \           \
-mixed:       glvalue   rvalue      |  |   lvalue  | x |  prvalue  |
-             i         m           |   \  (part)   \ /   (part)  /
-                                   |    \___________X___________/
-legend: i: has identity            |     glvalue          rvalue
-        m: movable                 |     (whole)          (whole)
------------------------------------+----------------------------------
-                                 C++98  _______      ________
-         lvalue        rvalue      |   /        \   /        \
-                                   |  |  lvalue  | |  rvalue  |
-                                   |   \________/   \________/
-----------------------------------------------------------------------
+② Const rvalue references are also new, but in general not really useful,
+since with const lvalue references we can already bind to rvalues.
 
-=== Misc
+_Overload resolution_: Regarding overload resolution, when there are multiple viable references, the rules for which viable match is better: 1) rvalue reference is better than an lvalue reference 2) less cv-qualified is better. The number in the table tells the overload resolution order, 1 means most prefered.
 
-The only really new value category C&plus;&plus;11 introduced is xvalues. The
-`new' value categories glvalue and prvalue are only to name different `new'
-regions of the Venn diagram which emerged due to the introduction of xvalues.
-xvalues in turn were added as a consequence of the addition of rvalue
-references.
+[[forwarding_reference]] _forwarding reference_ (or _universal reference_): A forwarding reference can appear as the type of a template function argument (e.g. "template <class T> void f(T&&);"), or as auto&& (e.g. "auto&& obj = bar();"). A forwarding reference preserves the value category of the function argument / initializer. If an rvalue is passed, the type of the argument / object will be rvalue ref (T&&), if an lvalue is passed, it will be lvalue ref (T&), see also <<template_argument_deduction>> and <<auto_variable_type_deduction>>. *to-do* Item 28 - forwarding references are not a new kind of references, the're really just rvalue references
 
-++return _expression_;++: Returning by value may involve construction and
-copy/move of a temporary object, unless copy elision is used.  Flori's
-abbreviation: if the expression is an lvalue it is tagged to be an rvalue
-(*to-do*: xvalue or prvalue ?) so the move constructor or copy constructor
-taking reference to const may be taken.
-http://en.cppreference.com/w/cpp/language/return
+_Rules for modifying rvalues_: Nothing new. We're never allowed to bring an
+object into an invalid state, also not when modifying it through an rvalue
+reference. Consider the following example:
 
-+std::move+ doesn't move and +std::forward+ doesn't forward. +move+ is an
-__un__conditional cast to rvalue, and +forward+ is an _conditional_ cast to
-rvalue. When +move(x)+ is passed as an argument to a function/operator, it's
-nearly certain that +x+ gets modified (else the move semantics woudn't make
-sense, and if there is no move semantic overload, wrapping in +move+ makes no
-sense). When implementing +foo(T&&)+, technically the same thing as in
-+foo(T&)+ can be implemented. The ++T&&++ case however, in contrast to ++T&++
-case, is allowed to take advantage of the fact that the caller does not need
-the information stored in the object anymore; the caller only needs the object
-to be in a valid state; he still needs to call at least the destructor. The
-++T&&++ implementation usually steals the guts while ensuring the object is
-still in a valid state.
+--------------------------------------------------
+void foo(T&& param) {
+  ... /* do anything with param which leaves it in a valid state */
+};
+...
+{
+  T obj;
+  foo(move(obj)); // move is only an (unconditional) cast to T&&
+  // obj is in unspecified (unless foo specifies it) but valid state
+} // obj is destructed, i.e. referenced by it's destructor
+--------------------------------------------------
+
+foo's modifications must be in a way that leave the object in a valid
+state. After all, the caller of foo must at least be able to destruct the object
+he passed to foo. The implementation of a method taking an rvalue reference is
+almost always to steal the resources of the rvalue parameter. E.g. the vector's
+move constructor vector<T>(vector<T>&& rhs) probably is implemented by
+overtaking ownership of rhs's underlying dynamically allocated array and then
+leave the rhs as being an empty vector. The resources can be stolen because the
+caller doesn't care anymore about the content of the object he passed. See also
+move, and what promise you make when you use it. Since modifying an rvalue
+almost always means stealing resources from it, when passing an object to a
+function taking an rvalue reference (e.g. move constructor or move assignment),
+we say that we _move from_ the object.
+
+Remember: ``move doesn't move and forward doesn't forward''. move
+is an __un__conditional static cast to rvalue. forward is an _conditional_
+cast to rvalue. See the following definitions for each.
+
+_std::move_: move is an unconditional static cast to rvalue reference (thus is
+an xvalue). It is a promise that you don't care about the object's content
+anymore, only that it remains in some valid state. You still can reference / use
+the object the normal way. For example, the canonical example for swap is:
+
+------------------------------------------------------------
+template<typename T>
+void swap(T& a, T&b) {
+  T tmp(move(a));
+  a = move(b);   // a   is referenced although we already moved from it
+  b = move(tmp)  // tmp "  "          "       "  "       "     "    "
+} // tmp and a are referenced by their destructor
+------------------------------------------------------------
+
+Some sources (even notable ones from the C&plus;&plus; committee) contradict the
+previous paragraph. They say that the move in "MyType obj; foo(move(obj));" is a
+promise that obj is not referenced after the full expression containing the
+move. This statement is based on that in "foo(makeMyType());", the produced
+temporary is destructed at the end of the full expression containing it, thus
+there is no way that somebody after foo could reference the temporary, and that
+move is a promise that the situation is the same as with the temporary.  *to-do*
+I don't have any references for my statement. So which of the two paragraphs
+(see also the following), is now finally provably correct?
+
+_std::forward_: Being passed a forwarding reference, yields the value category
+of the object the forwarding reference was bound to. In other words, forward
+casts it's argument, an (const) lvalue, to rvalue reference iff its argument was
+initialized to an rvalue, and otherwise leaves it at (const) lvalue
+reference. Using forward means making the same promise as using move. For
+example: *to-do* clean up the wording *to-do* in the auto example, why does
+decltype(bar) play the role of T? In the template case, T is string, but in the
+auto case, decltype(bar) is string&&.
+
+--------------------------------------------------
+void foo(string&&);
+void foo(const string&);
+void foo(string&);
+template<class T> void wrapper(T&& arg) { foo(forward<T>(arg)); }
+...
+{
+  const string cstr{};
+  string str{};
+
+  wrapper(string{});    // param's type is string&&, forward yields the same
+                        // Without forward, wrapper would pass an lvalue
+                        // and thus call foo(string&)
+  wrapper(cstr);        // param's type is const string&, forward yields the same
+  wrapper(str);         // param's type is string&, forward yields the same
+                        // If wrapper would use move, foo would
+                        // move from str without the intent of the
+                        // the caller of wrapper
+
+  // same principle with auto, only that in case of rvalues, the template arg to
+  // forward is now string&& instead string.
+  auto&& bar1 = string{};
+  foo(forward<decltype(bar1)>(bar1)); // decltype(bar1) is string&&
+
+  auto&& bar2 = cstr;
+  foo(forward<decltype(bar2)>(bar2)); // decltype(bar2) is const string&
+}
+--------------------------------------------------
+
+[[reference_collapsing]]
+_reference collapsing_: In certain situations, e.g. template instantiation, e.g. in <<template_argument_deduction>> with forwarding references, the compiler arrives at a situation where it gets a reference to a reference. Since there's no such thing as a reference to a reference (a reference is not an object), so called reference collapsing occures. It states that the resultinig reference is an rvalue reference iff both references are rvalue references, and lvalue reference otherwise.
 
 
+=== Initialization
 
-*to-do*: Questions:
-
-- What does prvalue description fragment ``a value that is not an object''
-  mean?
-- What is the purpose of the new value category xvalue (and the resulting
-  glvalue and prvalue). They are not needed for move semantics, because
-  distinction rvalue to lvalue already defines whether it's movable or not.
-
-References:
-
-- http://stackoverflow.com/questions/3601602/what-are-rvalues-lvalues-xvalues-glvalues-and-prvalues
-- <<TCppPL>> Chapter 6.4
-- <<http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3055.pdf,n3055 >>
-- http://en.cppreference.com/w/cpp/language/value_category
-
-
-== References
-
-C&plus;&plus;11 adds rvalue references.  Now we can also modify rvalues
-through them.  *To-do*: Are my words correct?: rvalue reference has the
-semantic of: I can modify they content in any way; however nobody will see the
-change since nobody will reference thee again (except for destructor and methods which only write but do not read before writing).  So the modification typically is stealing what ever thou owns.
-The only constraint is that I must leave you in a valid state so your
-destructor and assignment operator (*to-do*: why assignment?)  can run.  An
-lvalue reference can naturally do the same modifications, but it cannot bind
-to rvalues; The use case of stealing from rvalues is much more common (since
-they are never used again after the stealing) than stealing from lvalues
-(since they might be used again after that stealing).
-
-Which expressions can bind to which references. P__n__ is, in the field of
-overload resolution, about which is a better match; a smaller number is a better
-match than a higher number.
-
-|===
-|                                       | mut lvalue | immut lvalue | mut rvalue | immut rvalue
-| ++T&&++: rvalue reference             |            |              | y (*) P1   |
-| ++const T&&++: const rvalue reference |            |              | y (#) P2   | y (#) P1
-| ++T&++: lvalue reference              | y P1       |              |            |
-| ++const T&++: const lvalue reference  | y P2       | y            | y P3       | y P2
-|===
-
-(*) The one important change in C&plus;&plus;11.  Having rvalue references we
-can also bind to mutable rvalue and modify it through the reference.  Using
-++const T&++ we could already bind to rvalues before, but we could not modify
-them through the reference.
-
-(#) Const rvalue references are also new, but in general not really useful,
-with const lvalue references we can already bind to rvalues.
-
-When there are multiple y in a column, overload resolution must choose between
-the multiple viable overloaded methods. Concerning the cases of th above table, the rules for which viable match is better : 1) rvalue reference is better than an lvalue reference 2) less cv-qualified is better.
-
-
-== Initialization
-
+See also cpp_initialization.ods.
 
 C&plus;&plus;11 adds _uniform initialization_ using the brace syntax. Unlike C&plus;&plus;98's different syntaxes of initialization, it an be used anywhere (locals, members, statics etc.) an express anything (e.g. now we also can initialize collections).
 
@@ -195,7 +169,7 @@ int             a[] = {1, 2, 3, 4};
 vector<int>     v   = {1, 2, 3, 4};
 --------------------------------------------------
 
-Some rules
+Some uniform initialization rules
 
 - Uniform initialization prohibits narrowing conversions.
 
@@ -203,23 +177,19 @@ Some rules
 
 - "T foo = \{bar}" (copy list initialization) is the almost same as "T foo\{bar}" (direct initialization), only that the former can't use explicit ctors.
 
-- If there is at leas one std::initializer_list ctor, and using the uniform initialization, it is _strongly_ preferred over other ctors; if there is any way to call it, it will be called. E.g. if a class has a ctor with signature "(int, bool)" and a ctor "(std::initializer_list<long double>)", the initializer "{10, true}" calls the initializer list constructor by converting the arguments to long double. Say in the previous example the class also has a convertion operator "operator float() const" and a copy ctor and a move ctor. Then, say x is of the class' type, the initializers "\{x}" and "{std::move(x)}" will both call the initializer list ctor, as opposed to the copy ctor or the move ctor respectively.
+- If there is at leas one initializer_list ctor, and using the uniform initialization, it is _strongly_ preferred over other ctors; if there is any way to call it, it will be called. E.g. if a class has a ctor with signature "(int, bool)" and a ctor "(initializer_list<long double>)", the initializer "{10, true}" calls the initializer list constructor by converting the arguments to long double. Say in the previous example the class also has a convertion operator "operator float() const" and a copy ctor and a move ctor. Then, say x is of the class' type, the initializers "\{x}" and "{move(x)}" will both call the initializer list ctor, as opposed to the copy ctor or the move ctor respectively.
 
-- An empty ++{}++ list as initializer calls the default constructor if both the default ctor and the std::initializer_list ctor are available. If you want to call the std::initializer_list ctor, use "foo({})".
+- An empty ++{}++ list as initializer calls the default constructor if both the default ctor and the initializer_list ctor are available. If you want to call the initializer_list ctor, use "foo({})".
 
-- See <<auto_type_deduction>>.
+- <<auto_variable_type_deduction>> has special rules if the initializer is a braced initializer, see there.
+
+Some general initialization rules:
 
 - _Most vexing parse_: The standard says ``If it can be a function declaration, it is.''. Thus both of the following are function declarations, not object definitions: ++T obj();++ and ++T obj(foo(),bar())++, given foo and bar are types. Another reason not to use initializers based on parens.
 
-- zero initialization: static T t; T(); T t = {}; T t{}; *to-do* more details https://en.cppreference.com/w/cpp/language/zero_initialization
+- _zero initialization_: static T t; T(); T t = {}; T t{}; *to-do* more details https://en.cppreference.com/w/cpp/language/zero_initialization
 
-Guidelines:
-
-- If you provide an initializer-list constructor, also provide a default constructor with the same semantics as though you were initializinng with a zero-size initializer_list.
-
-- Scott Meyers: Choose between either using uniform initalization by default and resort to paranthesis when you must, or vice verca, and then be consistent.
-
-- Herb Sutter: Use uniform initialization by default and resort to parenthesis when you must, but those cases should be rare.
+- _copy initialization_ vs _direct initialization_ *to-do*
 
 
 References:
@@ -229,79 +199,18 @@ References:
 - Book "Effective Modern C&plus;&plus;", Chapter 3
 
 
-== auto
+=== Elision / RVO / NRVO
 
-See also <<auto_type_deduction>>.
-
-++auto foo = ...++ vs ++const auto& = ...++ or ++auto&& = ...++
-
-- The general pattern ``avoid creating unnecessary objects'' suggest using the late
-
-- For the former to compile, the type of the initializer must be copy-able. A restriction the later doesn't have.
-
-- in the case initializer is a call returning a refernce to some internal object, e.g. +at()+ of containers: foo is a copy, and modifying foo does not modify the original object, which might not be what was intended
-
-References:
-
-- http://herbsutter.com/2013/06/07/gotw-92-solution-auto-variables-part-1/
-- Scott Meyers, Effictive Modern C&plus;&plus;, Item 5 6 41
-- Stephan T. Lavavej: https://github.com/CppCon/CppCon2014/tree/master/Presentations/STL%20Features%20And%20Implementation%20Techniques
+++return _expression_;++: Returning by value may involve construction and
+copy/move of a temporary object, unless copy elision is used.  Flori's
+abbreviation: if the expression is an lvalue it is tagged to be an rvalue
+(*to-do*: xvalue or prvalue ?) so the move constructor or copy constructor
+taking reference to const may be taken.
+http://en.cppreference.com/w/cpp/language/return
 
 
-
-== Type deduction
-
-Recall that temporary objects are (non-const) rvalues, and that there are no
-const rvalues (only 99% sure about the latter statement). Also recall after declaring a reference, e.g. "int& ri = i;", the expression "ri" in almost all cases means the referee, and thus is of type int, not int&.
-
-Function template type deduction (since C&plus;&plus;98):
-
---------------------------------------------------
-int i = 42;
-const int ci = 42;
-
-template<typename T> void f(T);
-        // arg's value category     T           param's type
-f(i);   // lvalue                   int         int
-f(ci);  // const lvalue             int         int
-f(42);  // rvalue                   int         int
-
-template<typename T> void f(T&); // T* is analous
-        // arg's value category     T           param's type
-f(i);   // lvalue                   int         int&
-f(ci);  // const lvalue             const int   const int&
-f(42);  // rvalue                   compile error, lvalue expected
-
-template<typename T> void f(const T&); // const T* is analogous
-        // arg's value category     T           param's type
-f(i);   // lvalue                   int         const int&
-f(ci);  // const lvalue             int         const int&
-f(42);  // rvalue                   int         const int&
-
-template<typename T> void f(T&&); // template param's type is universal reference
-        // arg's value category     T           param's type
-f(i);   // lvalue                   int&        int&
-f(ci);  // const lvalue             const int&  const int&
-f(42);  // rvalue                   int         int&&
---------------------------------------------------
-
-In the pass by value case (f(T)) with a const lvalue argument, the const is
-dropped since the parameter is an independent object.  In the pass by reference
-/ pointer cases (f(T&) or f(const T&)), the result is such that the type of the
-referee / pointee matches from both viewpoints (argument and parameter).
-
-[[auto_type_deduction]]
-Type deduction with auto, added in C&plus;&plus;11, works by definition the same as function template type deduction, see following code snipet, with one exception: In "auto foo = \{42};" the type of foo is std::initializer_list<int>, opposed to int as function template type deduction would do it.  Note that in "auto foo\{42};", the type of foo is int (corrected by N3922, a defect of C++11. Without N3922, the type is std::initializer_list<int>).
-
---------------------------------------------------
-// function template            // auto type deduction
-// type deduction
-template<typename T>            ...auto... foo = expr;
-void f(...T...);
-f(expr);
---------------------------------------------------
-
-
+[[type_deduction]]
+=== Type deduction
 
 References:
 
@@ -311,15 +220,275 @@ References:
 
 - Book "Effective Modern C&plus;&plus;", Chapters 1-4
 
+==== Summary
 
-== Undefined behaviour
+decltype(id-expression): type the id-expression was declared as +
+decltype(expr): expr is of type T: xvalue -> T&&, lvalue -> T&, prvalue -> T
 
-- http://en.cppreference.com/w/cpp/language/ub
-- https://blog.regehr.org/archives/1520[Undefined Behavior in 2017]
-- https://www.youtube.com/watch?v=v1COuU2vU_w[CppCon 2017: John Regehr “Undefined Behavior in 2017 (part 1 of 2)”]
-- https://www.youtube.com/watch?v=yG1OZ69H_-o&t=1215s[CppCon 2016: Chandler Carruth “Garbage In Garbage Out: Arguing about Undefined Behavior"]
-- https://www.youtube.com/watch?v=g7entxbQOCc&t=2340s[CppCon 2016: Michael Spencer “My Little Optimizer: Undefined Behavior is Magic"]
-- http://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html[What Every C Programmer Should Know About Undefined Behavior #1/3]
+function template argument deduction (FTAD): *to-do*
+
+|=====
+|                                      | Deduction rules
+|auto variable TD                      | FTAD with exceptions: +
+...auto... obj = {...}; -> deduced type is initializer_list +
+...auto... obj\{expr}; -> deduced type is FTAD on expr
+|auto function return TD            .2+| FTAD
+|auto parameter TD
+|decltype(auto) variable TD         .3+| decltype
+|decltype(auto) function return TD
+|decltype(auto) parameter TD
+|=====
+
+
+
+[[decltype]]
+==== decltype
+
+decltype(...) yields the type of it's argument.
+
+case decltype(http://www.nongnu.org/hcb/#id-expression[id-expression]): Yields the type the id-expression was declared as.
+
+case decltype(expr): The type yielded by decltype depends on the value category of expr. Say expr is of type T. xvalue -> T&&, lvalue -> T&, prvalue -> T.
+
+--------------------------------------------------
+int i{};
+int& ri = i;
+//                  yields    argument
+// decltype(ri)     int&      id-expression
+// decltype((ri))   int       expr
+// decltype(ri+1)   int       expr
+--------------------------------------------------
+
+
+[[template_argument_deduction]]
+==== Function template argument deduction
+
+_Template argument deduction_ (aka _function template type deduction_ or _template type deduction_ *to-do* be absolutely sure these terms are synonyms) (since C&plus;&plus;98) explained by example:
+
+------------------------------------------------------------
+int i = 42;
+const int ci = 42;
+
+template<typename T> void f(T);
+        // arg's value category     T           param's type
+f(i);   // lvalue                   int         int
+f(ci);  // const lvalue             int         int ①
+f(42);  // rvalue                   int         int
+
+template<typename T> void f(T&); ② // T* is analous
+        // arg's value category     T           param's type
+f(i);   // lvalue                   int         int&
+f(ci);  // const lvalue             const int   const int&
+f(42);  // rvalue                   compile error, lvalue expected
+
+template<typename T> void f(const T&); ② // const T* is analogous
+        // arg's value category     T           param's type
+f(i);   // lvalue                   int         const int&
+f(ci);  // const lvalue             int         const int&
+f(42);  // rvalue                   int         const int&
+
+template<typename T> void f(T&&); // template param's type is forwarding reference
+        // arg's value category     T           param's type
+f(i);   // lvalue                   int& ③     int& ④
+f(ci);  // const lvalue             const int&  const int&
+f(42);  // rvalue                   int ③      int&&
+------------------------------------------------------------
+
+① In the pass by value case (f(T)) with a const lvalue argument, the const is
+dropped since the parameter is an independent object.
+
+② In the pass by reference / pointer cases (f(T&) or f(const T&)), the result is
+such that the type of the referee / pointee matches from both viewpoints
+(argument and parameter).
+
+③ When an lvalue is passed, T is of reference type, when an rvalue is passed, T is of non-reference type. That makes forward work.
+
+④ Naively, since T is int& and the declaration is T&&, the parameter type ought to be T& &&. However the rules of <<reference_collapsing>> dictate that the actual resulting parameter type is T&.
+
+
+Recall that:
+
+- Temporary objects are (non-const) rvalues, and that there are no const rvalues
+  (*to-do* make sure the latter statement is really true).
+
+- After declaring a reference, e.g. "int& ri = i;", the expression "ri" in
+  almost all cases means the referee, and thus is of type int, not int&.
+
+- A brace-init-list is not an expression and thus doesn't has any type. Template
+  type deduction (in contrast to auto) doesn't try to come up with a type, and a
+  program that tries to do so is ill-formed. Thus "template<class T> void f(T);
+  foo({1,2})" is ill-formed.
+
+Caveats, all of which are related to decaying types. Bottom line is there's not really something special. Passing arrays or functions by values does not exist, thus in such a case the array / function decays. Once we have that, the normal rules apply.
+
+- If an array is passed (e.g. "V a[42]; foo(a)"):
+
+  * Param type is "T": deduced type is "*V". The array decays to "*V" and from there the normal type deduction rules apply. Recall that there is no such thing as passing an array by value. "void foo(int a[])" is exactly the same as "void foo(int*a)".
+
+  * Param type is "T&" (or with pointer and/or const qualified): deduced type is "V(&)[42]". I.e. array does not decay and we have the regular rules.
+
+- Analalgous rules apply for passing functions
+
+
+[[auto_variable_type_deduction]]
+==== auto / decltype(auto) variable type deduction
+
+Added in C&plus;&plus;11. Works by definition, with exceptions related to braced initializer, the same as function template type deduction. In a declaration involving a type based on auto and an initializer (e.g "type_auto name = initializer" (e.g. "const auto& foo = 42")), the type deduction works by definition as in "template<typename U> foo(type_U); foo(42)", where type_U is optained from type_auto by replacing every occurence of auto by U (the example becoming template<typename U>foo(const U&)).
+
+--------------------------------------------------
+ auto type deduction          function template
+                              type deduction
+
+ ...auto... foo = expr;       template<typename U>
+                              void f(...U...);
+                              f(expr);
+
+ special case copy-list-initialization
+ ...auto... foo = {...};      template<typename U>
+                              void f(...initializer_list<U>...);
+                              f({...});
+
+ special case direct-list-initialization
+ ...auto... foo{expr};        template<typename U>
+                              void f(...U...);
+                              f(expr);
+--------------------------------------------------
+
+The exceptions where auto type deduction differs from function template type deduction. Recall that in function template type deduction, calling the function with a braced initializer as argument is an error.
+
+- In case of copy-list-initialization, the template function parameter is
+  "initializer_list<U>".
+
+- In case of direct-list-initialization, the braced initializer must contain
+  exactly one element. Regarding type deduction, it's treated as the
+  corresponding copy-initialization where only the one element is
+  speficifed. E.g. regarding type deduction, "auto a{42}" is treated as "auto
+  a = 42". Added by N3922, a defect of C&plus;&plus;11.
+
+_decltype(auto)_ (added in C&plus;&plus14) works exactly the same as decltype. Say the definition is "decltype(auto) foo = expr;", then the deduced type is whatever decltype(expr) yields. what decltype(auto) cannot be combined with other type specifiers. *to-do* reminder to use forward
+
+
+==== auto / decltype(auto) function return type deduction
+
+Works by definition the same as function template deduction. E.g. say the function is "...auto... foo() { return expr; }", then the type deduced is as "template<typename ...U...> void f(U); f(expr)" does it. If the function has multiple return statements, all types must exactly agree *to-do* is this really correct that they must exactly agree?
+
+_decltype(auto)_ (added in C&plus;&plus;14) works exactly the same as decltype. Say the function is "decltype(auto) f() { return expr; }", then the type of the function is whatever decltype(expr) yields. decltype(auto) cannot be combined with other type specifiers.
+
+
+==== auto parameter type deduction (in lambdas)
+
+Works by definition the same as function template deduction. E.g. "[](...auto..., ...auto...)void {...}" is conceptually translated to "template<class T1, class T2> void f(...T1... ,...T2...)".
+
+
+=== Structured bindings
+
+
+Why, if "auto [...] = ..." means, as a first step, making an unnamed local like "auto unnamed = ...", structured bindings work with arrays? Since accoding to type deduction rules, if the initializer is of type array of T, it decays to T*. May that initial statement was only a good analogy, not the 100% exact thing, and/or there's an exception for auto and arrays in the context of structured bindings.
+
+
+== Expressions
+
+An _object_ is a region of storage (simplified). Don't confuse with notion of
+class object.  Functions (although it often occupies storage), references,
+classes and other types, namespaces, enumerators, and templates are not
+objects.  Std [intro.object] ... An object is created by a definition (3.1),
+by a new-expression (5.3.4) or by the implementation (12.2) when needed.  ...
+
+An _expression_ is a sequence of operators and their operands.  The operands
+of any operator may be other expressions or primary expressions.  Each
+expression has some non-reference type, and each expression belongs to exactly
+one of the tree primary value categories.  _Literals_ and _identifiers_ are
+primary expressions.
+
+=== Value categories
+
+Primary value categories:
+
+_lvalue_: A non-temporary object or a non-member function.  Properties: Those of
+glvalue, plus address may be taken, can be lhs operand of built-in assignment
+operator unless non-modifiable, may be used to initialize an non-const lvalue
+reference.  Note that an lvalue can be non-modifiable. Examples for lvalues
+which don't have a name: literal string, objects on heap, array elements
+
+_prvalue_ (pure rvalue): A temporary object or a value that is not an object.
+Properties: those of rvalue, cannot be polymorphic, a non-class prvalue cannot
+be cv-qualified, cannot have incomplete type. *to-do* examples for values which
+are not objects. Literals?
+
+_xvalue_: Simplified: Things whose return type is an rvalue reference.
+Properties: those of rvalue, those of glvalue. IMHO saying it's about an
+eXpiring object is misleading, since that also applies to rvalues in general.
+
+Mixed value categories:
+
+_glvalue_ (generalized lvalue): Properties: May be polymorphic and a few more.
+
+_rvalue_: Properties: Can be used to initialize a const lvalue reference or a
+rvalue reference (the latter is the major new feature of C&plus;&plus;11),
+address can't be taken (although we can initialize references to it), can't be
+used as lhs of the built-in assignment operator (however it can be the lhs of an
+overloaded assignment operator).
+
+----------------------------------------------------------------------
+                                 C++11
+                                   | As Venn diagram
+         i !m     i m      !i  m   |     __________ ___________
+primary: lvalue   xvalue   prvalue |    /           X           \
+             \     /   \    /      |   /           / \           \
+mixed:       glvalue   rvalue      |  |   lvalue  | x |  prvalue  |
+             i         m           |   \  (part)   \ /   (part)  /
+                                   |    \___________X___________/
+legend: i: has identity            |     glvalue          rvalue
+        m: movable                 |     (whole)          (whole)
+-----------------------------------+----------------------------------
+                                 C++98  _______      ________
+         lvalue        rvalue      |   /        \   /        \
+                                   |  |  lvalue  | |  rvalue  |
+                                   |   \________/   \________/
+----------------------------------------------------------------------
+
+The only really new value category C&plus;&plus;11 introduced is xvalues. The
+`new' mixed value categories glvalue and prvalue are only to name different
+`new' regions of the Venn diagram which emerged due to the introduction of
+xvalues.  xvalues in turn were added as a consequence of the addition of rvalue
+references.
+
+The same information the description of primary / mixed value catgories already
+presented, are here redundantly presented other way round: Which expressions
+have which value type:
+
+|===
+| Literal string                                                 | lvalue
+| Function                                                       | lvalue (*to-do*: but it is not an object, how does that fit together?)
+| Cast to rvalu                                                  | lvalue
+| Variable                                                       | lvalue
+| Lambda                                                         | prvalue
+| Literal, not string                                            | prvalue
+| Function call or cast where returned type is an lvalue reference  | lvalue
+| Function call or cast where returned type is not a reference  | prvalue
+| Function call or cast where returned type is an rvalue reference to object type  | xvalue
+| builtin operators: pre inc/dec, dereference, (compound) assignment, subscript (except on array xvalue), comma when if the rhs is lvalue, ternary if 2nd and 3rd are lvalues, ... (*to-do*) member stuff | lvalue
+| builtin operators: post inc/dec, arithmetic, logical, comparison, address-of, comma when rhs is rvalue, ternary when either 2nd or 3rd is not lvalue, ... (*to-do* member stuff) | prvalue
+| ... (*to-do*: member stuff) | xvalue
+|===
+
+References:
+
+- http://stackoverflow.com/questions/3601602/what-are-rvalues-lvalues-xvalues-glvalues-and-prvalues
+- <<TCppPL>> Chapter 6.4
+- <<http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3055.pdf,n3055 >>
+- http://en.cppreference.com/w/cpp/language/value_category
+
+
+== Resources
+
+- Collection of resources on modern C&plus;&plus;: https://github.com/rigtorp/awesome-modern-cpp
+
+- online compiler (gcc, clang,...) to inspect produced assembly: https://godbolt.org/. Tooltips for the machine instructions.
+
+- online micro benchmark: http://quick-bench.com
+
+- Hyperlinked C++ BNF Grammar: http://www.nongnu.org/hcb/
 
 
 == Bibliography
