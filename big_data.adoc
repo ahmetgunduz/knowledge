@@ -8,6 +8,8 @@
 
 == Intro
 
+_Big Data_ is a portfolio of technologies that were designed to store, manage and analyze data that is too large to fit on a single machine, while accommodating for the issue of growing discrepancy between capacity, througphut and latency.
+
 [[data_technology_stack]]
 Data technology stack:
 
@@ -25,7 +27,7 @@ Data technology stack:
       two-hase processing: MapReduce / dag-driven proc: tez, spark / elastic computing: EC2
 | validation |
       XML schema, JSON schema, Relational schemas, XBRL taxonomies
-| data models |
+| data model |
       Tables: Relational model, column store, wide column store / trees: XML Infoset, XDM / graphs: RDF / Cubes: OLAP / Unstructured text / key-value model
 | syntax |
       Tables: CSV / trees: XML, JSON / graphs: RDF, graph / Cubes: XBRL / Unstructured text
@@ -54,7 +56,7 @@ _latency_: Time between asking for something and receving the first bit of that 
 
 _total response time_ (or, conflictlingly, latency): Latency + transfer time
 
-The history of storage: progress made 1956-2010: capacity: 150'000'000 times more, throughput 10'000'000 times more, latency 8 times more. To increase throughput, we can parallize. To improve latency, we can do batch processing.
+The history of storage: progress made 1956-2010: capacity: 600'000'000 times more, throughput 10'000 times more, latency 8 times more. To increase throughput, we can parallize. To improve latency, we can do batch processing.
 
 Very rough typical measures:
 
@@ -83,21 +85,23 @@ _Scalability! But at What COST?_: The paper reminds that scalability is only a m
 
 *to-do* https://www.youtube.com/watch?v=6bWBEJBMNG0. I still don't get why he can be so much faster. Both in examples with single threaded, and when he also parallelizes with a few cores on his laptop. I think it's neither the case that he's a genius, nor that the others are dumb. Or were the others _really_ that careless?
 
+*to-do* data shape vs data model? In the stack overview we said data model for cube / table / tree etc. In the wrapup lecture there's a slide `each data shape has one: ..., data model, ...' and the next slide `data models' (5:18) we said data shape for cube table tree etc, and used the term data model for the operations we can do on the data, e.g. for cube slice, dice, cross-tabulate.
+
 _Design principles_ of big data (by Fourny Ghislain Gilles)
 
-- Learn from the past / don't reinvent the wheel (e.g. we need schemas, query languages encapsulating the used data model)
+- Learn from the past / don't reinvent the wheel (e.g. we need schemas, query languages encapsulating the used data model, tables won't disappear)
 
-- Simplicity
+- Simplicity. Everything should be made as simple as possible but not simpler.
 
 - Modularize the architecture / make good abstractions (see <<data_technology_stack>>)
 
 - Homogeneity in the large (e.g. blocks in HDFS, regions in HBASE, virtual nodes in chords). So at the large, things are easy to handle, which allows us to scale out.
 
-- Heterogeneity in the small (e.g. be able to add columns in HBase, a document might be missing a field or have an additional field). Heterogenity gives flexibility to the client.  But the cost of increased complexity does not affect the system in the whole.
+- Heterogeneity in the small (e.g. be able to add columns in HBase, a document might be missing a field or have an additional field). Heterogenity gives flexibility to the client. But the cost of increased complexity does not affect the system in the whole.
 
 - Separate metadata from data (i.e. make schema optional, aka schema on read)
 
-- Abstract (separate) logical model from its physical implementation
+- Abstract (separate) logical model from its physical implementation. Data independence.
 
 - Shard the data
 
@@ -121,11 +125,13 @@ _Durability_: A common measure is "loss of 1 in x objects".
 
 _Response time_: One possible measure is "<10ms 99.9% of cases"
 
-_3Vs of big data_: volume, variety and velocity *to-do*
+_3Vs of big data_ (or even mor V's): volume, velocity, and variety (veracity). _volume_: The amount of data that is to be stored. _velocity_: The rate at which the stored data increases, i.e. the rate of new data coming in. Analysis of data streams. _variety_: Different forms of data. E.g. text, audio, video, machine generated, human generated, etc.. _veracity_: Uncertainty of data.  In automated decision-making, where no human is involved anymore, you need to be sure that both the data and the analyses are correct
 
 _Load balancing_: *to-do*, Partition schemes
 
-_batch processing_: *to-do*
+_batch processing_: Store together what is used together, and use all (most) of these things together in one big operation. So when these things are processed together, then storage latency has to be paid only once for the initial accesses to the storage (or a few times, once for each unit of the storage medium). From then on it's only about throughput of the storage.
+
+_stream processing_: Data is processed in an on-line fashion, i.e. as the data arrives, probably even before it hits the disk.
 
 _data independence_: *to-do*
 
@@ -144,6 +150,9 @@ _schema_ / _validation_: One validates a document against a schema.
 _scema on write_ means that you first need to define a schema before you can insert new data. When inserting it is ensured that the data is valid w.r.t. the schema. E.g. a relational DB. _schema on read_ means that data is verified against a schema only upon request, e.g. after reading the data. I.e. data and schema are decoupled. E.g. XML.
 
 _value space_: What the set of valid values of a type logically are. _lexical space_: how these values are represented on disk.
+
+[[disk_short_stroking]]
+_disk short stroking_: Practice of using only the outer (faster) sectors of a disk. Increases troughput and decreases latency. It decreases latency because the disk read head has to cover a smaller range, i.e. the maximum distance the read head has to move is decreased.
 
 Random notes:
 
@@ -193,11 +202,12 @@ Doing updates (i.e. propagation to other nodes) asynchronous gives you availabil
 _REST_ API (Representational State Transfer): REST is the way HTTP should be used. It's always a method (GET, PUT, DELETE, POST, ...) plus a resource (URI). PUT must be idempotent (when issued multiple times, the 2nd plus requests have no effect). GET must be side-effect free.  POST is the most generic, it can have side effects.
 
 
+[[OLAP]]
 === OLAP, OLTP, Data Warehouse
 
 _On-Line Transaction Processing_ (_OLTP_): `Traditional' database operations. Typically there are _lots_ of operations (aka transactions), each only touching a small portion of the database. E.g. there are millions of customers, or products, but you query only one.  Tables are typically normalized to avoid anomalies. Typically there are a lot of writes (but as any operation in OLTP, touches only a small portion of the database, e.g. insert a new record or modify one existing record). Typically very fast, i.e. usable in an interactive environment.
 
-_On-Line Analytic Processing_ (_OLAP_) is examination of data for patterns or trends in order to make decisions. This generally involves few highly complex queries that typicially touch large portions of the database. Typically tables are denormalized (introducing risk of anomalies) in order to make queries fast. Typically there are a lot of reads and (almost) no writes. Typically quite slow, e.g. grab a coffe or overnight. The term OLAP can be viewed in a wide sense where it includes also things such as Spark and MapReduce, but historically some people view it in a more narrow sense where OLAP means data cubes.
+_On-Line Analytic Processing_ (_OLAP_) is examination of data for patterns or trends in order to make decisions. This generally involves few highly complex queries that typicially touch large portions of the database. Typically tables are denormalized (introducing risk of anomalies) in order to make queries fast. Typically there are a lot of reads and (almost) no writes. Typically quite slow (grab a coffe or overnight). The term OLAP can be viewed in a wide sense where it includes also things such as Spark and MapReduce, but historically some people view it in a more narrow sense where OLAP means data cubes.
 
 OLAP applications commonly take place in a readonly copy of the master database (or multiple source data bases), called a _data warehouse_. OLAP queries and OLTP querries are generally different, so a dataware house has a different architecture than a traditional database. The data warehouse is readonly; however there might be incremental updates from the source data bases. Typically implemented via data cubes.
 
@@ -219,9 +229,16 @@ OLAP query Langagues (recall that in a wide sense, OLAP is not restricted to cub
 - In case of cubes: MDX.
 
 
+[[apache_hadoop]]
+=== Apache Hadoop
+
+Apache Haddoop is a collection of open-source utilities that facilitate using a network of many computers to solve problems involving massive amounts of data and computation. See <<hdfs>>, <<hbase>>, and <<yarn>>. Hadoop has also its implemention of the <<mapreduce>> programming model and the <<spark>> programming model.
+
+
+[[relational_model]]
 == Relational model
 
-A _data model_ is a collection of high-level data description constructs that hide many low-level storage details. Most DBMS today are based on the _relational data model_, in which there's a single way to represent data: A _relation_ (or _table_) represents data as a two-dimensional table. The _schema_ of a relation relation describes the relation by specifyinig its name and the name and _domain_ (aka _type_) of its _fields_ (aka _attribute_ or _column_). Think of a relation as a type; concrete instances thereof are called, well _(relation) instances_. An relation instance is a set (not list) of _(data) records_ (or _row_ or _tuple_).  A record has one _component_ for each attribute the relation. _Integrity constraints_ are conditions that each record must satisfy.  A _block_ (or _page_) is the unit of transfer for disk I/O.
+Most DBMS today are based on the _relational data model_, in which there's a single way to represent data: A _relation_ (or _table_) represents data as a two-dimensional table. The _schema_ of a relation relation describes the relation by specifyinig its name and the name and _domain_ (aka _type_) of its _fields_ (aka _attribute_ or _column_). Think of a relation as a type; concrete instances thereof are called, well _(relation) instances_. An relation instance is a set (not list) of _(data) records_ (or _row_ or _tuple_).  A record has one _component_ for each attribute the relation. _Integrity constraints_ are conditions that each record must satisfy.  A _block_ (or _page_) is the unit of transfer for disk I/O.
 
 Levels of abstraction:
 
@@ -517,13 +534,38 @@ Disk space manager provides about this API: allocate/free a page, read/write a p
 == Data Store
 
 
+=== Comparison of data stores
+
+|=====
+|               | RDBMS①           | HBase              | MongoDB
+| # rows / docs | millions          | billions           | billions
+| # columns     |                   | millions           |
+| sparse tables | not optimized for | good               |
+| schema        | mandatoy, fixed   | optional, flexible | optional, flexible
+| scales out    | no                | yes                | yes
+| has indexes   | yes               | no                 | yes
+| latency       |                   | low ②             |
+|=====
+
+① on single machine +
+② relative to HDFS, due to caches
+
+
+*to-do* latency, throughput
+
+
+=== RDBMS
+
+See <<relational_model>>
+
+
 === MongoDB
 
 A document store. Each document stores a tree via JSON.
 
 Features:
 
-- Indexing. generic secondary indicies, unique index, compound index, geospatial index, full-text indexing.
+- Indexing. Generic secondary indicies, unique index, compound index, geospatial index, full-text indexing.
 
 - Aggregation pipeline (framework for data aggregation)
 
@@ -535,24 +577,36 @@ Notable absent features: joins and complex multirow transactions. An architectur
 
 A _document_ is an ordered map (i.e. ordered set of keys with associated values). However you should not rely on ordering; apparantly even some tools ignore / mess-up the order. Values have types. A value can be again an document (called _embedded document_), resulting in a nested structure, i.e. a tree. Every document must have an ___id key__, the value of which must be unique within a collection. The type is unrestricted, but defaults to ObjectId. _id is always indexed.
 
+_syntax_ notes: The syntax for a document is similar to JSON. In general, double quotes around the keys (aka field names) are optional. However the double quotes are required when the field name contains a dot.
+
 A _collection_ is a set of documents. Indicies are defined per collection. Collections are hierarchical, giving raise to _subcollections_. However, a subcollection does not have any special properties. A fully qualified collection name consists of dot (.) separated parts.
 
 A _database_ is a set of collections. As a rule of thumb, store all data for a single application the the same database.
 
 A _MongoDB instance_ is a set of databases.
 
-_Names_: The keys are cassensitive strings. Any Unicode character is allowed except for the null character. Also, the characters "." and "$" have special meanings. The prefix "system." is reserved.
+_Names_: The keys are case sensitive strings. Any Unicode character is allowed except for the null character. Also, the characters "." and "$" have special meanings. The prefix "system." is reserved.
 
-Writing is atomic with granularity of one document. _Write concern_ is a client setting which specifies whether writes should be _acknowledged_ or _unacknowledged_. Unacknowledged writes return immediately and don't return any error.
+[[write_concern]]
+Writing is atomic with granularity of one document. Since version 4.0, multi-document transactions are possible, where the whole transaction is atomic. _Write concern_ is a client setting which specifies whether writes should be _acknowledged_ (the default) or _unacknowledged_. Unacknowledged writes return immediately and don't return any error. Unacknowledged writes are typically used for low-value data (e.g. logs).
 
-_document order_ / _padding_: The storage format is BSON. The data is stored on the local drive, see also <<mongodb_shard_data>>. The documents of a collection are stored one after another, each with some padding (given by the _padding factor_), which allows a document to grow. However, if the padding doesn't suffice, the document is relocated, usually to the end of the collection. The padding factor is initially 1 (no padding), and is dynamically adjusted depending on how many documents outgrow their padding and how many updates are within the existing padding.
+_document order_ / _padding_: The storage format is BSON. The data is stored on the local drive, see also <<mongodb_sharding>>. The documents of a collection are stored one after another, each with some padding (given by the _padding factor_), which allows a document to grow. However, if the padding doesn't suffice, the document is relocated, usually to the end of the collection. The padding factor is initially 1 (no padding), and is dynamically adjusted depending on how many documents outgrow their padding and how many updates are within the existing padding.
 
 _cursor snapshots_ / _snapshot query_: The problem: "cursor = db.mycollection.find(myquery); while (cursor.hasNext()) { var doc = cursor.next(); doc = process(doc); db.mycollection.save(doc); }". When a document outgrows its padding, it is relocated, usually to the end of the collection.  In that case, the loop visits the document a 2nd time.  The solution is to snapshot the query: "db.mycollection.find(myquery).snapshot();" Snapshotting makes the query slower.
 
-[[mongodb_shard_data]]
-Shard data (group documents). Each shard is replicated. Each shard is stored via an master (called primary) - slave (called secondary) architecture. Writes are made a bit faster by trading durability for availability. Say there are 5 secondaries. A client writes to the primary, the primary writes to all 5 secondaries. Once the primary gets acknowlodgments from say two secondaries, it acknowledges to the client. The primary/secondary use their local drive, i.e. they are not on top of say MapReduce / Spark / HDFS etc.
+[[mongodb_replication]]
+==== Replication
 
-Replication brings:
+[[replica_set]]
+A _replica set_ is a _primary node_ (master) plus one or more _secondary nodes_ (slaves). Each node redundantly stores the same data. The primary node receives all write operations. The nodes use their local drive, i.e. they are not on top of say HDFS. If sharding is used, one shard is one replica set.
+
+By default, clients _read_ from the primary; however, clients can specify a _read preference_ to send read operations to secondaries.
+
+_Writes_ can be made a bit faster by trading durability for availability. Say there are 5 secondaries. A client writes to the primary, the primary writes to all 5 secondaries. Once the primary gets acknowlodgments from say two secondaries, it acknowledges to the client.
+
+_Election of new primary_: If the primary becomes unavailable, an eligible secondary will hold an election to elect itself the new primary.
+
+_Benefits_ of replication:
 
 - Fault tolerance / prevent data loss
 
@@ -560,7 +614,44 @@ Replication brings:
 
 - Lower latency if a data center geographically closer to the client
 
-- Faster due to parallel processing *to-do* does this apply to MongoDB?
+- Faster due to parallel processing
+
+
+[[mongodb_sharding]]
+==== Sharding
+
+_Sharding overview_: MongoDB supports scaling out via sharding. Read and write workload can then be distributed across the shards. By adding more shards, storage capacity of the cluster can be increased. A collection is partitioned into chunks via the shard key. A balancer is responsible that chunks are distributed evenly across shards.
+
+_shard key_: The shard key must be an immutable field or fields that exists in every document of the collection. The collection must have an index that supports the shard key; i.e. there must exist an index on the shard key or a compound index where the shared key is a prefix of the index. The shard key is defined when sharding a collection (i.e. at the beginning of sharding) and cannot be changed afterwards.
+
+_chunk_: A part of the collection. The configured (maximal) _chunk size_ (in bytes, by default 64MB) determines indirectly the number of chunks. A chunk is given by a contiguous range of shard key values. Thus a given value for the shard key can only be appear in one chunk. Also, a chunk that only contains documents with a single shard key value cannot be split.
+
+_chunk splits_ & _chunk growing_: A chunk may be split into multiple chunks where necessary. Inserts and updates may trigger splits. There are no merges; existing chunks must grow through inserts or updates until they reach the (maximal) chunk size.
+
+_sharded cluster_ / _shard_: Each shard in the (sharded) cluster is responsible for a set of chunks. In case replication is used, each shard is a <<replica_set>>.
+
+_chunk migration_: The balancer is responsible that each shard has about the same number of chunks. If the difference in number of chunks between the largest and smallest shard exceed the migration thresholds, the balancer begins migrating chunks across the cluster to ensure an even distribution of data.
+
+_targeted operations_: For queries that include the shard key or the prefix of a compound shard key, mongos can target the query at a specific shard or set of shards. These targeted operations are generally more efficient than broadcasting to every shard in the cluster.
+
+_broadcast operations_: If queries do not include the shard key or the prefix of a compound shard key, mongos performs a broadcast operation, querying all shards in the sharded cluster. These scatter/gather queries can be long running operations.
+
+
+==== Schema Validation
+
+Validation rules are on a per-collection basis. Each collection can have a validator, but is not required to. Since version 3.6, MongoDB supports JSON Schema validation, which is the recommended means of schema validation. Validation occurs during updates and inserts.
+
+_add validator to existing collection_: When you add validation to a collection, existing documents do not undergo validation checks until modification.
+
+--------------------------------------------------
+db.runCommand({collMod: "mycollection", validator: { $jsonSchema: {...}}})
+--------------------------------------------------
+
+_set validator upon collection creation_:
+
+--------------------------------------------------
+db.createCollection("mycollection", {validator: { $jsonSchema: {...}}})
+--------------------------------------------------
 
 
 ==== Tutorial
@@ -582,100 +673,149 @@ The query language is very primitive / simple which looks like JSON. Is intended
 
 Provides CRUD operations (on documents): create (+insert(newdoc)+), read, update (+update(matchexpr, newdoc)+), delete (+remove(matchexpr)+, matching documents will be removed)
 
+*to-do* what's the name of the query language? Relation to XQuery, JSONiq?
+
+
 ===== update
 
 db.collection.update(query:document, update:document, options:document) : WriteResult
 
-Modifies the document(s) matching the query according to the specified update. By default, only a single document is updated; set the `multi' parameter to true to update all documents that match the query.
+Modifies the document(s) matching the query according to the specified update parameter.
 
-update(query, newdoc): replaces the existing document with the new document.
+If the update parameter is a normal document (i.e. doesn't use one of the following update modifiers), the found document is replaced by the given update document.
 
-update(query, {"<modifier>" : {"keypath" : newvalue}})
+_Update modifiers_: When the update parameter is a document which has one of these special keys. The specified key (mykey in the following example) can also be a path to a key in an embedded document, e.g. {"$set" : {"mykey1.mykey2" : mynewvalue}}
 
-- $set: sets the value of given key to the specified value, creating it if doesn't yet exist
-- $unset: removes the key (use 1 as newvalue)
-- $inc: increments the value by newvalue
-- $push: appends newvalue to the array of given key. To append multiple values, use suboperator $each, i.e. newvalue = {"$each" : [newvalue_1, newvalue_2, ...]}
-- ...
+- $inc: increments the value of the specified key by the given increment. If the key does not already exists, it is created, and the value is set to the given increment. E.g. db.mycollection.update(..., {"$inc" : {"mykey" : myincrement}}).
+
+- $set: sets the value of the specified key to the specified value, creating it if it doesn't yet exist. $set can change the type of the value. E.g. db.mycollection.update(..., {"$set" : {"mykey" : mynewvalue}}).
+
+- $unset: removes the key (use 1 as mynewvalue)
+
+- $push: {"$push" : {"mykey" : mynewvalue}} appends mynewvalue to the array of mykey. To append multiple values, use suboperator $each, i.e. mynewvalue = {"$each" : [mynewvalue_1, mynewvalue_2, ...]}
+
+- $pop: {"$pop" : {"mykey" : 1}} removes the last element, -1 instead 1 removes the first element.
+
+- $pull: {"$pull" : {"mykey" : myvalue}} removes all elements with value myvalue from the array of mykey.
+
+
+_Options_: e.g. { upsert: true, multi: true }
+
+- upsert:boolean: When true, creates a new document when no document matches the query criteria. The new document is the query parameter document plus the update parameter document applied. The default is false.
+
+- multi:boolean: By default, only the first document found is updated; set the `multi' option to true to update all documents that match the query.
+
+- writeConsern:document: see <<write_concern>>
+
+- collaction:document: Specifies the collation (language specific rules for string comparison) to use.
 
 
 ===== find
 
 db.collection.find(query:document, projection:document) : cursor
 
-Returns a set (via a cursor) of documents matching the query.
+Returns a set (via a cursor) of documents matching the query. I.e. does _selection_ in RDMS lingo.
 
 find({"foo.bar": myvalue}): Selects all documents where myvalue matches value of the element specified by the path. Interprets foo.bar as path, i.e. bar is the child of foo. The path may appear anywhere in the tree.  If the foo.bar element has an array as value, it is a match if any array element matches myvalue. When the query is the empty document ({}), all documents are returned.
 
-_query conditionals_: find({"foo.bar": {"<op>" : myvalue}}): op can be {$eq, $ne, $gt, $lt, $lte, $gte, $in, $nin, $or, $not}. $in ($nin): the value of the element specified by path is (not) in the array specified by myvalue. $or: myvalue is an array of query:document. $not: myvalue is an query:document.
+more about queries:
 
-_projection_: find(query, {"foo": 1, "bar": 1}). Selection (query) and projection at the same time. Returns only the specified keys, here foo and bar. Note that the _id key is still returned by default. Use value 0 instead 1 to return all keys but the state one.
+- find({"key1":value1, "key2":value2}): All conditions must match, i.e. the conditions are AND-ed togeter.
 
-_cursor_ / _cursor modifiers_: The order in which cursor modifiers are specified has no effect *to-do* so in which order are they then executed/applied?
+- _query conditionals_: find({"foo.bar": {"<op>" : myvalue}}): op can be {$eq, $ne, $gt, $lt, $lte, $gte, $in, $nin, $or, $not}. $in ($nin): the value of the element specified by path is (not) in the array specified by myvalue. $or: myvalue is an array of query:document. $not: myvalue is an query:document.
 
-- pattern: cursor = db.mycollection.find(...); while (cursor.hasNext()) { doc = cursor.next(); ... }.
+- Multiple conditions can be put on a single key. E.g. find("mykey" : {"$gt":42, "$lt":77}).
 
-- _sort_: cursor.sort(sort:document). Specifies the order in which the query returns matching documents. You must apply sort to the cursor before retreiving any documents from the database.
+- _querying arrays_:
 
-- _limit_: cursor.limit(value). Limits the the number of returned documents to the specified value. You must apply limit() to the cursor before retrieving any documents from the database.
+  * find({"mykey":myvalue}) will match documents where the value associated to mykey is an array containing a member being equal to myvalue.
 
-_query modifiers_ (or _wrapped queries_): db.mycollection.find(myquery).sort(mysort) is wrapped in a larger document, resulting in {"$query" : myquery, "$orderby" : mysort}. The more general form is { "$query" : myquery, <option>:optionvalue }, where <option> can be $max, $min, $orderby etc.
+  * find({"mykey": {"$all":[myvalue1, myvalue2]}}): As before, but now all specified values must be in the array.
 
-How to identify nodes in the tree, i.e. different schemes for assigning ID s to tree nodes:
+  * find({"mykey":[...]}) exact match; order matters.
 
-- integers: enumerate nodes in a preorder traversal
+  * query conditionsals, e.g. find({"mykey" : {"$gt":42, "$lt":77}}): When mykey is an array, a document matches if for each query clause an array element matches, but each query clause can match a different array element. I.e. this form of query is often practically useless for arrays.
 
-- floating point: as integers, but allows for insertion
+  * find({"mykey": {"$elemMatch" : {"$gt":42, "$lt":77}}}). When mykey is an array, a document matches if an array element matches all query clauses. However $elemMatch cannot be used if mykey is a scalar.
 
-- dewey IDs: hierarchical as enumrating book chapters
+_$where_ query: find({"$where" : function() {...}}). You can specify an arbitrary JavaScript function which should return true if the current document (in the `this' variable) matches. $where queries are much slower since each document, stored as BSON, has to be converted to a JavaScript object.
 
-- ORDPATH IDs: *to-do* as dewey ids, but initially only with odd numbers. Unlike dewey, allows for insertion by using even numbers in some way.
+_projection_:
 
+- find(query, {"foo": 1, "bar": 1}). Selection (query) and projection at the same time. Returns only the specified keys, here foo and bar. Note that the _id key is still returned by default. Use value 0 instead 1 to return all keys but the specified one.
+
+- __$slice__: find(query, {"foo" : {"$slice": [42,10]}}). Assuming foo is an array, returns 10 elements, starting with index 42 (0 based). If there are fewer elements, as many as possible are printed. {"$slice": 10} returns the first 10 elements, {"$slice": -10} the last 10 elements.
+
+_cursor_ / _cursor modifiers_ (or _query options_): The order in which cursor modifiers are specified has no effect. E.g. find(...).sort(...).limit(...) is the same as find(...).limit(...).sort(...). The cursor modifiers are lazy; the query is only really executed once an action like hasNext is called.
+
+*to-do* so in which order are they then executed/applied?
+
+- general pattern: cursor = db.mycollection.find(...); while (cursor.hasNext()) { doc = cursor.next(); ... }.
+
+- _sort_: cursor.sort(sort:document). E.g. sort(mykey1:1, mykey2:-1). Specifies the order in which the query returns matching documents.
+
+- _limit_: cursor.limit(cnt). Limits the the number of returned documents to the specified value.
+
+- _skip_: cursor.skip(cnt): Skips the first cnt found documents
+
+- _wrapped queries_: find(myquery).sort(mysort) actually is only short for find({"$query" : myquery, "$orderby" : mysort}). The more general form is { "$query" : myquery, <option>:optionvalue }, where <option> can be $max, $min, $orderby etc.
 
 ==== Indexes
 
-As in relational data bases to make selection faster. MongoDB's indexes work almost identically to typical relational database indexes. B-trees or Hash tables. At the large scales MongoDB is intended for, indexes are essential. A query that does not use an index is called a _table scan_.
-
-The _id key is always indexed.
-
-A _compound index_ is an index on more than one field / key.
+As in relational data bases to make selection faster. MongoDB's indexes work almost identically to typical relational database indexes. B-trees or Hash tables. At the large scales MongoDB is intended for, indexes are essential. Of course, an index has its price. For every index, every write (insert, update, delete) will have to do additional house keeping. A query that does not use an index is called a _table scan_.
 
 _Cardinality_ refers to how many distinct values a field can have. "gender" traditionally only two, "email" is likely to be unique for each document in the collection, "age" is somewhere inbetween.
 
-_Creating an index_: db.mycollection.ensureIndex({"mykey" : 1}). For compound indexes, it's analogous {"mykey1" : 1, "mykey2" : 1, ...}. The value 1 is for ascending, the value -1 for descending, "hashed" for an hash index, "text" for a text index. _Indexing embedded documents_: Keys in embedded documents can also be indexed the natural way: ensureIndex({"mykey1.mykey2": 1}).
+The _id key is always indexed.
 
-Rational for specifying order of an index: Makes sense when sorting on multiple criteria. Say you want to sort first by key1 ascending, then key2 descending, but the index is ascending for both key1 and key2. Then for each distinct key1, the associated key2s are in the wrong order in the index and we have to jump around in the index.
+_Creating an index_: db.mycollection.ensureIndex({"mykey" : 1}). The value 1 is for _ascending_, the value -1 for _descending_, "hashed" for an _hash index_, "text" for a _text index_. _Indexing embedded documents_: Keys in embedded documents can also be indexed the natural way: ensureIndex({"mykey1.mykey2": 1}).
 
-_unique index_: ensureIndex({...}, {"unique": true}): Establishses a contract that each value will only appear once in the index. Inserting/updating a document which violates that contract will cause an error. Creating an unique index on a collection which violates that will cause an error (in which case you might want to use dropDups to drop duplicates).  If a document doesn't contain the respective field, it appears as null in the index. Followingly there can be at most one document in the collection omitting the respective field (see sparse index as a possible remedy).  Note that the implicit index on \_id is a unique index. _Compound unique index_: Only the concatenation of the index's fields must be unique.
+Rational for specifying order of an index: Makes sense when sorting on _multiple_ criteria. Say you want to sort first by key1 ascending, then key2 descending, but the index is ascending for both key1 and key2. Then for each distinct key1, the associated key2s are in the wrong order in the index and we have to jump around in the index. Note that multiplying each direction with -1 yields an equivalent index, e.g. {"k1":1, "k2":-1} is equivalent to {"k1":-1, "k2":1}.
 
-_sparse index_: ensureIndex({...}, {"sparse": true}): Sparse indexes only contain entries for documents that have the indexed field, even if the index field contains a null value. The index skips over any document that is missing the indexed field. Note that MongoDB's sparse indexes are a completely different concept from RDBMS' sparse indexes.
+A _compound index_ is an index on more than one field / key. A compound index is created like so: {"mykey1" : 1, "mykey2" : 1, ...}, which is an index first by mykey1, then by mykey2.
 
-index {"key1" : 1, "key2" : 1}, query find({"key1" : ...}).sort({"key2"}): Called _point query_. The index can be used very efficiently.
+_implicit indexes_: A compound index can be used for any query which uses prefix of the index's keys. I.e. if the index is (key1, key2, key3, key4), then it can be used for queries on (key1) or (key1, key2) or (key1, key2, key3) and so on.
 
-index {"key1" : 1, "key2" : 1}, query find({"key1" : {"$gt": ..., "$lt": ...})): Called _multi value query_. The index can be used very efficiently; however here the 2nd field (key2) of the index is not used.
+_unique index_: ensureIndex({...}, {"unique": true}): Establishses a contract that each value will only appear once in the index (and thus in the collection). This is usfull if you want that property on your collection. Inserting/updating a document which violates that contract will cause an error. Creating an unique index on a collection which violates that will cause an error (in which case you might want to use dropDups to drop duplicates).  If a document doesn't contain the respective field, it appears as null in the index. Followingly there can be at most one document in the collection omitting the respective field (see sparse index as a possible remedy).  Note that the implicit index on \_id is a unique index. _Compound unique index_: Only the concatenation of the index's fields must be unique.
 
-index {"key1" : 1, "key2" : 1}, query find({"key1" : {"$gt": ..., "$lt": ...})).sort({"key2" : 1}): The index only helps for the find part. The documents found by find have to be sorted in memory explicitely; the index on key2 only helps directly if all the document currently in question have the same key1.
+_sparse index_: ensureIndex({...}, {"sparse": true}): Sparse indexes only contain entries for documents that have the indexed field.  That includes fields having the null value; i.e. those are also in the index. The index skips over any document that is missing the indexed field. Note that MongoDB's sparse indexes are a completely different concept from RDBMS' sparse indexes.
 
-As before, but now with a index which switches the keys, i.e. {"key2" : 1, "key1" : 1}: Now MongoDB can iterate over each key2 in the index, and for each key2 efficiently find the key1 matching the find query.
+A _right-balanced index_ is one where the accessed nodes are mostly the right-most leaves in the index' tree. This happens for example when the key is a timestamp, and the application usually uses the most recent documents. MongoDB only has to keep the right-most part of the tree in memory.
 
-_Only one index is used_: (Currently) MongoDB can only use one index per query (that is actually per $or clause). Thus if the query asks for two keys (find({"key1":..., "key2":...})), only one index can be used.
+_covered index_: When an index contains all the values requested by a query, it is said to be a _covering query_. In that case the document an index entry refers to must not even be looked at.
 
+_multikey index_: An index on array elements. Say key1 is an array, each array element is an embedded document having an key2 field. The index {"key1.key2":1} indexes all these array elements of the collection by key2.
+
+_Only one index is used_: (Currently) MongoDB can only use one index per query (that is actually per $or clause). Thus if the query asks for two keys (find({"key1":..., "key2":...})), only one index can be used. However that index can be a compound index, and it may contain both keys.
+
+A _point query_ searches for a single value. Very efficient if the respective field is indexed. E.g. find({"mykey" : somevalue}), assuming mykey is indexed.
+
+A _multi-value query_ looks for documents matching multiple values. E.g. find({"mykey" : {"$gt": 42, "$lt": 77})), assuming mykey is indexed.
+
+_covering query_: See covering index.
+
+[[table_scan]]
 _hint_: We can use hint to force MongoDB to use a certain index, as for example in db.mycollection.find(...).sort(...).hint({"key1":1, "key2":1}). See also patterns below. If you want a _table scan_ (i.e. don't use any index), say hint({"$natural":1}).
 
 _explain_: db.mycollection.find(myquery).explain(): Describes what the query is doing.
 
-_covered indexes_: When an index contains all the values requested by a query, it is said to be a _covering query_. In that case the document an index entry refers to must not even be looked at.
-
-_implicit indexes_: A compound index can be used for any query which uses prefix of the index's keys. I.e. if the index is (key1, key2, key3, key4), then it can be used for queries on (key1) or (key1, key2) or (key1, key2, key3) and so on.
-
-
 patterns / tips:
 
-- index {"sortkey":1, "query_criteria":1} often works well, because most apps don't want all possible results for a query but only the first few. *to-do* how does that relate to _right-balanced_ index?
+- About the order of index keys
+
+  * The index {"sortkey":1, "querykey":1} works good for find({"querykey":...}).sort({"sortkey":...}).limit(cnt). On the downside it has to scan over `all' (see end of this paragraph) documents. But it can do it in the right order, given by the index on sortkey. For every visited document, it can then use the index on querykey to efficiently check wether the currently visited document is a match. Once we found cnt documents, we can stop.
+
+  * Index {"querykey":1, "sortkey":1} and find({"querykey":...}).sort({"sortkey":...}): The index on querykey efficiently finds all matching documents. But then we have to sort them in memory *to-do* but we can just apply the ``merge sorted sequences'' algorithm?
+
+*to-do* how does that relate to _right-balanced_ index?
 
 - Create index on fields with high cardinality, to narrow down the set of matching documents quickly.
 
-- Creating on existing documents is slightly faster than creating the index first and then inserting all the documents.
+- If the query has an exact match and a range, e.g. find({"key1":42, "key2" : {"$gt":..., "$lt":...}}), put the exact match key first in the index: {"key1":1, "key2":1}. Rational: We only have to do one `first level' lookup in the index. If the index was defined the other way round, {"key2":1, "key1":1}, the first level lookup in the index might find multiple entries, and for each of these, we have to do t he 2nd level.
+
+- Creating an index on already existing documents is slightly faster than creating the index first and then inserting all the documents.
+
+- using an index vs doing a <<table_scan>>: Besides the cost of maintaining an index, an index has also costs when doing a lookup: The index entry itself has to be accessed, whereas on a table scan, only the documents have to be accessed. So indexes work well when all the following is true: large collection, large documents, selective queries (only a small percentage of documents match the query), and table scans work well when all the opposite is true: small collection, small documents, non-selective querries. For anything inbetween you might want to profile to decide whether an index or an table-scan is better for you.
 
 
 === Neo4j
@@ -712,31 +852,183 @@ _API hierarchy_: From low-level to high-level: Kernel, Core API, Traverser API, 
 *to-do* Despite the caches (which as all caches are tiny compared to the data on disk), I don't see how can all this pointer chasing be efficient. Isn't the query time totally dominated by disc seeks?
 
 
+=== Google Bigtable
+
+Predecessor and proprietary version of HBase.
+
+
+[[hbase]]
+=== HBase
+
+HBase is the open source version of Google's Bigtable. Based on the wide column store model.
+
+Can store billions of rows; a traditional RDBMS (single machine) can store millions. The number of columns can be very high (compared to traditional RDBMS).
+
+Good (relative to RDBMS) for sparse data (sparse meaning not every column, given a row, contains a value).
+
+Has low latency (relative to HDFS) because of the memstore and the block cache. That is the underlying DFS is often not accessed, thus the DFS' latency does often not hurt.
+
+No real indexes. As we will see, rows are stored sequentially.
+
+Each table has a _row ID_ (or _row key_) column (type byte array) being by definition the primary key. Rows are sorted by row ID (the sort is byte-ordered). Columns are grouped in _column families_.  The idea is to group together what is frequently accessed together.  The column families must be known in advance, but not the columns. A column is identified by a _column name_ (aka _column qualifier_). It can also be omitted / the empty string, in which case it is called the _empty column qualifier_. A _column key_ is the combination of a column family name and a column qualifier, the syntax being mycolumnfamilyname:mycolumnname.
+
+Operations: CRUDE (put/get/delete row), scan rows, see <<hbase_client_API>>
+
+Scanninig, i.e. iterating over all rows of a table, is an relative expensive operation since its not trivial.
+
+Best practice: Keep row ids and column names short. Rational: Every KeyValue stores them.  I.e. a given row id or column name appears a lot of times.  Keeping them short lets you save space, both on disk and in memory. I.e. you can pack more KeyValues into your memory.
+
+Offers _row level atomicity_. Can offer it because one region is handled by exactly one region server.
+
+*to-do* Replication, what kind of consistency is offered
+
+
+[[hbase_client_API]]
+==== Client API
+
+Misc: We often need byte arrays. HBase's helper class Bytes has various static methods which convert various types to byte array.
+
+_put_: ++void put(Put put)++. The main / basic ctor of the Put class is ++Put(byte[] rowid)++. The main method of Put is ++add(byte[] family, byte[] qualifier, byte[] value)++, which adds a new cell.
+
+--------------------------------------------------
+Configuration conf = HBaseConfiguration.create();
+HTable table = new HTable(conf, "mytable");
+Put put = new Put(Bytes.toBytes("myrowid"));
+put.add(Bytes.toBytes("mycolumnfamily"), Bytes.toBytes("mycolumn"), Bytes.toBytes("val1"));
+table.put(put);
+--------------------------------------------------
+
+_client-side write buffer_ / _batch put_: Put operations can be grouped / batch processed to reduce overhead. That is enabled by setting autoFlush to false via the setAutoFlush method of the HTable class. Now, at client side, put operations are automatically grouped. If you want to explicitly flush, call flushCommits.
+
+_get_: ++Result get(Get get)++. The main / basic ctor of the Get class is ++Get(byte[] rowid)++. The main method of Get is ++Get addColumn(byte[] family, byte[] qualifier)++. The main method of Result is ++byte[] getValue(byte[] family, byte[] qualifier)++; family and qualifier havet be stated again, since other methods of Get may result in multiple cells being returned by get.
+
+_batch get_: ++Result[] get(List<Get> gets)++
+
+_scan_: ++ResultScanner getScanner(Scan scan)++. The main / basic ctors of Scan class are ++Scan()++ and ++Scan(byte[] firstInclRowId, byte[] lastExclRowId)++. Scanning starts at the first row id that is greater or equal than firstInclRowId; the first row id that is greater or equal than lastExclRowId will _not_ be part of the output. The main methods of ResultScanner are ++Result next()++ and ++Result[] next(int nbRows)++. The Result class was introduced in get.
+
+_scanner batching_ & _scanner caching_: ++setBatch(int batchSize)++ on the Scan class defines how many columns are contained per Result instance.  The default is a complete row.  A batch does not cross row boundaries.  ++setCaching(int cacheSize)++ on the Scan class defines how many such batches are grouped together into one RPC call from the client over the network.  The default is 1. Scanner caching involves costs both at the region server side and at the client side. Note that if rows are very large, cacheSize many complete rows might not even fit into client's memory; thats why you might want to split a row via setBatch.
+
+ResultsForGivenRow = ⌈colsInGivenRow / min(colsInGivenRow, batchSize)⌉ +
+RPCs = (∑~all rows~ResultsForGivenRow) / cacheSize
+
+
+==== Implementation of HBase / Physical layer of HBase
+
+Partition table first horizontally (i.e. group rows), then vertically (as already done by column families).  We need horizontal partitioning because we can have billions of rows not even fitting on a single machine.  A horizontal partition is given by the range (min-incl, max-excl).  Such a range of rows is called a _region_.  Obviously the max-excl equals the min-incl of the next partition.  The intersection of horizontal and vertical partitioning is what is stored together and is called a _store_. I.e. a region is composed of multiple stores.
+
+Summary: Partition table horizontally into _regions_, and evertically by _column family_, each resultinig `super-cell' being called _store_. A _region server_ is responsible for a set of regions. The (per store) _memstore_ contains the modified _KeyValues_. Under certain conditions the memstore is flushed, creating a new sorted _store file_ (aka _HFile_), which is typically stored on HDFS.
+
+----------------------------------------------------------------------
+                                    col family 1         col family 2
+                                    quali x   quali y    qualy a   quali b
+    
+                             row 1    
+             region          row 2  store                store
+             (region server) row 3  (HFile)              (HFile)
+(HMaster)                 
+                             row 4    
+             region          row 5  store                store
+             (region server) row 6  (HFile)              (HFile)
+
+per store:
+- mem store (modified KeyValues)
+- HFiles (each containing an index (loaded into memory) and sorted KeyValues, on HDFS)
+- a bloom filter over HFiles
+
+per region server:
+- regions (thus stores), possibly from different tables
+- HLog (on HDFS)
+- block cache
+----------------------------------------------------------------------
+
+Master slave architecture.  The master is called HMaster, a slave is called region server.  The _HMaster_'s responsibility is the meta data.  HMaster assigns regions to region servers.  A _region server_ is responsible for a set of regions, and thus implicitely also for the stores of that regions.  A region is assigned to one region server.
+
+A store is stored as an immutable file, called _store file_ (or _HFile_), on a DFS. However, as we will see, over time a store is stored in multiple store files. A store file is a sorted list of key-value pairs, plus an index for faster key lookup. The sort key is the tuple (rowid, columnqualifier, timestamp (descending)), see key layout below. Since the timestamp is sorted in descending order, the newest version of a cell is encountered first. Note that column family is always identical within a store, so column family isn't part of the sort key. The _index_ (or _block index_) contains the first key of every block (store file bock, not DFS block) in the store file.  A store file is immutable.  The index is loaded into memory.  One pair is also called _KeyValue_; it represent's the value of a specific cell.  KeyValues are stored sequentially, forming a bytestream, making it efficient for transfer.  Each KeyValue is stored as the following tuple. The keylength, valuelength, rowidlength, and columnfamiliylength elements are fixed width integers (e.g. 32 bit).
+
+KeyValue = (keylength, valuelength, <key>, value) +
+<key> = (rowidlength, rowid, columnfamiliylength, columnfamily, columnqualifier, timestamp, deletionmark)
+
+The columnqualifier length can be computed, taking the outer keylength into account.  Technically, the columnfamily is not required, since we already know implictely (via `our' store) in which column family we are.  The timestamp is used as version of the cell.  The deletionmark is also called _key type_. In Google's BigTable a store file is called _SSTable_ (_Sorted String Table_).
+
+The key-value pairs of the store file are read in _blocks_ of a fixed configurable size (typically 64kB); no KeyValue is ever split.  The check for block size is done after a KeyValue is written, so actual block sizes typically are a bit greater than the configured block size. However if you have compression enabled, the check for block size is done before compression, so in this case actual block sizes typically are less than the configured block size. Note that these are not the same blocks as the ones the underlying DFS might have.
+
+The _HLog_ (or _write ahead log_ or _WAL_), a journal, is a security measure in case the region server dies, and with it its memstore.  The HLog is stored on the underlying DFS. Thus nothing of the dead region server is needed to replay the log.  There is one HLog per region server ("HBase: The definitive Guide" p 334. Some other authors / diagrams indicate there's one HLog per region). Data is written to the WAL in the order it arrives. Thus the WAL is optimized for sequential write (Hadoop SquenceFile). In the seldom case that we have to do a replay, we have to pay by more expensive random access reads. The advantage of having one file per region server, as opposed to say one per region, is to minimize number of disk seeks. Actually the HLog is stored via multiple files; after a configurable time, the current file is closed and a new file is created. Each modification has a sequence number, which is stored in the HLog and in the memstore. With that information, when a memstore is flushed, we can detect which log files are no longer required, since they don't contain anything still in the memstore.
+
+The _memstore_ is an in memory cache of modified KeyValues, stored as a tree.  There is one memstore per store.  When certain criterions are met, the memstore is flushed to disk, creating a new store file (as always with sorted rows).  After flushing, the respective parts of the HLog can be discarded, see there.  Thus we keep genereting partially redundant store files (remember that each KeyValue has an version, thus we have a total order).  Every now and then, we do _compaction_:  A _major compaction_ replaces all the existing store files by one new store file by merging them. A _minor compaction_ merges only the last few (configurable) created store files. A compaction might trigger a region split, see there. A compaction can drop deleted cells, inclusive their deletion marker. Also, a compaction can delete KeyValues when the configured limit of versions is reached.
+
+_region split_: When a store file grows larger than a configurable limit, the region is split in two.
+
+Guarantees ACID on the row level via per-row locks. That gives us total order of row versions.
+
+*to-do* what exactly is the benefit of the WAL file? Now I also have to synchronously write the data. I could directly append to a speical unsorted HFile instead? Or is it to have the simple design choice that hfiles are always sorted.
+
+*to-do* how does the in memory index look like about? KeyValue can be in many places: cache, memstore, multiple store files.
+
+*to-do* really understand lsm-tree and compaction
+
+*to-do* the way I understand LSM so far, see above, I don't see any tree. Maybe the index of every store file?
+
+_write path_: Write to HLog file. It's configurable wether that is synchronous or asynchronous: seting the _deferred log flush_ flag to true causes causes waiting for HDFS's acknowledgment to be a background process. After writing to the HLog, write to the memstore. If the memstore is full, it is eventually flushed, see memstore.
+
+_read path_, simple get of a specific (row key, column key): The row key and the column family name part of the column key specify the store we have to look at. That store contains a memstore and one or more store files. The Bloom filter weeds out store files that definitely don't contain column key, and it also finds out whether the memstore definitely does not contain the column key. Each of the remaining store files might contain the column key. The block index of each store files enables us to quickly jump to the store file block which might contain the column key. In parallel, for all candidate store files, search through that store file block. Each found KeyValue has a timestamp, so we can return the newest. *to-do* where does the block cache come into play? Is it a transparent layer just above HDFS? *to-do* how exactly is the relationship between searching the column key in the memstore and searching it in the candidate store files.
+
+_read path_, general case: The query optionally contains a parameter stating that the query is only interested in versions that are newer than a given timestamp.  The query might also state the maximum number of versions of a cell / KeyValue to be returned.  Recall that a row in general spans multiple column families / stores. Compared to the simple case above, the general case has now too look at the multiple stores of the current row. The Bloom filter weeds out memstores and store files that definitely don't contain colomn keys we're looking for. Also, if the newest KeyValue in a store file is older than the timestamp specified in the query, we can weed out that store file. Each of the remaining store file is now searched in parallel for KeyValues matching the search criteria.
+
+_region lookup_: How does a client find out which region server hosts the region the client is interested in? There's a table called -ROOT-. It is always stored in one region; i.e. never split into multiple regions. Zookeeper knows which region server stores the one region of the -ROOT- table. A bit simplified, the row ID of of the -ROOT- table has the form ".META.,<metatable_firstrowid>", and the one column contains the name of the region server hosting the respective region. The row ID of the .META. table looks like "usertableA,<usertableA_firstrowid>", and the one column contains the name of the region server hosting the respective region. A client thus first asks Zookeeper for which region server hosts the -ROOT- table. The client wants to know which region server hosts the regionn of (usertable,rowid). He searches the respective row in the -ROOT- table, which tells him which region server hosts the respective region of the .META. table. That region contains now the row which definitely points to the region server hosting (usertable,rowid).
+
+
+==== Optimizations
+
+To reduce latency and increase throughput, there's also an in-memory _block cache_, containing HBase blocks.  The MemStore is for KeyValue s not yet flushed to disk, the cache is for  faster access to already persisted KeyValue s.  The cache is composed of two hierarchy levels, the _LRU BlockCache_ and the _bucket cache_.  LRU BlockCache caches the last recently used blocks.
+
+_short circuiting_ / _colocation_ (process data where it is stored):  Is when the requested block of the underlying DFS is stored on the same physical node as the region server requesting that block runs on.  Thus effectively the region server reads the block from its own local drive, without paying network overhead.  This is a situation that occures most of the time as a result of the design of HDFS and HBase, in particular from the <<hdfs_replica_placement>> strategy of prefering to store a block on the client itself.  One could think that due to HDFS having a life, over time the HDFS data node (runing on the same physical node as the HBase region server) will no longer itself store the HDFS block.  But due to the compaction of HFiles and the HDFS replica placement strategy, we will restore colocation over time.
+
+An in-memory _bloom filter_ is used to reduce access to HFiles when searching keys.  Note that the benefit of the bloom filter is indirect. Since the read path reads in parallel from the store files, there's no direct benefit. One (indirect) benefit is less parallel reads and thus improved overall throughput. Another (indirect) benefit is that less store file blocks unnecessary polute the block cache. Size of bloom filter and number of hash functions used is subject to research.
+
+
+=== Spanner
+
+Distributed NewSQL database, similar to HBase.  Claims to bring back ACID / externally-consistent distributed transactions.
+
+Data Model: Multi-column primary key. A _timestamp_ column.  Partition table horizontally into _directories_ (region in HBase).  A _tablet_ is a set of directories.
+
+Two level Master-slave architecture.  The one top level master is called the _universemaster_,  the masters are called _zonemasters_, the slaves are called _spanserver_. There's one zonemaster-spanservers subtree per data center.
+
+Can store trillions of rows; a traditional RDBMS (single machine) can store millions, HBase billions. Can have hundrets of data centers, millions of machines.
+
+Sacrifice high availability to get low latency.
+
+
+=== Cassandra
+
+Similar to the one of HBase.
+
+
 == Processing
 
+
+[[mapreduce]]
 === MapReduce
 
 _MapReduce_ is a programming model for parallel data processing.  Works on top of a `key-value' model; quotes because keys need not to be unique.  Aims to scale linearly in the number of nodes added to the cluster.
 
-A MapReduce _job_ is a unit of work that the client wants to be performed: it consists of input data, the MapReduce program, and configuration information.  The job is divided into _tasks_, of which there are two types: _map tasks_ and _reduce tasks_.  In Hadoop, the tasks are scheduled using YARN.
+A MapReduce _job_ is a unit of work that the client wants to be performed: it consists of input data, the MapReduce program, and configuration information.  The job is divided into _tasks_, of which there are two types: _map tasks_ and _reduce tasks_.
 
-The input is divided into pieces called _input splits_ (or just _splits_), each split containing a set of key-value pairs, each split being approximately the same size in bytes.
+In Hadoop, the MapReduce job is run via YARN. See there how a job is started and run.
 
-One _map_ tasks is created for each split.  Typically one mapper node will have multiple splits / map tasks under its responsibility.
+_input splits_ (or just _splits_): At the beginning of a MapReduce job, before the ApplicationMaster is run via YARN, the client splits the input into pieces called input splits. Each split contains a set of key-value pairs. Each split is approximately the same size in bytes. The splits are stored to a shared file system, to be accessed by the mapper tasks later. A common split size is one HDFS block.  If the splits are too small, then there is too much overhead of managing the splits.  On the other hand small splits are nice because the parallel processsing is better load balanced; a faster machine can process proportionally more splits than a slower machine.  Also, if the split size was larger than one HDFS bock, it could not be guaranteed that both HDFS blocks are on the same machine, which would be bad for data locality optimization.  However note that the last key-value pair of a split might spawn two HDFS blocks.  This is a drawback we have to live with.  Recall that HDFS allows to read parts of a HDFS block, so the problem is mitigated somewhat.
 
-_combiner_: As an optional optimization, to reduce the amount of data that shuffle needs to process and that needs to be send across the network, a mapper node also does a _combine_ step.  Very often the combine function is the same as the reduce function.  Required conditions: associativity, commutative, same input and output types.  In Hadoop, the combiner is regarded strictly as an optimization, and there are no guarantees on how many times it is called for a given map output, if at all.
+One _map_ tasks is created by the ApplicationMaster for each split.  Typically one mapper node will have multiple splits / map tasks under its responsibility.  The system tries to run a map task on the node where the respective split resides, see <<data_locality_optimization>>
 
-_Shuffle_: Each mapper node _sorts_ its output by key, _partitions_ by key, and sends each partition to the reducer node responsible for the respective key.  So each reducer node receives multiple partitions for a given key and merges them.  The details of shuffling are explained further below.
+_combiner_: As an optional optimization, to reduce the amount of data that shuffle needs to process (e.g. store to local disk within the mapper) and that needs to be send across the network, there is a _combine_ step at various places.  Very often the combine function is the same as the reduce function.  Required properties: associativity (a∘(b∘c)=(a∘b)∘c), commutative (a∘b=b∘a), same input and output types (so any subset of pairs can be reduced by a combiner).  In Hadoop, the combiner is regarded strictly as an optimization, and there are no guarantees on how many times it is called, if at all.
 
-The _reducer_, for a given key, receives _all_ key-value pairs having that key.  A reducer can be responsible for multiple key, but a key can only be assigned to exactly one reducer.  As a consequence, a reducer might start bevore mapping and shuffling is finished, but a reducer can't start producing output bevore all mappers and the shuffling is finished.  Note that certain jobs don't need a reducer at all, in which case we also can omit the shuffling.
+_Shuffle_ overview : Within each mapper node, a _partioner_ partitions the mapper's output by key. A _partition_ can contain multiple keys, but a given key is only in one partition. There's a one-to-one relationship between partitions and reducers. I.e. again, a reducer may be responsible for multiple keys, but a given key is associated only with exactly one reducer. Each mapper node makes the created partitions available for copy to the reducer nodes. The details of shuffling are explained further below.
 
-_sort_ and _copy_ part of the shuffling after mapping: The mapper writes its output to a circular buffer, 100 MB by default.  When the percentage of of used space is about a certain threshold, by default 80%, a background thread starts to sort and spill the data to disk, as described in more detail in the following.  The data is sorted by output/intermediate key in memory.  If there's a combiner, it is run on parts with the same key (now being in sequence due to the previous sorting).  Recall that typically the combiner reduces the amount of data.  Then the data is written to the local file system.  Each spill creates a new spill file.  When the maper is finished producing output, the spill files are merged into one file, keeping the sorting.  If there are at least three spill files, the combiner is run again.  A sequence in the output file with the same key is called a partition. That processing of the mappers output is also called copy phase. Recall that this is similar to what HBase does when flushing the memstore to a store file.  I.e. at the end there are zero or more spill files plus what's left in memory.  As in HBase, an LSM-tree can be used to merge them into one file.  As an optimization, one can try to do all that in a more stream like fashion, e.g. merge spill files and send them to reducers while the maper is still producing output.
+Multiple _reducer_ tasks are created by the ApplicationMaster. The reducer, for a given key, receives _all_ key-value pairs having that key.  A reducer can be responsible for multiple keys, but a key can only be assigned to exactly one reducer.  As a consequence, a reducer might start before mapping and shuffling is finished, but a reducer can't start producing output before all mappers and the shuffling is finished.  Note that a reducer, in contrast to a mapper, might write its output to shared storage, opposed to local disk. Note that certain jobs don't need a reducer at all, in which case we also can omit the shuffling. Concerning the topic of <<data_locality_optimization>>, reduce tasks can run anywhere in the cluster.
 
-_merge_ part of shuffling:  It's the reducer that asks via HTTP each mapper `send me the partition for the following set of keys'. The reduce tasks uses multiple copier threads to fetch partitions in parallel from mappers. As data is accumulated, at one place (memory or disk) per copier thread, a background thread merges it, to disk or memory.  Merging is hierarchically, i.e. tree like, as opposed to all inputs directly into a single file.  The merging is also called _sort phase_, despite it is _not_ about sorting.
+_shuffle_ details 1 of 2: _sort_ after mapping, also called _sort phase_: The mapper writes its output to a circular buffer, 100 MB by default.  Each time the percentage of of used space is above a certain threshold, by default 80%, a background thread starts to partition, sort, and spill the buffer's data to local disk, creating a new spill file, as described in more detail in the following.  The partitioner partitions the buffer's data into partitions.  Each partition is sorted by intermediate key in-memory.  If there's a combiner, it is run on parts with the same key (now being in sequence due to the previous sorting).  Recall that typically the combiner reduces the amount of data.  Then the data is _spilled_ (written) to the local file system, creating a new _spill file_. If there are at least three spill files, the combiner is run again.  When the maper is finished producing output, the spill files are merged into one single file, keeping partitioning and the sorting.  When finished, the map task notifies the ApplicationMaster via the heartbeat mechanism. Recall that all this is similar to what HBase does when flushing the memstore to a store file.  I.e. at the end there are zero or more spill files plus what's left in memory.  As in HBase, an LSM-tree can be used to merge them into one file.  As an optimization, one can try to do all that in a more stream like fashion, e.g. merge spill files and send them to reducers while the maper is still producing output.
 
-*to-do* why this hierarchical merging? Assistent asks for reference, I send an email.
-
-A common split size is one HDFS block.  If the splits are too small, then there is too much overhead of managing the splits.  On the other hand small splits are nice because the parallel processsing is better load balanced; a faster machine can process proportionally more splits than a slower machine.  Also, if the split size was larger than one HDFS bock, it could not be guaranteed that both HDFS blocks are on the same machine, which would be bad for data locality optimization.  However note that the last key-value pair of a split might spawn two HDFS blocks.  This is a drawback we have to live with.  Recall that HDFS allows to read parts of a HDFS block, so the problem is mitigated somewhat.
+_shuffle_ details 2 of 2: _merge_ part of shuffling, also called _copy phase_: Each reduce task periodically asks the ApplicationMaster, which hosts (i.e. mapper nodes) have a partition assigned to them.  The reduce task uses multiple copier threads to fetch partitions via HTTP in parallel from multiple mappers. The map tasks may finish at different times, so the reduce task starts copying their outputs as soon as each completes. Each copier thread copies to its own memory buffer or directly to its own local file. When the memory buffer is used and whenever it overflows, it is merged, keeping the sorting, optionally the combiner is run to reduce the amount of data, and the result is spilled to disk.  When all the map outputs have been copied, the reduce task moves into the sort phase (which should properly be called the merge phase, since the mappers already did the sorting). The local files produced by the copier threads have to be merged, keeping the sorting of the intermediate keys. The merging is such that repeatedly at most _merge factor_ many files are merged into one new file, until there are merge factor many files left which are then directly fed into the reducer.
 
 In general one should try to give as much memory to the copy phase and sort phase as possible, relative to the actual map and reduce.  E.g. the map and reduce functions should not use unbounded collections.
 
@@ -764,7 +1056,8 @@ Reduce
                          output kv type
 --------------------------------------------------
 
-_data locality optimization_: As an optimization, let the map run on the data nodes.  This paradigm is also called _bring the query to the data_.  Thus no network transfer needed for the map step.  If the data node hosting the HDFS block is already completely busy with other tasks, the job scheduler will look for a free map slot on a node in the same rack hosting a replica.  Also recall that the last key-value pair of a split might spawn an HDFS block, thus that other HDFS block might also not be local to the mapper node.
+[[data_locality_optimization]]
+_data locality optimization_: As an optimization, the system tries to run a map task on the node where its input split resides.  See also YARN for how to arrange for such requests.  This paradigm is also called _bring the query to the data_.  Thus no network transfer needed for the map step.  If the data node hosting the HDFS block is already completely busy with other tasks, the job scheduler will look for a free map slot on a node in the same rack hosting a replica.  Also recall that the last key-value pair of a split might spawn an HDFS block, thus that other HDFS block might also not be local to the mapper node.
 
 Even if the data to precess were `only' hundreds of gigabites, i.e. would fit on a single machine, it can still make sense to let run MapReduce on a cluster.  The bottleneck with one single machine is often the throughput of the disk.  The CPU and/or RAM  might also be a bottleneck, but can be dealt with also by other means than using a cluster, e.g. by more efficient code.
 
@@ -773,94 +1066,202 @@ If the overall problem gets more complicated, in general you should try to divid
 Some figures:  A typical job in a 1k node cluster (a large cluster) would run in a couple of hours.  The processed data is in the TBs.
 
 
-=== Hadoop 1.0 resource management
+=== Hadoop 1 resource management
 
-Master-slave architecture. The master is called _JobTracker_, the slaves are called _TaskTrackers_.  The JobTracker does scheduling (i.e. distributes the tasks), i.e. manages the ressources.  It also does task monitoring.  If some task or TaskTracker has a problem, the JobTracker has to care about it, e.g. by rescheduling the task.
+Master-slave architecture. The master node is called _JobTracker_, the slave nodes are called _TaskTrackers_. The jobtracker coordinates all the jobs run on the system by scheduling tasks to run on tasktrackers. Tasktrackers run tasks and send progress reports to the jobtracker, which keeps a record of the overall progress of each job. If a task fails, the jobtracker can reschedule it on a different tasktracker.
 
-Issues with version 1: The JobTracker has to many responsibilities. As a consequence, scalability is limited, <4000 nodes and <40'000 tasks.  Also the task slots are allocated statically before the job starts -- as a consequence, it may turn out that the mappers of a job are working at maximum capacity, and the reducers are idle.
-
-**to-do**  I can't properly put this chapter and the next in the stack.  Neither can I properly name the field it is about (resource management?) and distinguish it from MapReduce.  Apparently YARN is for more than just MapReduce.  Can we say the same for the equivalent thing of the version 1.0?
+The JobTracker does scheduling (i.e. distributes the tasks), i.e. manages the ressources.  It also does task monitoring.  If some task or TaskTracker has a problem, the JobTracker has to care about it, e.g. by rescheduling the task.
 
 
-=== Hadoop 2.0 resource management / YARN
+[[comparison_hadoop1_yarn]]
+=== Comparison Hadoop 1 vs YARN
 
-YARN (yet another resource negotiator).  The master is called YARN ResourceManager, the slaves are called YARN NodeManager.  The main improvement is separation of scheduling and monitoring, which in version 1.0 were both done by the master.  In version 2.0 monitoring is pushed down to so called ApplicationMasters running on the slaves.  Scalability is improved (v2 relative to v1), 10'000 nodes and 100'000 tasks, which is about the size of a data center.  Since scalability is improved, also availability is improved.  Fully backwards compatible.
+|=====
+| MapReduce 1 | YARN
+| JobTracker  | ResourceManager, ApplicationMasters, timeline server
+| TaskTracker | NodeManager
+| Slot        | Container
+|=====
 
-*to-do* list multi-tenancy as an improvement
+Issues with Hadoop 1.0: The JobTracker has to many responsibilities. As a consequence, scalability is limited, <4000 nodes and <40'000 tasks.  Also the task slots are allocated statically before the job starts -- as a consequence, it may turn out that the mappers of a job are working at maximum capacity, and the reducers are idle.
 
-The _ResourceManager_ must take care of cluster utilization, give capacity guarantees (e.g. hold the promise that a container has 16GB RAM), guarantee fairness (if 10 jobs are using the cluster, each shall get its fair share, see also schedulers), and must fulfill SLAs.  The ResourceManager provides a client service API to the clients so they can start/end jobs, get informations about jobs.  The ResourceManager's responsibilities include to know about the resources available in the cluster.   I.e. a list of the live NodeManagers and what their resources are.   New / rebooted NodeManagers have to register at the ResourceManager.  The NodeManagers repeatedly send liveliness (aka heartbeats) to the ResourceManager.  Note that the ApplicationManager has a similar but different responsibility with respect to ApplicationMasters.  The ResourceManager's responsiblities include the role of the ApplicationManager.  The RessourceMassager can contact the NodeManager to ask it to kill containiers in order to free resources.  Summary:
+YARN's improvements:
+
+- Conceptually, the main improvement is separation of scheduling and monitoring, which in version 1.0 were both done by the master (there called JobTracker).  In YARN monitoring is pushed down the ApplicationMasters running on the slaves.
+
+- Resource utilization is improved. In MapReduce 1, each tasktracker is configured with a static allocation of fixed-size “slots,” which are statically divided into map slots and reduce slots at configuration time. In YARN, the containers have dynamic resource properties. Also, that way resources are fine grained. An application can make a request for what it needs, rather than for an indivisible slot, which may be too big (which is wasteful of resources) or too small (which may cause a failure) for the particular task.
+
+- Scalability is improved, 10'000 nodes and 100'000 tasks, which is about the size of a data center.
+
+- Since scalability is improved, also availability is improved.
+
+- Improved multi-tenancy. Version one was only for MapReduce. YARN is for any type of distributed application, e.g. also Spark. One can e.g. also run different versions of MapReduce on the same cluster, which e.g. makes the process of upgrading MapReduce more managable.
+
+- Fully backwards compatible.
+
+
+
+[[yarn]]
+=== YARN
+
+YARN (yet another resource negotiator).  Master-slave architecture. The entity on the _master node_ is called ResourceManager, the main entity on the slave nodes is called NodeManager. See also <<comparison_hadoop1_yarn>>.
+
+The _ResourceManager_ (_RM_) must take care of cluster utilization, give capacity guarantees (e.g. hold the promise that a container has 16GB RAM), guarantee fairness (if 10 jobs are using the cluster, each shall get its fair share, see also schedulers), and must fulfill SLAs.  The ResourceManager provides a client service API to the clients so they can start/end jobs, get informations about jobs.  The ResourceManager's responsibilities include to know about the resources available in the cluster.   I.e. a list of the live NodeManagers and what their resources are. Summary:
 
 - Top level master. First contact person for a client.
 
 - Manage resources of cluster.  List of live NodeManagers and their resources.
 
-- Give capacity guarantees, fulfill SLAs etc. via role of scheduler (_excluding_ monitoring responsibilities)
+- Give capacity guarantees, fulfill SLAs, enforce fairness. (_excluding_ monitoring responsibilities)
 
-- Role of ApplicationMaster
+- Role of ApplicationManager
 
-The _ApplicationManager_, which is a part of the ResourceManager, tracks the jobs / applications currently running on the cluster.  There is at most one ApplicationManager per node, else we would have again (as Hadoop v1) have a bottleneck. Similarly it also keeps track of the current ApplicationMasters.  The ApplicationManager also maintains a list of jobs / applications waiting to be scheduled in case the cluster is full.  When a ApplicationManager is started in a container of a NodeManager, it has to register at the ApplicationManager ("Hy, all went well, I'am started").  ApplicationMasters repeatedly send liveliness (aka heartbeats) to the ApplicationManager.  ApplicationMaster can allocate/deallocate containers during the application.  Think also when one container, i.e. its parent node, dies.  Summary:
+- Role of Scheduler, see <<yarn_schedulers>>
+
+- Role of SecretManagers, see <<yarn_authentication>>
+
+The _ApplicationManager_, which is a part of the ResourceManager, tracks the jobs / applications currently running on the cluster.  Similarly it also keeps track of the current ApplicationMasters.  There is at most one ApplicationMaster per node, else we would have again (as Hadoop v1) have a bottleneck. The ApplicationManager also maintains a list of jobs / applications waiting to be scheduled in case the cluster is full.  When a ApplicationMaster is started in a container of a NodeManager, it has to register at the ApplicationManager ("Hy, all went well, I'am started").  ApplicationMasters repeatedly send liveliness (aka heartbeats) to the ApplicationManager.  ApplicationMaster can allocate/deallocate containers during the application.  Consider when one container, i.e. its parent node, dies.  Summary:
 
 - Manages the running and waiting applications of the cluster.
 
-- Manages the ApplicationManagers, including tracking that they are alive
+- Manages the ApplicationMasters, including tracking that they are alive
 
-Each _NodeManager_ provides a set of containers. It must track its resources, including the amount of free resources.  Resources such as memory, CPU (number of cores), disk, network.  A node manager repeatedly reports to the RessourceManager its free resources.
+Each _slave node_ provides resources such as CPUs, RAM etc. Dynamically a subset of free resources can be assigned to a container. A _container_ is a dynamic logical bundle of ressources bound to a particular node plus a process using those resources.  Currently YARN supports only CPU and memory. A future YARN can also support things like network bandwidth or GPUs. Say a node has 8 cores and 64KB RAM, then each container might get assigned one core and 8GB RAM.  The process of a container can be anyhting, e.g. a  map task or reduce task or ApplicationMaster.
 
-A _container_ is a non-static assignment of resources.  Currently CPU and memory; a generalized model can also support things like network bandwidth or GPUs. Say a node has 8 cores and 64KB RAM, then each container might get assigned one core and 8GB RAM.  Each container can run a map task or reduce task or ApplicationMaster.
+[[container_launch_context]]
+A _container launch context_ (_CLC_) describes a container and what it needs. It contains  the command to create the process, environment variables, <<yarn_dependencies,dependencies>> and more.
 
-*to-do* Is the resource assignment to a cluster fixed? Does a cluster try to provide different types of containers (e.g. some high cpu low ram, some low cpu high ram, some averaged).
+[[yarn_dependencies]]
+_Dependencies_ of a container (aka _LocalResource_): A container, i.e. it's process, often depends on files for execution. For example, a Java program requires class / jar files. In order that containers are not forced to access these files over the network, they are localized. _Localizing_ a file means that it is copied to local storage. YARN takes care of localizing files and everything involved, inclusive sharing and cleaning up. The dependencies of a container are specified in the <<container_launch_context>>.
 
-An _ApplicationMaster_ runs in an container. The ApplicationMaster's primary responsibility is one application / job.  Create it, allocate containers for it via the ResourceManager, run tasks in the allocated containers, monitor the application (i.e. the tasks that make up the application).  Monitoring includes relaunching died tasks, making HBase fault tolerant.
+[[node_manager]]
+Each slave node has a so called _NodeManager_ (_NM_) system daemon.  It must monitor its resources (memory, CPU (number of cores), disk, network), the health of its resources / HW, and do container lifecycle management (e.g. starting, killing).  Communication between NodeManagers and ResourceManager is heartbeat based for scalability.  Via that a NodeManager repeatedly reports to the ResourceManager its free resources and its health. New / rebooted NodeManagers have to register at the ResourceManager.
 
-_Basic sequence of running a job / application_: A YARN application starts with a client resource request to the ResourceManager; a notification that the client wants to submit an application.  The ResourceManager responds with an ApplicationId and information about the capabilities of the cluster that will aid the client in requesting resources. The client sends an application submission context and an container launch context to the ResourceManager.  The _application submission context_ contains the ApplicationID, user, queue and other information needed to start a respective ApplicationMaster.  The _container launch context_ (_CLC_) contains resource requirements, job files, security tokens and other information needed to set up an container and within it an environment to launch the ApplicationMaster.  The ResourceManager picks an available container for the ApplicationMaster, then often called _container0_.  The ResourceManager contacts the respective NodeManager and lets it start the ApplicationMaster. The just started ApplicationManager sends a _registration request_ to the ResourceManager, which responds with information about minimum and maximum capabilities of the cluster.  Based on that information, the ApplicationMaster will request containers from the ResourceManager, which will respond as best possible based on scheduling policies and send information about the now assigned containers. The ApplicationManager contacts the respective NodeManagers, and starts containers by sending the NodeManager CLCs.  The ApplicationMaster continously sends heartbeats to the ResourceManager.  A heartbeat contains progress information.  It can be used to request more ressource or to release resources.  The ResourceManager can direct NodeManagers to kill containers.  When a job is finished, the ApplicationMaster informs the ResourceManager that the job completed successfully.  The ResourceManager then asks the NodeManager to aggregate logs, and asks all involved NodeManager to kill the respective containers, including the one for the ApplicationMaster.
+An _ApplicationMaster_ (_AM_) runs in a container. The ApplicationMaster's primary responsibility is one job (aka application).  Create it, allocate containers for it via the ResourceManager (including dynmaically freeing / allocating containers during the job), run tasks in the allocated containers, monitor the job (i.e. the tasks that make up the job).  Monitoring includes relaunching died tasks, making HBase fault tolerant. The ApplicationMaster can run arbitrary user code. Communication between ApplicationMaster and ResourceManager is via (extensible) communication protocols. By giving so much responsibilities and programming model flexibility to the ApplicationMasters, YARN's architecture gains scalability. The ApplicationMaster periodically heartbeats to the RessourceManager, see also <<running_yarn_job>>. Note that the ResourceManager is no longer (compared to v1) involved in application progress, which makes YARN scale better.
 
-A client sends a job to the ResourceManager.  The ResourceManager chooses one of the free containers to be the ApplicationMaster for that job.  The ApplicationMaster decides how many containers it needs to assign tasks to and then asks the ResourceManager for the locations of that many free containers.  The request can contain hints like how much RAM the container should have, on which rack or node it ideally should be (so e.g. a mapper can run on the node hosting the required HDFS block).  The ApplicationMaster then directly contacts containers received from the ResourceManager.  Note that now, in contrast to version 1, the master is only involved at the beginning of the job.  It is no longer involved after the job starts.  As a consequence we get better scaling.
+_Basic sequence of starting a job / application_:
 
-**to-do** Chapter 7. I'm not sure I understand who exactly does the splits, and wether or not the splits move around in the network. I assume the client does the split logically, i.e. only by getting to know which HDFS slave hosts which HDFS block of the data. From then on, only that location information is transfered / used by involved nodes / task.  The HDFS data of the HDFS blocks is in general not transfered over the network (only if the associated mapper can't be on the same node)
+1. The client sends an application request to the RM
+
+2. The RM responds with an ApplicationId and information about the capabilities of the cluster that will aid the client in requesting resources.
+
+3. The client sends an application submission context and the container launch context for the AM to the RM.  The _application submission context_ contains the ApplicationID, user, queue and other information needed to start the AM.  The container launch context contains resource requirements, job files, security tokens and other information needed to set up an container and within it an environment to launch the AM.
+
+4. The RM picks an available container for the AM, often called ``_container 0_''.  The RM contacts the respective NM and lets it start the container and within it the AM, see also <<starting_a_container>>. The just started AM sends a _registration request_ to the RM.
+
+5. The RM responds with information about minimum and maximum capabilities of the cluster.
+
+6. Based on that information, the AM will request containers from the RM.
+
+7. The RM responds as best possible based on scheduling policies and returns information about the containers now assigned to the AM. At this point, the RM has handed off control of assigned NMs to the AM.
+
+8. The AM contacts the respective NMs, and indirectly starts containers by sending CLCs to the respective NMs.
+
+[[starting_a_container]]
+9. A NM starts a container as follows: Validates the authenticity of the container lease. As described in the CLC, initializes the environment, copies dependencies to the local file system. Dependencies might be shared between tenants (as specified in the CLC). The NM garbage collects no longer used dependencies. See also <<container_launch_context>> and <<yarn_authentication>>.
+
+[[running_yarn_job]]
+_While a job is running_: The AM continously sends heartbeats to the RM.  A heartbeat contains progress information and it may be used to request / release containers.  The RM will return container leases with subsequent heartbeats. Also, the AM periodically requests container status from the respective NMs to monitor progress.  See also what <<node_manager>> periodically does.
+
+_Finishing a job_: The AM sends a Finish message to the RM and exits. The RM then asks the NM to aggregate logs, and asks all involved NM to kill the respective containers, including the one for the AM.
+
+_Preemption_:  The RM can direct NMs to kill containers. See also [[yarn_schedulers]].
+
+References:
+
+- https://hadoopabcd.wordpress.com/2015/06/29/how-mapreduce-works/#more-1579
 
 
+[[yarn_schedulers]]
 ==== Yarn Schedulers
 
-_steady fair share_: Share (aka percentage) of total resources taking also empty qeues into account.  _Instantaneous fair share_: Share of total resources when not taking the empty queues into account and redistributing their share to the non-empty queues.  _Current allocations_: Percentage of resources each queue currently actually is using.  Steady fair share and instantenous fair share are goals, current allocations is the reality.  _Dominant resource fairness_ is one of multiple possible ways of computing current allocation as one single value if there are multiple resources. For each application, take the maximum resource percentage among all resources the application currently uses. Then value for a given application is its max divided by the sum of all max.
+[[steady_fair_share]]
+_Steady fair share_: Promised share (aka percentage) of total resources taking also empty qeues into account. The capacity of empty queues is waisted. E.g. say the steady faire share of math department is 40%, Physics is 10% and CS is 50%. If currently CS does nothing, i.e. has an empty queue, then the math department still only gets 40% of available resources, the Physics 10% and the rest is waisted.
 
-_Schedulers_ (of jobs) the ResourceManager might use:
+_Instantaneous fair share_: Promised share of total resources when not taking the empty queues into account and redistributing their share to the non-empty queues. Taking the above example, Math gets 80 % = 40 / (40+10) of available resources and Physics 20 % = 10 / (40+10).
 
-- _FIFO scheduler_
+_Current allocations_: Actual percentage of resources each queue currently actually is using.  Steady fair share and instantenous fair share are goals, current allocations is the reality. Current allocations and instantaneous fair share might differ after one department frees or requests new resources. Then it needs some time until the freed resources are used by others, or until the newly requested resources are given up by the previous users.
 
-- _Capacity scheduler_: There's a set of hierarchical FIFO queues, taking user applications, each queue guarantees a certain capacity (resources, e.g. cores).  The clusters resources are distributed among the queues.  E.g. say we have two queues, one gets 70% of the cluster's resources, the other gets 30%.  In the most naive variant, if one queue is empty, it's assigned resources are wasted / idle.  In an improved variant, we use instantenous fair share instead of steady fair share as target.  As a consequence, non-empty queues get the resources of empty queues.  If a new job enters a previously empty queue, it has to wait until resources get free.  However, if that new job has top priority, is possible to preempt running jobs.  Each queue has strict ACLs that control which users can use the queue.
-
-- _Fair scheduler_: Highly simplified: The aim is that all applications get, on average, an equal share of resources over time.  If there is an single app, it gets all the resources of the cluster.  If a new app comes in, when ressources get free, they are assigned to the apps such that over time, each app roughly gets the same amount of resources.  Apps can have priorities, which serve as weights to determine the fraction of total resources that each app gets.  The scheduler further organizes apps into queues, and shares resources fairly between these queues.  By default all users share a single queue, named `default'.
+_Dominant resource fairness_ is one of multiple possible ways of computing current allocation as one single value if there are multiple resources. For each application, take the maximum resource percentage among all resources the application currently uses. Then the value for a given application is its max divided by the sum of all max.
 
 
+===== FIFO Scheduler
+
+Trivial.
+
+
+===== Capacity Scheduler
+
+There's a set of hierachical queues, i.e. a tree. Only the leaf nodes are actual queues (FIFO). The internal nodes are `virtual' queues. Each tree node guarantees a certain minimum capacity (i.e. the <<steady_fair_share>>, however which don't need to add up to 100%).  The root node symbolizes the capacity of the full cluster.  At each node n, it's child nodes have weights w~i~. The i-th child get's w~i~ / ∑~j ∈ n's childs~w~j~ of n's capacity.
+
+If there's still excess capacity (after each queue get's at least it's minimum capacaity, independent of whether it's empty or not), that is given to the most starved queue (queue's <<current_allocation>> divided by queue's minimum capacity).
+
+Each queue has strict _access control lists_ (_ACL_) that control which users can submit applications to this queue.
+
+The queues' properties such as ACL and minimum capacity can dynamically be modified. Queues can dynamically be added, but not removed.
+
+Capacity scheduler is designed around these ideas:
+
+- _elasticity with multitenancy_: Free resources should be allocated to any entity as long as those resources remain underutilized otherwise. When the entity which officially owns the resources now actually wants to use its resources, they should be removed from the entities which temporarily received the resources.
+
+- _security_: By queue-level access control lists.
+
+- _granular scheduling_: Resources are sharable at a finer granularity than full nodes.
+
+- _locality_: Support specifying the locality of computation as well as node or rack affinity. That includes knowing which nodes/racks are close to the prefered ones.
+
+
+===== Fair Scheduler
+
+Highly simplified: As in Capacity scheduler there are hierarchical queues. But as target, no longer <<steady_fair_share>> is used (i.e. the minimum capacity assigned to each queue / node), but <<instantaneous_fair_share>>.  The aim is that all jobs get, on average, an equal share of resources over time.  If there is an single job, it gets all the resources of the cluster.  If a new job comes in, when ressources get free, they are assigned to the running jobs such that over time, each running job roughly gets the `same' (according to weights, i.e. `same' if all weights are equal) amount of resources. If a new job has top priority, is possible to preempt running jobs.
+
+The default hierarchy is that by default all users share a single queue, named `default'.
+
+Each queue has strict ACLs that control which users can use the queue.
+
+
+[[yarn_authentication]]
 ==== Authentication
 
-ApplicationMaster's are not trusted, since they run user code.
+ApplicationMaster's are not trusted, since they run arbitrary user code.
 
-When the ResourceManager creates an ApplicationMaster, it gives it an _ApplicationToken_.  The ApplicationMaster uses that token to autorize a resources request.  When an ApplicationMaster receives a list of containers it is entitled to use from the ResourceManager, it gets also a _ContainerToken_ for each container.  It uses that ContainerToken when it requests a NodeManager for a container to use, to authorize that request.
+When the ResourceManager creates an ApplicationMaster, it gives it an _ApplicationToken_.  The ApplicationMaster uses that token to autorize a resources request.
 
-*to-do* How to prevent a malicious ApplicationMaster from allocating many ressources from the RessourceManager without actually using them? Or using them in a meaningless sense, e.g. do silly computations.  I assume ACLs of the scheduler's queues?
+When an ApplicationMaster receives a list of containers it is entitled to use from the ResourceManager, it gets also a _ContainerToken_ for each of those newly allocated containers.  It uses that ContainerToken to authorizing its requests for containers from a NodeManager.
+
+
+[[yarn_fault_tolerance]]
+==== Fault tolerance and availability
+
+The ResourceManager is a single point of failure. It persistently stores its state. Thus when a ResourceManager fails and needs to restart, it can recover the previous state. Containers, inclusive ApplicationMasters, will be killed, and the ApplicationMasters restarted.
+
+Work is in progress to make ApplicationMasters survive a restart of an ResourceManager. Also, efforts are underway to allow for having passive/active failover of ResourceManager to a standby node.
+
+If a NodeManager fails, the ResourceManager will eventually dedect that since it doesn't receive heartbeats. The node's containers are marked as killed. All running ApplicationMasters are informed. Its the responsibility of the ApplicationMasters to react to the failure.
+
+If a ApplicationMaster fails, it is restarted by the ResourceManager. However the YARN platform offers no support to restore the ApplicationMaster state. Whether at all and how a restarted ApplicationMaster can resynchronize with its own running containers is up to the ApplicationMaster.
 
 
 === Spark
 
-A processing model based on a DAG. Is primarly intended for immutable data. For immutable data, see streaming.
+A processing model based on a DAG. Is primarly intended for immutable data. For mutable data, see streaming.
 
-A node in the DAG (also called _lineage graph_) is a RDD (see below), an edge is a _transformation_.  To _create_ RDD s corresponding to root nodes in the DAG, we can create them from local or distributed fileystem, or from a process genereting it.  To make use of the RDD s, typically the ones corresponding to leaf nodes, there are so called _actions_. An action `materializes' an RDD.  We can e.g. dump it to local or distributed filesystem, or display it on the screen. Each action createas one _job_.  Multiple jobs can share the intermediate RDD s.
+A node in the DAG (also called _lineage graph_) is an RDD (see below), an edge is a _transformation_.  To _create_ RDD s corresponding to root nodes in the DAG, we can create them from local or distributed fileystem, or from a process genereting it.  To make use of the RDD s, typically the ones corresponding to leaf nodes, there are so called _actions_. An action `materializes' an RDD, that is the information it contains.  We can e.g. dump it to local or distributed filesystem, or display it on the screen. Each action createas one _job_.  Multiple jobs can share the intermediate RDD s.
 
 _Lazy evaluation_. Only when an action is invoked, the respective subgraph of the DAG is executed.  Lazy evaluation helps to reduce the number of passes over intermediate data by grouping operations together.  In Hadoop MapReduce, developers often have to spend a lot of time considering how to group together operations to minimize the number of MapReduce passes. In Spark users are free to organize their program into smaller, more managable operations.
 
-_Resilient distributed dataset_ (_RDD_): An immutable collection of _values_ (or _objects_). Each value can be anything.  Is partitioned, each _partition_ can be on another machine.  The partitionboundary can be at any byte boundary. Thus when an RDD is for example stored on HDFS, we can take the HDFS blocks as partitioning.  _RDD types_: In a vanilla RDD, the values are of any type. There are _pair RDDs_ where each value is a key/value pair and _numeric RDDs_ where each value is of numeric type.  For these specialized RDDs there are additional transformations and actions.  Note that all RDDs can be viewed as vanilla RDDs and thus support all vanilla transformations and vanilla actions. Note that potentially an RDD is distributed across multiple input machines.
+_Resilient distributed dataset_ (_RDD_): An immutable collection of _values_ (or _objects_). Each value can be anything.  Is partitioned, each _partition_ can be on another machine.  The partition boundary can be at any byte boundary. Thus when an RDD is for example stored on HDFS, we can take the HDFS blocks as partitioning.  _RDD types_: In a vanilla RDD, the values are of any type. There are _pair RDDs_ where each value is a key/value pair and _numeric RDDs_ where each value is of numeric type.  For these specialized RDDs there are additional transformations and actions.  Note that all RDDs can be viewed as vanilla RDDs and thus support all vanilla transformations and vanilla actions. Note that potentially an RDD is distributed across multiple machines. RDDs are _fault tolerant_ in that they can be recomputed in case their data is lost.
 
 A transformation with _narrow dependency_ is one that can produce one output value of the output RDD by only seeing one or a few values of the input RDDs. Thus it can be easily parallelized, maybe even on the same machine.  The complementary concept is _wide dependecy_.  There one value in the output RDD depends on a lot of values in the input RDDs. hose transformations require shuffling as in MapReduce, which is an expensive operation. The wide dependency transformations having multiple input RDDs and a single output result in a _join_, the ones having a single input single output in a _simple shuffle_.
 
-These paths in the DAG (of RDDs & transformations/creations/actions) that consist only of narrow dependency transformations can be combined into one node, called a _stage_, which procudes a DAG of stages transformations/creations/actions. Each stage can be parallelized on multiple machines, without the need for network communication.  The transformations between stages require shuffling and thus typically network communication.
+The paths in the DAG (of RDDs & transformations / creations / actions) that consist only of narrow dependency transformations can be combined into one node, called a _stage_. This `compaction' results in a new DAG of stages & transformations / creations / actions. Each stage can be parallelized on multiple machines, without the need for network communication.  The transformations between stages require shuffling and thus typically network communication.
 
 *to-do* per RDD, must all values have the same type? If not, it would really be an type-value pair, where the type is implicit?
 
-_Persisting RDDs for optimization_ (more accurately: caching): Recall that RDD s are by default always recomputed.  However a RDD can be requested to persist itself, i.e. each RDD has a persist attribute.  After computingthe RDD for the first time, its content is persisted (more accurately: cached).  As a consequence, if multiple actions depend on that RDD, the sub DAG consisting of that RDD and all its anchestors needs only be computed once.  There are options to specify how to persists, e.g. when memory/disk shall/shallnot be involved.  If memory is used up, Spark will evict some partitions to make room to persists new partitions.  Note that persisting is not an action, thus calling persist does not trigger evaluation.
+_Persisting RDDs for optimization_ (more accurately: caching): Recall that RDD s are by default always recomputed.  However a RDD can be requested to persist itself, i.e. each RDD has a persist attribute.  After computing the RDD for the first time, its content is persisted (more accurately: cached).  As a consequence, if multiple actions depend on that RDD, the sub DAG consisting of that RDD and all its anchestors needs only be computed once.  There are options to specify how to persists, e.g. when memory / disk shall / shall-not be involved.  If memory is used up, Spark will evict some partitions to make room to persists new partitions.  Note that persisting is not an action, thus calling persist does not trigger evaluation.
 
 [[prepartition_rdd]]
-_partitioning RDDs_: Explicitely partitioning (and persisting) an pair RDD may improve performance if that RDD (more precisely, the stage containing it) is used multiple times as input for an transformation or action which internally shuffles.  The partitioning is such that same keys are in the same partition, i.e. the partitioning internally does shuffling.  Consider e.g. a join. If one of the two stages being input the the join is pre-partitioned, then the join can overtake that input without shuffling and only needs to shuffle the other input stage.  Partitioning is a transformation.  Since it only makes sense to prepartition if a following transformation internally shuffles, it in general doesn't make sense to not also persist the RDD resulting from the partitioning transformation. Each RDD stores as a property its _partitioning information_, such that transformation can make use of it. Each transformation knows wheter it retains / creates / destoys the partitioning and sets the partitioning information property of the output accordingly.  Some generic transformation which destroy partitioning (that is, Spark cannot guarantee that it is retained, given a user specified function) have counterparts which retaing partitioning. E.g. map and mapValues. Example of prepartitioning: "myrdd2 = myrdd1.partitionBy(new HashPartitioner(100)).persist()".
+_partitioning RDDs_: Explicitely partitioning (and persisting) a pair RDD may improve performance if that RDD (more precisely, the stage containing it) is used multiple times as input for an transformation or action which internally shuffles.  The partitioning is such that same keys are in the same partition. Followingly the partitioning internally does shuffling.  Consider e.g. a join. If one of its two input stages is pre-partitioned, then the join can overtake that input stage without shuffling and only needs to shuffle the other input stage.  Partitioning is a transformation.  Since it only makes sense to prepartition if a following transformation internally shuffles, it in general doesn't make sense to not also persist the RDD resulting from the partitioning transformation. Each RDD stores as a property its _partitioning information_, such that transformation can make use of it. Each transformation knows whether it retains / creates / destoys the partitioning and sets the partitioning information property of the output accordingly.  Some generic transformation which destroy partitioning (that is, Spark cannot guarantee that it is retained, given a user specified function) have counterparts which retaing partitioning. E.g. map and mapValues. Example of prepartitioning: "myrdd2 = myrdd1.partitionBy(new HashPartitioner(100)).persist()". The number of partitions, 100 in the previous example, control how many parallel tasks perform further operations on the RDD (e.g. joins). In general, make this at least as large as the number of cores in your cluster.
 
 The DAG is executed on top of YARN.
 
@@ -903,11 +1304,7 @@ _filter_ (selection in relational algebra): A predicate function determines for 
 
 _map_: Applies a function to every value in the input RDD, producing a new output RDD of same size and possibly with different value type.  As in MapReduce, only that it doesn't have to be about key-values.
 
-_map values_: As map, but only for pair RDDs; the user supplied function only operates on the values.
-
-_flatMap_: Applies a function to every value in the input RDD. The output of the function is a collection. Thus logically from a initial point of view is a list of collections. The actual output is the flatening, i.e. just a list of elements.
-
-_flat map values_: analogous to map values
+_flatMap_: Applies a function to every value in the input RDD. The output of the function is a collection. Thus conceptually from an initial point of view, flatMap's output would be a list of collections. The actual output of flatMap is the flatening, i.e. just a list of elements.
 
 _distinct_: Removes duplicates. May require shuffling.
 
@@ -915,18 +1312,22 @@ _sample_: Similar to filter. Lets through a random sample / subset of the input 
 
 _union_: Concatenate input RDDs
 
-_intersection_: Produce one RDD per value that exists in any of the input RDD s. *to-do* understand better the details
+_intersection_: The output RDD contains only the elements that appear in both input RDDs. Also removes duplicates. Requires shuffling.
 
-_subtract_: Produce on RDD per value that exists in the lhs RDD, except for those values that exist also in the rhs RDD.
+_subtract_: The output RDD contains the elements of the lhs input RDD which do not occur in the rhs input RDD. Requires shuffling.
 
 _cartesian product_: Think lhs RDD as column vector and rhs RDD as row vector. The resulting RDD corresponds to the product matrix, each value being a tuple.
 
-_group by_: Applies a function to every value. The function returns a key, and thus logically yields a key/value pair. Then it continuous like groupByKey.
+_group by_: Applies a function to every value. The function returns a key, and thus logically yields a key/value pair. Then it continuous like group by key.
 
 
 ==== Some key-value pair transformations
 
 RDDs are not required to be lists of key-value pairs, but they can be, and some transformations make use of them.
+
+_map values_: As map, but only for pair RDDs; the user supplied function only operates on the values.
+
+_flat map values_: analogous to map values
 
 _group by key_: Groups by key. The result is a list of (key,value-collection) pairs.
 
@@ -950,12 +1351,10 @@ _fold by key_: As fold action, but for the values of each key seperately.
 
 _combine by key_: Most general of reduceByKey and foldByKey. In each partition individually, the first time a key is encountered that hasn't been seen before, a user supplied createCombiner function is called which creates an initial value out of the value associated with that key.  When it's a key that has been seen before, the user supplied mergeValue function is called. When merging partitions, the user supplied mergeCombiners function is called to merge the collection values of each key.
 
-_partitionBy_: *to-do* Book p62. I don't understand why partitioning should help.
+_partitionBy_: see <<prepartition_rdd>>
 
 
 ==== Some actions
-
-*to-do*
 
 _collect_: Access the RDD in memory. I.e. the RDD must fit into memory, and thus collect can't be used on large RDDs.
 
@@ -971,6 +1370,8 @@ _fold_: As reduce, but gets passed a "zero value" to be used for the initial cal
 
 _take_: Return the first n values.
 
+*to-do*
+
 
 ==== Some key-value pair actions
 
@@ -983,7 +1384,7 @@ _lookup_: Return value for a given key.
 
 === Tail latency
 
-When computation is parallelized among many nodes, it is almost guaranteed that one or more node needs substantially more time than all the other nodes.  When a single node has a probability of p of requiring less time than 1s (SLA), then when having n machines, the probability that at least one needs more than 1s is (1-p)^n^, which goes to 1 quickly.
+When computation is parallelized among many nodes, it is almost guaranteed that one or more node needs substantially more time than all the other nodes.  When a single node has a probability of p of requiring less time than 1s (SLA), then when having n machines, the probability that at least one needs more than 1s is 1-(1-p)^n^, which goes to 1 quickly.
 
 Some reasons why some taks take substantially longer than the average:
 
@@ -1008,127 +1409,9 @@ _micro-partitions_: 100 or 1000 partitions per machine. When benchmarks show tha
 _good enough_: If the true / optimal result is not mandatory, we can just ignore tasks that take too long.
 
 
-== Data Stores
+== Data shape
 
-=== HBase
-
-HBase is the open source version of Google's Bigtable. Based on the wide column store model.
-
-Each table has a row ID column being by definition the primary key. Columns are grouped in a column families.  The idea is to group together whats frequently accessed together.  The column families must be known in advance, but not the columns.  The number of columns can be very high (compared to relational DB).
-
-Rows have an order.
-
-Operations: put/get/delete (row), scan (rows)
-
-Can store billions of rows; a traditional RDBMS (single machine) can store millions.
-
-Scanninig, i.e. iterating over all rows of a table, is an relative expensive operation since its not trivial.
-
-Has low latency (relative to HDFS) because of the memstore and the block cache; latency due to access to underlying DFS falls aften away.
-
-Best practice: Keep row ids and column names short. Rational: Every KeyValue stores them.  I.e. a given row id or column name appears a lot of times.  Keeping them short lets you save space, both on disk and in memory. I.e. you can pack more KeyValues into your memory.
-
-Offers row level atomicity. Can offer it because one region is handled by exactly one region server.
-
-Good (relative to RDBMS) for sparse data (sparse meaning not every column, given a row, contains a value).
-
-*to-do* Replication, what kind of consistency is offered
-
-
-==== Implementation of HBase / Physical layer of HBase
-
-Partition table first horizontally (i.e. group rows), then vertically (as already done by column families).  We need horizontal partitioning because we can have billions of rows not even fitting on a single machine.  A horizontal partition is given by the range (min-incl, max-excl).  Such a range of rows is called a _region_.  Obviously the max-excl equals the min-incl of the next partition.  The intersection of horizontal and vertical partitioning is what is stored together and is called a _store_. I.e. a region is composed of multiple stores.
-
-Master slave architecture.  The master is called HMaster, a slave is called region server.  The _HMaster_'s responsibility is the meta data.  A _region server_ is responsible for a set of regions, and thus implicitely also for the stores of that regions.  A region is assigned to one region server.
-
-A store is stored as one or more files, called _store file_ (or _HFiles_), on a DFS.  One store file is actually an _SSTable_, a flat sorted list of key-value pairs, one pair also called  _KeyValue_, plus an index for faster key lookup.  The _index_ contains the first key of every block in the HFile.  A store file is immutable.  The index is loaded into memory.  The key is logically a (rowid, column-number) pair refering to a cell of the original table, and the value storing the content of that cell.  KeyValues are stored sequentially, forming a bytestream, making it efficient for transfer.  Each KeyValue is stored as tuple (keylength, valuelength, key, value).  The length of the keylength and valuelength elements are fixed width, e.g. 32bit.  Practically the key is a tuple
-
-(rowidlength, rowid, columnfamiliylength, columnfamily, columnqualifier, timestamp, keytype)
-
-Again rowidlength, columnfamiliylength are fixed width, and their value defines the length of the respective tuple element.  Timestamp and keytype are fixed width.  So columnqualifier length can be computed, taking the outer keylength into account.  Technically, the columnfamily is not required, since we already know in which column family we are.  The timestamp is the version.  The keytype is actually a deletion mark.
-
-The key-value pairs of the store file are read in blocks of about 64kB; no pair is ever split.  Note that these are not the same blocks as the ones the underlying DFS might have.
-
-_put_: First write to HLog file, then to the memstore.  The _HLog_ (or _write ahead log_ or _WAL_), a journal, is a security measure in case we loose what's in the memory before the memory could be flushed to disk.  It is stored on the underlying DFS.  There is one HLog per region server.  The _memstore_ is an in memory cache of modified KeyValues.  There is one memstore per store.  When certain criterions are met, the memstore is flushed to disk, creating a new storefile (as always with sorted rows).  After flushing, the log file can be discarded.  Thus we keep generetaing partially redundant store files (but remember that each KeyValue as an version, and we have a total order).  Every now and then, we do _compaction_:  Replace the existing HFiles by one new HFile by merging them.
-
-*to-do* what exactly is the benefit of the WAL file? Now I also have to synchronously write the data. I could directly append to a speical unsorted HFile instead? Or is it to have the simple design choice that hfiles are always sorted.
-
-To reduce latency and increase throughput, besides the memstore,  there's also a read cache called _block cache_ containing the last read HBase blocks.  Thanks to the block cache and the memstore, we don't always have to access the underlying DFS.
-
-_delete_: Similar to put, where the modification is to check the `is deleted' flag.
-
-*to-do* how does the in memory index look like about? KeyValue can be in many places: cache, memstore, multiple store files.
-
-*to-do* really understand lsm-tree and compaction
-
-Guarantees ACID on the row level via per-row locks. That gives us total order of row versions.
-
-Overview:
-
-Table +
-Region +
-Store  +
-StoreFile(n) + Memstore(1) + HLog(1) +
-Block | - +
-KeyValue | KeyValue
-
-
-==== Optimizations
-
-Besides the memstore, there's also an in-memory _cache_ of KeyValue s.  A unit of the cache is a block.  The MemStore is for KeyValue s not yet flushed to disk, the cache is for  faster access to already persisted KeyValue s.  The cache is composed of two hierarchy levels, the _LRU BlockCache_ and the _bucket cache_.  LRU BlockCache caches the last recently used blocks.
-
-_short circuiting_ / _colocation_ (process data where it is stored):  Is when the requested block of the underlying DFS is stored on the same physical node as the region server requesting that block runs on.  Thus effectively the region server reads the block from its own local drive, without paying network overhead.  This is a situation that occures most of the time as a result of the design of HDFS and HBase, in particular from the <<hdfs_replica_placement>> strategy of prefering to store a block on the client itself.  One could think that due to HDFS having a life, over time the HDFS data node (runing on the same physical node as the HBase region server) will no longer itself store the HDFS block.  But due to the compaction of HFiles and the HDFS replica placement strategy, we will restore colocation over time.
-
-An in-memory _bloom filter_ is used to reduce access to HFiles when searching keys.  Size of bloom filter and number of hash functions used is subject to research.
-
-The LSM-tree structure's purpose is to minimize the number of required compactions.
-
-
-=== Cassandra
-
-Similar to the one of HBase.
-
-
-=== Google Bigtable
-
-Successor and proprietary version of HBase.
-
-
-=== Spanner
-
-Distributed NewSQL database, similar to HBase.  Claims to bring back ACID / externally-consistent distributed transactions.
-
-Data Model: Multi-column primary key. A _timestamp_ column.  Partition table horizontally into _directories_ (region in HBase).  A _tablet_ is a set of directories.
-
-Two level Master-slave architecture.  The one top level master is called the _universemaster_,  the masters are called _zonemasters_, the slaves are called _spanserver_. There's one zonemaster-spanservers subtree per data center.
-
-Can store trillions of rows; a traditional RDBMS (single machine) can store millions, HBase billions. Can have hundrets of data centers, millions of machines.
-
-Sacrifice high availability to get low latency.
-
-
-== Data models
-
-_Key-value model_:  A data model. Some mapping from a key to a value.
-
-_Column store_ (or _column-oriented DB_): A data model. Store data by columns (as opposed to by rows). One advantage is that subsequent cells in the same row tend to be similar, thus compression algorithms tend to work well.
-
-_Wide column store_: A data model. Store data by rows, keys identify rows, `group' columns in families. However each row can have its own individual columns.  Thus a wide column store can be interpreted as a two level nested key-value store.  The key of the outer level is the row id, the key of the inner level is the column id, and the column family id is also given.  In the tabular model, joins are very expensive.  In the tabular model we love to have data in normal form, and as a consequence there are many joins.  Paradigm of BigTable: store together what is accessed together (i.e. quite the opposite of normal forms). That makes batch processing better, since we only have to pay latency once (recall we want to avoid latency as much as possible), and after that it's just throughput. To fulfill the paradigm, we denormalize. That can also be seen as precomputing the joins we expect to occur often.  Thus reads become faster.  The price is that we introduced anomalies, so writes are now more expensive. Examples: Google's BigTable, HBase, Cassandra.
-
-_relational database_: Homogenous collection of flat items.
-
-_document store_ (or _document-oriented database_): Heterogenous collection of arborescent items. Replaces the concept of a `row' in a relational database with a more flexible model, the `document'. Scaling out is much easier than with a relational database. Scales to billions of documents and PBs of total storage.  We have project and select, but not join.  Join is less important, since we already denormalized (i.e. pre-joined).  Can also be interpreted as a key-value model if the documents have ids (as MongoDB does).  Implementations: mongoDB, CosmosDB (Azure) CouchDB, elasticsearch, existdb, Cloudant, ArangoDB, basex, MarkLogic. There are ways to store trees in an relational database, but its not really nice. It works better if the trees are (almost) heterogneous. It works even better if they are (almost) flat.
-
-_graph databases_: see <<graph_databases>>
-
-_unstructured document_: text?
-
-_semi-structered document_  (or _document-oriented information_): Database model of document store.
-
-_structured documents_: table
-
-*to-do* diagram which plots (# entities, # storage per entity (or total storage)) where document store, relational data base, object store etc.
-
+=== Table
 
 === Cube
 
@@ -1138,15 +1421,41 @@ A _data cube_ (or _OLAP cube_ or just _cube_ or _multidimensional dataset_) is a
 
 Operations on a data cube:
 
-_Aggregation_ (loosely equivalent to SQL group-by on the facts table): `Remove' one dimension by aggregating all values along that dimension, resulting in a new data cube with one dimension less. E.g. if one dimension is date, but we don't care about the date, we can ignore the date by aggregating over it.
+_Aggregation_ (loosely equivalent to SQL group-by on the facts table): `Squash' one dimension by squashing the cube along that dimension. I.e. aggregate all values along that dimension, resulting in a new data cube with one dimension less. E.g. if one dimension is date, but we don't care about the date, we can ignore the date by aggregating over it.
 
 _Slicing_ (equivalent to SQL selection (WHERE clause) on the facts table): Regarding a given dimension, only care about values fulfilling a given predicate, and drop the other values. E.g. if one dimension is customer_firstname, the predicate might be (customer_firstname = "Bob" or customer_firstname = "Alice"). The dimensions of the cube remain the same.
 
-_Dicing_ (equivalent to SQL group-by): Partition each dimension. Possibly turn one dimension into one single partition. (Only relevant if you try to imagine this: Each partition / `slice' must not be continuous along its dimension. So you might mentally want first to reorder such that each partition is continous along its dimension and then truly a slice). So the cube is diced into dices. Each die, consisting of multiple cells along each dimension, becomes a cell of the new cube by aggregating all cells of the die. Say one of the many dimensions is product, which has satelite data which has a color column, then `dicing by product.color' means that we partition the product dimension by product.color, and each other dimension is turned into one single partion.
+_Dicing_ (equivalent to SQL GROUP BY): Partition each dimension. Possibly turn one dimension into one single partition. (Only relevant if you try to imagine this: Each partition / `slice' must not be continuous along its dimension. So you might mentally want first to reorder such that each partition is continous along its dimension and then truly a slice). So the cube is diced into dices. Each die, consisting of multiple cells along each dimension, becomes a cell of the new cube by aggregating all cells of the die. Say one of the many dimensions is product, which has satelite data which has a color column, then `dicing by product.color' means that we partition the product dimension by product.color, and each other dimension is turned into one single partion.
+
+*to-do* cross-tabulate (is in the wrap up lecture 5:18)
 
 *to-do* so dicing by dim1 is the same as aggergating over all other dimensions?
 
 _Drill-down_ is the process of making the dicing partitions more finely (which includes dicing more dimensions) and / or make the slicing predicates more specific (which includes making the predicate look at more dimensions). _Role-up_ is the opposite: make the dicing partitions more coarse (which includes dicing less dimensions) and / or make the slicing predicates less specific (which includes making the predicate look at less dimensions).
+
+_cross tabulation_ (equivalent to SQL GROUP BY CUBE): For each dimension, add a value `total'. It represents aggregation along the dimension in which it appears. For the 2D case, the following gives an example. In 3D, 3 sides of the cube get a 1-cell thick plane attached.
+
+Original cube:
+
+|======
+|           | Europe | Americas | Asia
+| Mercedes  | 3      | 5        | 11
+| VW        | 5      | 2        | 7
+| Porsche   | 7      | 8        | 8
+|======
+
+Cross tabulation of original cube:
+
+|======
+|           | Europe | Americas | Asia | Total 
+| Mercedes  | 3      | 5        | 11   | 19
+| VW        | 5      | 2        | 7    | 14
+| Porsche   | 7      | 8        | 8    | 23
+| Total     | 15     | 15       | 26   | 56
+|======
+
+
+_cube operator_: Given a fact table F, CUBE(F) denotes cross tabulation on F. Here, the `total' value is often denoted `*'.
 
 Assuming OLAP is implemented as <<ROLAP>>, and assuming a star schema (see ROLAP) is used. The above data cube operations can be implemented in SQL as follows:
 
@@ -1170,8 +1479,7 @@ WHERE /* filter on dim1, e.g. "dim1 = 42 or dim = 77" */
 Dice by dim1Table.color:
 
 ------------------------------------------------------------
-SELECT dim1Table.color,
-       /* SUM(measi), i for all measure cols */
+SELECT dim1Table.color, /* SUM(measi), i for all measure cols */
 FROM factstable JOIN dim1Table on dim1 = dim1Table.id
 GROUP BY dim1Table.color
 ------------------------------------------------------------
@@ -1179,33 +1487,29 @@ GROUP BY dim1Table.color
 Dice by dim1Table.color and dim2 (i.e. every value of dim2 gets its own partition):
 
 ------------------------------------------------------------
-SELECT dim1Table.color, dim2,
-       /* SUM(measi), i for all measure cols */
+SELECT dim1Table.color, dim2, /* SUM(measi), i for all measure cols */
 FROM factstable JOIN dim1Table on dim1 = dim1Table.id
 GROUP BY dim1Table.color, dim2
 ------------------------------------------------------------
 
-As syntactic sugar, to make the union of multiple dicers less verbose: The following is the union of the the tables produced by (dicing by dim1 and dim2, dicing by dim1, dicing by no dimension (i.e. aggregate all the cells of the cube)). The produced data can be used to create a cross tabulation table (only that the totals for dim2 are missing)
+_GROUP BY GROUPING SETS_ is syntactic sugar. SELECT ... GROUP BY GROUPING SETS (expr1, expr2, ...) is the UNION of SELECT ... GROUP BY expr1, SELECT ... GROUP BY expr2, .... The produced data is almost equivalent to a cross tabulation table, only that the totals for dim2 are missing. In the following example, the facts table contains more dimensions than just dim1, dim2.
 
 ------------------------------------------------------------
-SELECT dim1, dim2,
-       /* SUM(measi), i for all measure cols */
+SELECT dim1, dim2, /* SUM(measi), i for all measure cols */
 GROUP BY GROUPING SETS ((dim1, dim2),(dim1),())
 ------------------------------------------------------------
 
-As syntactic sugar, the previous can even be made more concise:
+_GROUP BY ROLLUP_ is further syntactic sugar, making GROUP BY GROUPING SETS even more concise. GROUP BY ROLLUP (dim1, dim2, dim3) is equivalent to GROUP BY GROUPING SET ((dim1, dim2, dim3), (dim1, dim2), (dim1), ()). There's also the equivalent non-ISO compilant syntax GROUP BY dim1, dim2 WITH ROLLUP.
 
 ------------------------------------------------------------
-SELECT dim1, dim2,
-       /* SUM(measi), i for all measure cols */
+SELECT dim1, dim2, /* SUM(measi), i for all measure cols */
 GROUP BY ROLLUP (dim1, dim2)
 ------------------------------------------------------------
 
-The previous produced the data required for a cross tabulation table, however the totals for dim2 were missing. To get the data required for a complete cross tabulation table:
+_GROUP BY CUBE_: Delivers the data equivalent to a complete cross tabulation table. There's also the equivalent non-ISO compilant syntax GROUP BY dim1, dim2 WITH CUBE. In the following example, the facts table contains more dimensions than just dim1, dim2.
 
 ------------------------------------------------------------
-SELECT dim1, dim2,
-       /* SUM(measi), i for all measure cols */
+SELECT dim1, dim2, /* SUM(measi), i for all measure cols */
 GROUP BY CUBE (dim1, dim2)
 ------------------------------------------------------------
 
@@ -1222,7 +1526,7 @@ _XBRL_ (eXtensible Business Reporting Language) is a XML based syntax for storin
 
 
 [[graph_databases]]
-=== Graph Database
+=== Graph
 
 Motivation:
 
@@ -1232,24 +1536,25 @@ Motivation:
 
 Relationships are first-class citizens of the graph data model. In RDBMS, they are implemented indirectly, e.g. via foreign-keys.
 
-There are two kinds of graph databases, (labeled) property graph and triple stores (RDF):
+There are two kinds of graph databases, (labeled) property graph and triple stores (RDF), see chapters below.
 
 A _graph compute engine_ does global graph computations / queries.
-
-_labeled property graph_: A kind of graph database. A _node_ can have properties and labels. An _edges_ (aka _relationships_) and can have properties and one label. Relationships are directional. A _property_ (or _attribute_) is a key-value pair. A _label_ can also be thought of as a _type_ or role, but in this view note that a node can be of multiple types. Technically a label is the same as an additional property with key "type" and as value a set of strings, however labels are more explicit and allow for more direct / convenient querying. Examples: Neo4j (native graph database, i.e. has its own physical way of storing, opposed to be on top of say an RDBMS). Note that unlike in many other areas, currently in graph data bases we don't do sharding, because the whole point of a graph is to go from any place to any place quickly, and with sharding it would mean that we may go from one machine to another machine while traversing the graph. However in near future we might find ways how to do sharding efficiently.
-
-_Triple stores (RDF)_: A kind of graph database, see <<triple_store>>. Examples: Semantic Web.
 
 _index-free adjacency_ (or _native graph processing_): Nodes point to each other via pointers. The key message of index-free adjacency is, that the complexity to traverse the whole graph is O(n), where n is the number of nodes.
 
 
-==== Cypher
+[[labeled_property_graph]]
+==== Labeled property graph
+
+_labeled property graph_: A kind of graph database. A _node_ can have properties and labels. An _edges_ (aka _relationships_) and can have properties and one label. Relationships are directional. A _property_ (or _attribute_) is a key-value pair. A _label_ can also be thought of as a _type_ or role, but in this view note that a node can be of multiple types. Technically a label is the same as an additional property with key "type" and as value a set of strings, however labels are more explicit and allow for more direct / convenient querying. Examples: Neo4j (native graph database, i.e. has its own physical way of storing, opposed to be on top of say an RDBMS). Note that unlike in many other areas, currently in graph data bases we don't do sharding, because the whole point of a graph is to go from any place to any place quickly, and with sharding it would mean that we may go from one machine to another machine while traversing the graph. However in near future we might find ways how to do sharding efficiently.
+
+===== Query Language: Cypher
 
 A declarative query language  for querying and updating a labeled property graph, specifically Neo4j. Based on the concept of _specification by example_.
 
 _Transactions_: Any updating query will run in a transaction and thus will always either fully succeed, or not succeed at all. If there is already a transiction in the running context, that one will be used. That can be used to run multiple updating queries by opening a transaction, running all the queries, finish the transaction.  If there is no transaction in the running context, the updating query will automatically be wrapped into a transaction.
 
-A _pattern_ consists of nodes and relationships connecting the nodes. A _relationship_ is one of: $$--$$, $$-->$$, $$<--$$. A _relationship restriction_ is enclosed in brackets, and the whole thing is inserted into the relationship ASCII arrows like so: $$-[mylabel]->$$. The previous example states that the relationship must have a label mylabel. If you later want to refer to that relationship, [myvar:mylabel] will bind the found relation to the variable myvar. To match either of multiple relationship labels, seperate them by pipes like so [:mylabel1|mylabel2]. To match properties, put them in curly braces (possibly preceded by label stuff) like so [{myproperty:somevalue}]. A _node_ is put in parenthesis like so: (). You can also say (myvar): if myvar is already defined, that defines a node, otherwise the found node is bound to myvar.
+A _pattern_ consists of nodes and / or relationships connecting the nodes. A _relationship_ is one of: $$--$$, $$-->$$, $$<--$$. A _relationship restriction_ is enclosed in brackets, and the whole thing is inserted into the relationship ASCII arrows like so: $$-[mylabel]->$$. The previous example states that the relationship must have a label mylabel. If you later want to refer to that relationship, [myvar:mylabel] will bind the found relation to the variable myvar. To match either of multiple relationship labels, seperate them by pipes like so [:mylabel1|mylabel2]. To match properties, put them in curly braces (possibly preceded by label stuff) like so [{myproperty:somevalue}]. A _node_ is put in parenthesis like so: (). You can also say (myvar): if myvar is already defined, that defines a node, otherwise the found node is bound to myvar.
 
 Cypher is composed of _clauses_. Each clause starts with a keyword.
 
@@ -1267,7 +1572,9 @@ _DELETE_: DELETES nodes, relationships, and properties.
 
 
 [[triple_store]]
-=== Triple store / Resource description framework (RDF)
+==== Triple store / Resource description framework (RDF)
+
+_Triple stores (RDF)_: A kind of graph database. Examples: Semantic Web.
 
 A way of defining a graph database. A triple (subject, property, object) defines a directed edge in a graph. The object is the source node, the property is the property of the edge, the subject is the destination node.
 
@@ -1278,7 +1585,7 @@ A way of defining a graph database. A triple (subject, property, object) defines
 Formats: RDF/XML, Turtle, JSON-LD, RDFa, N-Triples
 
 
-==== RDF/XML
+===== Syntax: RDF/XML
 
 A syntax for RDF.  A prefix:localname is semantically concatened to build an IRI. The IRI the prefix is bound to typically ends with a sharp sign (#).
 
@@ -1306,7 +1613,7 @@ The above rdf:Description with an rdf:type child element can be abbreviated to, 
 --------------------------------------------------
 
 
-==== JSON-LD
+===== Syntax: JSON-LD
 
 A syntax for RDF.
 
@@ -1323,7 +1630,7 @@ A syntax for RDF.
 }
 --------------------------------------------------
 
-==== RDF Schema
+===== Schema: RDF Schema
 
 A schema for RDF.
 
@@ -1335,7 +1642,7 @@ rdfs:Resource
 --------------------------------------------------
 
 
-==== SPARQL
+===== Query Language: SPARQL
 
 A query language for triple stores (aka RDF).
 
@@ -1350,7 +1657,7 @@ WHERE {
 --------------------------------------------------
 
 
-==== Turtle
+===== ??: Turtle
 
 --------------------------------------------------
 @prefix myprefix1: namespaceURI1 .
@@ -1360,24 +1667,119 @@ eth:self myprefix1:myproperty1 someURI1 , someURI2, someURI3 ;
 --------------------------------------------------
 
 
-=== JSON
+=== Tree
 
-https://www.json.org/
+How to identify nodes in the tree, i.e. different schemes for assigning ID s to tree nodes:
 
-Technically, an object can have multiple occurences of the same key, but one should not do that.
+- integers: enumerate nodes in a preorder traversal
+
+- floating point: as integers, but allows for insertion
+
+- dewey IDs: hierarchical as enumrating book chapters
+
+- ORDPATH IDs: *to-do* as dewey ids, but initially only with odd numbers. Unlike dewey, allows for insertion by using even numbers in some way.
+
+
+==== Query Languages: XQuery, UNQL, JSONiq
+
+*to-do* how does that fit together with the mongodb chapter?
+
+*to-do* where does sparksoniq (by Fourny Ghislain Gilles) fit?
+
+
+==== Syntaxes: JSON, XML, BSON, Protocol Buffers
+
+JSON:: https://www.json.org/.
+
+BSON:: *to-do*
+
+XML:: xml.adoc
+
+Protocol Buffers:: *to-do*
+
+
+=== Text
+
+*to-do*
+
+== Data models
+
+A _data model_ is a collection of high-level data description constructs that hide many low-level storage details.
+
+.Misc
+
+[[key_value_model]]
+_Key-value model_:  A data model. Some mapping from a key to a value. Is not the same as <<key_value_store>>.
+
+_document store_ (or _document-oriented database_): Can also be interpreted as specialization of key-value model if the documents have ids (as MongoDB does). Heterogenous collection of arborescent items. Replaces the concept of a `row' in a relational database with a more flexible model, the `document'. Scaling out is much easier than with a relational database. Scales to billions of documents and PBs of total storage.  We have project and select, but not join.  Join is less important, since we already denormalized (i.e. pre-joined).  Implementations: mongoDB, CosmosDB (Azure) CouchDB, elasticsearch, existdb, Cloudant, ArangoDB, basex, MarkLogic. There are ways to store trees in an relational database, but its not really nice. It works better if the trees are (almost) heterogneous. It works even better if they are (almost) flat.
+
+
+.Tables
+
+_Relational database_: Homogenous collection of flat items. See also <<relational_model>>.
+
+_Column store_ (or _column-oriented DB_): A data model. Store data by columns (as opposed to by rows). One advantage is that subsequent cells in the same row tend to be similar, thus compression algorithms tend to work well.
+
+_Wide column store_: A data model. Store data by rows, keys identify rows, `group' columns in families. However each row can have its own individual columns.  Thus a wide column store can be interpreted as a two level nested key-value store.  The key of the outer level is the row id, the key of the inner level is the column id, and the column family id is also given.  In the tabular model, joins are very expensive.  In the tabular model we love to have data in normal form, and as a consequence there are many joins.  Paradigm of BigTable: store together what is accessed together (i.e. quite the opposite of normal forms). That makes batch processing better, since we only have to pay latency once (recall we want to avoid latency as much as possible), and after that it's just throughput. To fulfill the paradigm, we denormalize. That can also be seen as precomputing the joins we expect to occur often.  Thus reads become faster.  The price is that we introduced anomalies, so writes are now more expensive. Examples: Google's BigTable, HBase, Cassandra.
+
+.Cubes
+
+See <<OLAP>>.
+
+.Graphs
+
+See <<labeled_property_graph>> and <<triple_store>>
+
+.Trees
+
+_XML Infoset_: See xml.adoc.
+
+_XDM_: See xml.adoc.
 
 
 == Storages
 
+
+=== Storage Overview
+
+|======
+|                    | sub-divided | size | count    | meta data | latency   | comments
+| key-value store ① | -           | kB   |          | no        | low (s3)  | DynamoDB (which uses chord). Drop C to gain AP & scalibility.
+| object storage ①  | -           | TB   | billions | yes       | few 100ms | S3
+| block storage      | block       | PB   | millions | no        |           | local FS, GFS, HDFS. block sizes: local FS: 4kB, RDMS 32kB, DFS 128MB
+|======
+
+Chord: A protocol for a peer-to-peer distributed key-value store (aka hash table).
+
+*to-do* RDBMS latency: few ms. how to fit into the above table? is it (on top of, being a data store, not storage) a (local) block storage?
+
+*to-do* how does file storage fit in?
+
+① key-value store and object storage have same data model, but implemented differently.
+
+*to-do* latency of block storage?
+
+*to-do* is chord an implemntation of a key-value store?
+
+|======
+|                                        | unit (inner unit) | unit size | unit cnt | CAP           | else
+| Amazon DynamoDB                        | blob              | 400kB     |          | AP eventual C | key-value store. Latency: few ms. uses chord.
+| Amazon S3                              | object            | 5TB       |          |               | object storage, latency: few 100ms 
+| Azure Blob Storage                     | blob (block)      | 5-8TB     |          |               | hybrid object storage - DFS. key-value model. blob size limit depends on blob type.
+| Google File System (GFS)               |                   | ?         | ?        |               |
+| Hadoop distributed file systsem (HDFS) | file (block)      | PB        | ?        | C             | no low latency
+| Colossus                               |                   |           |          |               | newer version of HDFS
+|======
+
+
+[[key_value_store]]
 === Key-value store
 
-Same data model as object storage, but implemented differently. Intend to have low latency. Smaller objects (kB sized). No metadata. Note the key-value store is not the same as key-value model.
+Aka hash table. Intend to have low latency (compared to object storage). Smaller objects (kB sized). No metadata (in contrast to object storage). Note the key-value store is not the same as <<key_value_model>>.
 
 Much simpler than a relational database. We drop consistency (we only have eventual consistency) and gain availability and partition tolerance and scalability.
 
 Simple things are much easier to scale out than monolithic things (such as a table in the relational model).
-
-In contrast to object storage, no metadata.
 
 Examples: DynamoDb
 
@@ -1407,17 +1809,19 @@ Examples: S3
 
 === Chord / distributed hash table
 
-A protocol for a peer-to-peer distributed hash table. Used by DynamoDB.
+A protocol for a peer-to-peer distributed key-value store (aka hash table).
 
 Assigning keys to nodes:  Say the key size is 128bit. Imagine the 128bit numbers on a ring.  Each node uniformily at random chooses a 128bit number.  Then each node stores the keys between itself and the previous N ≥ 1 nodes. If N > 1, we get replication.  Note that this assignment of keys to nodes is very simple and predetermined.  Also note it's only about assigning keys to nodes; there's no relation to how nodes are physically conencted.
 
 Query, i.e. finding a node responsible for key k: The trivial solution would be that the nodes on the ring form a linked list, which would result in linear time query.  Here each node keeps a _finger table_, where the i-th entry stores a `pointer' to the node being 2^i^ nodes away.
 
+Extension: The last two problems (see pro/cons list) can be solved by the following extension: Each node gets a number of _tokens_ (or _virtual nodes_), the number proportional to the node's power. Now instead of nodes, we place place the tokens on the ring. Since there are now many tokens, and due to the central limit theorem, it's virtually impossible to have large gaps.  Also, we now adapt to the heterogenous network.  When adding a node, it takes over tokens from existing nodes.  When deleting a node, its tokens are redistributed among remaining nodes.
+
 Pros:
 
 - highly scalable
 
-  * incremental stability (easy to add/remove nodes)
+- incremental stability (easy to add/remove nodes)
 
 - robust against failure
 
@@ -1431,16 +1835,15 @@ Cons:
 
 - security issues (you need to have full control over the nodes themselves and the set of existing nodes)
 
-- bad luck when nodes choose randomly their position on the ring and there are large gaps giving big burden on the node at the end of the gap
+- without the extension: we may be unlucky during choosing randomly node position on the ring and large gaps occur, giving a big burden on the node at the end of the gap
 
-- not considering that nodes are heterogenous (i.e. have different power)
+- without the extension: not considering that nodes are heterogenous (i.e. have different power)
 
-The last two can be solved by the following extension: Each node gets a number of _tokens_ (or _virtual nodes_), the number proportional to the node's power. Now instead of nodes, we place place the tokens on the ring. Since there are now many tokens, and due to the central limit theorem, it's virtually impossible to have large gaps.  Also, we now adapt to the heterogenous network.  When adding a node, it takes over tokens from existing nodes.  When deleting a node, its tokens are redistributed among remaining nodes.
+_vector clock_: Each object has associated a set, called _context_, of nodeid-number pairs, where nodeid is unique in the set. The number denotes how many times the given number wrote to the object. Multiple contexts for a given object form a partial order (i.e. a DAG).
 
-*to-do* make this `extension' an part of the initial thing
+Applications:
 
-_vector clock_: Each object as associated a set, called _context_, of nodeid-number pairs, where nodeid is unique in the set. The number denotes how many times the given number wrote (put) the object. Multiple contexts for a given object form a partial order (i.e. a DAG).
-
+- Used by DynamoDB.
 
 questions:
 
@@ -1466,15 +1869,16 @@ File update model: Only append and upsert, i.e. no random access.  Appending sho
 Master slave architecture.
 
 
+[[hdfs]]
 === Hadoop distributed file system (HDFS)
 
-Open source distributed file system. Open source version of GFS. MapReduce. Wide column store (HBase). Block storage (by default 128MB blocks (configurable on a file-by-file basis), 64 bit block id, see also <<block_storage>> for pro/cons of block sizes). File hierarchy model.
+Open source distributed file system. Open source version of GFS. Block storage (by default 128MB blocks (configurable on a file-by-file basis), 64 bit block id, see also <<block_storage>> for pro/cons of block sizes). File hierarchy model.
 
 Designed for:
 
 - Peta byte files. I.e. a single file doesn't fit on a single drive, for that alone we need block storage.  A file is divided into blocks. Each block is replicated among multiple data nodes for fault tolerance.
 
-- Streaming data access patterns: i.e. it's expected that the data accessing pattern is a write-once, read-many-times.  It is expected that a large portion of a file is read, so data throughput is more important than the latency to read the first bytes.
+- Batch processing / streaming data access patterns: i.e. it's expected that the data accessing pattern is a write-once, read-many-times.  It is expected that a large portion of a file is read, so data throughput is more important than the latency to read the first bytes.
 
 - Scaling out, i.e. using commodity HW.
 
@@ -1494,30 +1898,34 @@ Master slave architecture.  The master is called the name node, the slaves are c
 
 The _name node_ (or _primary name node_ or _active name node_) cares about the filesystem meta data: The _file namespace_ (i.e. the file tree), _file to block mapping_ (for each file a list of block ids constituting it), and _block locations_ (for each block id where it is stored).  It keeps all that information in memory.  Later it is described in what ways that information is persisted.
 
-A _data node_ only stores bocks, storing them on its local drives, using a traditional local filesystem.  A data node is identified by an storage id, which does not change if the IP of the data node changes.  A data node stores its storage id.  A data node stores a checksum for each block.  When a client reads/writes blocks from/to a data node, the data sending side always also transmits the checksum, and the receiving side has to verify.
+A _data node_ only stores bocks, storing them on its local drives, using a traditional local filesystem.  A data node is identified by an _storage id_, which does not change if the IP of the data node changes.  A data node stores its storage id.
 
-_Client protocol_ (a RPC protocol): Client first makes metadata operation request to name node (master).  Note that a client might be a node within the cluster, e.g. a name node.  For a read/write, as answer it receives the block locations: For each block id, the multiple (see specified number of replicas) node locations (IPs) where the block is stored, sorted by distance, so the client can choose to talk to the closests data node. See data transfer protocol below how the client continuous.
+Each block has meta data, which is stored by a data node storing the block. The meta data is checksum, generation stamp, and block length. The block length is implicitely stored by the data node's local file system storing the block as a file.
 
-_Data node protocol_ (a RPC protocol):  Between data node and name node, it's always the data node who intitiates the communicuation. E.g. registration ("Hi, I'm a new data node"). Every x seconds a name node sends a hearbeat("I'm still alive"). When the name node wants something from a data node (e.g. a block operation), the name node does so via its response to a heart beat.  When a name node received a block (see write in the data transfer protocol), he acknowledges to the master node with a BlockReceived message.  Every y hours, the data node sends a block report to the name node (the list of block, i.e. their ids, it currently stores).
+block _checksum_:  When a client reads/writes blocks from/to a data node, the data sending side always also transmits the checksum, and the receiving side has to verify. When a client dedects corruption, it notifies the data node and then reads the bock from another data node.
+
+block _generation stamp_ (_GS_): Is a strictly increasing integer maintained by the name node. Kind of a block version number. Is increasead e.g. when a block is appended to. Since a data node also stores the generation stamp of a block as its meta data, `problems' can be detected.
+
+_Client protocol_ (an RPC protocol): Client first makes metadata operation request to name node (master).  Note that a client might be a node within the cluster, e.g. a name node.  For a read/write, as answer it receives the block locations: For each block id, the multiple (see specified number of replicas) node locations (IPs) where the block is stored, sorted by distance, so the client can choose to talk to the closests data node. See data transfer protocol below how the client continues.
+
+_Data node protocol_ (an RPC protocol): Between data node and name node, it's always the data node who intitiates the communicuation. E.g. registration ("Hi, I'm a new data node"). Every x seconds a name node sends a hearbeat ("I'm still alive"). When the name node wants something from a data node (e.g. a block operation), the name node does so via its response to a heart beat.  When a name node received a block (see write in the data transfer protocol), he acknowledges to the master node with a BlockReceived message.  Every y hours, the data node sends a _block report_ to the name node. Per block the data node is responsible for, the block report contains the block's id, the block's generation stamp, and the block's length.
 
 _Data transfer protocol_ (a streaming protocol):  See client protocol first. See following read and write.
 
-For a _read_, as answer the client receives the block locations: For each block id, the multiple node locations where the block is stored, sorted by distance (see Hadoop's measure of closeness), so the client can choose to talk to the closest data node.  Multiple clients can read in parallel from the same file / blocks.
+For a _read_, as answer the client receives the block locations: For each block id, the multiple node locations where the block is stored, sorted by distance (see Hadoop's measure of closeness), so the client can choose to talk to the closest data node.  The client can read in parallel from multiple of those blocks.  Also, looking at the bigger picture, multiple clients can read in parallel from the same block.
 
-*to-do* can a client read different blocks in parallel, i.e. block1 from datanode1, block2 from datanode2 etc.
-
-For a _write_, it's analogous.  Recall that writes can only append.  For each new block a client wants to write, it receives a collection of block locations from the name node.  The client doesn't need to care about replication.  Per block, the client talks to the closest name node, tells it also the other name nodes that need to replicate the block, and the name nodes take care of replication themselves by creating a _data pipeline_ which minimizes the distance from the client to the last data node.  The data node receiving the client's write request asynchronously sends an acknowldge to the client once all replicates are successfully written (*to-do* the ack is passed within the pipeline in reverse direction).  Recall from data node protocol that each node receiving a block sends a BlockReceived message to the name node.  For each client-initiated transaction, the change to the filesystem meta data is commited to the client only after the name nodes journal has been flushed to disk (assistant is not sure whether name node sends an acknowledgment to the client).  There is at most one writer to a file at any point in time, ensured by having a lock on each file.  I.e. before the write, the client has to open the file for writing to acquire the lock, and at the end he has to close the file to free the lock.
+For a _write_, it's analogous.  Recall that writes can only append.  For each new block a client wants to write, it receives a collection of block locations from the name node.  The client doesn't need to care about replication.  Per block, the client talks to the closest name node, tells it also the other name nodes that need to replicate the block, and the name nodes take care of replication themselves by creating a _data pipeline_ which minimizes the distance from the client to the last data node.  The data node receiving the client's write request asynchronously sends an acknowldge to the client once all replicates are successfully written (*to-do* the ack is passed within the pipeline in reverse direction).  Recall from data node protocol that each node receiving a block sends a BlockReceived message to the name node.  For each client-initiated transaction, the change to the filesystem meta data is committed to the client only after the name nodes journal has been flushed to disk (assistant is not sure whether name node sends an acknowledgment to the client).  There is at most one writer to a file at any point in time, ensured by having a _lock_ (aka _lease_) on each file, issued by the name node.  I.e. before the write, the client has to open the file for writing to acquire the lock, and at the end he has to close the file to free the lock. During writing (which might take a long time), the client has to periodically renew the lease. If the client fails to renew the lease, after a _soft timeout_ another wanna be writer client can preepmt the lease. After a _hard timeout_, the name node automatically closes the file on behalf of the writer, i.e. the written data persists.
 
 *to-do* fix: its the client that organizes the pipeline
 
-_Hadoop's measure of closeness / distance_: The network is represented as a tree / hierarchy.  The hierarchy is not fixed, however common is (internet, data center, rack, node).  The distance beween two nodes is the sum of the hierarchy levels between a node and the common anchestor.  Rational: Due Hadoop's design goals and the resulting architecture, throughput is more important than latency, so a possible measure would be bandwith between nodes. That however is difficult to measure. The given metric is an approximation.
+_Hadoop's measure of closeness / distance_: The network is represented as a tree / hierarchy.  The hierarchy is not fixed, however common is (internet, data center, rack, node).  The distance beween two nodes is the number of edges from a node to the common anchestor to the other node.  Rational: Due Hadoop's design goals and the resulting architecture, throughput is more important than latency, so a possible measure would be bandwith between nodes. That however is difficult to measure. The given metric is an approximation.
 
 *to-do* Is the ack of the write back to the client async to replication? Even prof didnt know.
 
 [[hdfs_replica_placement]]
-_Replica placement_ (or _block placement_), i.e. which nodes store a block replica: The first block/replica is stored on the client itself, if the client is a data node in the same cluster, and a `random' (load balancer prefers certain ones) node which is not too busy and not too fully otherwise. The 2nd replica is stored on on a node in a different rack within the same cluster (If it were stored in the same rack, that would mean that the same rack is guaranteed to store two replicas, which is a shame if the rack fails). The 3rd replica is stored on a node in the same rack as the 2nd. The further replicas are stored at `random' nodes, but if possible at most one replica per node (we care about a node failing as a whole, not that only parts of a single drive fail) and at most two replicas per rack.
+_Replica placement_ (or _block placement_), i.e. which nodes store a block replica: The first block/replica is stored on the client itself, if the client is a data node in the same cluster, and a `random' (load balancer prefers certain ones) node which is not too busy and not too full otherwise. The 2nd replica is stored on on a node in a different rack within the same cluster (If it were stored in the same rack, that would mean that the same rack is guaranteed to store two replicas, which is a shame if the rack fails). The 3rd replica is stored on a node in the same rack as the 2nd. The further replicas are stored at `random' nodes, but if possible at most one replica per node (we care about a node failing as a whole, not that only parts of a single drive fail) and at most two replicas per rack.
 
-Replica placement considerations: Reliabilty (how relyable is a node), read/write bandwith (how fast is the network), block distribution (what's the distance from the data node to the client (which might be itself a data node)).
+Replica placement considerations: Reliabilty: If a node / rack fails, you loose all on that node / rack. Read / write bandwith: intra-rack is faster than inter-rack. Block distribution: what's the distance from the data node to the client (which might be itself a data node). For reads, assuming a random client, you would like to use the bandwith from multiple racks. For writes, regarding the data pipeline, it would be preferable that all nodes are close to each other (first same node, then same rack, then different racks).
 
 Number of replicas is specified per file. The default is 3.
 
@@ -1526,15 +1934,19 @@ Number of replicas is specified per file. The default is 3.
 
 The name node is bottle neck and single point of failure. The following describes ways how HDFS tries to mitigate the problem. Note that the use case of unexpected failure of a name node is rare, so in practice the use case of planned downtime for maintenance is more important.
 
-The master uses its local filesystem to persist the file namespace and the file to block mappings in a _checkpoint_ and a _journal_ (or _edit log_, log of edits since last checkpoint).  Thus there are kind of three layers: memory (full), edit log, checkpoint (full). Note that the block locations are not persisted, because the name node gets to know them via the heart beats of the name nodes.  The name node always writes to the journal, as opposed to the checkpoint.  The checkpoint is only modified in explicit situations, such as startup or explicit administrator commands.  When restarting the name node, we need to read the namespace file and the edit log, and apply the changes recorded in the edit log on top of the information in the namespace file. Such a restart would take about 30 minutes, which is obviously too long.
+The master uses its local filesystem to persist the file namespace and the file to block mappings in a _checkpoint_ and a _journal_ (or _edit log_, log of edits since last checkpoint).  Thus there are kind of three layers: memory, edit log, checkpoint. Note that the block locations are not persisted, because the name node gets to know them via the heart beats of the name nodes.  The name node always writes to the journal, as opposed to the checkpoint.  The checkpoint is only modified in explicit situations, such as startup or explicit administrator commands.  When restarting the name node, we need to read the namespace file and the edit log, and apply the changes recorded in the edit log on top of the information in the namespace file. Such a restart would take about 30 minutes, which is obviously too long.
 
 The checkpoint and journal can be configured to be stored on multiple places. Recommended practice is to place each a replica on a local disk (preventing loss from failure of a single disk), and one replica replica on a remote NFS server (preventing loss from node failure).
 
 A _secondary name node_ (or _check point node_) shadows the primary name node and has the sole responsibility to make a checkpoint every once in a while, i.e. combine the primary name node's checkpoint and journal into a new checkpoint, and send back the new checkpoint to the primary name node.  When the primary name nodes replaces its checkpoint with the new checkpoint, it also can truncate its journal. Good practice is to create a daily checkpoint. A smaller journal means faster startup time, and less risk that any part of the journal is corrupted.
 
-A _backup name node_ is like a secondary name node, but additionally has the file system meta data in memory, just as the primary name node.  From the view point of the primary name node, a backup name node is just another journal store.  The backup name node thus recievies a stream of file system meta data transactions.  If the primary name node fails, the backup name node can jump in, without having to reply a journal to a checkpoint.  But there's still the issue that the backup name node doesn't know the block locations. It needs some time until all data nodes register at the new name node, telling him the block locations.
+_HDFS High Availability_: A _backup name node_ (or _standby name node_, while the `true' name node is called _active name node_) is like a secondary name node, but additionally has the file system meta data in memory, just as the primary name node.  Also, the data nodes sent block reports both to the active- and the standby name node.  From the view point of the primary name node, a backup name node is just another journal store.  The backup name node thus recievies a stream of file system meta data transactions.  If the primary name node fails, the backup name node can jump in, without having to replay a journal to a checkpoint.
 
-A further way to remove the bottleneck (too many clients accessing the same name node) is _HDFS Federation_.  We have now multiple name nodes, each name node being responsible for a top level directory.  This can be seen as a form of scaling out / scaling out name nodes.  Each federated name node has then its own secondary name nodes and backup name nodes.
+If the active name node fails, the standby can theoreticlly jump-in in a few tens of seconds. However in practice its about a minute because the system needs to be conservative in deciding that the active namenode failed. There's a non-trivial _failover controller_ whose responsibility is to arrange for a failover. That includes dedecting that the active name node failed, _fencing_ off the active name node in case it is still active but not completely reachable and thus still thinks he is the active name node, and initiating _graceful failover_ for maintenance of the active name node.
+
+The active and the standby name nodes must use highly available storage to share the journal. For example an NFS filer, or a quorum journal manager (QJM). The latter being a dedicted HDFS implementation for exactly this use case.
+
+A further way to remove the bottleneck (too many clients accessing the same name node) is _HDFS Federation_.  We have now multiple name nodes, each name node being responsible for a top level directory.  This can be seen as a form of scaling out / scaling out name nodes.  Each federated name node has then its own secondary name nodes and backup name nodes. Data nodes register to each of the name nodes and consequently also offer storing blocks for all name nodes. The name nodes are independent and do not communicate with each other.
 
 **to-do** (email the assistant) Is it really the client's problem to know which top level directory is associated to which name node? Because effectively we then just have a collection of completely different HDFS -- from the view of the client at last.  Internally, the data nodes can be shared by the name nodes. But can't they do that also in the case of a set of really different HDFS.
 
@@ -1557,35 +1969,43 @@ identfying objects: bucket-id (uri: http://<bucket>.s3.amazonaws.com) + object-i
 _object size limit_: 5TB, _latency_: few 100ms
 
 
-=== Azure Blob Storage
+=== Azure Cloud storage
+
+Key properties: consistency (within a region), durability, availability, scalability.
+
+Provides <<azure_blob_storage>>, table storage, queue storage, and file storage.
+
+A _storage stamp_ is the unit of deployment and management. A user storage account is stored on a single stamp. A stamp consists of 10-20 racks, and a _rack_ of 18 disk-heave storage nodes.
+
+A single storage stamp should only be utilized ~75% of its storage capacity & bandwidth. The rest is used for: <<disk_short_stroking>> and to be able to provide storage capacity in the presence of a rack failure within a stamp.
+
+_Stream Layer_ (lowest layer). Actually stores the data using a DFS. Object name.
+
+_Partition Layer_ (middle layer). Manages & understands the higher level abstractions such as blob, table, queue, file. Replication within partition layer is aysnchornous; . Partition name.
+
+_Front-End Layer_ (highest layer). REST protocol. Stateless servers taking incoming requests. Upon receiving a request, an FE looks up the AccountName, authenticates and authorizes the request, then routes the request to a partition server in the partition layer (based on the PartitionName).  Account Name (DNS delivers virtual IP address).
+
+_global name space_: One of the key design goal of Azure Storage Service is to provide a single global namespace that allows the data to be stored and accessed in a consistent manner from any location in the world. To provide this capability Microsoft leverages DNS as part of the storage namespace and break the storage namespace into three parts: an account name, a partition name, and an object name. As a result, all data is accessible via a uniform URI of the form: http(s)://AccountName.1.core.windows.net/PartitionName/ObjectName. DNS delivers the virtual IP of the primary stamp, given an account name. The client can then go to the respective stamp with partitionname and objectname.
+
+_Replication_ is intra-stamp replication and / or inter-stamp replication. _Intra-stamp replication_ is synchronous (client's write request returns only after successfully writing  all replicas) and replicas stay within stamp. Performed by stream layer. Focus is durability and consistency. _Inter-stamp replication_ is asynchronous. I.e. we loose consistency, but gain availability. Performed by partition layer.
+
+
+[[azure_blob_storage]]
+==== Azure Blob Storage
 
 Hybrid between object storage and distributed file system. Key value model, but _not_ a Key-value store.
 
-identifying objects: Account-id + Partition-id + Object-id
+identifying objects = account-id + container/partition-id + object-id +
+paritionion-id = container/partition-id + object-id
 
-Limit: 195GB blocks, 1TB pages, block size is limited depending on block type
-
-storage stamp = 10-20 racks +
-rack = 18 storage nodes +
-storage load of stamp kept below 70-80%
-
-Front-Ends / Account Name (DNS delivers virtual IP address) +
-Partition Layer / Partition name +
-Stream Layer / Object name
-
-Replication within Partition Layer is aysnchornously* inter storage stamp +
-Replication within Stream Layer is synchronous within same storage stamp.
-
-*) I.e. we loose consistency (mind CAP theorem: triangle consistency - availability - partition tollerance, we only can have 2, but not 3), but gain availability. If we wanted consistency, then a put call would be synchronous, i.e. the caller had to wait until we replicated the new object everywhere.
-
-Azure Storage offers three types of blobs. _Block blobs_ store text and binary data, up to about 4.7 TB. Block blobs are made up of blocks of data that can be managed individually. _Append blobs_ are made up of blocks like block blobs, but are optimized for append operations. Append blobs are ideal for scenarios such as logging data from virtual machines. _Page blobs_ store random access files up to 8 TB in size. Page blobs store the VHD files that back VMs.
+Azure Storage offers three types of blobs. The type must be chosen at creation and cannot be changed afterwards. _Block blobs_ are made up of blocks, each having a block id. Each block can have a different size, maximally 100MB. Blocks can be read-from / written-to individually. Meant to store text and binary data which is sequentially accessed. A block blob can be up to about 4.7 TB.  _Append blobs_ are made up of blocks like block blobs, but are optimized for append operations. Each block can be of different size, maximally 4MB. Block ID s are not exposed. Append blobs are ideal for scenarios such as logging data from virtual machines. _Page blobs_ are made up of 512-byte pages. Meant to store random access files up to 8 TB in size. Page blobs store the VHD files that back VMs.
 
 All storage services are accessible via REST APIs.
 
 
-=== Amazone DynamoDB
+=== Amazon DynamoDB
 
-Key value model. Key-value store: state is stored as binary objects (aka blobs), identified by unique keys. ACID is _not_ offered. Offers availability and partition tolerance, giving up consistency (but at least offers eventual consistency).  No isolation guarantees are given.  Efficiency, i.e. meeting stringent SLAs (measured at 99.9% percentile of requests so all customers benefit, guaranteeing few hundred ms latency), is an important requirement. It is assumed that operation is in a non-hostile environment.  Availability is for writes (writes are never rejected), which means that reads are more complex (as always, one has to decide when to resolve update conflicts, at reads or at writes).  Replication is asynchronous, which gives better availability.  Hierarchical namespaces are not directly supported.  Relational schema is not supported.
+Key value model. Key-value store: state is stored as blobs, identified by unique keys. ACID is _not_ offered. Offers availability and partition tolerance, giving up consistency (but at least offers eventual consistency).  No isolation guarantees are given.  Efficiency, i.e. meeting stringent SLAs (measured at 99.9% percentile of requests so all customers benefit, guaranteeing few hundred ms latency), is an important requirement. It is assumed that operation is in a non-hostile environment.  Availability is for writes (writes are never rejected), which means that reads are more complex (as always, one has to decide when to resolve update conflicts, at reads or at writes).  Replication is asynchronous, which gives better availability.  Hierarchical namespaces are not directly supported.  Relational schema is not supported.
 
 *to-do* replication is async, which means more risk of completely using all replicas (only in total), right? E.g. when the node dies between acknowledging the write and being able to send out replicas.
 
