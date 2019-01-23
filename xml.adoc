@@ -18,16 +18,17 @@ Misc: case-sensitive. Loosely speaking, doesn't care about whitespace.
 
 _document_: Must have exactly one root element. May optionally start with an "xml" preprocessing instruction. The _root element_ (or _document element_) is the one element that does not have a parent.
 
-_element_: <foo [attributelist]>...</foo>. <foo> is an _start-tag_, </foo> is a _end-tag_. Everything between the start-tag and the end-tag (exclusive) is called the element's _content_. Whitespace is part of the content. An _empty element_ is one that has no content. It's syntax is like so: <foo [attributelist]/>.
+_element_: <foo [attributelist]>...</foo>. <foo> is an _start-tag_, </foo> is a _end-tag_. Everything between the start-tag and the end-tag (exclusive) is called the element's _content_. Whitespace is part of the content. There's special syntax available for empty selements, see there.
 
-The content is generally a mixture of _text_ (or _character data_) and child elements. Elements containing only text are said to have _simple content_, elements containing only child elements are said to have _complex content_, and elements containing both are said to have _mixed content_.  Elements containing nothing (not even whitespace) are called _empty_. Text may not contain the literals "<" and "&".
+The content is generally a mixture of text and child elements. _text_ (or _character data_) is the part of the content not being child elements. Text may not contain the literals "<" and "&".
 
-Simple content = text (but no child elelements)
+_simple content_: Content consists only of text, i.e. no child elements.
 
-complex content = child elements (but no text)
+_complex content_: Content consists only of child elements, i.e. no text.
 
-mixed content = both child elements and text
+_mixed content_: Content consists of text and child elements.
 
+_empty elements_: No content, not even whitespace. The syntax of an empty element is either via _self-closing tag_ <foo [attributelist]/> or via <foo></foo>, where the latter does not even have whitespace as content.
 
 _CDATA section_: <![CDATA[...]]>. For literal text (aka verbatim).
 
@@ -39,15 +40,15 @@ _entity references_: \&foo; There are exactly five: "lt" -> <, "gt" -> >, "apos"
 
 _numeric character references_: \&#x...; where "..." is a unicode code point in hex. Leave out the "x" and its in decimal.
 
-_references_ in general: Can appear in attribute values and element content.
+_references_ in general: Can appear in attribute values and in text.
 
-_comment_: <!--...--> Cannot contain "--", which also rules out an comment ending like so "-\->". Comments may appear at the document top level and within element content. Comments are markup, i.e. an application reading an XML document will see it after the parser. However when a computer program should interpret the XML document, you should prefer processing instructions over comments. Comments can appear anywhere outside a tag.
+_comment_: $$<!--...-->$$. Cannot contain "--", which also rules out an comment ending like so $$-->$$. Comments may appear anywhere in a document outside other markup, but not before the XML declaration. Comments are markup, i.e. an application reading an XML document will see it after the parser. However when a computer program should interpret the XML document, you should prefer processing instructions over comments.
 
 _processing instruction_: <?foo ...?>. To pass information to an application processing the XML document. `foo' is an XML name called the _target_, possibly the name of the application for which this processing instruction is intended, or possibly the name of this particular processing instruction. The rest, up to "?>", is anything. Processing instructions can appear anywhere outside a tag.
 
-The _XML declaration_ looks like a processing instsruction with target foo, but is not a processing instruction, but really just a thing called the XML declaration.  XML documents should beginn with an XML declaration, but are not required to. If there is one, it must be the first character in the document; not even whitespace may precede it.  Thus the XML parser can make reasonable guesses about the document's character encoding by reading the first 5 characters ("<?xml"). The `standalone' attribute should be set to `yes' if the document has an external DTD.
+The _XML declaration_ <?xml ... ?>looks like a processing instruction, but is not a processing instruction, but really just a thing called the XML declaration.  XML documents should beginn with an XML declaration, but are not required to. If there is one, it must be the first character in the document.  Not even whitespace or comments may precede it.  Thus the XML parser can make reasonable guesses about the document's character encoding by reading the first 5 characters, i.e. "<?xml". The `standalone' attribute should be set to `yes' if the document has an external DTD.
 
-_About character encoding_: By default XML documents are assumed to be encoded in UTF-8. This can be overwritten by an _encoding declaration_ inside the XML declaration like so encoding="ISO-8859-1".
+_About character encoding_: By default XML documents are assumed to be encoded in UTF-8. This can be overwritten by an _encoding declaration_ inside the XML declaration like so: encoding="ISO-8859-1".
 
 Language ecosystem:
 
@@ -62,27 +63,31 @@ Language ecosystem:
 
 == Namespaces
 
-_XML Namespaces_: <foo xmlns:bar="fred-uri"> Defines "bar" to be a _namespace binding_ (aka shorthand) for the _namespace name_ "fred-uri". The scope is the foo element itsels and it's descendants.  Within the scope the namespace can be used by prepending "bar:" to a _local name_, e.g. "lorem", resulting in the _qualified name_ (or _QName_, ot _raw name_) "bar:lorem". "bar" is then called a _prefix_.  The prefix is really just a shorthand, i.e. when comparing qualified names, what matters is the pair (uri, local name). Prefixes are XML names.  _default namespace_: In the namespace binding definition, the prefix can be absent (xmlns="fred-uri"). Any local tag name (i.e. default namespace does not apply to attribute names) in the tree without prefix will take that namespace.
+_XML Namespaces_: <foo xmlns:bar="fred-uri"> defines "bar" to be a _namespace binding_ (or shorthand) for the _namespace name_ "fred-uri". The scope is the foo element itsels and it's descendants.  Within the scope the namespace can be used by prepending "bar:" to a _local name_, e.g. "lorem", resulting in the _qualified name_ (or _QName_, ot _raw name_) "bar:lorem". "bar" is then called a _prefix_.  The prefix is really just a shorthand. When comparing qualified names, what matters is the pair (uri, local name). Prefixes are XML names.  _default namespace_: In the namespace binding definition, the prefix can be absent (xmlns="fred-uri"). Any local tag name in the scope without prefix will take that namespace. Note that the previous sentence said `tag name', i.e. the default namespace does _not_ apply to attribute names.
 
 By default you already get namespace "xml". It contains e.g. "lang" or "id". See https://www.w3.org/XML/1998/namespace.
 
-Style guide: Put all namespace bidnings in the root element. Rational: It's simpler to understand.
-
+Style guide: Put all namespace bindings in the root element. Rational: It's simpler to understand.
 
 
 == Document Type Definitions (DTDs)
 
 Old schema for XML. Superseeded by XML Schema.
 
-DTDs are written in a formal syntax that explains precisely which elements may appear where in the document and what the elements’ contents and attributes are.  A valid document includes a reference to the DTD to which it should be compared. This is given in the document’s single _document type declaration_, which looks like this: <!DOCTYPE person SYSTEM "foo-uri">, where foo-uri refers to the file containing the DTD. You also can make the DTD inline, called _internal DTD subset_, by using <!DOCTYPE person [...]>. The SYSTEM "foo-uri" is called _external DTD subset_.  Both of the two can appear in the document type declaration. As a general rule, the two different subsets must be compatible. Neither can override the element declara- tions the other makes. For example, name.dtd cannot declare the person element because the internal DTD subset already declares it. However, entity declarations can be overridden.
+DTDs are written in a formal syntax that explains precisely which elements may appear where in the document and what the elements' contents and attributes are.  A valid document includes a reference to the DTD to which it should be compared. This is given in the document’s single _document type declaration_, which looks like this: <!DOCTYPE myrootelement SYSTEM "foo-uri">, where `foo-uri' refers to the file containing the DTD and `myrootelement' is the name of the root element. This variant is called _external DTD subset_, since the schema is given by an external document. You also can make the DTD inline, called _internal DTD subset_, by using the syntax <!DOCTYPE myrootelement [...]>. Both of the two can appear in the same document type declaration. As a general rule, the two different subsets must be compatible. Neither can override the element declarations the other makes. For example, name.dtd cannot declare the person element because the internal DTD subset already declares it. However, entity declarations can be overridden.
 
 DTDs don't know about XML namespaces (because DTD predate the introduction of XML namespaces). foo:bar is just some valid name.
 
 <!ELEMENT foo content_specification> is an _element declaration_ for the element named foo. content_specification is an expression composed of the following operators and terminals.
 
-Expression operators (as in regex): ?, *, +, |, (), concatenation (ordered) is with comma
+Expression operators (as in regex): ?, *, +, |, (), concatenation (ordered) is with comma.
 
-Terminals: EMPTY (empty element), #PCDATA (parsed character data; mixed content can only be specified by a choices list (pipe operator) with #PCDATA as first element), ANY (element is always valid), foo (element named foo).
+Terminals:
+
+- EMPTY: empty element
+- #PCDATA: parsed character data. Mixed content can only be specified by a choices list (pipe operator) with #PCDATA as first element
+- ANY: element is always valid
+- foo: element named foo
 
 <!ATTLIST elementname attribute_specification+> is an _attribute declaration_ for element elementname. Each attribute specification looks like "attributename type attribute_default"
 
@@ -119,7 +124,7 @@ value:: Use the specified value as default.
 
 === General Entity Declarations
 
-<!ENTITY name value!> is an _internal ENTITY declaration_, declaring `name' as an abbreviation for `value', the same way XML character entities work.  The value is enlosed in either single or double quotes.  The value can contain markup; however the value must be well-formed.  It can contain entity references that are resolved bevore the text is replaced. Self-referential and circular references are forbidden, however.
+<!ENTITY name value!> is an _internal ENTITY declaration_, declaring `name' as an abbreviation for `value', the same way XML character entities work.  The value is enlosed in either single or double quotes.  The value can contain text and markup (e.g. elements, entitity references); however the value must be well-formed.  It can contain entity references that are resolved bevore the text is replaced. Self-referential and circular references are forbidden, however.
 
 <!ENTITY name SYSTEM "foo-uri"> is an _external parsed ENTITY declaration_, declaring `name' as an abbreviation for the content of the file identified by foo-uri. References to external entities are not allowed in attribute values.  Note that a parser is not required to resolve an external entity reference; the XML standard gives it some leeway.  Loosely speaking, the content must be well-formed.
 
@@ -130,30 +135,49 @@ _external unparsed entities_ are a way of embedding any data, text or binary, in
 
 == XML Schema
 
-Newer, alternate, more powerful technology relative to DTD. Uses XML syntax. Provides namespace http://www.w3.org/2001/XMLSchema. By convention you should bind it to prefix "xs" in your schema. By convention schema files have file extension "xsd".
+Newer, alternate, more powerful technology relative to DTD. Uses XML syntax. Provides the namespace http://www.w3.org/2001/XMLSchema. By convention you should bind that namespace to the prefix "xs" in your schema (being an XML document). By convention schema files have file extension "xsd".
 
 The document containing the schema is called the _schema document_.  An XML document described by a schema is called an _instance document_.  If an instance document satisfies all the constraints specified by the schema, it is considered to be _schema-valid_.
 
-To associate a schema with an XML document, use an xsi:noNamespaceSchemaLocation or xsi:schemaLocation  attribute on an element and set the attribute value to the schema's uri, where xsi is a prefix bound to http://www.w3.org/2001/XMLSchema-instance. You can also explicitely give a validation parser both the XML document and the schema.
-
-Bind a prefix, commonly xs, to namespace http://www.w3.org/2001/XMLSchema. The root element of a XML schema must be the xs:schema element.
-
-Elements are declared using the xs:element element. The `name' attribute of xs:element specifies the name of the target element. The type of the target element is either specified via the `type' attribute of the xs:element, or via child elements of xs:element. An element that is declared to have a simple type cannot have any attributes.
-
-There are a number of built-in simple types. Such as string, Name (XML name), integer, boolean, anyURI, ....
-
-Attributes are declared using the xs:attribute element. Attributes are optional by default. To specify that the attribute is required, use the `use' attribute, and set it to "required". The `default' attribute lets you specifiy a default value. The `fixed' attribute lets you specify a value that is automatically assigned to the attribute which cannot be overwritten.
-
-
-=== Namespaces
-
-To associate a namespace to a schema, specify the namespace's URI as value of the targetNamespace attribute of the xs:schema element. In the instance document, set the value of the xsi:schemaLocation attribute to "namespace-uri schema-uri", where namespace-uri must match the URI specified as value of the targetNamespace attribute in the schema.  The elements and attributes specified in the schema are in the specified namespace.
+In the schema, bind a prefix, commonly "xs", to the namespace http://www.w3.org/2001/XMLSchema. The root element of a XML schema must be the xs:schema element.
 
 --------------------------------------------------
-<xs:schema ... targetNamespace="http://mynamespace">
-  <xs:element name="myelement" ...>...<xs:element>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  ...
 </xs:schema>
+--------------------------------------------------
 
+You can validate an instance document by passing both the instance document and the schema document to a validating XML parser. To explicitely associate a schema with an XML document, specify its URI as attribute value of the attribute xsi:noNamespaceSchemaLocation. xsi is a prefix bound to http://www.w3.org/2001/XMLSchema-instance. But see also <<xmlschema_namespaces>>.
+
+--------------------------------------------------
+instance document:
+<myroot ...>
+  ...
+</myroot>
+
+instance document explicitely associated to a schema document:
+<myroot xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="myschemaURI"
+        ...>
+  ...
+</myroot>
+--------------------------------------------------
+
+
+[[xmlschema_namespaces]]
+=== XMLSchema & Namespaces
+
+You may want that the names a Schema defines live in a namespace. To associate a namespace to a schema, specify the namespace's URI as value of the targetNamespace attribute of the xs:schema element. In the instance document, set the value of the xsi:schemaLocation attribute to "namespace-uri schema-uri", where namespace-uri must match the URI specified as value of the targetNamespace attribute in the schema.  The elements and attributes specified in the schema are in the specified namespace.
+
+schema document:
+--------------------------------------------------
+<xs:schema ... targetNamespace="http://mynamespace">
+  <xs:element name="myelement" ...>...</xs:element>
+</xs:schema>
+--------------------------------------------------
+
+instance document:
+--------------------------------------------------
 <myprefix:myelement ...
   xsi:schemaLocation="http://mynamespace myschema.xsd">
   xmlns:myprefix="http://mynamespace">
@@ -164,12 +188,30 @@ To associate a namespace to a schema, specify the namespace's URI as value of th
 If the schema is not associated with an namespace, the specified elements and attributes are in no namespace.
 
 
+==== XML Schema basics
+
+Elements are declared using the xs:element element. The `name' attribute of xs:element specifies the name of the target element. The type of the target element is either specified via the `type' attribute of the xs:element, or via child elements of xs:element. An element that is declared to have a simple type cannot have any attributes.
+
+There are a number of built-in simple types. Such as string, Name (XML name), integer, boolean, anyURI, ....
+
+.Elements
+
+xs:element s can have the attributes minOccurs and maxOccurs, which define how many times the element can be repetead, analogous to quantifiers in DTDs / regexes. Both default to 1. maxOccurs can also have the value unbounded.
+
+.Attributes
+
+Attributes are declared using the xs:attribute element. Attributes are optional by default. To specify that the attribute is required, use the `use' attribute, and set it to "required". The `default' attribute lets you specifiy a default value. The `fixed' attribute lets you specify a value that is automatically assigned to the attribute which cannot be overwritten.
+
+facets: *to-do*
+
 
 === Types
 
-Types form a _type hierarachy_. An edge in the tree represents derivation. There are are four kinds of _derivation_: _restriction_ (limits the allowed content of the base type), _extension_ (adds to the allowed content of the base type), _list_ and _union_. _anyType_ is the root. From it derive all complex types, and the type _anySimpleType_, which is the root of the subtree of simple types. A _simple type_ cannnot have element children or attributes, where as a _complex type_ can. Complex types are divisible into two kinds: simple content and complex content (where here the term `complex content' doesn't yet specify wether or not it includes mixed content, see attribute `mixed' of xs:complexType).
+Types form a _type hierarachy_. See also <<type_hierarchy>> for a diagram. An edge in the tree represents derivation. There are are four kinds of _derivation_: _restriction_ (limits the allowed content of the base type), _extension_ (adds to the allowed content of the base type), _list_ and _union_. _anyType_ is the root. From it derive all complex types, and the type _anySimpleType_, which is the root of the subtree of simple types. A _simple type_ cannnot have element children or attributes, where as a _complex type_ can. Complex types are divisible into two kinds: simple content and complex content (where here the term `complex content' doesn't yet specify wether or not it includes mixed content, see attribute `mixed' of xs:complexType).
 
-The default syntax for complex types is complex content that restricts anyType. That is the following
+New types are defined using xs:complexType or xs:simpleType elements. A new type can be `inline' and anonymous: when xs:complexType or xs:simpleType is used as child of xs:element.  A new type can be `global', in which case it must be named via a name attribute of xs:complexType / xs:simpleType.  That name lives in the target namespace of the schema.  They can then be used as value for the type attribute of an xs:element element or xs:attribute element.
+
+The default for complex types is complex content that restricts anyType. Thus the following
 
 --------------------------------------------------
 <xs:complexType name="myType">
@@ -189,35 +231,32 @@ is an abbreviation for the following
 </xs:complexType>
 --------------------------------------------------
 
-New types are defined using xs:complexType or xs:simpleType elements. They can be `inline', i.e. child of an xs:element.  They can be `global', in which case they must be named via a name attribute.  That name lives in the target namespace of the schema.  They can then be used as value for the type attribute of an xs:element element or xs:attribute element.
+How to specify ...
 
-xs:element s can have the attributes minOccurs and maxOccurs, which define how many times the element can be repetead, analogous to quantifiers in DTDs / regexes. Both default to 1. maxOccurs can also have the value unbounded.
+_empty element_: An xs:complexType element containing no xs:element descendants (but possibly xs:attribute childs).
 
-empty element: Via xs:complexType (and implicitely or explicitely xs:complexContent) containing no xs:element childs (but possibly xs:attribute childs).
+_simple content and no attributes_: xs:simpleType
 
-simple content and no attributes: xs:simpleType
+_simple content and attributes_: xs:complexType and within it xs:simpleContent.
 
-simple content and attributes: xs:complexType and within it xs:simpleContent.
+_complex content_: xs:complexType, attribute `mixed' set to "false" (which is the default, i.e. the attribute can be omitted), and implicitely or explicitely xs:complexContent.
 
-complex content: xs:complexType, attribute `mixed' at default "false", and implicitely or explicitely xs:complexContent.
+_mixed content_: xs:complexType, attribute `mixed' set to "true", and implicitely or explicitely xs:complexContent.
 
-mixed content: xs:complexType, attribute `mixed' set to "true", and implicitely or explicitely xs:complexContent.
+Notable child elements of xs:complexContent:
 
+_xs:sequence_: The elements the refered to element contains must appear in exactly the same order which which they appear within the xs:sequence element.
 
-facets: *to-do*
+_xs:choice_: The refered to element must contain exactly one of the child elements of xs:choice.
 
-xs:sequence: The elements the refered to element contains must appear in exactly the same order which which they appear within the xs:sequence element.
-
-xs:choice: The refered to element must contain exactly one of the child elements of xs:choice.
-
-xs:all: The refered to element must contain each of the listed child elements exactly once, in any order.
+_xs:all_: The refered to element must contain each of the listed child elements exactly once, in any order.
 
 
 == XPATH
 
 XPath is a non-XML language for identifying particular parts of XML documents.
 
-From the perspective of XPath, the XML document is a tree made up of nodes, where there are the following kinds of nodes: Root (representing document, not root element), element, text, attribute, comment, processing-instruction, namespace. Thus notably CDATA sections, references, the document type declaration and the XML declaration are already washed away by the parser.  The root node represents the entire document, that is _not_ the document's root element.
+From the perspective of XPath, the XML document is a tree made up of nodes, where there are the following kinds of nodes: Root (representing the document, not the root element), element, text, attribute, comment, processing-instruction, namespace (see below). Thus notably CDATA sections, references, the document type declaration and the XML declaration are already washed away by the parser.  The root node represents the entire document, that is _not_ the document's root element.
 
 The xmlns and xmlns:foo attributes are not considered attribute nodes. Instead, the respective information is within a namespace node, which is attached to _every_ element node which is in the scope of the binding.
 
@@ -270,6 +309,8 @@ The _query processor_ is the software that parses, analyzes and evaluates the qu
 
 The _XQuery Data Model_ (known as the XQuery 1.0 and XPath 2.0 Data Model, or _XDM_): Everything is a sequence of items.  A _sequence_ is an ordered list of zero or more items. An _item_ is a generalization of a node and an atomic value. An _atomic value_ is a simple value with no markup associated with it. A _node_ is an XML construct such as an element or attribute. There are these six node kinds: document, element, attribute, text, proccessing instruction, comment, namespace (however XQuery does not provide access to namespace nodes).  Every node has a unique _identity_; identities can be compared with the is operator. XDM is not the same as the Infoset.
 
+_Infoset_: XDM vs Infoset: In XDM nodes can have types, in Infoset they are always strings.
+
 _names_: XQuery is case sensitive. Names must conform to the rules for XML qualified names.  There are no reserved words. XQuery is free space analogous to languages such as Java.
 
 _variables_ are names prefixed by a dollar sign ($). Variables are immutable.
@@ -285,8 +326,7 @@ _namespaces_: \'declare namespace myprefix = "namespaceuri"'. Then myprefix can 
 
 XQuery is a strongly typed language. The type system is based on the type system of XML Schema. Thus all the built-in types such as xs:integer, xs:string etc. are available.
 
-XDM vs Infoset: In XDM nodes can have types, in Infoset they are always strings.
-
+[[type_hierarchy]]
 _type hierarchy_. No value is ever of xs:anyAtomicType; they alwas have a more specific type.  See also https://www.w3.org/TR/xpath-datamodel-31/
 
 --------------------------------------------------
