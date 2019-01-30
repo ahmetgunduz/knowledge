@@ -1,0 +1,16 @@
+// The markup language of this document is AsciiDoc
+:encoding: UTF-8
+:toc:
+:toclevels: 4
+
+= CMake
+
+Files aren’t targets, and unless something is a target then it doesn’t get propagated around like you would expect.
+
+add_custom_command:
+
+- The command is only run if any target (*to-do* that apparently includes those add_executable add_library) depends on any of its output. Note that this _excludes_ other commands depending on one of those output files.
+
+- The files listed in as outputs are only known as outputs within the CMakeLists.txt containing the add_custom_command.
+
+custom_command vs custom_targets: https://samthursfield.wordpress.com/2015/11/21/cmake-dependencies-between-targets-and-files-and-custom-commands/
