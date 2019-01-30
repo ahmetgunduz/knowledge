@@ -10,6 +10,17 @@ This is about the rules and terms of the C&plus;&plus; programming language. It 
 
 === Undefined behavior
 
+Example where UB is kind of distributed
+
+--------------------------------------------------
+long l = ...; // say larger than INT_MAX
+for (int i=0;
+      i<l; // implicit convertion of i to long
+      ++i) // might overlow -> UB
+  { /* nop - irrelevant */ }
+--------------------------------------------------
+
+- https://stackoverflow.com/questions/367633/what-are-all-the-common-undefined-behaviours-that-a-c-programmer-should-know-a
 - http://en.cppreference.com/w/cpp/language/ub
 - https://blog.regehr.org/archives/1520[Undefined Behavior in 2017]
 - https://www.youtube.com/watch?v=v1COuU2vU_w[CppCon 2017: John Regehr “Undefined Behavior in 2017 (part 1 of 2)”]
@@ -225,10 +236,11 @@ References:
 decltype(id-expression): type the id-expression was declared as +
 decltype(expr): expr is of type T: xvalue -> T&&, lvalue -> T&, prvalue -> T
 
-function template argument deduction (FTAD): *to-do*
+function template argument deduction: The type of the template parameter follows quite naturally from the value category of the function call argument. Say our arguments are ints. lvalue -> int& or const int&, const lvalue -> const int&, rvalue -> const int& or int&&. The type the the template argument (T in the examples here) follows naturally from the parameter type. Only if the template parameter is T&& (forwarding reference), knowing the type of T is a bit more involved.
+
+The other forms of type deduction (_TD_) are based on decltype or function template argument deduction (_FTAD_):
 
 |=====
-|                                      | Deduction rules
 |auto variable TD                      | FTAD with exceptions: +
 ...auto... obj = {...}; -> deduced type is initializer_list +
 ...auto... obj\{expr}; -> deduced type is FTAD on expr
@@ -248,63 +260,56 @@ decltype(...) yields the type of it's argument.
 
 case decltype(http://www.nongnu.org/hcb/#id-expression[id-expression]): Yields the type the id-expression was declared as.
 
-case decltype(expr): The type yielded by decltype depends on the value category of expr. Say expr is of type T. xvalue -> T&&, lvalue -> T&, prvalue -> T.
+case decltype(expr): The type yielded by decltype depends on the value category of expr. Say expr is of type T. xvalue -> T&&, lvalue -> T&, prvalue -> T. Recall that a brace-init-list is not an expression. It thus can't be passed and it also woudn't have a type.
 
 --------------------------------------------------
 int i{};
 int& ri = i;
-//                  yields    argument
-// decltype(ri)     int&      id-expression
-// decltype((ri))   int       expr
-// decltype(ri+1)   int       expr
+//                   yields    argument
+// decltype(ri)      int&      id-expression
+// decltype((ri))    int       expr
+// decltype(ri+1)    int       expr
+// decltype({i,41})  compile error
 --------------------------------------------------
 
 
 [[template_argument_deduction]]
 ==== Function template argument deduction
 
-_Template argument deduction_ (aka _function template type deduction_ or _template type deduction_ *to-do* be absolutely sure these terms are synonyms) (since C&plus;&plus;98) explained by example:
+_Template argument deduction_ (or _function template type deduction_ or _template type deduction_ (since C&plus;&plus;98) deduces the template argument in case a template function call doesn't explicitely specify it. E.g. in "template<class T> void f(T); f(42);" the call doesn't specify the template argument. "f<int>(42);" is an example were the template argument is specified. The following table specifies how the type deduction works, given the value category of the function call argument:
 
-------------------------------------------------------------
-int i = 42;
-const int ci = 42;
+--------------------------------------------------
+int i{42};
+const int ci{42};
+--------------------------------------------------
 
-template<typename T> void f(T);
-        // arg's value category     T           param's type
-f(i);   // lvalue                   int         int
-f(ci);  // const lvalue             int         int ①
-f(42);  // rvalue                   int         int
+|=====
+.3+| argument's value category .3+| example 8+| parameter declaration in template<class T> void f(...)
+                     2+| T                2+| T& ②                  2+| const T& ②      2+| T&&
+                       | T   | param's type | T         | param's type | T   | param's type | T          | param's type
+| lvalue       | f(i)  | int | int          | int       | int&         | int | const int&   | int& ③    | int& ④
+| const lvalue | f(ci) | int | int ①       | const int | const int&   | int | const int&   | const int& | const int&
+| rvalue       | f(42) | int | int        2+| compile error ⑤         | int | const int&   | int ③     | int&&
+|              | f({i, 42}) 8+| compile error ⑥
+|=====
 
-template<typename T> void f(T&); ② // T* is analous
-        // arg's value category     T           param's type
-f(i);   // lvalue                   int         int&
-f(ci);  // const lvalue             const int   const int&
-f(42);  // rvalue                   compile error, lvalue expected
+The rules are quite natural.
 
-template<typename T> void f(const T&); ② // const T* is analogous
-        // arg's value category     T           param's type
-f(i);   // lvalue                   int         const int&
-f(ci);  // const lvalue             int         const int&
-f(42);  // rvalue                   int         const int&
+- Parameter declaration is of non reference type (T): The deduced parameter type equals the argument type.
 
-template<typename T> void f(T&&); // template param's type is forwarding reference
-        // arg's value category     T           param's type
-f(i);   // lvalue                   int& ③     int& ④
-f(ci);  // const lvalue             const int&  const int&
-f(42);  // rvalue                   int ③      int&&
-------------------------------------------------------------
+- Parameter declaration is of reference type (T&, const T&, T&&): The deduced parameter type is kind of the `natural' intersection bewteen what you asked for (T&, const T&, or T&&) and the value type of the argument. Const is never dropped but possibly added, rvalues can bind to T&& and const T& but not to T&. *to-do* find a more elegant / concise way of phrasing it.
 
-① In the pass by value case (f(T)) with a const lvalue argument, the const is
-dropped since the parameter is an independent object.
+① const is dropped since the parameter is an independent object.
 
-② In the pass by reference / pointer cases (f(T&) or f(const T&)), the result is
-such that the type of the referee / pointee matches from both viewpoints
-(argument and parameter).
+② Analogous rules for pointers (i.e. "f(T*)" and "f(const T*)").
 
-③ When an lvalue is passed, T is of reference type, when an rvalue is passed, T is of non-reference type. That makes forward work.
+③ This makes std::forward work, since now from the type of T one can deduce whether the value bound to the parameter was an lvalue (T is of reference type) or an rvalue (T is of non-reference type).
 
-④ Naively, since T is int& and the declaration is T&&, the parameter type ought to be T& &&. However the rules of <<reference_collapsing>> dictate that the actual resulting parameter type is T&.
+④ Naively, since T is int& and the parameter declaration is T&&, the parameter type ought to be the nonsensical T& &&. However the rules of <<reference_collapsing>> dictate that the actual resulting parameter type is T&.
 
+⑤ Can't bind rvalue to (non-const) lvalue.
+
+⑥ A brace-init-list is not an expression and thus doesn't has a type. Template type deduction (in contrast to variable type deduction) doesn't try to come up with a type, and a program that tries to do so is ill-formed. Thus "template<class T> void f(T); f({1,2})" is ill-formed. *to-do* however it works if the template parameter decl is initializer_list<U>
 
 Recall that:
 
@@ -314,18 +319,14 @@ Recall that:
 - After declaring a reference, e.g. "int& ri = i;", the expression "ri" in
   almost all cases means the referee, and thus is of type int, not int&.
 
-- A brace-init-list is not an expression and thus doesn't has any type. Template
-  type deduction (in contrast to auto) doesn't try to come up with a type, and a
-  program that tries to do so is ill-formed. Thus "template<class T> void f(T);
-  foo({1,2})" is ill-formed.
 
-Caveats, all of which are related to decaying types. Bottom line is there's not really something special. Passing arrays or functions by values does not exist, thus in such a case the array / function decays. Once we have that, the normal rules apply.
+Caveats, all of which are related to decaying types. The bottom line is that there is nothing special. Passing arrays or functions by values does not exist, thus in such a case the array and function respectively decays. After the decay, the normal rules apply.
 
-- If an array is passed (e.g. "V a[42]; foo(a)"):
+- If an array is passed (e.g. "int a[42]; f(a)"):
 
-  * Param type is "T": deduced type is "*V". The array decays to "*V" and from there the normal type deduction rules apply. Recall that there is no such thing as passing an array by value. "void foo(int a[])" is exactly the same as "void foo(int*a)".
+  * Param type is "T": deduced type is "int*". The array decays to "int*" and from there the normal type deduction rules apply. Recall that there is no such thing as passing an array by value. "void f(int a[])" is exactly the same as "void f(int*a)".
 
-  * Param type is "T&" (or with pointer and/or const qualified): deduced type is "V(&)[42]". I.e. array does not decay and we have the regular rules.
+  * Param type is "T&" (or with pointer and/or const qualified): deduced type is "int(&)[42]". I.e. array does not decay and we have the regular rules.
 
 - Analalgous rules apply for passing functions
 
@@ -333,37 +334,25 @@ Caveats, all of which are related to decaying types. Bottom line is there's not 
 [[auto_variable_type_deduction]]
 ==== auto / decltype(auto) variable type deduction
 
-Added in C&plus;&plus;11. Works by definition, with exceptions related to braced initializer, the same as function template type deduction. In a declaration involving a type based on auto and an initializer (e.g "type_auto name = initializer" (e.g. "const auto& foo = 42")), the type deduction works by definition as in "template<typename U> foo(type_U); foo(42)", where type_U is optained from type_auto by replacing every occurence of auto by U (the example becoming template<typename U>foo(const U&)).
+Added in C&plus;&plus;11. Works by definition, with exceptions related to braced initializer, the same as function template type deduction. As the following table shows, for each an variable declared with auto there's by definition an imaginary template function declaration. The type in the template parameter declaration is constructed from the type in the auto declaration by replacing every occurence of auto by U. Auto variable type deduction yields by definition the same type as function template type deduction on that imaginary template.
 
---------------------------------------------------
- auto type deduction          function template
-                              type deduction
+|======
+| auto variable type deduction         | equivalent function template type deduction
 
- ...auto... foo = expr;       template<typename U>
-                              void f(...U...);
-                              f(expr);
+| ...auto... foo = expr;  +
+  ...auto... foo(expr); +
+  ...auto... foo\{expr};①             | template<typename U> +
+                                         void f(...U...); +
+                                         f(expr);
 
- special case copy-list-initialization
- ...auto... foo = {...};      template<typename U>
-                              void f(...initializer_list<U>...);
-                              f({...});
+| exception in case of copy-list-initialization: +
+  ...auto... foo = {...};              | template<typename U> +
+                                         void f(...initializer_list<U>...); +
+                                         f({...});
+|======
 
- special case direct-list-initialization
- ...auto... foo{expr};        template<typename U>
-                              void f(...U...);
-                              f(expr);
---------------------------------------------------
+① In case of direct-list-initialization, the braced initializer must contain exactly one element. That direct-list-initialization works as normal was added by N3922, a defect of C&plus;&plus;14. Without N3922, direct-list-initialization works as copy-list-initialization.
 
-The exceptions where auto type deduction differs from function template type deduction. Recall that in function template type deduction, calling the function with a braced initializer as argument is an error.
-
-- In case of copy-list-initialization, the template function parameter is
-  "initializer_list<U>".
-
-- In case of direct-list-initialization, the braced initializer must contain
-  exactly one element. Regarding type deduction, it's treated as the
-  corresponding copy-initialization where only the one element is
-  speficifed. E.g. regarding type deduction, "auto a{42}" is treated as "auto
-  a = 42". Added by N3922, a defect of C&plus;&plus;11.
 
 _decltype(auto)_ (added in C&plus;&plus14) works exactly the same as decltype. Say the definition is "decltype(auto) foo = expr;", then the deduced type is whatever decltype(expr) yields. what decltype(auto) cannot be combined with other type specifiers. *to-do* reminder to use forward
 
@@ -489,6 +478,10 @@ References:
 - online micro benchmark: http://quick-bench.com
 
 - Hyperlinked C++ BNF Grammar: http://www.nongnu.org/hcb/
+
+- Webpage: The Definitive C&plus;&plus; Book Guide and List: https://stackoverflow.com/questions/388242/the-definitive-c-book-guide-and-list
+
+- Webpage: Top mentioned books on stackoverflow.com: http://www.dev-books.com/
 
 
 == Bibliography
