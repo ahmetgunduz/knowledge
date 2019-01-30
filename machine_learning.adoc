@@ -180,9 +180,19 @@ _prediction interval_: An estimate of an interval in which a realization of a ra
 
 === Statistical Model
 
-A _statistical model_ 𝔉 is a set of functions f. A _parametric model_ can be parameterized by a finite number of parameters: 𝔉 = { f(x;θ) : θ ∈ Θ}, where θ is an _parameter_, or vector of parameters, that can take values in the _parameter space_ Θ. f is a function of x, parameterized by θ.
+A _statistical model_ 𝔉 (or _hypothesis space_ 𝓗) is a set of functions f:𝓧→𝓨 (or _hyptheses_ h). A _parametric model_ can be parameterized by a finite number of parameters: 𝔉 = { f(x;θ) : θ ∈ Θ} (or h instead f), where θ is an _parameter_, or vector of parameters, that can take values in the _parameter space_ Θ. f (or h) is a function of x, parameterized by θ.
 
-In machine ideas are pretty analogous, though notation, terminology is typically different and interpretation is a bit more general. Tn _hypothesis space_ 𝓗 is a set of known concepts h.  A concept is often a function as in statistics.  However a concept might also be `prime numbers', `even numbers' etc, and when given a set of numbers, the problem statement might  be to tell what kind of numbers this set most likely is.  The subset of 𝓗 that is consistent with the data 𝓓 is called the _version space_.  The _extension_ of a concept is the complete set of examples.
+[[concep]]
+A _concept_ c is a subset c⊂𝓧. In binary classifications, the labels are definied by a concept c, i.e the label is +1 if c∈𝓒 and -1 otherwise.
+
+_𝓓_ denotes the set of observations that we have, aka _the data_. 𝓓 = {(y~i~,x~i~)}~1≤i≤n~, y~i~∈𝓨, x~i~∈𝓧. The pairs (y~i~,x~i~) are usually assumed to be drawn uniformily at random from the population.
+
+[[learner]]
+The task of a _learner_ L is to find the hypothesis ĥ∈𝓗 which approximates the concept c the best.
+
+In machine ideas are pretty analogous, though notation, terminology is typically different and interpretation is a bit more general. The  is a set of hypotheses. A _hypothesis_
+
+A concept is often a function as in statistics.  However a concept might also be `prime numbers', `even numbers' etc, and when given a set of numbers, the problem statement might  be to tell what kind of numbers this set most likely is.  The subset of 𝓗 that is consistent with the data 𝓓 is called the _version space_.  The _extension_ of a concept is the complete set of examples.
 
 There's an loose distinction between parameters determined by fitting / learning the model and _hyper-parameters_ which are determined before fitting the model, e.g by the user or during the higher level process of model selection.  You may think of splitting complete set of parameters into two subsets.  The values of the subset labeled parameters is computable cheaply when being provided with the values of the subset labeled hyper-parameters. References: https://stats.stackexchange.com/questions/149098/what-do-we-mean-by-hyperparameters?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa (*to-do* isn't a further difference that hyper-paremeters can influence the number of parameters, such as in polynomial regression?)
 
@@ -816,16 +826,6 @@ References:
 
 == Misc machine learning
 
-_parameter_ θ (read hypothesis), _parameter space_ Θ, _hypothesis_ h(x) (parameterized by θ): *to-do*
-
-The _hypothesis space_ 𝓗 is a set of known concepts.  The subset of 𝓗 that is consistent with the data 𝓓 is called the _version space_.  The _extension_ of a concept is the complete set of examples.
-
-[[concep]]
-A _concept_ c is a subset c⊂𝓧. In binary classifications, the labels are definied by a concept c, i.e the label is +1 if c∈𝓒 and -1 otherwise.
-
-[[learner]]
-The task of a _learner_ L is to find the hypothesis ĥ∈𝓗 which approximates the concept c the best.
-
 _empirical risk minimizer_ (_ERM_): ĥ = argmin~h~(R̂~trainset~(h)), i.e. the model which minimizes the empirical risk.
 
 _likelihood function_ (or _sampling distribution_) ℒ~𝓓~(θ) = p(𝓓|θ) =~iid~ ∏p(d~i~|θ): Probability of seeing the data 𝓓 given the model parameters θ.
@@ -1169,6 +1169,8 @@ _Kuhn-Tucker Condistions_ *to-do* see also video 15.11. 36:12
 
 === Probably approximately correct (PAC)
 
+*to-do* this chapter makes a mess in what 𝓧 and 𝓓 mean. One is the set of possible feature vectors, one is the set of possible (label, feature vector) pairs, one is the distribution of feature vectors.
+
 Provides a bound on some error measure of a model ĥ∈𝓗 without assumptions on the joint distribution p(x,y) (i.e. something we can't control).
 
 See also terms <<learner>> L and <<concept>> c.
@@ -1214,16 +1216,26 @@ References:
 - *to-do* lecture
 
 
-=== Vapnik-Chervonenkis inequality
+[[VC_inequality]]
+==== Vapnik-Chervonenkis inequality (VC inequality)
 
-Let R(·) denote the expected risk, and let R̂(·) denote the empirical risk on the training set. 0≤δ≤1 is a parameter (called confidence), and ε is called precision. The following inequality delivers a way of knowing how large n should be, given a confidence and precision.
+*to-d* Properly explain the relation with PAC learning. Is it that PAC learning is just a definition what PAC learning means (stating a bound), and this definition refers to some general error function, while the VC inequality guarantees that the same bound holds for the specific error function "R(h) - R̂(h)". And / or is it that now we know the value of δ given ε (or vice versa)?
 
-Pr[R̂(h) - R(h) ≤ ε] ≥ 1-δ ∀h∈𝓗 +
-ε = √( ln(2|𝓗|/δ) / 2n ) +
-R̂(h) - R(h) ≤ ε ⇔ R̂(h) [expected error] ≤ R(h) [empirical error] + ε [variance]
+Let R(·) denote the expected risk, and let R̂(·) denote the empirical risk on the training set. 0≤δ≤1 is a parameter (called confidence), and ε is called precision, see also PAC learning. The following inequality delivers a way of knowing how large n should be, given a confidence and precision. Note that we don't assume anything about the probability distribution of 𝓓.
+
+Pr[R(h) - R̂(h) ≤ ε] ≥ 1-δ ∀h∈𝓗 +
+ε = √( ln(2|𝓗|/δ) / 2n ) [or the other way round: δ ≡ 2|𝓗|exp(-2nε²)]
+
+Rewriting the inner part of the Pr[...] in the above equation, we can give a (1-δ) _confidence interval_ for the expected risk R(h):
+
+R(h) [expected risk] ≤ R̂(h) [empirical risk] + ε [variance]
+
+As n goes to infinity, the empirical risk approaches the expected risk. However mind that if |𝓗| also goes to infinity, that is offseted, i.e. we still overfit. I.e. when n increases, |𝓗| should not grow faster than exp(-2nε²). |𝓗| depends on n for example when you use splines.
+
+Also, if |𝓗| is infinite, we don't have any meaningful guarantees anymore. *to-do* See advanced machine learning lecture 13.12.18 and 14.12.18. Apparently we try to come with a 𝓗ʹ where |𝓗ʹ| is finite. Each element in 𝓗ʹ takes the job (is representative) of a subset of 𝓗, such that 𝓗ʹ covers all of 𝓗.
 
 
-==== Derivation
+===== Derivation
 
 Let ĥ^OPT^ = argmin~h∈𝓗~(R(h)) a denotes the best possible classifier in 𝓗 (or from another viewpoint, let R(ĥ^OPT^) = min~h∈𝓗~(R(h))), ĥ^ERM^ = argmin~h∈𝓗~(R̂~trainset~(h)) denotes the empirical risk minimizer. Note that ĥ^opt^ might not be member of 𝓗.
 
@@ -1238,9 +1250,11 @@ max~h∈𝓗~|R(h)-R̂(h)| + max~h∈𝓗~|R(h)-R̂(h)| = +
 ② R̂(ĥ^ERM^) ≤ R̂(ĥ^OPT^) by definition of empirical risk minimizer +
 ③ (R̂(ĥ^OPT^) - R(ĥ^OPT^)) ≤ max~h∈𝓗~|R(h)-R̂(h)|: This bound could be made tighter, but it wouldn't help us overall. Also here pointwise convergence would be sufficient, since ĥ^OPT^ is independent of the training set.
 
-Based on the above inequality, we do large deviation: *to-do* what?!
+Based on the above inequality, we do large deviation: *to-do* what is large deviation?
 
 Pr[R(ĥ^ERM^)-R(ĥ^OPT^)>εʹ] ≤ Pr[max~h∈𝓗~|R̂(h)-R(h)|>εʹ/2]
+
+*to-do* Over what is the probability? I.e. what is random, what is fixed?
 
 Now we want to get a bound for the above rhs. With ε = εʹ/2
 
@@ -1248,7 +1262,6 @@ Pr[max~h∈𝓗~|R̂(h)-R(h)|>ε] ≤ 2|𝓗|exp(-2nε²) ≡ δ +
 prooveable by union bound and hoeffding's inequality
 solving the definition of δ for ε delivers the above formula for ε +
 
-As n goes to infinity, the empirical risk approaches the expected risk. However mind that if |𝓗| also goes to infinity, that is offseted, i.e. we still overfit. I.e. when n increases, |𝓗| should not grow faster than exp(-2nε²). |𝓗| depends on n for example when you use splines.
 
 
 [[measuriring_model_performance]]
@@ -1757,8 +1770,6 @@ Note that different inner cross validations may select different models.  That's
 == Model training
 
 _Estimating f by paramtetric methods_: We assume f to be a parameterized function.  The parameters β (or w) of f are called _coefficients_ (or _unknown parameters_).  The problem of estimating f reducues now to computing estimators β̂ for the coefficients β.  For example the linear model has f̂(X) = Xβ, where β is a p ⨯ 1 vector constituting the unknown parameters.  We use the training data to _fit_ (or _train_ or _estimate_) our model, i.e. to compute estimates β̂ of the unknown parameters β.  Phrased as noun, this is called _model fitting_ (or _model training_ or _model estimation_).  There are multiple approaches for fitting the model, the most common approach being (ordinary) <<least_squares>>.
-
-The _training set_ 𝓓 = {(y~i~,x~i~)}~1≤i≤N~ is the set of observations which is used to train the model.
 
 _Generalization_ means the ability to well predict a predicted value ŷ given new input data, despite that we trained with only a finite training set.
 
