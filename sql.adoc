@@ -40,6 +40,52 @@ For example, as an optimization, we want to 'push down projections': Do many pro
 There's even the field of 'column oriented databases' which store columns seperately. The idea being doing projections as early as possible and only work with as few data as possible.
 
 
+== Joins
+
+See also sql_joins in big_data.adoc. Recall that joins (except crossproduct), always have a condition. AFAIK ANSI SQL requires that an inner / outer JOIN has an ON part.
+
+*to-do* It seems that the column names of the output tablen when using $$SELECT *$$ are implementation dependend. Some implementations only use the original column name, e.g. $$col1A$$, others prepend the table name like $$Table1.col1A$$.
+
+_crossproduct_ (aka _cross join_): $$CROSS JOIN$$: However columns with same name are still removed *to-do* what if the values in these same named columns are different?
+
+--------------------------------------------------
+ Table1                   Table2
+ col1A   col1B            col2A   col2B
+ John    42               John    apples
+ Bob     77               John    oranges
+ Fred    3.14             Fred    bananas
+
+ SELECT * FROM Table1 CROSS JOIN Table2
+ col1A   col1B  col2A   col2B
+ John    42     John    apples
+ John    42     John    oranges
+ John    42     Fred    bananas
+ Bob     77     John    apples 
+ Bob     77     John    oranges
+ Bob     77     Fred    bananas
+ Fred    3.14   John    apples 
+ Fred    3.14   John    oranges
+ Fred    3.14   Fred    bananas
+--------------------------------------------------
+
+_inner join_ (explicit syntax): $$INNER JOIN$$. E.g. $$SELECT * FROM Table1 INNER JOIN Table2 ON Table1.col1A = Table2.col2A;$$
+
+_inner join_ (implicit syntax): $$FROM T1,T2 WHERE$$. E.g. $$SELECT * FROM Table1, Table2 WHERE Table1.col1A = Table2.col2A;$$. This implicit syntax  is no longer considered a best practice
+
+
+== Other operations
+
+for relational algebra, see relational_algebra in big_data.adoc.
+
+SELECT: corresponds to projection in relational algebra
+
+WHERE: corresponds to selection in relational algebra
+
+GROUP BY: not part of the relational algebra
+
+ORDER BY: not part of the relational algebra (*to-do* I am not 100% sure)
+
+
 == Grammar / Syntax
 
 See sql.yas

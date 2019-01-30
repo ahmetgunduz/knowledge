@@ -1,29 +1,36 @@
+## The used syntax metalanguage is yasmala (https://github.com/sensorflo/yasmala)
+
 ## https://docs.oracle.com/cd/B28359_01/server.111/b28286/toc.htm
+## https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax
 
 ## evaluated each time it's referenced; it's never stored, aka never
-## materialized. You can also think of it as a stored query.
+## materialized. You can also think of it as a stored query or in-memory-table
 create_view = 'CREATE ['OR 'REPLACE] [['NO] 'FORCE] 'VIEW
   ... id#viewname ... 'AS subquery ... \;;
+
+## a 'statement scope view' or 'inline view'
+with_clause = 'WITH (with_view \,{0})+;
+
+with_view = id#viewname [\( (id#columnname \,{0})+ \)] 'AS \( subquery \) ;
 
 select = ... subquery ... \;;
 
 subquery =
-  query_block [order_by_clause] |
-  \( subquery \) [order_by_clause] |
-  (subquery (subquery_operator subquery)+) [order_by_clause];
+  query_block |
+  subquery subquery_operator subquery;
 
 ## Operands and result are tables.  Precedence (hi to lo): {INTERSECT},
 ## {UNION,EXCEPT}. Associativity ltr. The sequence of column types of the two
 ## input tables must match. Without 'ALL, duplicates are eliminated.
 subquery_operator =
   'UNION ['ALL] |
-  ('MINUS|'EXCEPT) ['ALL] | ## set difference
+  ('EXCEPT|'MINUS) ['ALL] | ## set difference. Both are synonymous, EXCEPT is standard SQL
   'INTERSECT ['ALL];
 
-## The result of a query is a table. The order of processing is:
+## The order of processing is:
 ##
 ## FROM [ON]: Joins [crossproduct + select] the specified tables based on the
-## given condition.
+## given join condition.
 ##
 ##     table
 ##
@@ -34,18 +41,19 @@ subquery_operator =
 ## GROUP BY: Sort by given columns, creating set of aggregations for identical
 ## (over given colums) columns, each aggregation being a table. 1)
 ##
-##     set of tables (one per aggregation)
+##     set of tables, one per aggregation
 ##
 ## HAVING: discard failing aggregations.
 ##
-##     set of tables (one per aggregation)
+##     set of tables, one per aggregation
 ##
-## SELECT: [build table + project] create table, one row per aggregation, columns as
-## specified, the given expressions defining the values of the cells.
+## SELECT: [create table + project] create table, one row per aggregation table,
+## columns as specified by the projection, the given expressions defining the
+## values of the cells.
 ##
 ##     table
 ##
-## ORDER BY: order by given columns.
+## ORDER BY: order rows by given columns.
 ##
 ##     table
 ##
@@ -62,27 +70,34 @@ subquery_operator =
 ## used, the select stament is illegal or the column's value is inteteminate
 ## (http://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html)
 query_block =
+
+  ## *to-do* where does WITH belong?
+
   'SELECT select_args           ## project / calc aggreg. value, concat. row-wise
+
+  ## from here on ordered by the order of processing
   'FROM join_expr               ## join (crossproduct + select(discard failing rows))
   ['WHERE condition]            ## select (discard failing rows)
   ['GROUP 'BY group_by_args]    ## build aggregations
   ['HAVING condition]           ## discard failing aggregations
+  ## SELECT
   ['ORDER 'BY ... ['ASC|'DESC]]
+  ## DISTINCT (part of SELECT)
   ['LIMIT ([offset \,] row_count | row_count 'OFFSET offset)+]
   ...;
 
 select_args =
-  [ 'DISTINCT | ## discard duplicate rows
-    'UNIQUE |
+  [ 'DISTINCT | ## discard duplicate rows.
+    'UNIQUE |   ## synonymous to DISTINCT. DISTINCT is standard SQL
     'ALL ]
   select_expr_list; ## columns to retreive, exprs can only reference columns of
                     ## the CPT
 
-group_by_args = (id#attribue \,{-})+;
+group_by_args = (id#attribue \,{0})+;
 
 select_expr_list =
   \* | ## all columns of CPT resulting from where clause
-  (select_expr_column \,{-})+;
+  (select_expr_column \,{0})+;
 
 select_expr_column =
   select_expr
@@ -103,19 +118,26 @@ select_primary =
 binary_operator = ...; ## http://www.w3resource.com/sql/operators.php
 prefix_operator = ...;
 
-## the ',' builds the crossproduct table of its rhs and lhs (i.e. an (inner)
-## join of rhs and lhs with a condition being always true).
+from_expr = table_ref | join_expr | foo;
+
+## *to-do* seems to be similar to 'inline view' (with_view), but I don't know
+## the differences / terminology.
+foo = \( subquery \) [ [ 'AS ] id#viewname ]
+
+## the ',' builds the crossproduct of its rhs and lhs
 join_expr =
-  ((table_ref|join_clause|\(join_clause\)) \,{-})+;
+  ((join_clause|\(join_clause\)) \,{0})+;
 
 join_clause =
-  table_ref (inner_cross_join_clause|outer_join_clause)+;
+  table_ref (join_clause_lhs)+;
 
-inner_cross_join_clause =
-  ['INNER] 'JOIN table_ref ('ON condition|'USING \((column\,{-})+\)) |
+join_clause_lhs =
+  (['INNER]|('LEFT |'RIGHT|'FULL) ['OUTER]) 'JOIN table_ref join_condition |
   ('CROSS |'NATURAL ['INNER]) 'JOIN table_ref;
 
-outer_join_clause = ...;
+join_condition =
+ 'ON condition |
+ 'USING \((column\,{0})+\);   ## makes it an equi join
 
 table_ref = ... query_table_expr ...;
 
@@ -138,7 +160,7 @@ relational_properties =
   ( ( column_definition | virtual_column_definition |
       out_of_line_constraint | out_of_line_ref_constraint |
       supplement_logging_props)
-    \,{-})+;
+    \,{0})+;
 
 column_definition =
   id#column id#datatype
@@ -153,7 +175,7 @@ physical_properties =
    ('HEAP [segment_attribues_clase] [table_compressin] |
     'INDEX [segment_attribues_clase] index_org_table_clause |
     'EXTERNAL external_table_clause) |
-  'CLUSTER cluster \((column \,{-})+\);
+  'CLUSTER cluster \((column \,{0})+\);
 
 inline_constraint =
   ['CONSTRAINT id#constraintname ]
@@ -167,9 +189,9 @@ inline_constraint =
 out_of_line_constraint =
   ['CONSTRAINT id#constraintname ]
   (  ## a table can have at most one primary key
-    'PRIMARY 'KEY \( (id#column \,{-})+ \) |
-    'UNIQUE \( (id#column \,{-})+ \) |
-    'FOREIGN 'KEY \( (id#column \,{-})+ \) references_clause |
+    'PRIMARY 'KEY \( (id#column \,{0})+ \) |
+    'UNIQUE \( (id#column \,{0})+ \) |
+    'FOREIGN 'KEY \( (id#column \,{0})+ \) references_clause |
      ## general constraint. Validates INSERTs and UPDATEs. Some DBMS allow
      ## subqueries referencing other tables.
     'CHECK \( condition \) )

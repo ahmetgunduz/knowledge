@@ -13,39 +13,80 @@ _Big Data_ is a portfolio of technologies that were designed to store, manage an
 [[data_technology_stack]]
 Data technology stack:
 
-[cols="1,3"]
+[cols="1,4"]
 |=====
 | user interfaces |
       Excel, Access, Tableau, Qlikeview, BI tools
+
 | querying |
-      SQL, XQuery, MDX, SPARQL, REST APIs
+      tables: SQL +
+      trees: XQuery, UNQL, JSONiq +
+      graphs / labeled property graph: Cypher +
+      graphs / RDF: SPARQL +
+      cubes: MDX +
+      unstructured text: regular expressions +
+      misc: REST
+
 | data stores |
-      RDBMS, MongoDB, CouchBase, ElasticSearch, Hive, HBase, MarkLogic, Cassandra
+      tables / relational: RDBMS +
+      tables / wide column store: BigTable, HBase, Cassandra +
+      tables / misc: Spanner +
+      trees / document store: MongoDB, MarkLogic, CouchBase +
+      graphs / labeled property graph: Neo4j +
+      graphs / RDF: Semantic Web +
+      cubes: ROLAP, MOLAP, HOLAP +
+      unstructured text: *to-do* directly redirected to storage layer?
+
 | indexing |
-      Key-value stores, hash indices, b-trees, geographical indicies, spatial indicies
+      hash indices, b-trees, geographical indicies, spatial indicies
+
 | processing |
-      two-hase processing: MapReduce / dag-driven proc: tez, spark / elastic computing: EC2
+      two-hase processing: MapReduce +
+      dag-driven processing: Spark, tez +
+      elastic computing: EC2
+
 | validation |
-      XML schema, JSON schema, Relational schemas, XBRL taxonomies
+      tables: relational database schema +
+      trees: XML: XML schema, JSON: JSON schema +
+      graphs / labeled property graph: *to-do* +
+      graphs / RDF: RDF schema, OWL [actually an ontology] +
+      cubes: XBRL: XBRL taxonomy
+
 | data model |
-      Tables: Relational model, column store, wide column store / trees: XML Infoset, XDM / graphs: RDF / Cubes: OLAP / Unstructured text / key-value model
+      tables: relational model, column store, wide column store +
+      trees: document store, XML Infoset, XDM, JDM +
+      graphs: labeled property graph, RDF +
+      cubes: OLAP +
+      unstructured text: unstructured text +
+      misc: key-value model
+
 | syntax |
-      Tables: CSV / trees: XML, JSON / graphs: RDF, graph / Cubes: XBRL / Unstructured text
+      tables: CSV +
+      trees: XML, JSON, BSON, Protocol Bufers, YAML +
+      graphs / labeled property graph: *to-do* +
+      graphs / RDF: RDF/XML, RDF/JSON, Turtle, RDFa, JSON-LD, N-Triples +
+      cubes: XBRL +
+      unstructured text: unstructured text
+
 | encoding |
-      ASCII, ISO-8859-1, UTF-8, BSON
+      ASCII, ISO-8859-1, UTF-8, binary
+
 | storage |
-      local FS, NFS, GFS, HDFS, S3, Azure blob storage, DynamoDB
+     key-value store: DynamoDB +
+     object storage: S3 +
+     block storage: local FS, NFS, GFS, HDFS +
+     misc: Azure blob storage
 |=====
 
 |=====
-|           | master              | slave
-| Spark     | cluster manager     | worker node
-| Hadoop v1 | job tracker         | task tracker
-| YARN      | resource manager    | node manager
-| YARN      | application manager | application master
-| YARN      | application master  | task
-| HBase     | HMaster             | region server
-| HDFS      | name node           | data nodes
+   |           | master              | slave
+   | Spark     | cluster manager     | worker node
+   | Hadoop v1 | job tracker         | task tracker
+.3+| YARN      | resource manager    | node manager
+                  | application manager | application master
+                  | application master  | task
+   | HBase     | HMaster             | region server
+   | HDFS      | name node           | data nodes
 |=====
 
 _througphut_: amount of data per time
@@ -56,22 +97,24 @@ _latency_: Time between asking for something and receving the first bit of that 
 
 _total response time_ (or, conflictlingly, latency): Latency + transfer time
 
-The history of storage: progress made 1956-2010: capacity: 600'000'000 times more, throughput 10'000 times more, latency 8 times more. To increase throughput, we can parallize. To improve latency, we can do batch processing.
+_history of storage_: progress made 1956-2010: capacity: 600'000'000 times more, throughput 10'000 times more, latency 8 times more. To increase throughput, we can parallize. To improve latency, we can do batch processing.
 
 Very rough typical measures:
 
 |=====
-| Instruction    | 1 ns
-| Fetch L1 cache | 1 ns
-| Fetch memory   | 100 ns
-| Disk           | 100-300 Mbit/s
-| Ethernet       | 1-10 Gbit/s
-| Roundtrip packet US Europe | 150ms
+|                            | latency  | total resp. time | throughput       | capacity
+| Instruction                | 1 ns     |                  |                  |
+| L1 cache                   | 1 ns     |                  |                  |
+| Memory                     | 100 ns   |                  | 40  - 70  Gbit/s | 64 GB / module
+| SSD                        | 100 μs   |                  | 2   - 4   Gbit/s |  2 TB
+| HDD                        | 10 ms    |                  | 0.1 - 0.3 Gbit/s | 10 TB
+| Ethernet                   |          |                  | 1   - 10  Gbit/s |
+| Roundtrip packet US Europe |          | 150 ms           |                  |
 |=====
 
 How can we get more work done:
 
-1) Make SW efficient. ``You can have a second computer once you've shown you know how to use the first one'' (Paul Barham). We can gain factors of speed, and we have to pay once the development costs, and can apply it to all machines we ever will have.
+1) Make SW efficient. ``You can have a second computer once you've shown you know how to use the first one'' (Paul Barham). We can gain factors of speed, and we have to pay once the development costs, and can apply it to all machines we ever will have. Typically useful when the bottleneck is CPU.
 
 2) _horizontal scaling_ (or _scale out_): Add more nodes, typically commodity HW. Price grows about linearly with overall computing power.  Typically useful when the bottleneck is disk throughput, as opposed to CPU.
 
@@ -81,27 +124,25 @@ _Amdahl's law_: speedup = 1 / ((1-p) + p/s). Say in the current configuration, p
 
 _Gustafson's law_: speedup = (1-p) + sp. For p and s, see Amdahl's law. Reflects the viewpoint of constant computing power. A higher Gustafson's speedup means you can fit more people on a single cluster.
 
-_Scalability! But at What COST?_: The paper reminds that scalability is only a mean to achieve the real goal, which is performance. So in a way it re-states Paul Barham's ``You can have a second computer once you've shown you know how to use the first one''.  They showed multiple different real-world scalabale programs solving a given problem running on 128 cores. They were however beaten by a single thread program. Even more so if the single threaded program did use an efficient non-parallel algorithm. They proposed the measurement `COST': Configuration that Outperforms a Single Thread. Or more colloquially, how many cores does the scalable system require until it gets faster than an single threaded system solving the same problem. Note that clusters may have other benefits besides (hopefully) better performance through scalability. For example fault tollerance. But even then you still have to ask yourselve, wether the increased complexity of the cluster really helps you.
+_Scalability! But at What COST?_: The paper reminds that scalability is only a mean to achieve the real goal, which is performance. So in a way it re-states Paul Barham's ``You can have a second computer once you've shown you know how to use the first one''.  They showed multiple different real-world scalabale programs solving a given problem running on 128 cores. They were however beaten by a single thread program. Even more so if the single threaded program did use an efficient non-parallel algorithm. They proposed the measurement `COST': Configuration that Outperforms a Single Thread. Or more colloquially, how many cores does the scalable system require until it gets faster than an single threaded system solving the same problem. Note that clusters may have other benefits besides (hopefully) better performance through scalability. For example fault tollerance. But even then you still have to ask yourself, wether the increased complexity of the cluster really helps you.
 
 *to-do* https://www.youtube.com/watch?v=6bWBEJBMNG0. I still don't get why he can be so much faster. Both in examples with single threaded, and when he also parallelizes with a few cores on his laptop. I think it's neither the case that he's a genius, nor that the others are dumb. Or were the others _really_ that careless?
 
-*to-do* data shape vs data model? In the stack overview we said data model for cube / table / tree etc. In the wrapup lecture there's a slide `each data shape has one: ..., data model, ...' and the next slide `data models' (5:18) we said data shape for cube table tree etc, and used the term data model for the operations we can do on the data, e.g. for cube slice, dice, cross-tabulate.
+_Design principles_ of big data (by Fourny Ghislain Gilles):
 
-_Design principles_ of big data (by Fourny Ghislain Gilles)
+- Learn from the past / don't reinvent the wheel. E.g. we need schemas. We need query languages encapsulating the used data model. Tables won't disappear.
 
-- Learn from the past / don't reinvent the wheel (e.g. we need schemas, query languages encapsulating the used data model, tables won't disappear)
-
-- Simplicity. Everything should be made as simple as possible but not simpler.
+- Simplicity. ``Everything should be made as simple as possible, but not simpler.''
 
 - Modularize the architecture / make good abstractions (see <<data_technology_stack>>)
 
-- Homogeneity in the large (e.g. blocks in HDFS, regions in HBASE, virtual nodes in chords). So at the large, things are easy to handle, which allows us to scale out.
+- Homogeneity in the large. So at the large, things are easy to handle, which allows us to scale out. E.g. blocks in HDFS. Regions in HBASE. Virtual nodes in chords.
 
-- Heterogeneity in the small (e.g. be able to add columns in HBase, a document might be missing a field or have an additional field). Heterogenity gives flexibility to the client. But the cost of increased complexity does not affect the system in the whole.
+- Heterogeneity in the small. Heterogenity gives flexibility to the client. But the cost of increased complexity does not affect the system in the whole. E.g. HBase allows to add columns. In a document store, a document might be missing a field or have an additional field.
 
-- Separate metadata from data (i.e. make schema optional, aka schema on read)
+- Separate metadata from data. E.g. make schema optional (aka schema on read.)
 
-- Abstract (separate) logical model from its physical implementation. Data independence.
+- Data independence. Abstract (separate) logical model from its physical implementation.
 
 - Shard the data
 
@@ -113,9 +154,30 @@ _choosing optimal chunk size_. One extreme is to do the splitting of the data sh
 
 _optimize network usage_: Try to push down prejection and selection as close as possible to the source. Then less data has to be transmitted. That's e.g. what Spark's DataFrame do, as opposed to Spark's RDDs.
 
-A database _transaction_, by definition, must be _ACID_: All the following must be guaranteed even in the event of errors, power failures etc. _Atomicity_ (each transaction succeeds completely or fails completely), _Consistency_ (each transaction brings DB from one valid state to another valid state, maintaining DB's invariants), _Isolation_ (result is as if transactions were executed in strict sequence), _Durability_ (once a transaction has been committed, will remain committed).
+A database _transaction_, by definition, must be <<ACID>>:
 
-_Consistency models_: _Strict consistency_: Changes are atomic and appear to take effect instantaneously. _Sequential consistency_: Every client sees all changes in the same order they were applied. _Causial consistency_: All changes that are causally related are observed in the same order by all clients.  _Eventual consistency_: If no updates are made, then eventually all accesses will return the last updated value. However in practice there's a continous stream of updates, so consistency will never happen.  In other words: Every update will eventually be propagated. _Weak consistency_: Clients may see updates out of order, or may not see an update at all.
+[[ACID]]
+_ACID_ are the required properties of a database transaction. All the following must be guaranteed even in the event of errors, power failures etc.
+
+- _Atomicity_: Each transaction succeeds completely or fails completely.
+
+- _Consistency_: Each transaction brings DB from one valid state to another valid state, maintaining DB's invariants.
+
+- _Isolation_: Result is as if transactions were executed in strict sequence
+
+- _Durability_: Once a transaction has been committed, will remain committed.
+
+_Consistency models_:
+
+- _Strict consistency_: Changes are atomic and appear to take effect instantaneously.
+
+- _Sequential consistency_: Every client sees all changes in the same order they were applied.
+
+- _Causial consistency_: All changes that are causally related are observed in the same order by all clients.
+
+- _Eventual consistency_: If no updates are made, then eventually all accesses will return the last updated value. However in practice there's a continous stream of updates, so consistency will never happen.  In other words: Every update will eventually be propagated.
+
+- _Weak consistency_: Clients may see updates out of order, or may not see an update at all.
 
 _Availability_: Measure of the percantage of time the service / equipment is in an operable state. A common measure is "99.99%" (with x many nines).
 
@@ -125,7 +187,15 @@ _Durability_: A common measure is "loss of 1 in x objects".
 
 _Response time_: One possible measure is "<10ms 99.9% of cases"
 
-_3Vs of big data_ (or even mor V's): volume, velocity, and variety (veracity). _volume_: The amount of data that is to be stored. _velocity_: The rate at which the stored data increases, i.e. the rate of new data coming in. Analysis of data streams. _variety_: Different forms of data. E.g. text, audio, video, machine generated, human generated, etc.. _veracity_: Uncertainty of data.  In automated decision-making, where no human is involved anymore, you need to be sure that both the data and the analyses are correct
+_3Vs of big data_ (or even more V's): volume, velocity, and variety (and veracity).
+
+- _volume_: The amount of data that is to be stored.
+
+- _velocity_: The rate at which the stored data increases, i.e. the rate of new data coming in. Analysis of data streams.
+
+- _variety_: Different forms of data. E.g. text, audio, video, machine generated, human generated, etc.
+
+- _veracity_: Uncertainty of data.  In automated decision-making, where no human is involved anymore, you need to be sure that both the data and the analyses are correct
 
 _Load balancing_: *to-do*, Partition schemes
 
@@ -135,46 +205,58 @@ _stream processing_: Data is processed in an on-line fashion, i.e. as the data a
 
 _data independence_: *to-do*
 
-_sharding_ (or _horizontal partitioning_): Partition the data, and give each shard (aka partition) to a different machine. Thus the load per machine is reduced, we can operate in parallel, and it allows for scaling out. Having one shard per customer (or one shard for european customers, one for north american customers etc)  is also considered a typical form of sharding.
+_sharding_ (or _horizontal partitioning_): Partition the data by rows (aka tuples / records), and give each shard (aka partition) to a different machine. Thus the load per machine is reduced, we can operate in parallel, and it allows for scaling out. Having one shard per customer, or one shard per region (european customers, asian customers, etc.) is also considered a typical form of sharding.
 
 _vertical partitioning_: *to-do*
 
-_Replication_: Rational: Fault tolerance. Local: node failure. With a lot of nodes, you are almost guaranteed that a node will fail. Regional: natural catastrophe. Thus spreading datacenters gives proximity to client (gives smaller latency) and protects against regional failures.
+_Replication_: Rational: Fault tolerance. Local failure: node / rack failure. With a lot of nodes, you are almost guaranteed that a node will fail. Regional: natural catastrophe. Thus spreading datacenters gives proximity to client (gives smaller latency) and protects against regional failures.
 
 _Storage classes_: High availability at high costs on one end and low availability (hours to access data) at low cost on the other end. The low end is typically for backups.
 
-_structred_ vs _unstructred_: As so often, there are shades of gray. Text is unstructured. A `messy' XML / JSON document is semi-structured, close to unstructured. A `nice'  XML / JSON document is semi-structured, close to structured. ProtocolBuffer / XML-with-DTD is structured.
+_structred_ vs _unstructred_: As so often, there are shades of gray. Text is unstructured. A `messy' XML / JSON document is semi-structured, close to unstructured. A `nice'  XML-without-schema / JSON document is semi-structured, close to structured. ProtocolBuffer / XML-with-schema is structured.
 
 _schema_ / _validation_: One validates a document against a schema.
 
-_scema on write_ means that you first need to define a schema before you can insert new data. When inserting it is ensured that the data is valid w.r.t. the schema. E.g. a relational DB. _schema on read_ means that data is verified against a schema only upon request, e.g. after reading the data. I.e. data and schema are decoupled. E.g. XML.
+_scema on write_ means that you first need to define a schema before you can insert new data. When inserting it is ensured that the data is valid w.r.t. the schema. E.g. a relational DB.
 
-_value space_: What the set of valid values of a type logically are. _lexical space_: how these values are represented on disk.
+_schema on read_ means that data is verified against a schema only upon request, e.g. after reading the data. I.e. data and schema are decoupled. E.g. XML.
+
+_value space_: What the set of valid values of a type logically are.
+
+_lexical space_: how these values are represented on disk.
 
 [[disk_short_stroking]]
 _disk short stroking_: Practice of using only the outer (faster) sectors of a disk. Increases troughput and decreases latency. It decreases latency because the disk read head has to cover a smaller range, i.e. the maximum distance the read head has to move is decreased.
 
+_data center_: 1k - 100k machines, 1-100 cores / node, 1-12TB local storage / node, 16GB - 4TB RAM / node. 1GB/s network bandwith for a node. A rack consists of nodes.
+
+_noSQL database_ ("non relational"): A database that is modeled in means other than the relational model.
+
+_newSQL database_: A database that seeks to provie the same scalable performance of a noSQL database for OLTP read-write workloads while still maintaining the ACID guarantees of a traditional RDBMS.
+
 Random notes:
 
-- Random access to pages is generally expensive, or the other way round, sequencial access is much faster
+- Random access to pages is generally expensive, or the other way round, sequencial access is much faster.
+
  * binary search is a bad option
 
 - Dealing with (multi)sets, i.e. unordered collections, as most SQL queries do, has the advantage that it is more parallelizable as when it had to be ordered.
 
 - Typical disk block sizes are 0.5kB to 4kB. Virtual memory page size is typically 4kB. Typicall a DB does I/O in 64kB blocks.
 
-- _data center_: ~1k - 100k machines, 1-100 cores / server, 1-12TB local storage / server, 16GB - 4TB RAM / server. 1GB/s network bandwith for a server. A rack consists of nodes.
-
 
 === CAP Thoerem
 
 The _CAP theorem_ is about the following impossibility triangle (you can have at most 2 of 3): you only can have two, but never three.
 
-- _consistency_: every read receives most recent write or an error; if not consistent, we have to deal with conflicts somehow
+[[CAP_consistency]]
+- _Consistency_: Every read receives most recent write or an error; if not consistent, we have to deal with conflicts somehow
 
-- _availability_:  every request (except under network partition) receives a non-error response (conversly, not having A at all means always getting an error) with low latency (low being subjective, making availability subjective).
+[[CAP_availability]]
+- _Availability_: Every request (except under network partition) receives a non-error response (conversly, not having A at all means always getting an error) with low latency (low being subjective, making availability subjective).
 
-- _partition tolerance_: system continuous to operate despite an abitrary number of messages being dropped/delayed by network between nodes.
+[[CAP_partition_tolerance]]
+- _Partition tolerance_: The system continuous to operate despite an abitrary number of messages being dropped/delayed by network between nodes.
 
 *to-do* point out that consistency and availability in the context of the CAP theorem mean different things than the same terms in the context of ACID.
 
@@ -199,24 +281,29 @@ Doing updates (i.e. propagation to other nodes) asynchronous gives you availabil
 
 === REST
 
-_REST_ API (Representational State Transfer): REST is the way HTTP should be used. It's always a method (GET, PUT, DELETE, POST, ...) plus a resource (URI). PUT must be idempotent (when issued multiple times, the 2nd plus requests have no effect). GET must be side-effect free.  POST is the most generic, it can have side effects.
+_REST_ API (_Representational State Transfer_): REST is the way HTTP should be used. It's always a method (GET, PUT, DELETE, POST, ...) plus a resource (URI). PUT must be idempotent (when issued multiple times, the 2nd plus requests have no effect). GET must have no side-effects.  POST is the most generic, it can have side effects.
 
 
 [[OLAP]]
 === OLAP, OLTP, Data Warehouse
 
-_On-Line Transaction Processing_ (_OLTP_): `Traditional' database operations. Typically there are _lots_ of operations (aka transactions), each only touching a small portion of the database. E.g. there are millions of customers, or products, but you query only one.  Tables are typically normalized to avoid anomalies. Typically there are a lot of writes (but as any operation in OLTP, touches only a small portion of the database, e.g. insert a new record or modify one existing record). Typically very fast, i.e. usable in an interactive environment.
+_On-Line Transaction Processing_ (_OLTP_): `Traditional' database operations. Typically there are _lots_ of operations (aka transactions), each only touching a small portion of the database. E.g. there are millions of customers, or products, but you query only one. Typical update operations are insert a single new record or modify a single existing record. OLTP databases typically store detailed operational / current data.  Often historical data is archieved and thus not part of an OLTP database.  Tables are typically normalized to avoid anomalies. Typically there are a lot of writes, but as any operation in OLTP, touches only a small portion of the database). Typically very fast, i.e. usable in an interactive environment.
 
-_On-Line Analytic Processing_ (_OLAP_) is examination of data for patterns or trends in order to make decisions. This generally involves few highly complex queries that typicially touch large portions of the database. Typically tables are denormalized (introducing risk of anomalies) in order to make queries fast. Typically there are a lot of reads and (almost) no writes. Typically quite slow (grab a coffe or overnight). The term OLAP can be viewed in a wide sense where it includes also things such as Spark and MapReduce, but historically some people view it in a more narrow sense where OLAP means data cubes.
+_On-Line Analytic Processing_ (_OLAP_) is examination of data for patterns or trends in order to make decisions. This generally involves few highly complex queries that typicially touch large portions of the database. Typically tables are denormalized (introducing risk of anomalies) in order to make queries fast. Typically there are a lot of reads and (almost) no writes. Typically quite slow (grab a coffe or overnight). OLAP databases might store aggregated historical data. The term OLAP can be viewed in a wide sense where it includes also things such as Spark and MapReduce, but historically some people view it in a more narrow sense where OLAP means data cubes.
 
-OLAP applications commonly take place in a readonly copy of the master database (or multiple source data bases), called a _data warehouse_. OLAP queries and OLTP querries are generally different, so a dataware house has a different architecture than a traditional database. The data warehouse is readonly; however there might be incremental updates from the source data bases. Typically implemented via data cubes.
+*to-do* OLAP apparently typically is not characterized by ACID. Give more details / info.
 
+OLAP applications commonly take place in a readonly copy of multiple source / master data bases, the copy being called a _data warehouse_. OLAP queries and OLTP querries are generally different, so a dataware house has a different architecture than a traditional database. The data warehouse is readonly; however there might be incremental updates from the source data bases. Typically implemented via data cubes.
+
+OLTP vs OLAP resources: https://www.datawarehouse4u.info/OLTP-vs-OLAP.html
+
+[[ELT]]
 The process of creating the data warehouse from the source databases is also called _extract transform and load_ (_ETL_). The subject of the query (is it about customers, or sales, or ...) might influence the resulting data warehouse. Often the copy is made overnight, and thus is up to one day out of date. The transform step includes things such as normalizing data (not in the RDBMS sense) (e.g. turn all of {mister, monsieur, Herr, ...} into one single form, say mister), otherwise cleanup the data for easier OLAP queries, filter, join etc. The load step means actually creating the dataware house data (often a cube) from the data comming out of the transformation step. The load step includes checking integrity constraints, store in sorted order, build indicies, partition the data.
 
-Implementations of OLAP:
+Implementations of OLAP / data stores for OLAP:
 
 [[ROLAP]]
-_ROLAP_ (_relational OLAP_): OLAP is implemented on top of a RDBMS by using a so called _star schema_. There is one table which stores the facts table. The facts table is visually the center of the star. The columns representing the dimensions are the key of the facts table, the columns representing the measures are the dependend columns. Each dimension (i.e. column in the facts table), can optionally have satelite data, which is stored as another table, called _dimension table_. E.g. the customer dimension / column in the facts table stores customer ids, and there is a "customer" dimension table having customer id as key, and further dependend columns such as name, address etc. So a dimension table describes all possible values of a given dimension. The facts table column this dimension table is associated with is a foreign key. As an extension to the star schema, if you normalize the dimension tables, you get the so called _snow-flake schema_.
+_ROLAP_ (_relational OLAP_): OLAP is implemented on top of a RDBMS by using a so called [[star_schema]]_star schema_. There is one table which stores the facts table. The facts table is visually the center of the star (*to-do* according to the moodle quiz, a star schema can consist of multiple facts tables). The columns representing the dimensions are the key of the facts table, the columns representing the measures are the dependend columns. Each dimension (i.e. column in the facts table), can optionally have satelite data, which is stored as another table, called _dimension table_. E.g. the customer dimension / column in the facts table stores customer ids, and there is a "customer" dimension table having customer id as key, and further dependend columns such as name, address etc. So a dimension table describes all possible values of a given dimension. The facts table column this dimension table is associated with is a foreign key. As an extension to the star schema, if you normalize each dimension table, i.e. each dimension table is broken up into multiple tables, you get the so called _snow-flake schema_.
 
 _MOLAP_ (_multi-dimensional OLAP_): OLAP which stores its data in an optimized multi-dimensional array storage. The physical layer is typically directly memory and/or disk.
 
@@ -238,7 +325,9 @@ Apache Haddoop is a collection of open-source utilities that facilitate using a 
 [[relational_model]]
 == Relational model
 
-Most DBMS today are based on the _relational data model_, in which there's a single way to represent data: A _relation_ (or _table_) represents data as a two-dimensional table. The _schema_ of a relation relation describes the relation by specifyinig its name and the name and _domain_ (aka _type_) of its _fields_ (aka _attribute_ or _column_). Think of a relation as a type; concrete instances thereof are called, well _(relation) instances_. An relation instance is a set (not list) of _(data) records_ (or _row_ or _tuple_).  A record has one _component_ for each attribute the relation. _Integrity constraints_ are conditions that each record must satisfy.  A _block_ (or _page_) is the unit of transfer for disk I/O.
+Most DBMS today are based on the _relational data model_, in which there's a single way to represent data: A _relation_ (or _table_) represents data as a two-dimensional table. The entities along the horizontal dimension are are called _attributes_ (or _fields_ or _columns_). An attribute is an ordered pair of _attribute name_ and _attribute type_. The entities along the vertical dimension are called _tuples_ (or _row_ or _(data) records_ or _document_ (in document stores)). Think of a relation as a type. A concrete instances of a relation is called a _(relation) instance_. A relation instance consits of a set (i.e. unordered) of tuples. A _tuple_ (as the math term `tuple' ordered) consists of one _attribute value_ (or _component_ or _cell_ (seldom used in the relational / SQL world)) for each attribute the relation.
+
+The _schema_ of a relation relation describes the relation by specifyinig its name and the sequence (i.e. ordered) of its attributes. Recall that an attribute is an ordered pair of attribute name and attribute type.
 
 Levels of abstraction:
 
@@ -279,19 +368,20 @@ Relational operators may be implemented using the iterator design pattern.
 When measuring costs, often asymptotic notations in terms of number of I/O accesses are used, since I/O is much more expensive than CPU, even with flash. Sometimes, as improvement, a distinction is made between random access and sequential access, since also their costs differ substantially.
 
 
+[[integrity_constraints]]
 === Integrity Constraints
 
-Part of the DDL (data definition language).
+_Integrity constraints_ are conditions that each record must satisfy. Part of the DDL (data definition language).
 
 A _superkey_ for a relation is a set of columns such that no two distinct tuples can have same values in all these columns. In other words, a superkey is a set of attributes within a table whose values can be used to uniquely identify a tuple.  A _(candidate) key_ (or _unique key_) for a relation is a minimal superkey, i.e. no column can be removed from the superkey such that the new column set is still a superkey.  The attributes / columns constituting the candidate key are called _prime attributes_.   Attributes that doe not occur in _any_ candidate key are called _non-prime attributes_.  A table can have multiple candiate keys, one of which can be choosen to be the _primary key_, all others are then _alternate keys_.  A _foreign key_ is a set of columns in one relation that uniquely identifies a tuple of another, possibly the same, table.  The relation containing the foreign key is called the _child relation_, the relation containing the respective candidate key is called the _parent table_ (or _referenced table_).
 
 primary key vs unique key: It seems that technically the only difference is that a table can have at most one primary key, but zero or more unique keys. Further differences are among typicall defaults associated with these constraints, and the semantic meaning. Primary key is meant to identify a row, unique key is meant to ensure a constraint. Most DBMS will by default create a clustered index for primary key and an unclustered index for each unique key, and by default primary key has a non-null constrained while unique key doesn't. At least in Oracle, when all columns of a key are null, and there is no not-null constraint, then the key constraint is satisfied.
 
-_Domain constraint_: Kind of a type, but with additional conditions attached. (Chapter 5.7.2).
+_Domain constraint_: Kind of a type, but with additional conditions attached.
 
-_Primary key constraint_: Key must be unique within table
+_Primary key constraint_: Key must be unique within table, which it is by definition of key.
 
-_Foreign key constraint_ (aka _referential integrity constraint_): A key that establishes a relationship between its table or view and a primary key or unique key, called the _referenced key_, of onther table or view. The table or view containing the foreign key is called the _child_ object, the table or view containing the referenced key is called the _parent_ object. Child and parent can be the same table or view.
+_Foreign key constraint_ (aka _referential integrity constraint_): A key that establishes a relationship between its table or view and a primary key or unique key, called the _referenced key_, of onther table or view.
 
 _General contstraint_: View CHECK constraint on a table or an ASSERTION which is global / not associated with any table.
 
@@ -302,9 +392,18 @@ Note that being able to write down constraints in the DDL helps to remove redund
 
 _Anomalies_ are problems, e.g. problems arising from having redundancy, which in turn arises when to many fields are cramed into a single relation such that it contains many tuples which are nearly identical. The typical way of solving the problem is to _decompose_ such an ill-designed relation into multiple relations.
 
-A _normal form_ is a property of a relation with the intention of avoiding anomalies. A relation is in _1st normal form_ iff the domain of each attribute is an atomic type.  A relation is in _2nd normal form_ iff additionally all functional dependencies are on the whole candidate key, for all candidate keys. A relation is in _3rd normal form_ iff additionally every non-prime attribute is non-transitively dependent on every key of R. Bill Kent: "[Every] non-key [attribute] must provide a fact about the key, the whole key, and nothing but the key.". Requiring existence of "the key" ensures that the table is in 1NF; requiring that non-key attributes be dependent on "the whole key" ensures 2NF; further requiring that non-key attributes be dependent on "nothing but the key" ensures 3NF.
+*to-do* better, more concise formulation of anomaly.
+
+A _normal form_ is a property of a relation with the intention of avoiding anomalies. Informally, a relation is often described as _normalized_ if it meets 3rd normal form.
+
+A relation is in _1st normal form_ iff the domain of each attribute is an atomic type.
+
+A relation is in _2nd normal form_ iff additionally all functional dependencies are on the whole candidate key, for all candidate keys.
+
+A relation is in _3rd normal form_ iff additionally every non-prime attribute is non-transitively dependent on every key. Bill Kent: "_The key, the whole key, and nothing but the key_". Or in a slightly longer version: "[Every] non-key [attribute] must provide a fact about the key, the whole key, and nothing but the key.". Requiring existence of "the key" ensures that the table is in 1NF; requiring that non-key attributes be dependent on "the whole key" ensures 2NF; further requiring that non-key attributes be dependent on "nothing but the key" ensures 3NF.
 
 
+[[relational_algebra]]
 === Relational algebra
 
 _Relational algebra_ (aka just _algebgra_): Operational (thus procedural), i.e. we can build arbitrary expressions on the basis of operators, each taking one or more operands. The domain and image of each operator are relations. Relations have set semantics (in contrast to multiset), i.e. no relation can have duplicate rows (SQL has multiset semantics, i.e. tables can have duplicate rows. I.e. in pure relational algebra often there's a `remove duplicates' sub step. However in practice that is rather expensive since it involves sorting or hashing). Relation algebra is typically not directly used, but via SQL, which uses it internally.
@@ -316,6 +415,7 @@ _Relational calculus_ (aka just _calculus_): A declarative language -- Describe 
 Exprecity of relational algebra and relational calculus is equivalent.
 
 
+[[sql_basic_operators]]
 ==== Basic operators
 
 There are only five operators: selection, projection, and 3 set operators: set difference, set union, crossproduct. There are convenience operators being based on these basic operators.
@@ -330,23 +430,29 @@ _(set) difference_ (set query): A - B (row-wise). Cut away rows which appear in 
 
 _(set) intersection_ (set query): A ∩ B. Keep only rows appearing in both.  Defined as A-(A-B). A and B must be union compatible.
 
-_crossproduct_ (aka _cartesian product_) (binary query): A ⨯ B. The output relation instance has each tuple of A, each of which followed by each tuple of B.  The output relation's schema is the concatenation of A's schema plus B's schema. By convention field names are overtaken; in case of name conflicts, corresponding fields are unnamed and must be referred to by position.
+[[crossproduct]]
+_crossproduct_ (aka _cartesian product_, or _cross join_, or _unconditional join_) (binary query): A ⨯ B. The output relation instance has each tuple of A, each of which followed by each tuple of B.  The output relation's schema is the concatenation of A's schema plus B's schema. By convention field names are overtaken; in case of name conflicts, corresponding fields are unnamed and must be referred to by position.
 
 
-==== Some important compound operators
+[[sql_joins]]
+==== Join operators
 
-_(conditional) join_ (binary query): A ⨝~condition~ B: Defined as σ~_condition_~(A ⨯ B).
+All are binary compound operators; compound meaning implemented using the <<sql_basic_operators>>.
 
-_equi join_ (binary query): A conditional join where the condition solely consists of one or more equalities, combinded by logical and. They can be implemented efficiently; In effect, there is only one equiality, where the rhs and lhs are the concatenation of the individual original lhs/rhs. E.g. (r1.f1=r2.f1 and r1.f2=r2.f2) is equivalent to (concat(r1.f1,r1.f2)=concat(r2.f1,r2.f2)).
+_inner join_ (binary query): A ⨝~condition~ B: Defined as σ~_condition_~(A ⨯ B). I.e. it is crossproduct followed by a selection, i.e. rows not fulfilling the condition are cut away.
 
-_natural join_ (binary query): A ⨝ B: Condition demands equivality (A.fieldx=B.fieldx) for all fields having the same name. I.e. it's an implicit equi join. However, in contrast, also a projection follows which cuts away the duplicate fields. If there are no common field names, the result is the crossproduct.
+_outer join_ (binary query): Outer join is subdivided into right outer join, left outer join, and full outer join. In contrast to an inner join, an outer join retains some of the rows of the crossproduct table which don't fulfill the condition. In a _left outer join_, the result table contains each row of the left table. Consider a specific row in the left table. If the condition would cut away each occurence of it in the crossproduct, because there is no `matching' row in the right table, one occurence of it is retained in the result table. The cells in that retained row that correspond to the columns of the right table are set to NULL. _Right outer join_ is analogous; the result table contains each row of the right table. _Full outher joins_ is conceptually the union of right outer join and left outer join. I.e. the result contains each row of the left table as well as of the right table.
 
-_Inner joins_ don’t include non-matching rows; whereas, outer joins do include them. _Left outer join_ always has at least one tuple for each tuple of the lhs input relation, and if there are no tuples of the rhs relation matching the condition, fills the components with NULLs. _Right outer join_ is analogous. _Full outer join_
+_equi join_ (binary query): A join (indpendent of inner or outer) where the condition solely consists of one or more equalities, combinded by logical and. They can be implemented efficiently; In effect, there is only one equiality, where the rhs and lhs are the concatenation of the individual original lhs/rhs. E.g. (r1.f1=r2.f1 and r1.f2=r2.f2) is equivalent to (concat(r1.f1,r1.f2)=concat(r2.f1,r2.f2)).
 
-_division_: A / B: Defined as π~x~(A)-π~x~((π~x~(A)⨯B)-A). More informally: Say A tells which supplier supplies which part, and B lists parts. A/B deliviers suppliers which supply all the parts in B.
+_natural join_ (binary query): A ⨝ B: An equi join (independent of inner or outer) where the field pairs to be compared for equality are implicitely given by fields with same name, and the result is followed by a projection which cuts away the duplicate fields. If there are no common field names, natural join is equivalent to <<crossproduct>>.
+
+Recall: <<crossproduct>> is the basic operator meaning `unconditional join'.
 
 
 ==== Extended operators
+
+_division_: A / B: Defined as π~x~(A)-π~x~((π~x~(A)⨯B)-A). More informally: Say A tells which supplier supplies which part, and B lists parts. A/B deliviers suppliers which supply all the parts in B.
 
 _duplicate-elimination_ δ (d as in duplicate/delta): Eliminates duplicate rows, i.e. turns a multiset into a proper set.
 
@@ -361,6 +467,7 @@ _sorting_ τ: Turn a relation instance into a list of tuples. Note that not all 
 _outer join_: *to-do*
 
 
+[[sql]]
 === SQL
 
 See sql.txt
@@ -537,14 +644,16 @@ Disk space manager provides about this API: allocate/free a page, read/write a p
 === Comparison of data stores
 
 |=====
-|               | RDBMS①           | HBase              | MongoDB
-| # rows / docs | millions          | billions           | billions
-| # columns     |                   | millions           |
-| sparse tables | not optimized for | good               |
-| schema        | mandatoy, fixed   | optional, flexible | optional, flexible
-| scales out    | no                | yes                | yes
-| has indexes   | yes               | no                 | yes
-| latency       |                   | low ②             |
+|               | RDBMS①           | HBase              | MongoDB             | Spanner
+| # rows / docs | millions          | billions           | billions            | trillions
+| # columns     |                   | millions           |                     | 
+| sparse tables | not optimized for | good               |                     |
+| schema        | mandatoy, fixed   | optional, flexible | optional, flexible  |
+| scales out    | no                | yes                | yes                 | yes
+| machines      | 1                 | tousands           | tousands            | millions
+| data centers  | -                 | 1 *to-do*          | few *to-do*         | hundreds
+| has indexes   | yes               | no                 | yes                 |
+| latency       |                   | low ②             |                     |
 |=====
 
 ① on single machine +
@@ -593,6 +702,9 @@ Writing is atomic with granularity of one document. Since version 4.0, multi-doc
 _document order_ / _padding_: The storage format is BSON. The data is stored on the local drive, see also <<mongodb_sharding>>. The documents of a collection are stored one after another, each with some padding (given by the _padding factor_), which allows a document to grow. However, if the padding doesn't suffice, the document is relocated, usually to the end of the collection. The padding factor is initially 1 (no padding), and is dynamically adjusted depending on how many documents outgrow their padding and how many updates are within the existing padding.
 
 _cursor snapshots_ / _snapshot query_: The problem: "cursor = db.mycollection.find(myquery); while (cursor.hasNext()) { var doc = cursor.next(); doc = process(doc); db.mycollection.save(doc); }". When a document outgrows its padding, it is relocated, usually to the end of the collection.  In that case, the loop visits the document a 2nd time.  The solution is to snapshot the query: "db.mycollection.find(myquery).snapshot();" Snapshotting makes the query slower.
+
+_normalization_ & _references_: Data can be normalized as in a relational database. Each document (`row') in a collection (`table'), can refer to another document (`row'). The refrenced document might be in another collection (`table'). This means, to change your data, you only need to update one document, because that data is only defined once. However, MongoDB doesn’t have any join facilities, like SQL does. Therefore, if you need data from several collections, you will need to perform several queries.
+
 
 [[mongodb_replication]]
 ==== Replication
@@ -818,9 +930,12 @@ patterns / tips:
 - using an index vs doing a <<table_scan>>: Besides the cost of maintaining an index, an index has also costs when doing a lookup: The index entry itself has to be accessed, whereas on a table scan, only the documents have to be accessed. So indexes work well when all the following is true: large collection, large documents, selective queries (only a small percentage of documents match the query), and table scans work well when all the opposite is true: small collection, small documents, non-selective querries. For anything inbetween you might want to profile to decide whether an index or an table-scan is better for you.
 
 
+[[neo4j]]
 === Neo4j
 
-A graph database, the labeled property graph variant. Uses Cypher as query language.
+A (concrete) graph database, the labeled property graph variant. Uses Cypher as query language. Is a native graph database, i.e. has its own physical way of storing, opposed to be on top of say an RDBMS)
+
+_query language_: <<cypher>>
 
 
 ==== Neo4j Internals
@@ -829,27 +944,51 @@ Does replication, but not sharding. Uses a master-slave architecture for replica
 
 Transactions (by definition ACID) are semantically identical to traditional RDBMS transactions.
 
-Data structure: Labels of a node are stored as a singly linked list attached to a node. Same goes for properties. The edges of a node are stored as a doubly linked list (called _relationship chain_), where the pointers are stored in the edge data structure. Each edge has each a pointer to the source node and the target node. Properties for a node / responsibility are stored in a singly linked list.
+Data structure: Labels of a node are stored as a singly linked list attached to a node. Properties for a node / responsibility are stored in a singly linked list.  The edges of a node are stored as a doubly linked list (called _relationship chain_), where the two pointers (next, prev) are stored in the edge data structure. Each edge has additionally each a pointer to the source node and the target node.
 
 The graph is stored in multiple store files. Each _store file_ contains a certain aspect: nodes, relationships, properties etc. Ids use 4 bytes. Note that the fixed size records allow for O(1) lookup of a specific record.
 
-The _node store_ stores all the nodes. Each node is stored in a fixed sized record of 9 bytes. 1 byte as `isInUse' flag, id of the node's first relation in the relationship chain, id of the node's first property.
+The _node store_ stores all the nodes. Each node is stored in a fixed sized record of 9 bytes. 1 byte as `isInUse' flag, id of the node's first relation in the relationship chain, id of the node's first property. *to-do* what about the labels of a node?
 
 The _relationship store_ stores all the relationships. Each relationship is stored in a fixed sized record of 33 bytes.  1 byte as `isInUse' flag, ids of to source and destination node, id of relationship type, ids of the next / prev relationship for the source / destination node, id of edge's first property.
 
 The _property store_ stores all the properties (both of relations and nodes). Fixed size records. Four property blocks, the id of the next property in the chain. One to four property blocks are required to store a single property. *to-do* better understand the details how a single property is stored
 
-The _cache architecture_ consists of the operating system's file cache and a high-level cache.  The file system cache is intended for modifications.  The _high-level cache_ (or _object cache_) stores nodes, relationships and properties and is optimized for arbitrary read patterns.  Here the data structure is different from the one on disk. A node also stores its properties and pointers to its relations, sorted first by relation type, then by relationship direction (in/out). A relationship stores its properties; but no longer pointers to next/prev relationship in the relationship chain.
+The _cache architecture_ consists of the operating system's file cache and a high-level cache.  The file system cache is intended for modifications.  The _high-level cache_ (or _object cache_) stores nodes, relationships and properties and is optimized for arbitrary read patterns.  Here the data structures are different from the ones on disk. A node also stores its properties and pointers to its relations, sorted first by relation type, then by relationship direction (in/out). A relationship stores its properties, but no longer pointers to next/prev relationship in the relationship chain.
 
 _Indexes_: Indexes are used to quickly find the starting node of a query, see also START clause in cypher.
-p
-_Latency_: Most queries flollow a pattern wherby an index is used to quickly find starting nodes; the remainder of the graph traversal then uses a combination of pointer chasing and pattern matching. That is, performance does not depend on the graph size, but only on the size of the graph bequing queried. Contrast this with RDBMS where joins depend on the size of the two involved tables.
 
-_API hierarchy_: From low-level to high-level: Kernel, Core API, Traverser API, Cypher.
+_Latency_: Most queries follow a pattern wherby an index is used to quickly find starting nodes; the remainder of the graph traversal then uses a combination of pointer chasing and pattern matching. That is, performance does not depend on the graph size, but only on the size of the graph bequing queried. Contrast this with RDBMS where joins depend on the size of the two involved tables.
+
+_API hierarchy_: From low-level to high-level:
+
+- Kernel
+- Core API
+- Traverser API
+- Cypher
 
 *to-do* I don't understand how to scale out. So with neo4j, we have the same limitations in size as a traditional RDMS, right? It must fit on a single machine.
 
 *to-do* Despite the caches (which as all caches are tiny compared to the data on disk), I don't see how can all this pointer chasing be efficient. Isn't the query time totally dominated by disc seeks?
+
+
+[[GraphX]]
+=== GraphX
+
+GraphX is a new component in Spark for graphs and graph-parallel computation. Logically the property graph corresponds to a pair of typed collections (RDDs) encoding the properties for each vertex and edge. Like RDDs, property graphs are immutable, distributed, and fault-tolerant. The graph is partitioned (aka sharded) across the executors using a range of vertex partitioning heuristics.
+
+
+*to-do* Move to correct location once I really know what GraphX is
+
+
+[[triplestore]]
+=== Triplestore / RDF store
+
+A triplestore is a database for <<rdf>>. Since RDF can be used to model a graph, a triplestore can be used as a graph database.
+
+*to-do* slides 121 122 123 etc (RDF schema, classes, types, ontology, simple entailment, OWL (Web Ontology Language) )
+
+_Implementations_: Semantic Web.
 
 
 === Google Bigtable
@@ -994,7 +1133,7 @@ Data Model: Multi-column primary key. A _timestamp_ column.  Partition table hor
 
 Two level Master-slave architecture.  The one top level master is called the _universemaster_,  the masters are called _zonemasters_, the slaves are called _spanserver_. There's one zonemaster-spanservers subtree per data center.
 
-Can store trillions of rows; a traditional RDBMS (single machine) can store millions, HBase billions. Can have hundrets of data centers, millions of machines.
+Can store trillions of rows; a traditional RDBMS (single machine) can store millions, HBase billions. Can have hundreds of data centers, millions of machines.
 
 Sacrifice high availability to get low latency.
 
@@ -1411,27 +1550,61 @@ _good enough_: If the true / optimal result is not mandatory, we can just ignore
 
 == Data shape
 
+*to-do* data shape vs data model? In the stack overview we said data model for cube / table / tree etc. In the wrapup lecture there's a slide `each data shape has one: ..., data model, ...' and the next slide `data models' (5:18) we said data shape for cube table tree etc, and used the term data model for the operations we can do on the data, e.g. for cube slice, dice, cross-tabulate.
+
+
 === Table
+
+==== Query Language: SQL
+
+See <<sql>>
+
 
 === Cube
 
 A _data cube_ (or _OLAP cube_ or just _cube_ or _multidimensional dataset_) is a data model meant for OLAP. You can also view it as a multidimensional spread sheet (spread sheet as in Excel). Each cell has one or more value in it, also called _measure_. The number of measures and type of each measure is uniform for each cell of the cube. Each dimension might be a property such as name, country etc. A _facts table_ is a data cube flatened to a table. Each dimension gets a column, and there's an additional column for each measure. Each row in the facts table is called a _fact_.
 
+[[determine_facts_table]]
+_Determine facts table & measures_: Given a typical OLTP schema, how to decide what the facts table should be? I.e. what are dimensions, what are measures? See also <<ELT>>.
+
+- It depends on what we want to analyze.
+
+- Concerning measures: Intuitively, if it makes sense to calculate the sum or average of an attribute, then we can probably use it as measure.
+
+- Concerning dimensions: All other attributes, i.e. thoese not being measures; except keys, which are only an artifact of normalization.
+
+  * Some of these attributes usable as dimensions have explictly materialized
+    hierarchies. For example a locationkey attribute might contain a foreign key
+    to a nation table. The nation table contains a regionkey attribute, a name
+    attribute, and further attributes. The region table then has further
+    attributes describing the region.
+
+  * Some of these attributes usable as dimensions have implicit
+    hierarchies. E.g. a date attribute can be broken down into year, quarter,
+    month, week, etc.
+
+  * Intuitively, if you can draw a plot where some attribute is the x-axis, then
+    this attribute is probably a dimension.
+
+  * Another way to look at it is: if it makes sense to have a foreign key to
+    another table instead of an inlined attribute, then the attribute is a
+    dimension.
+
+
 *to-do* compare and contrast _raw-data cube_ and _formal data cube_; make the above paragraph correct regarding this distinction.
 
-Operations on a data cube:
 
-_Aggregation_ (loosely equivalent to SQL group-by on the facts table): `Squash' one dimension by squashing the cube along that dimension. I.e. aggregate all values along that dimension, resulting in a new data cube with one dimension less. E.g. if one dimension is date, but we don't care about the date, we can ignore the date by aggregating over it.
+==== Cube Operations
 
-_Slicing_ (equivalent to SQL selection (WHERE clause) on the facts table): Regarding a given dimension, only care about values fulfilling a given predicate, and drop the other values. E.g. if one dimension is customer_firstname, the predicate might be (customer_firstname = "Bob" or customer_firstname = "Alice"). The dimensions of the cube remain the same.
+_Slicing_ (equivalent to selection on the facts table, i.e. SQL WHERE): Regarding a given dimension, only care about values fulfilling a given predicate, and drop the other values. E.g. if one dimension is customer_firstname, the predicate might be (customer_firstname = "Bob" or customer_firstname = "Alice"). The dimensions of the cube remain the same. In contrast to dicing and aggregation, information is discarded.
 
-_Dicing_ (equivalent to SQL GROUP BY): Partition each dimension. Possibly turn one dimension into one single partition. (Only relevant if you try to imagine this: Each partition / `slice' must not be continuous along its dimension. So you might mentally want first to reorder such that each partition is continous along its dimension and then truly a slice). So the cube is diced into dices. Each die, consisting of multiple cells along each dimension, becomes a cell of the new cube by aggregating all cells of the die. Say one of the many dimensions is product, which has satelite data which has a color column, then `dicing by product.color' means that we partition the product dimension by product.color, and each other dimension is turned into one single partion.
+_Dicing_ (equivalent to SQL GROUP BY & SELECT): Partition each dimension. Possibly turn one dimension into one single partition. (Only relevant if you try to imagine this: In the mental model, each partition / `slice' is continuous along its dimension. So you might mentally want first to reorder such that each partition is continous along its dimension and then truly a slice). So the cube is diced into dices. Each die, consisting of multiple cells along each dimension, becomes a cell of the new cube by aggregating all cells of the die. Say one of the many dimensions is product, which has satelite data which has a color column, then `dicing by product.color' means that we partition the product dimension by product.color, and each other dimension is turned into one single partion.
 
-*to-do* cross-tabulate (is in the wrap up lecture 5:18)
+_Aggregation_ (equivalent to SQL GROUP BY & SELECT): `Squash' one dimension by squashing the cube along that dimension. I.e. aggregate all values along that dimension, resulting in a new data cube with one dimension less. E.g. if one dimension is date, but we don't care about the date, we can ignore the date by aggregating over it. Can be seen as dicing where one dimension is `partitioned' into one partition and that dimension vanishes, and all other dimensions are `partitioned' by doing nothing, i.e. keep the current partitioning.
 
-*to-do* so dicing by dim1 is the same as aggergating over all other dimensions?
+_Drill-down_ is the process of making the dicing partitions more finely (which includes dicing more dimensions) and / or make the slicing predicates more specific (which includes making the predicate look at more dimensions).
 
-_Drill-down_ is the process of making the dicing partitions more finely (which includes dicing more dimensions) and / or make the slicing predicates more specific (which includes making the predicate look at more dimensions). _Role-up_ is the opposite: make the dicing partitions more coarse (which includes dicing less dimensions) and / or make the slicing predicates less specific (which includes making the predicate look at less dimensions).
+_Role-up_ is the opposite: make the dicing partitions more coarse (which includes dicing less dimensions) and / or make the slicing predicates less specific (which includes making the predicate look at less dimensions).
 
 _cross tabulation_ (equivalent to SQL GROUP BY CUBE): For each dimension, add a value `total'. It represents aggregation along the dimension in which it appears. For the 2D case, the following gives an example. In 3D, 3 sides of the cube get a 1-cell thick plane attached.
 
@@ -1447,19 +1620,56 @@ Original cube:
 Cross tabulation of original cube:
 
 |======
-|           | Europe | Americas | Asia | Total 
+|           | Europe | Americas | Asia | Total (*)
 | Mercedes  | 3      | 5        | 11   | 19
 | VW        | 5      | 2        | 7    | 14
 | Porsche   | 7      | 8        | 8    | 23
-| Total     | 15     | 15       | 26   | 56
+| Total (*) | 15     | 15       | 26   | 56
 |======
 
 
 _cube operator_: Given a fact table F, CUBE(F) denotes cross tabulation on F. Here, the `total' value is often denoted `*'.
 
-Assuming OLAP is implemented as <<ROLAP>>, and assuming a star schema (see ROLAP) is used. The above data cube operations can be implemented in SQL as follows:
 
-Aggregating over dim1:
+==== Cube operations in SQL
+
+Assuming OLAP is implemented as <<ROLAP>>, and assuming a <<star_schema>> is used. The above data cube operations can be implemented in SQL as follows:
+
+_Slice_ (WHERE): Example: Slice on (dim1 = 42 or dim = 77). The core part is the WHERE clause. So if you add that core part to another query, you added "slice on (dim1 = 42 or dim = 77)" to that query.
+
+--------------------------------------------------
+SELECT *
+FROM factstable
+WHERE /* filter on dim1, e.g. "dim1 = 42 or dim = 77" */
+--------------------------------------------------
+
+_Dice_ (GROUP BY & SELECT): Example: Dice by dim1. The factstable has more dimensions. If this is a 3D cube, dicing by dim1 means we dice only along the dimension dim1, creating as as many `slices' as there are `cells' along dim1, and we aggregat over each slice, creating a vector of lenght number-of-cells-along-dim1.
+
+------------------------------------------------------------
+SELECT dim1, /* SUM(measi), i for all measure cols */
+FROM factstable
+GROUP BY dim1
+------------------------------------------------------------
+
+Example: Dice by dim1Table.color, i.e. where values of dim1 (being ids), have the same color according to the dim1 dimension table. If this is a 3D cube, dicing by dim1Table.color means we dice only along the dimension dim1, creating "number of different colors"-many `slices', and we aggregat over each slice, creating a vector of lenght "number of different colors".
+
+------------------------------------------------------------
+SELECT dim1Table.color, /* SUM(measi), i for all measure cols */
+FROM factstable
+  JOIN dim1Table on dim1 = dim1Table.id
+GROUP BY dim1Table.color
+------------------------------------------------------------
+
+Example: Dice by dim1Table.color and dim2. That is every value of dim2 gets its own partition:
+
+------------------------------------------------------------
+SELECT dim1Table.color, dim2, /* SUM(measi), i for all measure cols */
+FROM factstable
+  JOIN dim1Table on dim1 = dim1Table.id
+GROUP BY dim1Table.color, dim2
+------------------------------------------------------------
+
+_Aggregate_ (GROUP BY & SELECT): Example: Aggregating over dim1:
 
 --------------------------------------------------
 SELECT /* all dimension cols except dim1,
@@ -1468,45 +1678,23 @@ FROM factstable
 GROUP BY /* all dimension cols except dim1 */
 --------------------------------------------------
 
-Slice on (dim1 = 42 or dim = 77). The core part is the WHERE clause. So if you add that core part to another query, you added "slice on (dim1 = 42 or dim = 77)" to that query.
+_cross tabulate_ (GROUP BY CUBE & SELECT): The ultimate one is GROUP BY CUBE. GROUP BY GROUPING SETS and GROUP BY ROLLUP are intermediate steps concerning the goal of cross tabulation.
 
---------------------------------------------------
-SELECT *
-FROM factstable
-WHERE /* filter on dim1, e.g. "dim1 = 42 or dim = 77" */
---------------------------------------------------
-
-Dice by dim1Table.color:
-
-------------------------------------------------------------
-SELECT dim1Table.color, /* SUM(measi), i for all measure cols */
-FROM factstable JOIN dim1Table on dim1 = dim1Table.id
-GROUP BY dim1Table.color
-------------------------------------------------------------
-
-Dice by dim1Table.color and dim2 (i.e. every value of dim2 gets its own partition):
-
-------------------------------------------------------------
-SELECT dim1Table.color, dim2, /* SUM(measi), i for all measure cols */
-FROM factstable JOIN dim1Table on dim1 = dim1Table.id
-GROUP BY dim1Table.color, dim2
-------------------------------------------------------------
-
-_GROUP BY GROUPING SETS_ is syntactic sugar. SELECT ... GROUP BY GROUPING SETS (expr1, expr2, ...) is the UNION of SELECT ... GROUP BY expr1, SELECT ... GROUP BY expr2, .... The produced data is almost equivalent to a cross tabulation table, only that the totals for dim2 are missing. In the following example, the facts table contains more dimensions than just dim1, dim2.
+_GROUP BY GROUPING SETS_ is syntactic sugar. $$SELECT ... GROUP BY GROUPING SETS (expr1, expr2, ...)$$ is the UNION of $$SELECT ... GROUP BY expr1$$, $$SELECT ... GROUP BY expr2$$, .... To understand the following example better, see GROUP BY ROLLUP.
 
 ------------------------------------------------------------
 SELECT dim1, dim2, /* SUM(measi), i for all measure cols */
 GROUP BY GROUPING SETS ((dim1, dim2),(dim1),())
 ------------------------------------------------------------
 
-_GROUP BY ROLLUP_ is further syntactic sugar, making GROUP BY GROUPING SETS even more concise. GROUP BY ROLLUP (dim1, dim2, dim3) is equivalent to GROUP BY GROUPING SET ((dim1, dim2, dim3), (dim1, dim2), (dim1), ()). There's also the equivalent non-ISO compilant syntax GROUP BY dim1, dim2 WITH ROLLUP.
+_GROUP BY ROLLUP_ is further syntactic sugar, making GROUP BY GROUPING SETS even more concise. $$GROUP BY ROLLUP (dim1, dim2)$$ is equivalent to $$GROUP BY GROUPING SET ((dim1, dim2), (dim1), ())$$. There's also the equivalent non-ISO compilant syntax $$GROUP BY dim1, dim2 WITH ROLLUP$$. The produced data is almost equivalent to a cross tabulation table, only that the totals for dim2 are missing. In the following example, the facts table contains more dimensions than just dim1, dim2.
 
 ------------------------------------------------------------
 SELECT dim1, dim2, /* SUM(measi), i for all measure cols */
 GROUP BY ROLLUP (dim1, dim2)
 ------------------------------------------------------------
 
-_GROUP BY CUBE_: Delivers the data equivalent to a complete cross tabulation table. There's also the equivalent non-ISO compilant syntax GROUP BY dim1, dim2 WITH CUBE. In the following example, the facts table contains more dimensions than just dim1, dim2.
+_GROUP BY CUBE_: Delivers the data equivalent to a complete cross tabulation table. There's also the equivalent non-ISO compilant syntax $$GROUP BY dim1, dim2 WITH CUBE$$. In the following example, the facts table contains more dimensions than just dim1, dim2.
 
 ------------------------------------------------------------
 SELECT dim1, dim2, /* SUM(measi), i for all measure cols */
@@ -1520,6 +1708,11 @@ GROUP BY CUBE (dim1, dim2)
 _MDX_ (Multi-Dimensional eXpressions) is a query language for cubes. A dimension can be hierarchical. E.g. in the geography dimension, the top level values are Europe, Asia, America etc., Europa in turn can be zoomed in to yield Switzerland, Germany etc., Switzerland can be zoomed in to yield Zürich, Schwyz, etc.
 
 
+==== Schema: XBRL Taxonomy
+
+*to-do*
+
+
 ==== Syntax: XBRL
 
 _XBRL_ (eXtensible Business Reporting Language) is a XML based syntax for storing cubes. Each fact (i.e. row of the facts table) is stored as an XML element. The attributes of which define the dimension values, the content the measurements.
@@ -1530,62 +1723,128 @@ _XBRL_ (eXtensible Business Reporting Language) is a XML based syntax for storin
 
 Motivation:
 
-- Tables have exensive joins. In the worst case, there are multiple joins, e.g. when we traverse tables. Trees (document store) try to solve the problem by pre-joining (aka denormalization). However the downside is that we need to know in advance the joins we want to pre-join for. In graph databases, relationships are first-class citzens. No joins required, everything is pre-joined. In RDBMS, performance of a join degrates with table size. In a graph database, query cost is proportional to only the size of the part of the graph traversed to satisfy that query.
+- Tables have exensive joins. In the worst case, there are multiple joins, e.g. when we traverse tables. Trees (document store) try to solve the problem by pre-joining (aka denormalization). However the downside is that we need to know in advance the joins we want to pre-join for. No joins required, everything is pre-joined. In RDBMS, performance of a join degrates with table size. In a graph database, query cost is proportional to only the size of the part of the graph traversed to satisfy that query.  In graph databases, relationships are first-class citzens. In RDBMS, they are implemented indirectly, e.g. via foreign-keys.
 
 - In a RDBMS, one has to decide on a schema up front. In a graph database, the schema can evolve in tandem with the actual data.
 
-Relationships are first-class citizens of the graph data model. In RDBMS, they are implemented indirectly, e.g. via foreign-keys.
-
-There are two kinds of graph databases, (labeled) property graph and triple stores (RDF), see chapters below.
+_data models_: <<labeled_property_graph>> or <<rdf>>
 
 A _graph compute engine_ does global graph computations / queries.
 
-_index-free adjacency_ (or _native graph processing_): Nodes point to each other via pointers. The key message of index-free adjacency is, that the complexity to traverse the whole graph is O(n), where n is the number of nodes.
+_index-free adjacency_ (or _native graph processing_): Nodes point to each other via some form of pointers. The key message of index-free adjacency is that the complexity to traverse the whole graph is O(n), where n is the number of nodes.
+
+_sharding_: Unlike in many other areas, currently in graph data bases we don't do sharding, because the whole point of a graph is to go from any place to any place quickly, and with sharding it would mean that we may go from one machine to another machine while traversing the graph. However in near future we might find ways how to do sharding efficiently.
 
 
 [[labeled_property_graph]]
-==== Labeled property graph
+=== Labeled property graph
 
-_labeled property graph_: A kind of graph database. A _node_ can have properties and labels. An _edges_ (aka _relationships_) and can have properties and one label. Relationships are directional. A _property_ (or _attribute_) is a key-value pair. A _label_ can also be thought of as a _type_ or role, but in this view note that a node can be of multiple types. Technically a label is the same as an additional property with key "type" and as value a set of strings, however labels are more explicit and allow for more direct / convenient querying. Examples: Neo4j (native graph database, i.e. has its own physical way of storing, opposed to be on top of say an RDBMS). Note that unlike in many other areas, currently in graph data bases we don't do sharding, because the whole point of a graph is to go from any place to any place quickly, and with sharding it would mean that we may go from one machine to another machine while traversing the graph. However in near future we might find ways how to do sharding efficiently.
+_labeled property graph_: A graph data model. A _node_ can have properties and labels. An _edge_ (aka _relationship_) can have properties and one label. Relationships are directional. A _property_ (or _attribute_) is a key-value pair. A _label_ can also be thought of as a _type_ or role, but note that a node can be of multiple `types'. Technically a label is the same as an additional property with key "type" and as value a set of strings, however labels are more explicit and allow for more direct / convenient querying.
 
-===== Query Language: Cypher
+_serialization formats_: *to-do*
+
+_query languages_: <<cypher>>
+
+_schemas_: *to-do*
+
+_Implementations_: <<neo4j>>, <<GraphX>> (*to-do* really?)
+
+
+[[cypher]]
+==== Query Language: Cypher
 
 A declarative query language  for querying and updating a labeled property graph, specifically Neo4j. Based on the concept of _specification by example_.
 
 _Transactions_: Any updating query will run in a transaction and thus will always either fully succeed, or not succeed at all. If there is already a transiction in the running context, that one will be used. That can be used to run multiple updating queries by opening a transaction, running all the queries, finish the transaction.  If there is no transaction in the running context, the updating query will automatically be wrapped into a transaction.
 
-A _pattern_ consists of nodes and / or relationships connecting the nodes. A _relationship_ is one of: $$--$$, $$-->$$, $$<--$$. A _relationship restriction_ is enclosed in brackets, and the whole thing is inserted into the relationship ASCII arrows like so: $$-[mylabel]->$$. The previous example states that the relationship must have a label mylabel. If you later want to refer to that relationship, [myvar:mylabel] will bind the found relation to the variable myvar. To match either of multiple relationship labels, seperate them by pipes like so [:mylabel1|mylabel2]. To match properties, put them in curly braces (possibly preceded by label stuff) like so [{myproperty:somevalue}]. A _node_ is put in parenthesis like so: (). You can also say (myvar): if myvar is already defined, that defines a node, otherwise the found node is bound to myvar.
+===== Clauses
 
 Cypher is composed of _clauses_. Each clause starts with a keyword.
 
-_START_: To specify nodes and / or relationships and bind them to variables. For example ``START myvarname=node:myindexname1(mypropkey1="somevalue")'' uses the index myindexname1 to find all nodes with matching property, and assigns the result to myvarname.
+_START_: To specify nodes and / or relationships and bind them to variables. For example $$START myvarname = node:myindexname1(mypropkey1='somevalue')$$ uses the index myindexname1 to find all nodes with matching property, and assigns the result to myvarname.
 
-_MATCH_: A comma separted list of patterns. Patterns are described above.
+_MATCH_: A comma separted list of <<cypher_pattern,patterns>>. Each pattern must be matced. Recall that a match of a pattern is a path. *to-do* actually it seems to be a comma separated list of expressions, and each expression usually is a pattern or contains a pattern. E.g. one of the expressions can be $$foundpath = shortestPath((n1)-[*]-(n2))$$
 
-_WHERE_: To further conastrain matches
+_WHERE_: To further filter down what MATCH found. $$WHERE expr$$ lets through only the matches for which expr evaluates to true. Typically expr refers to variables defined by MATCH. For example $$MATCH ()-[foundrel:MYLABEL]->() WHERE foundrel.mypropkey = 42$$.
 
-_RETURN_: To specify which nodes, relationships, and properties to be returned.
+_WITH_: *to-do* some form of `piping' output of previous clauses into the next clauses. But I don't quite understand it what type is piped. Paths? Rows of a table / a table? Tables? I think WITH creates a table / set of rows. The args of WITH are the columns, i.e. the expressions specifying the values of the cells. Apparently ORDER BY can only be used before a RETURN if that ORDER BY is preceded by a WITH.
 
-_CREATE_ / _CREATE UNIQUE_: Creates nodes and relationships. ``CREATE (mynode), (mynode2:label1:label2 {key1:'value1', key2:'value2'})'' creates a new node and binds it to the variable mynode, and it creates another node with the given labels and properties and binds it to mynode2. ``Create (node1)->[myrelation:label1]->(node2)'' creates a relation from node1 to node2, attaches label label1 to it, and assigns the new relation to the variable myrelation.
+_RETURN_: The return data model is a table. Each match results in one row.
+
+- The column names can optionally be specified. If left unspecified, the column name is the code of the expression. The cell values are specified by expressions. Example: $$RETURN expr1 AS mycolumnname1, expr2 AS mycolumnname2$$.
+
+- To return all found nodes, relationships, and paths bound to variables, use $$RETURN *$$; the column names will be the variable names.
+
+- Non-aggregate return expressions are used to group matches (as SQL's GROUP BY). Aggregate return expressions then operate on the resulting buckets / groups. E.g. consider $$RETURN n, count(*)$$. $$n$$ is a non-aggregate expression, so it will be the grouping key. $$count(*)$$ is an aggregate expression and operates on the groups / buckets created by grouping by n.
+
+- It's also possible that all return expressions are aggregate expressions, in which case the result has one row.
+
+- See <<cypher_distinct,DISTINCT>>
+
+_ORDER BY_: To optionally order / sort the table produced by RETURN. $$ORDER BY mycolumnname1, mycolumnname2 DESC$$.
+
+_CREATE_ / _CREATE UNIQUE_: Creates nodes and relationships.
+
+- create nodes: $$CREATE (mynode)$$ creates a new node and binds it to the variable mynode. $$CREATE (mynode2:LABEL1:LABEL2 {mypropkey1:'value1', mypropkey2:'value2'})$$ creates a node with the given labels and properties and binds it to mynode2.
+
+- create relationships: $$CREATE (node1)->[myrelation:LABEL1]->(node2)$$ creates a relation from node1 to node2, attaches label LABEL1 to it, and assigns the new relation to the variable myrelation.
+
+- create multiple things: In its more general form, CREATE takes a comma separated list of things which are to be created: $$CREATE (mynode1), (mynode2), (mynode1)-[myrelation]->(mynode2)$$.
 
 _DELETE_: DELETES nodes, relationships, and properties.
 
+References:
 
-[[triple_store]]
-==== Triple store / Resource description framework (RDF)
-
-_Triple stores (RDF)_: A kind of graph database. Examples: Semantic Web.
-
-A way of defining a graph database. A triple (subject, property, object) defines a directed edge in a graph. The object is the source node, the property is the property of the edge, the subject is the destination node.
-
-*to-do* slides 121 122 123 etc (RDF schema, classes, types, ontology, simple entailment, OWL (Web Ontology Language) )
-
-*to-do* what's the difference between triple store and rdf? Is triple store more generic than rdf? Are there things which are an triple store but not rdf?
-
-Formats: RDF/XML, Turtle, JSON-LD, RDFa, N-Triples
+- https://neo4j.com/docs/cypher-manual/current/clauses/
 
 
-===== Syntax: RDF/XML
+[[cypher_pattern]]
+===== Patterns
+
+A _pattern_ consists of a path of nodes and / or relationships connecting the nodes. A pattern matches a set of subgraphs (actually all paths). A _path_ is as in the usual graph lingo. A found path can be assigned to a variable like so: $$mypath = (mynode1)-[myrelationship]->(mynode2)$$.
+
+A _relationship_ is one of: $$--$$, $$-->$$, $$<--$$. $$--$$ means that we don't care about the direction of the relationship.
+
+A _relationship restriction_ is enclosed in brackets, and the whole thing is inserted into the relationship ASCII arrows like so: $$-[restriction]->$$. For example $$-[MYLABEL]->$$ states that the relationship must have a label MYLABEL. If you later want to refer to that relationship, $$[myvar:MYLABEL]$$ will bind the found relation to the variable myvar. To match either of multiple relationship labels, seperate them by pipes like so $$[:MYLABEL1|MYLABEL2]$$. To match properties, put them in curly braces (possibly preceded by label stuff) like so $$[{mypropertykey:somevalue}]$$, which states that mypropertykey must equal somevalue.
+
+_Variable-length pattern matching_: A form of relation ship restriction. Specifies the allowed number of relationships / edges in a path. E.g. $$(mynode1)-[*2]->(mynode2)$$ specifies a path length of exactly two, i.e. exactly two relationships / edges between mynode1 and mynode2. The more general syntax is $$*n..m$$, which means at least n relationships and at most m (incl) relationships. Either n or m can be omitted. If you want to omit both, i.e. zero or more relationships, say $$*$$. The variable length pattern matching expression is appended to the other relation ship restriction like so: $$-[myvar:MYLABEL*42..77]->$$.
+
+A _node_ is put in parenthesis like so: $$()$$. You can also say $$(myvar)$$: if myvar is already defined, that defines a node, otherwise the found node is bound to myvar. The empty parentheses $$()$$ denote an _anonymous node_.
+
+References:
+
+- https://neo4j.com/docs/cypher-manual/current/syntax/patterns/
+
+
+===== Functions / Operators
+
+[[cypher_distinct]]
+The unary prefix operator DISTINCT removes duplicates from its argument.
+
+References:
+
+- https://neo4j.com/docs/cypher-manual/current/functions/, https://neo4j.com/docs/cypher-manual/current/syntax/operators/
+
+[[rdf]]
+=== Resource Description Framework (RDF)
+
+A data model; can be used as graph data model. A collection of RDF statements intrinsically represents a labeled, directed multi-graph.
+
+RDF is based on the idea of making statements about resources (in particular web resources) in expressions of the form subject–predicate–object, known as _triples_. The _subject_ denotes the resource, and the _predicate_ denotes traits or aspects of the resource, and expresses a relationship between the subject and the _object_.
+
+For example, one way to represent the notion "The sky has the color blue" in RDF is as the triple: a subject denoting "the sky", a predicate denoting "has the color", and an object denoting "blue".
+
+_serialization formats_: <<rdf_xml>>, RDF/JSON, <<turtle>>, <<json_ld>>, RDFa, N-Triples.
+
+_query languages_: <<sparql>>
+
+_schemas_: <<rdf_schema>>
+
+_Implementations_: see <<triplestore>>
+
+
+[[rdf_xml]]
+==== Serialization format: RDF/XML
 
 A syntax for RDF.  A prefix:localname is semantically concatened to build an IRI. The IRI the prefix is bound to typically ends with a sharp sign (#).
 
@@ -1613,7 +1872,21 @@ The above rdf:Description with an rdf:type child element can be abbreviated to, 
 --------------------------------------------------
 
 
-===== Syntax: JSON-LD
+[[turtle]]
+==== Serialization format: Turtle
+
+A syntax for RDF. Turtle is an abbreviation for "Terse RDF Triple Language".
+
+--------------------------------------------------
+@prefix myprefix1: namespaceURI1 .
+@prefix myprefix2: namespaceURI2 .
+eth:self myprefix1:myproperty1 someURI1 , someURI2, someURI3 ;
+         myprefix2:myproperty2 somevalue .
+--------------------------------------------------
+
+
+[[json_ld]]
+==== Serializization format: JSON-LD
 
 A syntax for RDF.
 
@@ -1630,21 +1903,11 @@ A syntax for RDF.
 }
 --------------------------------------------------
 
-===== Schema: RDF Schema
 
-A schema for RDF.
+[[sparql]]
+==== Query Language: SPARQL
 
-indentation = rdf:subClassOf:
-
---------------------------------------------------
-rdfs:Resource
-  rdfs:Class
---------------------------------------------------
-
-
-===== Query Language: SPARQL
-
-A query language for triple stores (aka RDF).
+A query and transformation language for RDF.  The name is a recursive acronym for ``SPARQL Protocol and RDF Query Language''. Pronounced "sparkle".
 
 --------------------------------------------------
 PREFIX myprefix1: namespaceURI1
@@ -1657,14 +1920,24 @@ WHERE {
 --------------------------------------------------
 
 
-===== ??: Turtle
+[[rdf_schema]]
+==== Schema: RDF Schema
+
+A schema for RDF.
+
+indentation = rdf:subClassOf:
 
 --------------------------------------------------
-@prefix myprefix1: namespaceURI1 .
-@prefix myprefix2: namespaceURI2 .
-eth:self myprefix1:myproperty1 someURI1 , someURI2, someURI3 ;
-         myprefix2:myproperty2 somevalue .
+rdfs:Resource
+  rdfs:Class
 --------------------------------------------------
+
+
+==== Ontology: OWL
+
+A ontology for RDF. Abbreviation of Web Ontology Language.
+
+_ontology vs DB schema_: The focus of a DB schema is data, the focus of ontology is shared human understanding.
 
 
 === Tree
@@ -1680,61 +1953,92 @@ How to identify nodes in the tree, i.e. different schemes for assigning ID s to 
 - ORDPATH IDs: *to-do* as dewey ids, but initially only with odd numbers. Unlike dewey, allows for insertion by using even numbers in some way.
 
 
-==== Query Languages: XQuery, UNQL, JSONiq
+==== Query Languages: XQuery, UNQL
 
-*to-do* how does that fit together with the mongodb chapter?
+XQuery:: See xml.adoc
 
-*to-do* where does sparksoniq (by Fourny Ghislain Gilles) fit?
+UNQL:: *to-do*
+
+JSONiq:: <<JSONiq>>
+
+
+[[JSONiq]]
+==== Query Language: JSONiq
+
+SONiq is a functional, declarative query and processing language to query and transform collections of hierachical and heterogenous data in format of JSON, XML, or unstructered textual data. It is inspired by XQuery.
+
+JSONiq comes in two syntactical flavors, which both support JSON and XML natively:
+
+JSONiq syntax:: The pure JSONiq syntax is a superset of JSON. It is not strictly speaking a superset of XQuery even though all its expressions and semantics are available.
+
+XQuery syntax with JSONiq extension:: The JSONiq extension to XQuery is a superset of XQuery but not a superset of JSON. It is fully conformant and backwards compatible with XQuery 3.0 candidate recommendation.
+
+[[jdm]]
+JSONiq is based on the _JSONiq Data Model_ (_JDM_) which is an extension of the XQuery and XPath Data Model (XDM). The JDM uses a tree-structured model of the information content of a JSON or XML document. It contains JSON objects, JSON arrays, all kinds of XML nodes, as well as atomic values such as integers, strings, or boolean all being defined in XML Schema. JDM forms the basis for a set-oriented language, in that instances of the data model are sequences (a singleton value is considered to be a sequence of length one). The items in a sequence can be JSON objects, JSON arrays, XML nodes, or atomic values.
+
+[[sparksoniq]]
+_Sparksoniq_ is a Java library that can be used to query JSON files. The query runs on top of Spark. The JSON files are stored on any storage layer supported by Spark, e.g. HDFS or S3. JSONiq is used as query language. Most notably, the core of Sparksoniq lies in JSONiq's FLWOR expressions, the semantics of which map beautifully to Spark transformations. Transformations are not exposed as function calls, but are hidden behind FLWOR clauses, giving the user the simplicity of an SQL-like language and the flexibility of heterogeneous, tree-like data.
 
 
 ==== Syntaxes: JSON, XML, BSON, Protocol Buffers
 
-JSON:: https://www.json.org/.
+JSON:: See https://www.json.org/.
 
-BSON:: *to-do*
+BSON:: Binary JSON. Compared to JSON, BSON is designed to be efficient both in storage space and scan-speed.
 
-XML:: xml.adoc
+XML:: See xml.adoc
 
-Protocol Buffers:: *to-do*
+Protocol Buffers:: The design goals for Protocol Buffers emphasized simplicity and performance. Messages (see below) are serialized into a binary wire format which is compact, forward- and backward-compatible, but not self-describing (that is, there is no way to tell the names, meaning, or full datatypes of fields without an external specification). A software developer defines data structures (called _messages_) and services in a proto definition file (.proto). The proto definition file is compiled it with the tool protoc. This compilation generates code that can be invoked by a sender or recipient of these data structures.
 
 
-=== Text
+=== Unstrucured text
 
 *to-do*
+
 
 == Data models
 
 A _data model_ is a collection of high-level data description constructs that hide many low-level storage details.
 
-.Misc
+.Misc data models
 
 [[key_value_model]]
 _Key-value model_:  A data model. Some mapping from a key to a value. Is not the same as <<key_value_store>>.
 
-_document store_ (or _document-oriented database_): Can also be interpreted as specialization of key-value model if the documents have ids (as MongoDB does). Heterogenous collection of arborescent items. Replaces the concept of a `row' in a relational database with a more flexible model, the `document'. Scaling out is much easier than with a relational database. Scales to billions of documents and PBs of total storage.  We have project and select, but not join.  Join is less important, since we already denormalized (i.e. pre-joined).  Implementations: mongoDB, CosmosDB (Azure) CouchDB, elasticsearch, existdb, Cloudant, ArangoDB, basex, MarkLogic. There are ways to store trees in an relational database, but its not really nice. It works better if the trees are (almost) heterogneous. It works even better if they are (almost) flat.
+
+.Data models for data shape table
+
+_Relational model_: A data model / type of database. Homogenous collection of flat items. See also <<relational_model>>.
+
+_Column store_ (or _column-oriented DB_): A data model / type of NoSQL database. Store data by columns (as opposed to by rows). One advantage is that subsequent cells in the same row tend to be similar, thus compression algorithms tend to work well.
+
+_Wide column store_: A data model / type of NoSQL database. Store data by rows, keys identify rows, `group' columns in families. However each row can have its own individual columns.  Thus a wide column store can be interpreted as a two level nested key-value store.  The key of the outer level is the row id, the key of the inner level is the column id, and the column family id is also given.  In the tabular model, joins are very expensive.  In the tabular model we love to have data in normal form, and as a consequence there are many joins.  Paradigm of BigTable: store together what is accessed together (i.e. quite the opposite of normal forms). That makes batch processing better, since we only have to pay latency once (recall we want to avoid latency as much as possible), and after that it's just throughput. To fulfill the paradigm, we denormalize. That can also be seen as precomputing the joins we expect to occur often.  Thus reads become faster.  The price is that we introduced anomalies, so writes are now more expensive. Examples: BigTable, HBase, Cassandra.
 
 
-.Tables
-
-_Relational database_: Homogenous collection of flat items. See also <<relational_model>>.
-
-_Column store_ (or _column-oriented DB_): A data model. Store data by columns (as opposed to by rows). One advantage is that subsequent cells in the same row tend to be similar, thus compression algorithms tend to work well.
-
-_Wide column store_: A data model. Store data by rows, keys identify rows, `group' columns in families. However each row can have its own individual columns.  Thus a wide column store can be interpreted as a two level nested key-value store.  The key of the outer level is the row id, the key of the inner level is the column id, and the column family id is also given.  In the tabular model, joins are very expensive.  In the tabular model we love to have data in normal form, and as a consequence there are many joins.  Paradigm of BigTable: store together what is accessed together (i.e. quite the opposite of normal forms). That makes batch processing better, since we only have to pay latency once (recall we want to avoid latency as much as possible), and after that it's just throughput. To fulfill the paradigm, we denormalize. That can also be seen as precomputing the joins we expect to occur often.  Thus reads become faster.  The price is that we introduced anomalies, so writes are now more expensive. Examples: Google's BigTable, HBase, Cassandra.
-
-.Cubes
+.Data models for data shape cube
 
 See <<OLAP>>.
 
-.Graphs
 
-See <<labeled_property_graph>> and <<triple_store>>
+.Data models for data shape graph
 
-.Trees
+See <<labeled_property_graph>> and <<rdf>>
 
-_XML Infoset_: See xml.adoc.
 
-_XDM_: See xml.adoc.
+.Data models for data shape tree
+
+_document store_ (or _document-oriented database_): A data model / type of NoSQL database. Can also be interpreted as specialization / subclass of the key-value store if the documents have ids (as MongoDB does).  In the key-value store, the values are opaque. In the document store, the documents / values have structure visible to the system.  Heterogenous collection of arborescent items. Replaces the concept of a tuple / row in a relational database with a more flexible model, the _document_. Scaling out is much easier than with a relational database. Scales to billions of documents and PBs of total storage.  We have project and select, but not join.  Join is less important, since we already denormalized (i.e. pre-joined).  Implementations: mongoDB, CosmosDB (Azure) CouchDB, existdb, Cloudant, ArangoDB, basex, MarkLogic. There are ways to store trees in an relational database, but its not really nice. It works better if the trees are (almost) heterogneous. It works even better if they are (almost) flat.
+
+_XML Infoset_: One tree. See xml.adoc.
+
+_XDM_: One tree. See xml.adoc.
+
+_JDM_: See <<jdm>>
+
+
+.Data models for unstructured text
+
+Just itself, unstructred text.
 
 
 == Storages
@@ -1743,26 +2047,18 @@ _XDM_: See xml.adoc.
 === Storage Overview
 
 |======
-|                    | sub-divided | size | count    | meta data | latency   | comments
-| key-value store ① | -           | kB   |          | no        | low (s3)  | DynamoDB (which uses chord). Drop C to gain AP & scalibility.
-| object storage ①  | -           | TB   | billions | yes       | few 100ms | S3
-| block storage      | block       | PB   | millions | no        |           | local FS, GFS, HDFS. block sizes: local FS: 4kB, RDMS 32kB, DFS 128MB
+|                    | sub-divided | size | count      | meta data | latency   | comments
+| key-value store ① | -           | kB   |            | no        | low (s3)  | DynamoDB (which uses chord). Drop C to gain AP & scalibility.
+| object storage ①  | -           | TB ② | billions ② | yes       | few 100ms | S3
+| block storage      | block       | PB ② | millions ② | no        |           | local FS, GFS, HDFS. block sizes: local FS: 4kB, RDMS 32kB, DFS 128MB
 |======
 
-Chord: A protocol for a peer-to-peer distributed key-value store (aka hash table).
+① Key-value store and object storage have same data model, but implemented differently.
 
-*to-do* RDBMS latency: few ms. how to fit into the above table? is it (on top of, being a data store, not storage) a (local) block storage?
-
-*to-do* how does file storage fit in?
-
-① key-value store and object storage have same data model, but implemented differently.
-
-*to-do* latency of block storage?
-
-*to-do* is chord an implemntation of a key-value store?
+② Thus object storage has huge amount of large files, where as block storage has large amount of huge files.
 
 |======
-|                                        | unit (inner unit) | unit size | unit cnt | CAP           | else
+|                                        | unit (inner unit) | unit size | unit cnt | CAP           | comments
 | Amazon DynamoDB                        | blob              | 400kB     |          | AP eventual C | key-value store. Latency: few ms. uses chord.
 | Amazon S3                              | object            | 5TB       |          |               | object storage, latency: few 100ms 
 | Azure Blob Storage                     | blob (block)      | 5-8TB     |          |               | hybrid object storage - DFS. key-value model. blob size limit depends on blob type.
@@ -1771,11 +2067,19 @@ Chord: A protocol for a peer-to-peer distributed key-value store (aka hash table
 | Colossus                               |                   |           |          |               | newer version of HDFS
 |======
 
+*to-do* RDBMS latency: few ms. how to fit into the above table? is it (on top of, being a data store, not storage) a (local) block storage?
+
+*to-do* how does file storage fit in?
+
+*to-do* latency of block storage?
+
+*to-do* is chord an implemntation of a key-value store?
+
 
 [[key_value_store]]
 === Key-value store
 
-Aka hash table. Intend to have low latency (compared to object storage). Smaller objects (kB sized). No metadata (in contrast to object storage). Note the key-value store is not the same as <<key_value_model>>.
+Aka hash table. The values are opaque. Intend to have low latency (compared to object storage). Smaller objects (kB sized). No metadata (in contrast to object storage). Note the key-value store is not the same as <<key_value_model>>.
 
 Much simpler than a relational database. We drop consistency (we only have eventual consistency) and gain availability and partition tolerance and scalability.
 
@@ -1809,11 +2113,34 @@ Examples: S3
 
 === Chord / distributed hash table
 
-A protocol for a peer-to-peer distributed key-value store (aka hash table).
+A protocol for a peer-to-peer distributed key-value store (aka hash table). The key-value pairs are stored in a cluster of nodes.
 
-Assigning keys to nodes:  Say the key size is 128bit. Imagine the 128bit numbers on a ring.  Each node uniformily at random chooses a 128bit number.  Then each node stores the keys between itself and the previous N ≥ 1 nodes. If N > 1, we get replication.  Note that this assignment of keys to nodes is very simple and predetermined.  Also note it's only about assigning keys to nodes; there's no relation to how nodes are physically conencted.
+Assigning keys to nodes:  Say the key size is 128bit. Imagine the 128bit numbers on the number axis, formed to a ring.  Each node uniformily at random chooses a 128bit number.  Then each node is the _coordinator node_ for the keys between itself and the previous node. It is responsible for these keys, which most importantly means to store them. Note that this assignment of keys to nodes is very simple and predetermined.  Also note it's only about assigning keys to nodes; there's no relation to how nodes are physically conencted.
 
-Query, i.e. finding a node responsible for key k: The trivial solution would be that the nodes on the ring form a linked list, which would result in linear time query.  Here each node keeps a _finger table_, where the i-th entry stores a `pointer' to the node being 2^i^ nodes away.
+_Replication_: Each node not only stores the keys it is responsible for, but also the keys of N other nodes. For each key, the respective coordinator node is the master. The list of nodes that is responsible for storing a particular key is called the _preference list_. The (virtual) nodes in the preference lists are guaranteed to be on distinct physical nodes.
+
+*to-do* how exactly is the coordinator node defined? Sometimes I read its the first node in the preferences list for that key, at other places it says it's according to this `ring association scheme'.
+
+*to-do* where are the preference lists stored? how to maintain them?
+
+_Query_: The first item in the preference list of the key defines the coordinator node. The coordinator node contacts the next N-1 healthy other nodes he finds in the preference list. So he has N key-value pairs, each pair with a version (see vector clock) attached to it. They form a DAG. The leafs of the DAG are returned as [[chord_context]]_context_ (see also <<dynamo_get>>).
+
+_vector clock_: Each object has associated a set, called _context_, of nodeid-number pairs, where nodeid is unique in the set. The number denotes how many times the respective node wrote to the object.
+
+some DAG  rules:
+
+- note that it's possible that the number of a given nodeid-number pair increments by more than one, or that multiple pairs increment. This happens e.g. if a version is lost (*to-do* I am not really sure that the rational is correct).
+
+- Only for a cleaner DAG with less superfluous edges:
+
+  * You cannot have skip connections, i.e., there cannot be an edge from a grandfather node directly to a child node.
+
+  * Transitive edges shouldn't be present in the version DAG.
+
+
+*to-do* notion of _partial order_ and _levels_. I.e. draw the DAG in a way that time flows vertically from top to bottom. Nodes being horizontally on the same level are `conflicting' (what is the right term?) -- they are unordered regarding their version. Nodes on a lower level have definitely a newer version than nodes on a higher level.
+
+*to-do* Where does this fit in exactly (about query): I.e. finding a node responsible for key k: The trivial solution would be that the nodes on the ring form a linked list, which would result in linear time query.  The better and choosen solution is that each node keeps a _finger table_, where the i-th entry stores a `pointer' to the node being 2^i^ nodes away.
 
 Extension: The last two problems (see pro/cons list) can be solved by the following extension: Each node gets a number of _tokens_ (or _virtual nodes_), the number proportional to the node's power. Now instead of nodes, we place place the tokens on the ring. Since there are now many tokens, and due to the central limit theorem, it's virtually impossible to have large gaps.  Also, we now adapt to the heterogenous network.  When adding a node, it takes over tokens from existing nodes.  When deleting a node, its tokens are redistributed among remaining nodes.
 
@@ -1829,7 +2156,7 @@ Pros:
 
 Cons:
 
-- being a hashtable there's only lookup by key (e.g. no text search)
+- being a hashtable there's only lookup by key (e.g. no text search *to-do* but we still can do a scan over all data, right?)
 
 - nothing said about data integrity (here replication is about loss, not corruption)
 
@@ -1839,17 +2166,15 @@ Cons:
 
 - without the extension: not considering that nodes are heterogenous (i.e. have different power)
 
-_vector clock_: Each object has associated a set, called _context_, of nodeid-number pairs, where nodeid is unique in the set. The number denotes how many times the given number wrote to the object. Multiple contexts for a given object form a partial order (i.e. a DAG).
-
 Applications:
 
-- Used by DynamoDB.
+- DynamoDB
 
-questions:
+*to-do* Questions:
 
 - Slides 197+: I don't see how this works in the distributed system with no masters. Where are the preference lists stored? What does partition-aware client mean?
 
-- why not return (C,[(n1,3)]) , (D,[(n1,2), (n2,1)]). Answer: The protocol is such that it's a black box for the client
+- Why not return (C,[(n1,3)]) , (D,[(n1,2), (n2,1)]). Answer: The protocol is such that it's a black box for the client
 
 
 === Google File System (GFS)
@@ -1975,15 +2300,21 @@ Key properties: consistency (within a region), durability, availability, scalabi
 
 Provides <<azure_blob_storage>>, table storage, queue storage, and file storage.
 
+An _account_ can contain an unlimited number of containers. An account is identified by an _account name_; DNS delivers virtual IP of primary stamp. A user storage account is stored on a single storage stamp.
+
+A _container_ can store an unlimited nu ber of blobs. A container is identified by _container name_ (*to-do* is this the same as _partition name_?).
+
+A _blob_ is identified by an _object name_.
+
 A _storage stamp_ is the unit of deployment and management. A user storage account is stored on a single stamp. A stamp consists of 10-20 racks, and a _rack_ of 18 disk-heave storage nodes.
 
 A single storage stamp should only be utilized ~75% of its storage capacity & bandwidth. The rest is used for: <<disk_short_stroking>> and to be able to provide storage capacity in the presence of a rack failure within a stamp.
 
-_Stream Layer_ (lowest layer). Actually stores the data using a DFS. Object name.
+_Stream Layer_ (lowest layer). Actually stores the data using a DFS.
 
-_Partition Layer_ (middle layer). Manages & understands the higher level abstractions such as blob, table, queue, file. Replication within partition layer is aysnchornous; . Partition name.
+_Partition Layer_ (middle layer). Manages & understands the higher level abstractions such as blob, table, queue, file. Replication within partition layer is aysnchornous;
 
-_Front-End Layer_ (highest layer). REST protocol. Stateless servers taking incoming requests. Upon receiving a request, an FE looks up the AccountName, authenticates and authorizes the request, then routes the request to a partition server in the partition layer (based on the PartitionName).  Account Name (DNS delivers virtual IP address).
+_Front-End Layer_ (highest layer). REST protocol. Stateless servers taking incoming requests. Upon receiving a request, an FE looks up the AccountName, authenticates and authorizes the request, then routes the request to a partition server in the partition layer (based on the PartitionName).
 
 _global name space_: One of the key design goal of Azure Storage Service is to provide a single global namespace that allows the data to be stored and accessed in a consistent manner from any location in the world. To provide this capability Microsoft leverages DNS as part of the storage namespace and break the storage namespace into three parts: an account name, a partition name, and an object name. As a result, all data is accessible via a uniform URI of the form: http(s)://AccountName.1.core.windows.net/PartitionName/ObjectName. DNS delivers the virtual IP of the primary stamp, given an account name. The client can then go to the respective stamp with partitionname and objectname.
 
@@ -1998,7 +2329,13 @@ Hybrid between object storage and distributed file system. Key value model, but 
 identifying objects = account-id + container/partition-id + object-id +
 paritionion-id = container/partition-id + object-id
 
-Azure Storage offers three types of blobs. The type must be chosen at creation and cannot be changed afterwards. _Block blobs_ are made up of blocks, each having a block id. Each block can have a different size, maximally 100MB. Blocks can be read-from / written-to individually. Meant to store text and binary data which is sequentially accessed. A block blob can be up to about 4.7 TB.  _Append blobs_ are made up of blocks like block blobs, but are optimized for append operations. Each block can be of different size, maximally 4MB. Block ID s are not exposed. Append blobs are ideal for scenarios such as logging data from virtual machines. _Page blobs_ are made up of 512-byte pages. Meant to store random access files up to 8 TB in size. Page blobs store the VHD files that back VMs.
+Azure Storage offers three types of blobs. The type must be chosen at creation and cannot be changed afterwards.
+
+_Block blobs_ are made up of blocks, each having a block id. Each block can have a different size, maximally 100MB. Blocks can be read-from / written-to individually. Meant to store text and binary data which is sequentially accessed. A block blob can be up to about 4.7 TB. E.g. for streaming videos, for storing photos.
+
+_Append blobs_ are made up of blocks like block blobs, but are optimized for append operations. Updating / deleting an existing block is not supported.  Block ids are not exposed (we can only append anyway (ok, we could read in the middle)).  Each block can be of different size, maximally 4MB. The append blob is maximally 195GB. Append blobs are ideal for scenarios such as logging data.
+
+_Page blobs_ are made up of 512-byte pages. Meant to store random access files up to 8 TB in size. Upon page blob creation, its maximum size must be specified. E.g. for a disk of a virtual machine.
 
 All storage services are accessible via REST APIs.
 
@@ -2015,7 +2352,8 @@ Dynamo treats both object and key as opaque array of bytes.  It applies an MD5 h
 
 Simple API. context is opaque to the caller.
 
-get(key) -> value, context +
+[[dynamo_get]]
+get(key) -> value, context [see also <<chord_context>>] +
 put(key, context, value)
 
 Design principles:

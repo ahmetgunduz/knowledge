@@ -36,7 +36,7 @@ _attribute list_: List of attributes. Each _attribute_ is a name-value pair like
 
 _XML Names_ (applies to all sort of names, tag names, attribute names etc.): Composed of ASCII {alphanumeric, underscore, dash, point} and Unicode letters, numbers, and ideograms. However may not start with {numbers, dash, point}.  Names starting with "xml" (independent of case) are reserved for W3C. XML names are case sensitive.
 
-_entity references_: \&foo; There are exactly five: "lt" -> <, "gt" -> >, "apos" -> ', "quot" -> " and "amp" -> &.
+_(character) entity references_: \&foo; There are exactly five: "lt" -> <, "gt" -> >, "apos" -> ', "quot" -> " and "amp" -> &. More can be specified, e.g. via DTD. HTML adds many more.
 
 _numeric character references_: \&#x...; where "..." is a unicode code point in hex. Leave out the "x" and its in decimal.
 
@@ -76,7 +76,7 @@ Old schema for XML. Superseeded by XML Schema.
 
 DTDs are written in a formal syntax that explains precisely which elements may appear where in the document and what the elements' contents and attributes are.  A valid document includes a reference to the DTD to which it should be compared. This is given in the document’s single _document type declaration_, which looks like this: <!DOCTYPE myrootelement SYSTEM "foo-uri">, where `foo-uri' refers to the file containing the DTD and `myrootelement' is the name of the root element. This variant is called _external DTD subset_, since the schema is given by an external document. You also can make the DTD inline, called _internal DTD subset_, by using the syntax <!DOCTYPE myrootelement [...]>. Both of the two can appear in the same document type declaration. As a general rule, the two different subsets must be compatible. Neither can override the element declarations the other makes. For example, name.dtd cannot declare the person element because the internal DTD subset already declares it. However, entity declarations can be overridden.
 
-DTDs don't know about XML namespaces (because DTD predate the introduction of XML namespaces). foo:bar is just some valid name.
+DTDs don't know about XML namespaces (because DTD predate the introduction of XML namespaces). foo:bar is just some valid name. *to-do* read chapter namespaces and dts in xml in a nutshell
 
 <!ELEMENT foo content_specification> is an _element declaration_ for the element named foo. content_specification is an expression composed of the following operators and terminals.
 
@@ -254,36 +254,129 @@ _xs:all_: The refered to element must contain each of the listed child elements 
 
 == XPATH
 
-XPath is a non-XML language for identifying particular parts of XML documents.
+XPath is a non-XML query language for selecting / identifying nodes from an XML document and / or to compute values from content of an XML document.  XPath is a subset of XQuery, see also <<xquery_vs_xpath>>.
 
-From the perspective of XPath, the XML document is a tree made up of nodes, where there are the following kinds of nodes: Root (representing the document, not the root element), element, text, attribute, comment, processing-instruction, namespace (see below). Thus notably CDATA sections, references, the document type declaration and the XML declaration are already washed away by the parser.  The root node represents the entire document, that is _not_ the document's root element.
+From the perspective of XPath, the XML document is a tree made up of nodes, where there are the following kinds of nodes:
+
+- root (representing the document, not the root element)
+- element
+- text
+- attribute (but not xmlns and xmlns:foo, see namespace)
+- namespace (xmlns and xmlns:foo attributes, see blow)
+- comment
+- processing-instruction
+
+Thus notably CDATA sections, references, the document type declaration and the XML declaration are already washed away by the parser.  The root node represents the entire document, that is _not_ the document's root element.
 
 The xmlns and xmlns:foo attributes are not considered attribute nodes. Instead, the respective information is within a namespace node, which is attached to _every_ element node which is in the scope of the binding.
 
 
 === Location paths
 
-A _location path_ is a subset of XPath expressions. A location path identifies a set of nodes. A location path is built out of successive location steps. Each _location step_ is evaluated relative to a particular node in the document called the _context node_. Which node currently the context node is, is specified by the application using XPath. Every location step is composed of an axis test, a node test, and optionally a predicate.  In an abbreviated location path, the axis test and the node test are combined.  In an unabbreviated location path, they are separated by a double colon (::). "child::people" selects along the element child axis all people elements.  "attribute::foo" selects along the attribute axis all foo attributes.
+A _location path_ is a subset of XPath expressions and is built out of successive location steps separate by slashes.  A location path identifies / yields a set of nodes. _Root location path_: The root node in the XPath tree is identified by a forward slash "/". An _absolute location path_ is one starting with "/"; it sets the context node to the root of the document. A _relative location path_ does not start with "/", and operates on the context node, which is set by some external mean.
 
-_available axes_: child element (foo), parent (..), self (.), attribute (@foo), descendant-or-self (//), descendant, ancestor-or-self, ancestor, following-sibling, preceding-sibling, following, preceding, namespace.
+--------------------------------------------------
+location_path = ["/"] (location_step "/"{0} )+;
+--------------------------------------------------
 
-_Root location path_: The root node in the XPath tree is identified by a forward slash "/".
+A _location step_ is a relative location path and is evaluated relative to the context node, see there.  A location step is composed of an axis, a node test, and optionally a predicate.
 
-_Child element location step_: An XPATH being a single element name refers to the set of child elements of the context node with the specified namae.
+----------------------------------------------------------------------
+location_path = axis_plus_node_test ( "[" predicate "]" )* |
 
-_attribute location step_: Analogously to the child element location step, but the name is prefixed by @.
+## if the axis is ommited, it defaults to child
+axis_plus_node_test = [axis "::"] node_test |
 
-_comment(), text(), processing-instruction()_ location step: Match the set of child elements of the context node being of the specified node type.
+  ## abbreviated syntax
+  `.        | ## self::node()
+  `..       | ## parent::node()
+  \@myname  | ## attribute::myname
+  %empty    ; ## descendant-or-self::node()
+              ##   must be followed by another location_step
+              ##   a relative location path may not start with this
+              ##   i.e. "//" is abbreviatin for "/descendant-or-self::node()/"
+  ## myname      child::myname, see default for child axes
+----------------------------------------------------------------------
 
-_wildcard_ location step: "\*" matches any child element. "foo:*" matches any child element in the namespace URI which the prefix foo refers to. "@\*" matches all child attribute nodes.  "@foo:*" matches all child attribute nodes in the namespace URI which the prefix foo refers to. "node()" matches all child nodes.
+_context node_ / _context sequence_: When a location path contains multiple location steps, each step sets the context node (or nodes) for the next step. This is a tree like process, see following example. See also absolute location path and relative location path. *to-do* Be more precise what the precise rules are
 
-_compound path_: Constructed from location steps. Forward slash "/" moves down in the hierarchy. E.g. "/people" refers to the root element, here people. "/people/person" refers to all person child elements of the people element. "/people/person/name" refers to all name child elements of those. "." refers to the context node. ".." refers to the parent node of the context node. "//" refers to the descendants of the context node (inclusive). E.g. "person//@id" selects the id attributes of all elements rooted at all person child elements of the context node.
+Example: Consider "/foo/bar[expr][2]".
 
-_alternation_: The pipe "|" denotes alternation. There is a match if either expression matches.
+- The initial "/" makes it a absolute location path, setting the context sequence to the sequence of one node, being the root node.
 
-_predicates_: An location step refers to a set of nodes. You can filter that set, producing a new set, by providing a predicate expression which, when true, keeps the node. The syntax is to append "[expression]" to a location step. Relational operators are =, >, >=, <, \<=, and !=. For example "//person[@born\<=1976]" selects all person elements in the document whose born attribute has a numerical value of less than or equal to 1976. "//name[initial]" selects all name elements in the document which have at least one initial child element.  Boolean operators are "and", and "or". Predicate (sub) expressions that evaluate to numbers select the i-th element from the sequence, where counting starts at 1. E.g. "//foo[2]" selects the 2nd foo element of the document.
+  * Context sequence: root node (not the root element)
 
-*to-do* XQuery does allow multiple predicates foo[...][...]... . Does XPath also?
+- The location step "foo" iterates over each item in the context sequence (only the root node). In each iteration 1) sets the context node 2) sets the context sequence for the next location step: all child nodes named foo of the context node (being the root node), here resulting in one element node since there can only be one root element 3) `call' execute the next location step.
+
+ * Context sequence in iteration 1 of 1 for next step / predicate: root element (named foo)
+
+- Here, the next location step is "bar[expr][2]". Lets first only look at the axis_plus_node_test, which is "bar". The process repeats:
+
+ * Context seqeunce in iteration 1 of 1 (in outer iteration 1 of 1) for next step / predicate: all child elements of foo which are named bar
+
+- The first predicate is "[expr]". Filters the context sequence, i.e. iterates over the context sequence, setting context node in each iteration, and evaluating expr in each iteration.
+
+  * Context sequence for next step / predicate: all items of the context sequence for which expr is true
+
+- The next predicate is "[2]" (short for "[position()=2]"). Filters the context sequence as in the previous predicate.
+
+  * Context sequence for next step / predicate: all items of the context sequence for which "position()=2" is true, i.e. the 2nd element.
+
+Examples:
+
+- "//foo/bar[2]" vs "(//foo/bar)[2]" vs "//foo/bar[expr][2]": If the location path had been "//foo/bar[2]", it would be the 2nd bar child element of every foo element in the document. *to-do* complete the example
+
+- "//bar[@fred]" finds all bar elements having an fred attribute. "@fred" (short for attribute::fred) is an location path expression, evaluated for each item in the context sequence provided by "bar". If the context item (i.e. the `current' item in the context sequence) has an attribute fred, the (location path) expression "@fred" yields the respective attribute node, which is Boolean true. If the context item has no atttribute fred, "@fred" yields the empty sequence (i.e. `nothing'), which is Boolean false.
+
+- "//bar[data(@fred)]" finds all bar elements having an fred attribute with a value that is Boolean true. If there is no validation, attribute values are untyped, and the only value that is Boolean false is the empty string. If there is validation, it depends on the type which is assigned to the fred attribute of bar elements, which fred attribute values are Boolean true. *to-do* I didn't verify what I wrote about validation. Also I am not sure how much I now mix up XPath and XQuery.
+
+- "(<foo a="1"/>, <foo a="2"/>)/@a" yields ``a="1"\na="2"''. *to-do* I'm not sure if this is XPath or only XQuery
+
+_axes_:
+
+- +self+: The context node itself
+- +child+: All children of the context node. Attribute and namespace nodes do not count as children, altought they do have a parent node.
+- +descendant-or-self+: Analogous to child
+- +descendant+: Analogous to child
+- +parent+: The node (always either element or root) that immediately contains the context node.
+- +ancestor-or-self+: Analogous to parent
+- +ancestor+: Analogous to parent
+- +attribute+: All attributes (except for xmlns and xmlns:myname) of the context node. The empty set if the context node is not an element node.
+- +following-sibling+: Analogous to parent / child
+- +preceding-sibling+: Analogous to parent / child
+- +following+:
+- +preceding+:
+- +namespace+: All namespaces in scope (i.e. not merily the ones declared) on the context node. The empty set if the context node is not an element node.
+
+A _node test_ further refines the set of nodes selected by the axis. Available node tests:
+
+- +*+:
+ * attribute axis: all attribute nodes
+ * namespace axis: all namespace nodes
+ * otherwise: all element nodes
+
+- myname: If myname is prefixed, as usual the prefix itself is irrelevant, only the URI to which the prefix is bound matters. If myname is not prefixed, it matches nodes in no namespace, never names in the default namespace.
+ * attribute axis: all attribute nodes with the specified name
+ * namespace axis: all namespace nodes with a prefix being equal to myname
+ * otherwise: all element nodes with the specified name
+
+- myprefix":*": As "*", but only element / attribute nodes being in the namespace given by the URI myprefix is bound to.
+
+- +node()+: Matches all nodes, regardless of type.
+
+- +comment()+: Matches all comment nodes
+
+- +text()+: Matches all text nodes
+
+- +processing-instruction()+: Matches all processing-instruction nodes
+
+A _predicate_ is an XPath expression enclosed in square brackets that follows axis_plus_node_test. The predicate as a whole (inclusive square brackets) filters the context node list produced by axis_plus_node_test or the previous predicate, yielding another context node list. This is done as follows: The predicate is evaluated for each node in the context node list. If the predicate evaluates to a number, that is the same as "expr = position()". That is, a node passes through the filter if it's position (1 based) in the context list matches that number. Otherwise, if the predicate evaluates to a Boolean, a node passes the filter if the predicate is true.  Otherwise, the value of the predicate is converted to a Boolean using the boolean() function, and then it continues as described for Boolean return values. Since location paths are XPath expressions, they can be used as predicates.
+
+*to-do* why does /bookstore/book/author[2] returns the 2nd author of every book, opposed to the 2nd author in the set of authors produced by /bookstore/book/author? Where is this described?
+
+Example: The location path "//person[@born<1977]" selects all `person' elements in the document whose `born' attribute has a numerical value of less than 1976. The predicate is "@born<1977", within which "@born" is a (relative) location path.
+
+Example: The location path "//foo[bar]" selects all `foo' elements in the document which have at least one `bar' child element.
 
 *to-do* more details about how to use predicate to index a sequence. Note that indexing starts at 1, as oppose to zero as C/Java etc. How about ranges? How about multiple indicies.
 
@@ -296,18 +389,40 @@ _numbers_: All numbers are floating point (8-byte IEEE 754, same as Java's doubl
 
 _strings_: Delimited by either single or double quotes. A string is an ordered sequence of Unicode characters. The operators = != can be used to compare strings.
 
-_booleans_: Either true or false. There are no boolean literals, however you can use the XPath functions true() and false(). Operators are "and", and "or".
+[[boolean]]
+_booleans_: Either true or false. There are no boolean literals, however you can use the XPath functions true() and false().
+
+_boolean operators_: "and" and "or"
 
 _basic arithmetic_: + - * div mod. The operators behave as their counterparts in Java.
+
+_relational operators_:  are =, >, >=, <, \<=, and !=
+
+_alternation_ / _union_: The pipe "|" denotes alternation / union. There is a match if either expression matches. Or if the operands denote sets (e.g. location path), "|" denotes the union.
 
 
 == XQuery
 
-A query is made of a two parts: an optional prolog and a body. The prolog contains declarations. The body is technically a single expression, however multiple expressions can be in a sequence, separated by commas. XQuery is functional and declarative.
+XQuery is a query language.  It can extract parts of XML documents, manipulate and transform these results.  It is functional and declarative.
 
-The _query processor_ is the software that parses, analyzes and evaluates the query. The analisis is roughly equivalent to compiling a program; it finds static errors.
+[[xquery_vs_xpath]]
+XQuery is a superset of XPath. E.g. it also provides FLWOR expressions.
 
+The _query processor_ is the software that parses, analyzes and evaluates the query. The analysis is roughly equivalent to compiling a program; it finds static errors.
+
+A query is made of a two parts: an optional prolog and a body. The _prolog_ contains declarations. The _body_ is technically a single expression, however multiple expressions can be in a sequence, separated by commas.
+
+[[xdm]]
 The _XQuery Data Model_ (known as the XQuery 1.0 and XPath 2.0 Data Model, or _XDM_): Everything is a sequence of items.  A _sequence_ is an ordered list of zero or more items. An _item_ is a generalization of a node and an atomic value. An _atomic value_ is a simple value with no markup associated with it. A _node_ is an XML construct such as an element or attribute. There are these six node kinds: document, element, attribute, text, proccessing instruction, comment, namespace (however XQuery does not provide access to namespace nodes).  Every node has a unique _identity_; identities can be compared with the is operator. XDM is not the same as the Infoset.
+
+--------------------------------------------------
+sequence ---->* item
+                  atomic value
+                  node
+                    document
+                    element
+                    ...
+--------------------------------------------------
 
 _Infoset_: XDM vs Infoset: In XDM nodes can have types, in Infoset they are always strings.
 
@@ -320,6 +435,10 @@ _comments_: Delimited by (: and :). Can be nested.
 _expression_: Operands are always sequences (of items).
 
 _namespaces_: \'declare namespace myprefix = "namespaceuri"'. Then myprefix can be used as prefix in QNames.
+
+_document order_: The order of nodes in an XML document or document fragment. A preorder traversal of the node tree.
+
+_context_: In XQuery, the only operators that change the context node are the slash and the square brackets used in predicates.
 
 
 === Types
@@ -364,21 +483,44 @@ xs:anyAtomicType
 
 _automatic casting_: Untyped values are automatically casted to the type required by an operation. *to-do* this seems not to be generally true, see value comparisons
 
-_sequences_: Sequences are ordered. They can contain duplicates. A sequence with only one item is called a _singleton sequence_. There is no difference between a singleton sequence and a single item. Thus any of the functions / operators that operate on sequences can also operate on items. Note that sequences cannot be nested, since a sequence is an list of items, and a sequence is no item.
+_atomic value_: An atomic value is a simple data value, with no markup, and no association with any particular element or attribute. The type of an atomic value is one rooted at xs:anyAtomicType. I.e. a specific type such as xs:Integer, or untyped, i.e. xs:untypedAtomic (which is not the same as xs:untyped).
 
-An atomic value can have a type or be untyped.
+_sequence_: Sequences are ordered. They can contain duplicates. A sequence with only one item is called a _singleton sequence_. There is no difference between a singleton sequence and a single item. Thus any of the functions / operators that operate on sequences can also operate on items. Note that sequences cannot be nested, since a sequence is an list of items, and a sequence is no item.
 
-_nodes_: There are two values for a node: string and typed. All nodes have a string value. The string value of an element node is the character data content of itself and all its descendant elements concatenated together. The string value of other nodes are straightforward.  A schema may specify the type of a node.  The typed value of a node is according to that type.  If an element or attribute has not been validated it is automatically assigned xs:untyped.
+[[node]]
+_node_: There are two (atomic) values for a node: <<string_value>> and <<typed_value>>. All nodes have a string value. A schema may specify the type of a node. The typed value of a node is then the type specified by the schema.  If an element or attribute has not been validated, it's type is xs:untyped.
 
-_effective Boolean value_: false, 0, NaN, empty string, empty sequence count as false. Everything else generally true. *to-do*
+[[typed_value]]
+The _typed value_ of a node can be accessed using the <<fn_data,fn:data>> function. A schema may specify the type of a node, for more details see <<node>>.
 
-_literal sequence_ ("foo", 42): Comma separated list of expressions, enclosed in parenthesis.
+[[string_value]]
+The _string value_ of a node or atomic value can be accessed using the string function. The string value of an element node is the character data content of itself and all its descendant elements concatenated together. The string value of other nodes are straightforward. Example: "string(<foo>answer is <bar dummy="ignore">42</bar></foo>)" yields "answer is 42".
 
-_string literal_ "foo" or \'foo': Either in double or single quotes.
+[[atomization]]
+_Atomization_ of a sequence is defined as the result of invoking the <<fn_data,fn:data>> function on the sequence. Atomization is applied to a value when the value is used in a context in which a sequence of atomic values is required. The result of atomization is either a sequence of atomic values or a type error. E.g. "<a>42</a>+1" yields 43. Atomization is used in processing the following types of expressions:
 
-_numeric literal_ 42 or 3.14: As in most programming languages.
+- Arithmetic expressions
+- Comparison expressions
+- Function calls and returns
+- Cast expressions
+- Constructor expressions for various kinds of nodes
+- order by clauses in FLWOR expressions
+- group by clauses in FLWOR expressions
+- Switch expressions
 
-Validating gives the nodes types, thanks to the schema, which specifies the types of nodes.
+Example: "<x>42</x> = (<y>42</y>, <z>77</z>)" evaluates to true, see also general comparisons.
+
+[[fn_data]]
+_fn:data(arg:sequence) : xs:anyAtomicType_: Returns the result of <<atomization,atomizing>> a sequence, that is, replacing all nodes in the sequence by their typed values. If the argument is omitted, it defaults to the context item (.). The result of fn:data is the sequence of atomic values produced by applying the following rules to each item in the argument.
+
+- If the item is an atomic value, it is appended to the result sequence.
+
+- If the item is a node, the typed value of the node is appended to the result sequence. The typed value is a sequence of zero or more atomic values: specifically, the result of the dm:typed-value accessor.
+
+[[effective_Boolean_value]]
+_effective Boolean value_: false (note there is no literal `false', see <<boolean>>), 0, NaN, empty string, empty sequence count as false. Everything else is generally true.
+
+_Validating_ gives the nodes types, thanks to the schema, which specifies the types of nodes.
 
 --------------------------------------------------
 import schema namespace m = myuri at "myschema.xsd"
@@ -386,61 +528,103 @@ validate { <m:foo>...</m:foo> }
 --------------------------------------------------
 
 
-=== Operations
+=== Literals
 
-_arithmetic expression_ +,-,*,div,idiv,mod
+_boolean_: There are not really literals. Use true() and false().
 
-_comparison expression / _general comparisons_ < \<= = != >= >: When comparing any two of the atomic types, if one is typed and the other is untyped, the untyped value is cast to the typed value's type. If both are untyped, they are compared as strings.
+_string literal_: "foo" or \'foo': Either in double or single quotes.
 
-_comparison expression_ / _value comparisons_ lt le eq ne ge gt: Operate only on single atomic values (an atomic value, a node containing an atomic value or the empty sequence). If either operand is the empty sequence, the empty sequence is returned (analogous to null in SQL).  If both operands are untyped, they are compared as strings. If one is typed and the other is untyped, a type error is raised.
+_numeric literal_: 42 or 3.14: As in most programming languages.
 
-_comparison expression / _node comparisons_ is: Compares idendity. Each operand must be a single node or the empty sequence. If either is the empty sequence, the empty sequence is returned.
+_sequence_: With the <<xquery_comma_operator>>.
 
-_comparison expression / _order comparisons_ << >>: order of elements in document *to-do*
 
-_logical expression_: `and' and `or' are operators, `not' is a function. For each operand the effictive Boolean value is calculated.
+=== Constructors
 
-_path expression_ /,//,..,.,child::,etc.: *to-do*
+_element constructor_: <foo>...</foo>: Creates an element node by standard XML syntax. You can inject an _enclosed expression_ into character data or attribute value by enclosing it into curly braces <foo>lorem\{expr}ipsum</foo>. To use literal curly braces within an element constructor, double them, i.e. {{ and }}. If an enclosed expression within the content of the element evaluates to a sequence of attributes, they become attributes of the XML element under construction.  Each atomic value in the sequence resulting from the enclosed expression is cast to xs:string and inserted as character data or attribute value respectively. Two adjacent atomic values are separated by space.  When an enclosed expression appears within an attribute value, then the string value of each node is inserted. E.g. <foo bar="<fred>42</fred>"/> results in <foo bar="42"/>.
 
-_constructor expression_ / _direct element constructor_ <foo>...</foo>: A literal element is just regular XML syntax. You can inject an _enclosed expression_ into character data or attribute value by enclosing it into curly braces <foo>lorem\{expr}ipsum</foo>. To use literal curly braces within an literal element, double them, i.e. {{ and }}. If an enclosed expression within the content of the element evaluates to a sequence of attributes, they become attributes of the XML element under construction.  Each atomic value in the sequence resulting from the enclosed expression is cast to xs:string and inserted as character data or attribute value respectively. Two adjacent atomic values are separated by space.  When an enclosed expression appears within an attribute value, then the string value of each node is inserted. E.g. <foo bar="<fred>42</fred>"/> results in <foo bar="42"/>.
+_direct element constructor_: An element constructor in which the name of the constructed element is a constant.
 
-_constructor expression_ / _computed constructor_ element (elementname | { nameexpr }) { contentexpr }, attribute (attributename | { nameexpr}) { valueexpr }.
+_computed constructor_: Available for document, element, attribute, namespace, text, comment, processing instruction. Creates a respective node.
 
-_FLOWR expression_ for,let,where,order by,return,etc.: see <<flowr>>.
+_computed element constructor_ (simplified): $$'element EQName \{ ContentExpr? \};$$. Creates an element node, allowing both the name and the content of the node to be computed. The content expression is processed exactly the same way as an enclosed expression in the content of a elememt constructor.
 
-_quantified expression_ some,every,in,satisfies: (some|every) ($myvar in expr ",")+ satisfies expr. The middle part binds iteratively every item in expr (as always a sequence) to $myvar.  For quantifier `some': If for any item / iteration the satisfies clause evaluates to true, the whole quantified expression results to true. Analogously for the quantier `every'. If multiple binding expressions are given, then the results is as with multiple for clauses in a FLOWR expr; every combination of the items in the sequences is taken.
+_computed attribute constructor_ (simplified): $$'attribute EQName \{ Expr? \};$$. Creates a new attribute node. Atomization is applied to the result of the content expression, converting it to a sequence of atomic values. The individual strings resulting from the previous step are merged into a single string by concatenating them with a single space character between each pair.
 
-_sequence related expression_ to,union(|),intersect,except
 
-_type-related expression_ instance of,typeswitch,cast as,castable,treat,validate
+=== Misc expressions
+
+_arithmetic expression_: +, -, *, div, idiv, mod
+
+_comparison expressions_:
+
+* _general comparisons_: < \<= = != >= >: The operands are atomic values or nodes that contain atomic values or sequences. If either operand is the empty sequence, the expression evaluates to false. If any operand is a sequence, the expression evaluates to true if any of the possible item combinations evalues to true (e.g. (2,5) < (7,9) evaluates to true if either of 2<7, 2<9, 5<7, 5<9 is true). When comparing any two of the atomic types, if one is typed and the other is untyped, the untyped value is cast to the typed value's type. If both are untyped, they are compared as strings.
+
+Example: "<x>42</x> = (<y>42</y>, <z>77</z>)" evaluates to true, see also atomization.
+
+* _value comparisons_: lt le eq ne ge gt: The operands must be single atomic values (i.e. an atomic value, a node containing an atomic value or the empty sequence). If either operand is the empty sequence, the empty sequence is returned (analogous to null in SQL).  If either operand is a sequence of more than one elment, a type error is raised.  If both operands are untyped, they are compared as strings. If one is typed and the other is untyped, a type error is raised.
+
+* _node comparisons_: is: Compares idendity. Each operand must be a single node or the empty sequence. If either is the empty sequence, the empty sequence is returned.
+
+* _order comparisons_: << >>: order of elements in document *to-do*
+
+* _logical expression_: `and' and `or' are operators, `not' is a function. For each operand the effictive Boolean value is calculated.
+
+_constructing sequences_:
+
+[[xquery_comma_operator]]
+* _comma operator_: $$Expr = (ExprSingle \,{0})*$$: I.e. the comma operator is the only way to construct a sequence. Empty parentheses denote an _empty sequence_. In places where the grammar calls for ExprSingle, such as the arguments of a function call, any expression that contains a top-level comma operator must be enclosed in parentheses.
+
+* _range expr_: $$RangeExpr = AdditiveExpr ['to AdditiveExpr]$$: E.g. "1 to 3" produces "(1, 2, 3)", and "42 to 42" produces "(42)".
+
+_quantified expression_: some, every, in, satisfies: (some|every) ($myvar in expr ",")+ satisfies expr. The middle part binds iteratively every item in expr (as always a sequence) to $myvar.  For quantifier `some': If for any item / iteration the satisfies clause evaluates to true, the whole quantified expression results to true. Analogously for the quantier `every'. If multiple binding expressions are given, then the results is as with multiple for clauses in a FLWOR expr; every combination of the items in the sequences is taken.
+
+_sequence related expression_: to, union(|), intersect, except:
+
+_type-related expression_ instance of, typeswitch, cast as, castable, treat, validate
 
 _input documents_: doc("myuri") accesses a single document. collection("myuri") accesses a collection of nodes of any kind.  How exactly the URI is associated with that collection of nodes is implementation defined.  The input document can also be specified outside the query itself.  For example a Java program could be: (new Document(File("myuri"))).evaluate("...query...").  As another example, the query processor can bind external variables, defined on the command line, to an input document. E.g. invoke the processor with "xquery -myinputdoc myinput.xml", and the query could use the variable $myinputdoc, for example like so: $myinputdoc/myelement.
 
-_context_: In XQuery, the only operators that change the context node are the slash and the square brackets used in predicates.
-
 _string ops_: concatenation: || or concat(...). substr("foo", 2, 3). string-length("foo"). string-join(str_list, separator_str).
-
-_document order_: The order of nodes in an XML document or document fragment. A preorder traversal of the node tree.
 
 misc:
 
-- _dynamic paths_ patterns (dynamic meaning that the path expression depends on variables): find all elements with certain name and certain value doc("...")//*[name()=$name][.=$value].
-
 - data(...) (built-in function) returns content of argument. As always, the argument is w.r.t. to the context node.
 
-- xml document / xml element: can be used as as primary and represents itself.
+- ???: if the result is a sequence of elements, prints them as `strings in XML syntax'
 
- * {...} to embed an expression within a literal element: <a>{2+3}</a>
-
-- atomization: If a value is expected, but the node is an element, it is automatically atomized. E.g. "<a>42</a>+1" yields 43.
+- ???: if the result is a sequence of attributes, use data(...) to wrap the expression denoting an attribute node / set of attribute nodes.
 
 - apparently predicates can be appended to any sequence. E.g. [1 to 10](. mod 2 = 0) returns even numbers 1 to 10.
 
-- joins can be accomplished simply by nested for clauses in a FLOWR expression. for $a in ..., $b in ... return <foo><a>{$a}</a><b>{$b}</b></foo>
+- joins can be accomplished simply by nested for clauses in a FLWOR expression. for $a in ..., $b in ... return <foo><a>{$a}</a><b>{$b}</b></foo>
 
 
-=== "Flow control"
+=== Path expressions
 
+Recall that XQuery is a superset of XPath, see <<xquery_vs_xpath>>. An XQuery path expression is very similar (*to-do* what are the differences?) to XPath's location path.
+
+Path expressions return nodes in document order.
+
+A location step can actually be any expression. The "/" separating location steps is just an operator as any other. Followingly, if such an location step expression contains an operator with lower precedence than /, it needs to be in parentheses.
+
+
+
+*to-do* are context node and context item really synonymous?
+
+--------------------------------------------------
+ doc("catalog.xml")/catalog/product/number
+
+ 2) for location step "product"
+    context sequence: iterates over ???
+     context node: iterates over the context sequence
+--------------------------------------------------
+
+- _dynamic paths_ patterns (dynamic meaning that the path expression depends on variables): find all elements with certain name and certain value doc("...")//*[name()=$name][.=$value].
+
+
+
+=== Flow control expressions
 
 __if (expr) then expr else expr__. The else clause is required; however as its body, you can as use the empty sequence (). The test expression is interpreted as an xs:boolean value by calculating its effective Boolean value.
 
@@ -449,37 +633,88 @@ __switch (expr) (case expr return expr)* default return expr__
 __try { expr } catch ... { expr }__
 
 
-[[flowr]]
-=== FLOWR
+[[flwor]]
+=== FLWOR expressions
 
-_for clause_ for $myvar [at $myvar2] in expr: Multiple for clauses are similar to nested loops in programming languages. An alternate, more concise, syntax for multiple clauses is for ($myvar [at $myvar2] in expr ",")+.
+Pronounced "flower". The name FLWOR is suggested by the keywords for, let, where, order by, and return which introduce some of the caluses used in a FLWOR expression.
 
-_let clause_ let ($myvar := expr ",")+. Binds the value of expr to $myvar.
+The semantics of FLWOR expressions are based on a concept called a tuple stream. A _tuple stream_ is an ordered sequence of zero or more tuples. A _tuple_ is a set of zero or more named variables, each of which is bound to a value that is an XDM instance.  Each tuple stream is homogeneous in the sense that all its tuples contain variables with the same names and the same static types. Tuples and tuple streams are not part of the <<xdm,data model>>. They exist only as conceptual intermediate results during the processing of a FLWOR expression.
 
-_where clause_ where expr: Filters the tuple stream, letting through tuples for which the given expr evaluates to true.
-
-_order by clause_ [stable] order by (expr [ordermodifier] ",")+.  Sorting is by whatever the expr returns.  So expr must return a single item.  Untyped values are treated as strings. Order modifiers are `ascending' and `descending'. `empty greatest' and `empty last' specify the order of the empty sequence and NaN.  Using `stable' as first word makes the sort stable, i.e. items with the same value (w.r.t. sorting) remain in the same order.
-
-_return clause_ return expr: Returns a sequence by evaluating expr for each tuple in the tuple stream.
-
-The semantics of FLOWR expressions are based on tuple streams. A _tuple stream_ is an ordered sequence of one or more tuples. A _tuple_ is a set of zero or more bindings.  A tuple stream is homogeneous in the sense that all its tuples contain variables with the same names and the same static types. For example:
+For example:
 
 --------------------------------------------------
 for $x in 1 to 5
-                               ($x=1),  ($x=2),  ($x=3),  ($x=4),  ($x=5)
+                     ($x=1),  ($x=2),  ($x=3),  ($x=4),  ($x=5)
 where $x >= 3
-                               ($x=3),  ($x=4),  ($x=5)
+                     ($x=3),  ($x=4),  ($x=5)
 --------------------------------------------------
 
 --------------------------------------------------
 for $x in 1 to 5
-                               ($x=1),  ($x=2),  ($x=3),  ($x=4),  ($x=5)
+                     ($x=1),  ($x=2),  ($x=3),  ($x=4),  ($x=5)
 group by $y := $x mod 2
-                               ($x=(2,4), $y=0),  ($x=(1,3,5), $y=1)
+                     ($x=(2,4), $y=0),  ($x=(1,3,5), $y=1)
 --------------------------------------------------
+
+Conceptually, the first clause generates a tuple stream. Each clause between the first clause and the return clause takes the tuple stream generated by the previous clause as input and generates a (possibly different) tuple stream as output. The return clause takes a tuple stream as input and, for each tuple in this tuple stream, generates an XDM instance; the final result of the FLWOR expression is the ordered concatenation of these XDM instances.
+
+The initial clause in a FLWOR expression may be a for, let, or window clause. Intermediate clauses may be for, let, window, count, where, group by, or order by clauses. These intermediate clauses may be repeated as many times as desired, in any order. The final clause of the FLWOR expression must be a return clause. The semantics of the various clauses are described in the following sections.
 
 So an expression (i.e. an expression tree), is behind the scenes converted to an iterator tree, where edges are tuple streams or sequences (of items) and nodes some iterator. _Materialize_ means that we compute all elements of a tuple stream or sequence. However that requires that all the elements fit into memory. In _streamed execution_ we apply the iterator principle. In _parallel execution_, the stream or the sequence is split and processed in parallel.
+
+_for clause_ (simplified): $$ForClause = 'for \$VarName #variable ['at \$VarName #positional_variable] 'in ExprSingle #sequence$$: For simplicity, only the case that the for clause is _not_ an intermediate clause is discussed here. The variable in a for clause iterates over the sequence and is bound in turn to each item in the sequence. If a positional variable is given, loosely speaking, it is bound to the position (1 based) of the current item in the sequence.
+
+------------------------------------------------------------
+for $x in (100, 200, 300)
+                     ($x=100), ($x=200), ($x=300)
+------------------------------------------------------------
+
+------------------------------------------------------------
+for $x at $i in 42 to 43
+                     ($x=42, $i=1), ($x=43, $i=2)
+------------------------------------------------------------
+
+------------------------------------------------------------
+for $x in (3, 5)
+                     ($x=3), ($x=5)
+for $y in (1, 2)
+                     ($x=3, $y=1), ($x=3, $y=2), ($x=5, $y=1), ($x=5, $y=2)
+------------------------------------------------------------
+
+
+_let clause_: $$LetClause = 'let (LetBinding \,{0})+; LetBinding = \$VarName ['as SequenceType] `:= ExprSingle #value $$. For each LetBinding, binds the specified value to the specified variable.
+
+------------------------------------------------------------
+let $x := 42, $y := 77
+                     ($x=42, $y=77)
+------------------------------------------------------------
+
+------------------------------------------------------------
+for $x in 2 to 3
+                     ($x=2), ($x=3)
+let $y := $x + 42
+                     ($x=2, $y=44), ($x=3, $y = 45)
+------------------------------------------------------------
+
+*to-do* test the above
+
+_where clause_: $$WhereClause = 'where ExprSingle$$: Filters the tuple stream, letting through tuples for which the given expr evaluates to true.
+
+_group by clause_ (simplified): $$GroupByClause = 'group 'by (\$VarName \,{0})+;$$. *to-do* inclusive :=, the exam 18 also had this. *to-do* what's the order?
+
+_order by clause_ (simplified): $$['stable] 'order 'by (OrderSpec \,{0})+; OrderSpec = ExprSingle ['ascending|'descending]$$. Imposes a value-based ordering on the tuples in the tuple stream.  The relative order of two tuples is determined by comparing the values of their orderspecs (i.e. what the respective ExprSingle returns, i.e. ExprSingle must return a single value. Untyped values are treated as strings), working from left to right. The output tuple stream of the order by clause contains the same tuples as its input tuple stream, but the tuples may be in a different order. Using `stable' as first word makes the sort stable, i.e. items with the same value (w.r.t. sorting) remain in the same order.
+
+_return clause_: $$ReturnClause = 'return ExprSingle$$ Returns a sequence by evaluating ExprSingle for each tuple in the tuple stream.
 
 References:
 
 - https://www.w3.org/TR/xquery-30/#id-flwor-expressions
+
+
+== References
+
+- XQuery 3.0: An XML Query Language: https://www.w3.org/TR/xquery-30/
+  * XQuery and XPath Data Model: https://www.w3.org/TR/xpath-datamodel-30/
+  * XQuery Functions and OperatorsXPath and XQuery Functions and Operators: https://www.w3.org/TR/xpath-functions-31
+
+- Book "XQuery: Search Across a Variety of XML data"
