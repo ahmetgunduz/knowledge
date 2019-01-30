@@ -1,0 +1,54 @@
+// The markup language of this document is AsciiDoc
+:encoding: UTF-8
+:toc:
+:toclevels: 4
+
+= Mercurial
+
+== Brainstorming
+
+*to-do* replace `current commit' by the lingo Mercurial uses.
+
+A _checkin_ (aka commit (git lingo)) creates a _changeset_ (aka revision, snapshot, commit (git lingo)). Every change set (except for the null change set) has exactly one parent change set. When creating the first commit in a repository, it's parent is the special null change set. A changeset is immutable. A changeset cannot be removed from the repository.
+
+A _changeset id_ (commit id in git lingo) universally uniquely identifies a change set. It's a SHA1 over the changeset content. In a local repository , for convenience, a changeset can be identified by it's _local revision number_. They start at 0 and increment with each added changeset. *to-do* how are local revision numbers numbered during a clone?
+
+A _head_ is a changeset with no children. The _tip_ is the newest head in the local repo; the changeset with the highest local revision number.
+
+The _working directory_ is what becomes the next changeset. It is not the files on your disk. It also has it's manifest. It also has a parent changeset. When commiting, the new changeset will have that as its parent.
+
+A _manifest_ is the list of files being in a changeset or working directory (in total, not only the ones that changed).
+
+To _revert_ a file means replacing the file in the working directory with a version of it stored in a changeset.
+
+To _update_ the working directory to a change set means making that changeset the parent of the working directory
+
+A _merge_ merges the given changeset into the working directory. The working directory must initially be clear. After reviewing the merge and resolving potential conflicts (*to-do* how?), you can commit as normal.
+
+_tipmost_ *to-do*
+
+A _branch name_ is ?. Also the working directory has a branch name, which it inherited it from its parent. The branch name (of the working directory) is modifyable. _Creating a branch_ means modifying the branch name of the working directory (*to-do* what if I use a name that is already in use?)
+
+The current branch name is given by the branch name of the current commit. The branch name of the null changeset is `default'. *to-do* is there a branch head? if so, how is it stored? The source should be the branch name stored in each changeset, which would require scanning the whole repo.
+
+*to-do* what if multiple heads have the same branch name?
+
+Tags and bookmarks are an additional way of refering to a change set. A changeset stores a single branch name, which is non-unique across the repo.
+
+A _tag_ is a pointer to a changeset. _Regular tags_ are stored in .hgtags as changeset id - tag name pairs. .hgtags should be put into the repo. To find out the tags currently used, first the .hgtags file in all heads are considered. Say tag foo collides in head1 and head2. If one line of development from the common ancestor to the respective head does not modify the tag, the other tag definition obviously wins. If both lines of development modify the tag, the head with the higher local revision number wins (note that the relative order of local revision numbers is not unique across repos, thus in that case the tags do not universally identify the same changeset). _Local tags_ are stored in .hg/localtags with the same format. *to-do* read https://www.mercurial-scm.org/wiki/TagDesign
+
+A _bookmark_ is pointer to a changeset. Similar to a Git branch. Can be shared.
+
+
+*to-do* read https://www.mercurial-scm.org/wiki/Workflows
+
+
+== References
+
+- Mercurial: The Definitive Guide: http://hgbook.red-bean.com/
+
+- Comparision Hg vs Git: Hg and Git : Can't we all just get along?: https://pyvideo.org/pycon-us-2010/pycon-2010--hg-and-git---can--39-t-we-all-just-ge.html
+
+- Mercurial tutorial. Youtube playlist. https://www.youtube.com/playlist?list=PL4LQVbH6ePBgVVIbXlHaqpXX2Q3045k79
+
+- hg-git configured such as to work locally with git and talk to a hg repository: http://fatphil.org/linux/hg-git.html
