@@ -1,0 +1,19 @@
+// The markup language of this document is AsciiDoc
+:encoding: UTF-8
+:toc:
+:toclevels: 4
+
+= QtCreator
+
+== Clang format
+
+Install plugini C&plus;&plus;/Beautifier. Configure it in menu Options / Beautifier / Clang Format. I don't know how to configure it to use a given config file, or to let clang-format do it's normal way of finding config files. So now I copy paste the content of the proper config file into Qt Creator, and my build script checks that the two files compare equal.
+
+--------------------------------------------------
+QT_CLANG_FORMAT_PATH="/home/sensorflo/.config/QtProject/qtcreator/beautifier/clangformat/efc/.clang-format"
+if ! cmp -s .clang-format "$QT_CLANG_FORMAT_PATH"; then
+  echo "Qt Creator's clang-format config is different"
+  diff .clang-format "$QT_CLANG_FORMAT_PATH"
+  exit 1
+fi
+--------------------------------------------------
