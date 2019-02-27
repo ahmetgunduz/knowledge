@@ -159,31 +159,6 @@ See also:
 :The union of UUT and all its DOCs and possibly further data a test needs.
 
 
-== Achievements ==
-The intention is to be able to communicate the achievements, the profit, of the time that is invested. 
-
-* before Summer 2013
-** Everything which is not listed below
-
-* 2013 Summer / Autumn
-** COM objects are now testdoubleable. Provide a litte framework to easily create a test double coclass for a given COM interface.
-** Introduced [[Given_When_Then]] to make the test name the test specification in prose. Together with the tool [[UnitTest2_Practice#Tools|testdox]] and needed framework support and wiki pages.
-** Clean up location(s) of test related header files
-** Wrote wiki chapters [[UnitTest2_Practice#Good_assertions_for_good_defect_localization]] and [[UnitTest2_Practice#Good_output_for_good_defect_localization]]
-** Worked out [[UnitTest2_Practice#Patterns_how_to_deal_with_common_Flori_classes_.28AO.2C_COM.2C_....29|Patterns how to deal with common Flori classes (AO, COM, ...)]] and made working examples.
-** The tool [[UnitTest2_Practice#Tools|unittest2gen]]
-** Various test helpers (custom gtest printers / assertions) and test doubles for often used Flori classes
-** Improved the way gtest prints information; work together with our [[Given_When_Then]] test name notation by using [[UnitTest2_Practice#Tools|testdox]].
-** Made global methods commonly used in C++ (e.g. from windows.h) testdoubleable using new CSE class in GlobalServices library.
-** 2nd round of workshops
-
-* 2013 October 
-** RTOS is better testdoubleable since (Indel)(Item)Types and FloriINCO are now better testdoubleable
-** EString, EHRESULT & Co and various types in field of (Extended)(Indel)(Item)Type are now better watchable in debugger
-
-* Currently ongoing
-** Build an unit test environment on RTOS
-
 == See Also ==
 * [[Testing]] Parent level page with all the testing links, continue from there
 
