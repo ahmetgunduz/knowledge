@@ -1,0 +1,194 @@
+This page gives general information on automated SW tests, with a focus on what is relevant for the Flori project. In the Flori project we currently only use [[Unit Test]]s (which we call UnitTest2) and something between system test and component test which we wrongly call UnitTest.
+
+
+== Properties ==
+
+General properties of automated tests. See also the page [[Unit Test]]. Properties of unit tests natural also apply to all automated tests, but with different priorities. The following list is incomplete, it's what we in the Flori project think is important.
+
+;Think specification, not test
+:When thinking 'test', think of it as a formal specification specifying what the SW must do. Especially in [[TDD]] the productive SW does nothing that is not specified. One example, out of many, why this distinction makes sense: For many people, especially beginners, it is hard to find out what tests they should write - but finding out what specifications to write is more easy.
+
+;Write specification (aka test) before productive code
+:Since the productive code is only allowed to do what is specified, the specification has to be written first. That helps to have a clear idea what the specification of a tiny piece of code is before you write that tiny piece. Writting code without knowing what it should do is probably not a good way to work. The idea is to constantly switch between writing specification and the productive code satisfying it, see also [[TDD]]. Consequently the design of the productive code becomes inherently such that the code is testable. Also the design automatically becomes flexible, since parts of it already now need to be replaceable, by test doubles in this case. 
+
+;Mutually independent
+:Both a) the order in which any sequence of tests is executed and b) the number of times any test or test sequence is executed, must be completely irrelevant. This is important to run a subset of the set of existing tests. Typically we either run the whole set or the one single test that currently sadly is failing and we need find out why.
+
+;Only red or green
+:Tests either pass (green) or fail (red). There is no warning (yellow or orange). If there was a 'warning' outcome, that would mean the test is not automated anymore since human interpretation is needed after each run to determine if finally a defect sneaked in the code or not.
+
+;Defect repellent, not defect finding
+:(Regular runned) automated tests are about ''repelling'' defects (aka bugs). It's not about finding existing bugs. We want to prevent defects from being inserted in the first place. This 'repelling' concept applies most to unit tests which are run after every small step - thus not not even a local Git commit should contain a newly introduced bug. It applies less to automated tests which are run with a low frequency on the central repository such as an acceptance test. Here a new commit containing a new defect is in the central repository for a hopefully only short time until it is detected that it introduced a defect.
+
+== Test double ==
+Test double object is the generic term for any case where you replace a real object with a test double object for testing purposes. Remember that it is often a good choice to use the real object instead of a test double, see [[Unit Test#When to isolate unit under test|When to isolate unit under test]] for tips. In the Flori project the test doubles we mostly use are mocks using ON_CALL, fakes and mocks using EXPECT_CALL. The following list defines terms revolving around test double objects:
+
+;Real object
+: The object that is also used during production. 
+
+;Test double object
+: ''[http://xunitpatterns.com/Test%20Double.html Test Double]'' (think stunt double) a the generic term for any case where you replace a real object for testing purposes. There are various kinds of test doubles:
+
+:;Mock object
+::Is an object which's methods can do simple actions and possibly additionally can have expectations on the number of times and the order they are called.
+
+::; a method can execute simple actions, definable using gmock's ON_CALL
+::: Such simple actions can for example be 'return a fix value' or 'set an output parameter to a fix value' or 'delagate the call to another object/method'. The defined actions are then executed when the method is called during exercising the test. Using gmock, each method of a mock object automatically has a default action which is executed when no other action is defined.
+
+::; a method ''additionally'' can have expectations, definable using gmock's EXPECT_CALL
+::: The possible expectations are how exactly the UUT has to use / call a DOC object. Say the mock object has the methods foo and bar, then a test can define expectations such as:
+:::* Cardinality: Method foo must be called exactly 3 times. Or bar must be called at least 2 times. See googlemock's [http://code.google.com/p/googlemock/wiki/ForDummies#Cardinalities:_How_Many_Times_Will_It_Be_Called? cardinalities]. 
+:::* Order: Method foo and method bar must be called in exactly that order - see googlemock's [http://code.google.com/p/googlemock/wiki/ForDummies#Ordered_vs_Unordered_Calls ordered calls].
+:::Use matchers to refine the definition of an expectation: foo must be called with either 2.1 or 3.1414 as argument - see googlemock's [http://code.google.com/p/googlemock/wiki/ForDummies#Matchers:_What_Arguments_Do_We_Expect? matchers]. 
+::: Use EXPECT_CALL rather conservatively and prefer ON_CALL, since mock expectations result in fundamental different tests: 
+:::* A regular tests defines its expectations in the verify section which comes ''after'' exercising the unit under test. The expectations are checked when the program flow reaches their definition. A test using mock expecatations on the other hand ''defines'' its exceptions in the 'mock expectations' section which comes ''before'' exercising the test. Such a test should have an empty verify section. The expectations are ''checked'' implicitly when the program flow reaches the end of the test function body (to be precise: they are checked in the destructor of a mock object).
+:::* Since a mock sets expectations on how the unit under test has to call its depended-on components, you in fact test implementation details, i.e. you do white box testing. We prefer black box testing where feasible, see [[Unit Test#White Box vs Black Box|White Box vs Black Box]]. Even Googlemock itself shares that opinion, see [http://code.google.com/p/googlemock/wiki/CookBook#Knowing_When_to_Expect Knowing when to expect].
+:: With EXPECT_CALL, actions ''and'' expectations can be defined. With ON_CALL only actions can be defined, i.e. no expectations can be defined.
+
+:;Fake object
+:: A ''[http://xunitpatterns.com/Fake%20Object.html Fake Object]'' is an object that replaces the functionality of the real object with an alternative light weight implementation of the same functionality, which however is typically much faster. They are typically used to replace slow things such as a database, filesystem or network connection. Flori uses fakes for PHF items.
+
+:;Dummy object
+:: A ''[http://xunitpatterns.com/Dummy%20Object.html Dummy Object]'' is passed around but never actually used. Usually it is just used to fill parameter lists. A dummy object can make a test more readable, since you explicitly state that the object is not used by the UUT and thus it's implementation is irrelevant to the test.
+
+:;(Test) spy object
+:: A ''[http://xunitpatterns.com/Test%20Spy.html Test Spy]'' is similar to a mock object with EXPECT_CALL methods, only that the 'expectations' are asserted explicitly in the verify section as normally done in simple tests. Mock objects with EXPECT_CALL methods in contrast setup expectations before exercising the test. You most probably won't need a spy in the Flori project, since we have the googlemock framework, i.e. we have no framework for conveniently creating spies. However with Google mocks you can't set expectations on constructors or destructors, so you might need to create a spy for such cases.
+
+
+Note that there are multiple definitions of terms like 'test double', 'mock' etc: 
+* Except for 'mock', the above terms are based on the book "xUnit Test Patterns, Refactoring Test Code" by Gerhard Meszaros.
+* The above terms 'mock', 'ON_CALL' and 'EXPECT_CALL' are based on the googlemock framework. 
+:* Unit test literature, including Meszaros, uses the term [http://xunitpatterns.com/Test%20Stub.html (test) stub object] for what Flori & gmock call mock object with only ON_CALL methods.
+:* Unit test literature, including Meszaros, uses the term [http://xunitpatterns.com/Mock%20Object.html mock object] for what Flori & gmock call mock object with only EXPECT_CALL methods.
+* Wikipedia's page on [http://en.wikipedia.org/wiki/Mock-object mock objects] defines the term 'mock' in an even another way. What Wikipedia call's a 'mock' object is what Meszaros & Flori call 'test double' object.   
+
+
+Further reading: 
+* See also [http://xunitpatterns.com website of the book], especially the page on [http://xunitpatterns.com/Test%20Double.html Test Double]s and the page on [http://xunitpatterns.com/Mocks,%20Fakes,%20Stubs%20and%20Dummies.html Test Doubles Terminology]. 
+* Confused with other definitions of mock stub etc you might know? This page shows how common known definitions of the terms relate to each other: [http://xunitpatterns.com/Mocks,%20Fakes,%20Stubs%20and%20Dummies.html Mocks, Fakes, Stubs and Dummies].
+* A good alternate summary to ours above is [http://www.martinfowler.com/bliki/TestDouble.html Test Double] by Martin Fowler.
+
+== Program specification forms ==
+This chapter shall help to write good tests by describing the big picture; how 'tests' and productive code relate to each other.
+
+What the program should do and what it really does is specified by multiple forms of specification. They are listed in the following in order from easy understandable by humans and thus likely to be correct to becoming more complex, harder to understand by humans and thus more error prone:
+
+;Test name = specification in the form of easy understandable prose describing what the program ''should'' do 
+:The [[Given When Then]] DSL gives a frame for how to write the specification of the program in prose.
+
+;Test implementation = specification by giving simple examples what the program ''should'' do
+:What the program should do is specified by giving simple, easy understandable examples which are automatically runnable and verifiable.
+
+;Productive code = 100% exact specification of what the program ''really'' does
+:The productive code is the 100% exact specification of what the program ''really'' does. A little analogy: When a civil engineer designs a bridge, her output is an exact plan of the product (the bridge), which she then passes to the team actually building the bridge. When a software engineer designs an executable program, her output is an exact plan (the program code) of the product (the executable program), which she then passes to the team (the build system (compiler, linker, ...)) actually building the executable program.
+
+When you get the easiest right (the prose), you're more likely to get the medium difficult right (the examples in the test implementation). If you get that right, you're more likely to get hardest right (the productive program code). If you get that right, we reached our ultimate goal: what the program really does matches with what the program should do.
+
+
+
+The rest of the chapter is discussion left for the interested reader:
+
+In general naturally a test implementation can also test by other means than by examples, but that's rather seldom I suspect and I (FLKA) would like to hear about those ways if you know some.
+
+Brainstorming: Actually there are even more redundant ways / things which specify / describe what the program should do. I (FLKA) wonder what we can do about that huge redundancy, I sadly have no good idea. Attempt to compile a complete list:
+
+* Productive code
+** actual code 
+** method name
+** method comment (divided in brief and detailed part)
+* UML diagrams (class, object, sequence, ...)
+* Prose specification / requirement documents (e.g. JAB's requirement documents)
+* Automated tests on different levels: acceptance, system, component, unit. For ''each'' of those:
+** Test name, possibly given in the given-when-then-sothat DSL
+** Implementation
+
+== Characterization Test ==
+A characterization test is a means to describe (characterize) the ''actual'' behavior of an existing piece of software. Characterization tests do not judge whether that actual behavior is 'good' or 'correct', they just objectively record the actual facts.
+
+Opposed to regular tests, characterization tests do not verify the correct behavior of the code, which can be impossible to determine. Instead they verify the behavior that was observed when they were written. Often no specification or test suite is available, leaving only characterization tests as an option, since the conservative path is to assume that the old behavior is the required behavior. Characterization tests are, essentially, change detectors. It is up to the person analyzing the results to determine if the detected change was expected and/or desirable, or unexpected and/or undesirable.
+
+See also:
+* Micheal Feather's book "Working effectively with legacy code", sub chapter "Characterization Tests" within "chapter 13: I Need to Make a Change, but I Don't Know What Tests to Write".
+* [http://en.wikipedia.org/wiki/Characterization_test Characterization Test] on Wikipedia
+* [http://c2.com/cgi/wiki?CharacterizationTest Characterization Tests]
+* [http://www.artima.com/weblogs/viewpost.jsp?thread=198296 Working Effectively With Characterization Tests] first in a blog-based series of tutorials on characterization tests.
+* [http://www.ddj.com/development-tools/206105233 Change Code Without Fear] DDJ article on characterization tests.
+
+== Terms ==
+
+;Fixture
+:See Test Fixture
+
+;DOC
+:Depended-on component. Components/objects your SUT depends upon.
+
+;Dummy (object)
+:See [[Automated Test#Test double|Test double]]
+
+;Fake (object)
+:See [[Automated Test#Test double|Test double]]
+
+;Mock (object)
+:See [[Automated Test#Test double|Test double]]
+
+;Unit Test
+:See [[Unit Test]]
+
+;UUT
+:Unit under test
+
+;Real object
+:See [[Automated Test#Test double|Test double]]
+
+;Spy (object)
+:See [[Automated Test#Test double|Test double]]
+
+;Stub (object)
+:See [[Automated Test#Test double|Test double]]
+
+;SUT
+:System under test. 
+
+;TDD
+:Test driven development. With 3 very simple rules it is enforced to work in a way with a very short feedback loop. Additionally, as a result, all productive code exists only because there is a specification (test) for it, and thus the code coverage is very high. See also Flori's [[TDD]] wiki page.
+
+;Test double
+:See [[Automated Test#Test double|Test double]]
+
+;Test Fixture
+:The union of UUT and all its DOCs and possibly further data a test needs.
+
+
+== Achievements ==
+The intention is to be able to communicate the achievements, the profit, of the time that is invested. 
+
+* before Summer 2013
+** Everything which is not listed below
+
+* 2013 Summer / Autumn
+** COM objects are now testdoubleable. Provide a litte framework to easily create a test double coclass for a given COM interface.
+** Introduced [[Given_When_Then]] to make the test name the test specification in prose. Together with the tool [[UnitTest2_Practice#Tools|testdox]] and needed framework support and wiki pages.
+** Clean up location(s) of test related header files
+** Wrote wiki chapters [[UnitTest2_Practice#Good_assertions_for_good_defect_localization]] and [[UnitTest2_Practice#Good_output_for_good_defect_localization]]
+** Worked out [[UnitTest2_Practice#Patterns_how_to_deal_with_common_Flori_classes_.28AO.2C_COM.2C_....29|Patterns how to deal with common Flori classes (AO, COM, ...)]] and made working examples.
+** The tool [[UnitTest2_Practice#Tools|unittest2gen]]
+** Various test helpers (custom gtest printers / assertions) and test doubles for often used Flori classes
+** Improved the way gtest prints information; work together with our [[Given_When_Then]] test name notation by using [[UnitTest2_Practice#Tools|testdox]].
+** Made global methods commonly used in C++ (e.g. from windows.h) testdoubleable using new CSE class in GlobalServices library.
+** 2nd round of workshops
+
+* 2013 October 
+** RTOS is better testdoubleable since (Indel)(Item)Types and FloriINCO are now better testdoubleable
+** EString, EHRESULT & Co and various types in field of (Extended)(Indel)(Item)Type are now better watchable in debugger
+
+* Currently ongoing
+** Build an unit test environment on RTOS
+
+== See Also ==
+* [[Testing]] Parent level page with all the testing links, continue from there
+
+<!--
+Local Variables:
+mode: mediawiki
+End:
+-->
