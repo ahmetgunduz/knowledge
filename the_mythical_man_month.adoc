@@ -1,0 +1,59 @@
+:encoding: UTF-8
+// The markup language of this document is AsciiDoc
+
+= The Mythical Man Month
+
+My personal notes on the book `The Mythical Man Month'.
+
+Programmers are pervarsive optimists. Thus their estimations on how long it
+takes for a task is typically based upon the how long it `ought' to take,
+assuming most things go well. Another reason to estimate in points, points
+being a measurement of relative complexity.
+
+Adding more engineers also means also more communication overhead.
+
+Some tasks cannot be split among more developpers to be executed in paralledl;
+some task need to be done in sequential order. For such cases it doesn't help
+adding more developpers. The bearing of a child takes 9 months, no matter how
+many women are assigned.
+
+Rule of thumb, time needed for an issue: 1/3 planning, 1/6 coding, 1/4
+component test, 1/4 system test having all components. Thus it becomes
+apparent that all tests, inclusive system tests, should be part of the
+definition of done of each issue tracker ticket. At the very last, the project
+schedule should plan enough time for the system tests.
+s
+The project manager can make the programmer finish a task on schedule, but the
+actual completion cannot be enforced. Like the patron can make the chef finish
+an omelette in less than two minutes, but then the customer gets a raw
+omelette. To get a good omelette, all have to wait for two minutes.
+
+If behind schedule, in practice, the set of task gets trimmed anyway, in one
+way or the other. If not by removing features, then by silent trimming in the
+form of hasty design and poor testing. Better have less features, but features
+that are well done.
+
+Conceptual integrity ist the most important ingredient in system design. It is
+far better to have one set of coherent design ideas, even if they are not the
+best, than to have a set of very good but independent uncoordinated idas. Thus
+it's vital that all the involved architects over time are able follow a single
+design concept set, opposed to squize in their individual possibly great
+ideas, which however don't fit the overall design concept set.
+
+"Form is liberating". From the perspective of an implementor (in contrast to
+architect), if the architecture/concepts are given, the implementor is free to
+concentrate on an implemention that implements the architecture well, as
+opposed to being distrachted by discussions about the architecture/concepts.
+
+So far I have the impression that in the author's world, the architects have
+all the specifications from the beginning, and the specifications do not
+change much. Also, in his approach, one can't try out the architecture.
+
+
+
+quality push
+
+- work on my high level proposal
+- how to distribute work? examples to show what I mean, let Juan do the rest?
+- Don't be pedantic. Be happy about the big step forward. Only intervene if it
+  really goes well, don't pin point details. People are people.
