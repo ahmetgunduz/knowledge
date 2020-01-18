@@ -20,31 +20,29 @@ expression has some non-reference type, and each expression belongs to exactly
 one of the tree primary value categories.  _Literals_ and _identifiers_ are
 primary expressions.
 
+12.2 Temporary objects [class.temporary]:
+
+
 === Value categories
 
-Introduction and description of all value types:
+Three primary value categories:
 
-lvalue;; Identifies a non-temporary object or a non-member function.
-Properties: Those of glvalue, address may be taken, can be lhs operand of
-built-in assignment operator unless non-modifiable, may be used to initialize
-an lvalue reference.  Note that an lvalue can be non-modifiable.  Flori:
-Examples for lvalues which don't have a name: literal string, objects on heap,
-array elements
+lvalue;; The expression identifies a (non-temporary) object or a non-member
+function.  [Examples for lvalues which don't have a name: literal string,
+objects on heap, array elements]
 
-prvalue (pure rvalue);; A temporary object or a value that is not an object.
-Properties: those of rvalue, cannot be polymorphic, a non-class prvalue cannot
-be cv-qualified, cannot have incomplete type
+prvalue (pure rvalue);; A temporary object or subobject thereof, or a value
+that is not associated with an object.
 
-xvalue;; Simplified: Things whose return type is an rvalue reference.
-Properties: those of rvalue, those of glvalue.  [Flori: Saying it's about an
-eXpiring object is misleading IMHO, since that also applies to rvalues in
-general.]
+xvalue;; Simplified: Things whose return type is an rvalue reference.  [The
+term xvalue comes from `eXpiring Value', but IMHO that's missleading, since
+that also applies to rvalues in general.]
 
 Mixed value categories:
 
-glvalue (generalized lvalue);; Properties: May be polymorphic, ... (few more).
+glvalue (generalized lvalue);; Union of xvalue and lvalue
 
-rvalue;; (Flori's words:
+rvalue;; Union of xvalue and prvalue
 
 Hence if we do have an (rvalue) reference to it, we can do with it what we want (since nobody will care),
 except for bringing it into an invalid state, in order that the ctor can run
@@ -197,22 +195,6 @@ unsorted:
 
 - the standard is explicit that an empty ++{ }++ list means to call the default constructor if available
 
-- Default initialization of an automatic storage duration object of type T: if T
-  is neither class type nor array type, the object is initialized to an
-  indeterminate value. An 'indeterminate value' can be either an unspecified
-  value or a trap representation. An 'unspecified value' is a valid value
-  of T. A 'trap representation' is an object representation that need not
-  represent a value of the object type. Fetching a trap representation might
-  perform a trap but is not required to. Note that an unspecified value cannot
-  be a trap representation. Use of an indeterminate value is undefined behaviour
-  (except in a couple of cases involving std::byte or unsigned char).
-
-Guidelines:
-
-- If you provide an initializer-list constructor, also provide a default
-  constructor with the same semantics as though you were initializinng with a
-  zero-size initializer_list.
-
 
 
 Most vexing parse::
@@ -225,7 +207,12 @@ use initializers based on parens.
 
 
 
-== auto
+== Type deduction / auto
+
+
+- Type deduction and why you care, by Scott Meyers.
+  https://www.youtube.com/watch?v=wQxj20X-tIU[Video],
+  https://github.com/CppCon/CppCon2014[Presentation]
 
 
 Strips top-level cv-qualifier (but there's a universal references exception with const) and all kind of references.
@@ -316,12 +303,21 @@ and thus
 - Stephan T. Lavavej: https://github.com/CppCon/CppCon2014/tree/master/Presentations/STL%20Features%20And%20Implementation%20Techniques
 
 
-== Type deduction
 
-- Type deduction and why you care, by Scott Meyers.
-  https://www.youtube.com/watch?v=wQxj20X-tIU[Video],
-  https://github.com/CppCon/CppCon2014[Presentation]
+== Memory
 
+- new/delete are not compatible with malloc/free. New/delete operate on `free store', malloc/free on `heap'.
+- Wether or not new/delete call malloc/free is implementation defined. malloc/free do _not_ call new/delete.
+- malloc/free cannot be overriden (but ??? other shared object)
+
+- Simplified:
+ * replacable allocation functions: +++void* operator new(std::size_t)+++, +++void* operator new[](std::size_t)+++: The default version is user replaceable by defining it in any translation unit (exactly one).
+ * class specific overloads: Defined as public static class member function. Note that these are _not_ called used by std::allocator.
+
+- std::allocator(::allocate) must use (global) ::operator new(std::size_t), however it's unspecified when it is called and with what argument. I.e.
+
+
+-
 
 == Bibliography
 
