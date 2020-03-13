@@ -310,45 +310,134 @@ See also:
 
 === The big three (four in C&plus;&plus;11) and a half
 
-http://stackoverflow.com/questions/4172722/what-is-the-rule-of-three
-
 If you need to explicitly declare either the destructor, copy constructor or
 copy assignment operator yourself, you probably need to explicitly declare all
 three of them.  Extend: you should also declare a friend function swap.
 
+References:
+
+- http://stackoverflow.com/questions/4172722/what-is-the-rule-of-three
+
+
+=== Implement copy/move constructor/assignment
+
+==== Copy-and-swap idiom (Copy constructor and copy assignment)
+
+A recipe how to write copy constructor and copy assignment aimed to be general,
+simple and correct, as opposed to specialized and/or efficient.
+
+This idiom is just something that works and is hard to do wrong. For every
+particular class, there is almost certainly a more efficient
+route. Copy-and-swap isn't _the_ way to do copies or assignment, it's _a_
+way.
+
 --------------------------------------------------
 class A {
-    
-};
---------------------------------------------------
-
-
-==== Assignment operator / copy-and-swap idiom
-
---------------------------------------------------
-class A {
-    A() { ... };
-    A(const A& rhs) { ... }
+public:
+    A(const A& rhs) /* whatever */ { /* whatever */ }
 
     // strong exception guarantee
     A& operator=(A rhs) { // (1)
-        swap(*this, other); // (2)
+        swap(*this, rhs); // (2)
         return *this;
-    } 
+    }
 
     // strong exception guarantee
     friend void swap(A& a, A& b) { // nothrow
         // enable ADL, not necessary in our case, but good practice
         using std::swap;
         // member-wise swap:
-        swap(a.mMember1, b.mMember1); 
+        swap(a.mMember1, b.mMember1);
         swap(a.mMember2, b.mMember2);
         ...
     }
 };
 --------------------------------------------------
 
-http://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
+- no-throw guarantee:
+ * if pass by value: kind of a lie, since the caller must make a copy which
+   can throw, i.e. its not possible to call without possibly being thrown at
+ * if passed by const ref: then there is no no-throw guarantee since
+   the internal copy constructor can throw
+- strong exception guarantee: granted
+- Missed opportunity to reuse resources: the resources of the old state could be reused
+- Code duplication: swap and copy-ctor are now pretty redundant, no?
+
+References:
+
+- http://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
+
+
+==== Move constructor and move assignment via swap
+
+Intended to be a simple general solution focusing on simplicity, not speed. For
+a given class, there's almost certainly a more efficient solution.
+
+--------------------------------------------------
+class A {
+public:
+    A(A&& rhs) /* initialize to empty */ {
+        *this = std::move(rhs);
+    }
+
+    A& operator=(A&& rhs) {
+        if (this == &rhs) return *this; // optional early optimization
+        swap(*this, rhs);
+        return *this;
+    }
+
+    // swap as in copy-and-swap idiom, see there
+};
+--------------------------------------------------
+
+Contra:
+
+- Not as efficient. Some argue (Howard Hinnant, Scott Meyers, ...) that move
+  operations should be optimized to the instruction level. IMHO, even such an
+  implementation is way faster than the corresponding copy function (primarily
+  due to allocating resources, and possibly due to copying large amounts of data
+  within the resource). Also there are move only classes, where speed of move
+  operations is not always top priority.
+
+- The deletion of the destination resource is delayed, since it's now owned by
+  the source. That's however common behavior in the STL. See alternative below.
+
+As an alternative, release the resources right away, so there's not the arguable
+downside of delayed resource release.
+
+--------------------------------------------------
+  class A {
+  public:
+      A(A&& rhs) /* initialize to empty */ {
+          *this = std::move(rhs);
+      }
+
+      ~A() {
+        ReleaseOwnedResources();
+      }
+
+      A& operator=(A&& rhs) {
+          if (this == &rhs) return *this; // optional early optimization
+          ReleaseOwnedResources();
+          swap(*this, rhs);
+          return *this;
+      }
+
+      void ReleaseOwnedResources() { /* whatever */ }
+
+      // swap as in copy-and-swap idiom, see there
+  };
+--------------------------------------------------
+
+
+Refrences:
+
+- Howard Hinnant:
+https://stackoverflow.com/questions/17118256/implementing-move-constructor-by-calling-move-assignment-operator
+
+- Scott Meyers: http://scottmeyers.blogspot.com/2014/06/the-drawbacks-of-implementing-move.html
+
+- Thomas Becker: http://thbecker.net/articles/rvalue_references/section_04.html
 
 
 === Implicit defined ctor/dtor vs user defined
@@ -382,26 +471,6 @@ http://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
 Use unique_ptr by default, use shared_ptr when you _know_ you need shared
 ownership.  unique_ptr can always be moved to a shared_ptr.  If you _know_ you
 need shared ownership, use make_shared.
-
-
-=== Copy-and-swap idiom
-
-A recipe how to write copy/move constructor/assignment aimed to be general,
-simple and correct, as oppsed to specialized and/or efficient.
-
-This idiom is just something that works and is hard to do wrong. For every
-particular class, there is almost certainly a more efficient
-route. Copy-and-swap isn't _the_ way to do copies or assignment, it's _a_
-way.
-
-- no-throw guarantee:
- * if pass by value: kind of a lie, since the caller must make a copy which
-   can throw, i.e. its not possible to call without possibly being thrown at
- * if passed by const ref: then there is no no-throw guarantee since
-   the internal copy constructor can throw
-- strong exception guarantee: granted
-- Missed opportunity to reuse resources: the ressources of the old state could be reused
-- Code duplication: swap and copy-ctor are now pretty redundant, no?
 
 
 === Initialization, provided constructors
