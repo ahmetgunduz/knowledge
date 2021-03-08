@@ -5,6 +5,48 @@
 
 = CMake
 
+== CMake variables
+
+CMAKE_SOURCE_DIR: Dir of the CMake list file that is the root in the add_subdirectory tree.
+
+CMAKE_CURRENT_SOURCE_DIR: Dir of CMake list file that is the root in the include tree, but the current node in add_subdirectory tree.
+
+CMAKE_CURRENT_LIST_DIR: Dir of CMake list file that is the current node in the include tree. I.e. really the current CMake list file. https://stackoverflow.com/questions/15662497/difference-between-cmake-current-source-dir-and-cmake-current-list-dir
+
+PROJECT_SOURCE_DIR: Source directory for the most recent project command()
+
+SOURCE_DIR: *to-do*
+
+
+== Properties 
+
+Have different scopes: gobal, directory, target, source file, ... . https://cmake.org/cmake/help/v3.13/manual/cmake-properties.7.html#properties-of-global-scope
+
+
+== Target properties (Includes etc.)
+
+https://cmake.org/cmake/help/v3.7/command/target_link_libraries.html#command:target_link_libraries
+
+Regarding includes, there are the target properties INCLUDE_DIRECTORIES, INTERFACE_INCLUDE_DIRECTORIES, and INTERFACE_SYSTEM_INCLUDE_DIRECTORIES.
+
+INCLUDE_DIRECTORIES target property, populate via:
+
+- INCLUDE_DIRECTORIES (dir property): Used to initialize the INCLUDE_DIRECTORIES target property.
+
+- include_directories: sets the above INCLUDE_DIRECTORIES
+
+- *to-do* set property on directory https://cmake.org/cmake/help/v3.7/prop_dir/INCLUDE_DIRECTORIES.html
+
+- target_include_directories(): *to-do* public...
+
+- set_property(): *to-do* set 
+
+
+todo:  INTERFACE_LINK_LIBRARIES. LINK_INTERFACE_LIBRARIES is deprecated
+
+
+== Dependencies & Targets & Custom Commands
+
 Files aren’t targets, and unless something is a target then it doesn’t get propagated around like you would expect.
 
 add_custom_command:
@@ -14,3 +56,28 @@ add_custom_command:
 - The files listed in as outputs are only known as outputs within the CMakeLists.txt containing the add_custom_command.
 
 custom_command vs custom_targets: https://samthursfield.wordpress.com/2015/11/21/cmake-dependencies-between-targets-and-files-and-custom-commands/
+
+== Guidelines
+
+- https://github.com/boost-cmake/bcm/wiki/Cmake-best-practices-and-guidelines
+
+- https://gist.github.com/mbinna/c61dbb39bca0e4fb7d1f73b0d66a4fd1
+
+
+calls (i.e. nearly everythin):
+  - always quote arguments unless you really want the 'argument' to be expanded to multiple arguments
+  - or less strict: we assume that a path never contains a semicolon. Then an unquoted variable reference containing a path is always a single argument
+
+conditions:
+  - quote anything that is not a variable name or operator. See also https://cmake.org/cmake/help/v3.12/command/if.html#command:if, https://cmake.org/cmake/help/latest/policy/CMP0054.html, 
+  
+
+== Quoting / unquoted argument
+
+Double quotes are for whole arguments (aka quoted argument) (however, for backward compability, double-quoted strings within an unquoted argument is allowed). It may contain escape sequences and variable references, both are evaluatoed.
+
+An unqouted argument may contain escape sequences and variable references. An unquoted argument is split into multiple arguments at unquoted semicolons. Each resulting non-empty element results in one argument.
+  
+== Questions
+
+- How to make a list element contain a semicolon? set(myvar "a;b;c") apparently reflects a list of three elements, opposed to one. Probably not possible, since at the bottom a variable really stores just a string.

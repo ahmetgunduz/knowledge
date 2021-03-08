@@ -334,11 +334,22 @@ way.
 --------------------------------------------------
 class A {
 public:
-    A(const A& rhs) /* whatever */ { /* whatever */ }
+    A(const A& rhs) /* whatever */ { /* whatever */ } 
+	
+	// only if you need move semantics
+	A(A&& rhs)
+	: A() { 
+	  swap(*this, rhs);
+	}
+	
+	// If you need move semantics, you probably want a default ctor, 
+	// because you have to life with 'empty'/'non-owning' objects anyway.
+	A() : /* whatever */ { /* whatever */ }
 
+	// copy assign, and if you defined move ctor, also move assign
     // strong exception guarantee
-    A& operator=(A rhs) { // (1)
-        swap(*this, rhs); // (2)
+    A& operator=(A rhs) {
+        swap(*this, rhs);
         return *this;
     }
 
@@ -354,14 +365,22 @@ public:
 };
 --------------------------------------------------
 
-- no-throw guarantee:
+Notes:
+
+- Provides no-throw guarantee: However:
  * if pass by value: kind of a lie, since the caller must make a copy which
    can throw, i.e. its not possible to call without possibly being thrown at
  * if passed by const ref: then there is no no-throw guarantee since
    the internal copy constructor can throw
-- strong exception guarantee: granted
-- Missed opportunity to reuse resources: the resources of the old state could be reused
-- Code duplication: swap and copy-ctor are now pretty redundant, no?
+- Provides strong exception guarantee.
+- Still some code duplication. swap and copy-ctor are now pretty redundant, no?
+- Low performance in comparison to an hand optimized solution adapted to the specific type at hand:
+  * Move semantics are arguably all about performance. See howard Hinnants comment to the OP's question http://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
+  * Copy-assignment gets slower compared to a tuned copy-assignent, because a tuned copy-assignment can re-use resources of the lhs. 
+  * My personal opinion:
+    * In the case of move only types, it may not be about just about performance, but about having a simple easy to understand (low maintenance cost) implementation, which includes low redundancy.
+	* Even a not so perfamt move copy / assignment is still much faster than copy ctor / move. However I have to admit that copy-assignment is slower, because it can't reuse lhs' resources.
+
 
 References:
 
@@ -393,11 +412,7 @@ public:
 Contra:
 
 - Not as efficient. Some argue (Howard Hinnant, Scott Meyers, ...) that move
-  operations should be optimized to the instruction level. IMHO, even such an
-  implementation is way faster than the corresponding copy function (primarily
-  due to allocating resources, and possibly due to copying large amounts of data
-  within the resource). Also there are move only classes, where speed of move
-  operations is not always top priority.
+  operations should be optimized to the instruction level. See my thoughts on this case in the copy-and-swap idiom above.
 
 - The deletion of the destination resource is delayed, since it's now owned by
   the source. That's however common behavior in the STL. See alternative below.
@@ -433,12 +448,12 @@ downside of delayed resource release.
 Refrences:
 
 - Howard Hinnant:
-https://stackoverflow.com/questions/17118256/implementing-move-constructor-by-calling-move-assignment-operator
+ * https://stackoverflow.com/questions/17118256/implementing-move-constructor-by-calling-move-assignment-operator
+ * https://stackoverflow.com/questions/9322174/move-assignment-operator-and-if-this-rhs
 
 - Scott Meyers: http://scottmeyers.blogspot.com/2014/06/the-drawbacks-of-implementing-move.html
 
 - Thomas Becker: http://thbecker.net/articles/rvalue_references/section_04.html
-
 
 === Implicit defined ctor/dtor vs user defined
 

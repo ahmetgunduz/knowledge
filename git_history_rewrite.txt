@@ -1,0 +1,80 @@
+Achieving simple self-contained commits with history rewrite and further git features
+
+
+what are simple self-contained commits
+- Each commit is a small simple easy-to-understand change with one small simple responsibilty. Bug, Feature, Refactoring (Comments, blanks)
+- Commit message subject
+- Commit message detail
+
+why self-contained commits
+- Just applying KISS and SRP also to commits. These principles work well for modules, classes, functions, they also work for commits.
+	- Brain can concentrate on one single simple thing.
+- It makes it easier to write a concise precise commit message. One that is truly helpful to somebody trying to understand the commit's change.
+- It's easier for developer herself to review her work before pushing.
+- It's easier for reviewers during a code review to understand the introduced changes in general and to spot introduced bugs/problems in particular.
+- Developpers having questions to a code fragment, having found the commit via blame/smartgit-investigate/git-bisect.
+- It's easier to spot problems the commit may introduce. (Experience: I knew a commit has a bug, but it was large, with simple changes distracting even more, draining brain power).
+  - Developpers searching a bug, having found the offending commit via git-bisect, but now having to narrow down to the offending changed line(s). 
+
+git concepts refresher
+- There is a DAG of commits (or more generally, a DAG of objects).
+- Commits (objects in general) are immutable.
+- 'Modifying' a commit really adds a new commit to the DAG, the old one still being in the DAG.
+- cherry-pick: Create a new commit anywhere in the DAG which introduces the same change as the source commit
+- rebase = cherry-picking a chain of commits
+- interactive rebase: the chain of commits to cherry picked can be modified: entries removed, moved around, ...
+
+differentiate between local/un-published commits and published commits
+- your repository is your private repository.
+- your un-published commits are your private commits.
+- they don't have to follow any rules whatsoever. like the files on your disk are your files. you can do whatever you like with your files and with your local repository/commits.
+- like saving a file in an editor/ide. only that you can go back to each save-point.
+
+what is history rewrite (with descriptive drawings)
+- Amend last commit
+- Edit commit msg in graph view
+- Drag & Drop to move
+- Squash (select & right-click/shortcut)
+- Split (well, split into multiple commits)
+- Modify (well, modifiy/amend a commit)
+- Remove only via irebase?
+- Rebase
+
+why history rewrite
+- It's hard to write perfect commits the first time. Since nobody is perfect, it is hard to write perfect commits the first time. Rewriting history allows to achieve nice commits. Git (almost) never says "you should have".
+- As many savepoints as you like. Even if it does not compile, unit tests do not run ...
+- Try out different ideas
+- Encourages to fix small problems that should be fixed, because it is easy to do so. Code gradually gets easier to maintain, opposed to remain hard to understand.
+- Fix your own mistakes if you spot them before pushing. A good commit is much easier to understand for everybody than a commit containing a bug, and a few commits later a commit fixing that buggy commit.
+- Buildable commits make git-bisect more feaseable.
+- Later: Rewrite history during PR, so that the merged commits are nice and perfect.
+
+how to achiev self-contained commits
+- While working, when you see a problem that should be fixed (and can be in a short time), stash your corrent work, make the fix and commit, apply stash. That encourages fixing small problems, so code gradually gets easier to maintain.
+- Make use of local branches to try out ideas
+- History rewrite (see there)
+- If you made too many changes: Stash those (index editor / in diff pane / whole files) for next commit. Stash & keep index. Test. Commit. Apply stash. Repeat. Make Drawing/Example.
+
+when not to rewrite history
+- differentiate between 'private' unpublished commits and published commits.
+- rewrite only unpublished commits
+- example why not to rewrite published commits
+
+Quirks:
+- SmartGit after commiting last commit of a split
+- Smartgit/VisualStudio/Resharper holding same file
+
+Tips: 
+- Helper-branch/helper-tag/recycle-commits to verify no change
+- Since Git is relatively fast, I find it often easier to do one irebase-change at a time in the Graph Window, opposed to many at once via irbase dialog
+- If you cant write a short commit message subject it is a hint that the commit is too large.
+- When commits are moved, you might run into merge conflicts. So you have to resolve merge conflicts more often. So be proficient at resolving conflicts.
+
+
+3-way merge basics:
+- ....
+
+opposing views of history rewrite
+- People frowning upon history rewrite IMHO wrongly think a commit is something final. In a distributed system, especially in git, the local repository is private, and you can do whatever you see fit. Only the commits you make public must follow the projects guidelines.
+- A commit is logically not much different from saving a file in the editor, only that this version/savepoint is persistet in the vcs. Git was decined as a filesystem. Nobody would tell anybody else, how often he is allowed to save a file in his editor. So everybody should make local commits as he sees fit.
+- People say that want to see every version. But why make the boundary at commits? Why not at save in the editor? Each keypress, including deletes?

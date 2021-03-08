@@ -1,0 +1,255 @@
+= Git GUI clients
+
+Flo's SmartGit biased view.
+
+
+== Broad topics in whish list
+
+The more convenient good workflows are, the more likely people are to actually live good workflows
+
+Convenient graphical diff
+- Rationale:  The more feasible it is to thoroughly look at own or foreign changes, the more likely it is to spot mistakes / problems.
+
+Conviently crafting next commit. Requires proper thorough integration of features like index and stash.
+- Rationale: See next point
+
+Convenient modification of local unpublished history. Requries proper integration of features like (interactive) rebase, index editor, stash, reset, cherry pick.
+- Rationale: To make it feasible to end up with nice easy understandable commits. The easier it is to understand a commit, the less like mistakes / problems are overlooked, and the more likely it is to find a bug (say if git bisect spoted a bad commit).
+
+Conviently work at multiple tasks in parallel. That includes trying out multiple ideas for the same feature. Requires proper integration of features like create/delete/switch(checkout) branch, stash, rebase, merge.
+
+Properly works together with how Git stores things / states. Opposed to have self-made ways to store things / states.
+- Rationale: Then one can use different Git clients. Use the best tool for the task at hand. Ultimatively Git CLI is the most powerful, and thus sometimes we have to resort to the CLI.
+
+== Feature wish list
+
+Rougly ordered by priority, most important first. 
+The basic everyday Git commands are not listed.
+For all these features, SmartGit can do them, unless stated otherwise.
+Regarding GitKraken, if I don't meantion anything, it means that I don't know if GitKraken can do this feature.
+If I claim tool X can't do something, then I might just have missed how to do it.
+I am only proficient with SmartGit and moderately with Git CLI and gitk.
+
+diff: Graphical diff in same window. For all kind of diffs.
+  - Rationale for graphic: IMHO much more intuitive and understandable than unified diff
+  - Rationale for in same window: more efficient to glance over diff of files to review a commit or working tree changes before commit. Having always to close windows popping up is cumbersome.
+  - GitKraken: Ok
+
+diff: shows also inner line changes, i.e. word or character level diff, opposed to only line level diff. 
+  - GitKraken: Generally OK. However doesn't show a marker between two charaters if the other side inserted something there.
+
+history: graphical diff (see notes about diffs) between any two nodes (commits (including the three parts of a stash), index, working tree)
+  - GitKraken: Regarding stashes, only shows its working tree commit, but not the index and untracked files commit.
+  - GitKraken: Index is not a node in the graph
+  - GitKraken & SmartGit: Working tree node can only be compared against index node, but not against any other node
+
+merge conflict resolver: graphical 3 way diff (ours, theirs, result with conflict markers), better even 4 way diff (base, ours, theirs, result). Honor git config option merge.conflictstyle = diff3.
+  - Rationale: IMHO vital to confidently resolve a merge conflict
+  - GitKraken: Is only a two way diff (ours and theirs) with an aditional plane for the merge result, but is missing the common base. The merge result strips the conflict markers from Git, thus the common base version is lost, thus its not a three way diff, and thus it's often not feasible to confidently resolve the merge conflict.
+  - SmartGit: 3-way diff, the result containing conflict markers
+
+be able to edit commit message before having pressed 'commit'
+  - Rationale: While reviewing and potentially fixing my changes, I can craft the commit message
+  - GitKraken: Only possible if working tree or index are dirty
+
+be able to run git bisect
+  - Rationale: Git bisect is a good way to find the commit introducting a problem
+  - GitKraken: Apparently can't do it
+
+history: search for commite message content / file content / diff content (aka pickaxe)
+  - Rationale for being able to search in diff content: E.g. to find the commit adding / removing / modifying a given function
+  - AFAIK, only git CLI / gitk can search for diff content (options -G / -S to git log or gitk)
+  - SmartGit: Can't search for diff content
+  - GitKraken: apparently can only search for commit message content
+  - GitKraken: if number of shown commit is restricted (which it is by default), the search apparently is limited to those currently shown
+
+history: for each reference (local branch, remote branch, tag, stash, HEAD, further special refs), be able to choose whether it (i.e. the commits reachable from it) is shown in the graph.
+  - See also the point that the tool should be able to reflect that references are actually one single hierarchical tree.
+  - GitKraken: Can't hide subtree (includes a leaf) if a parent tree is shown
+  - SmartGit: HEAD is the only one of the special refs. Otherwise can do everything.
+
+history: goto/select tip of a given ref (i.e. the commit the reference directly or indirectly points to)
+  - Rationale: Without that, in a big graph for refs pointing to commits deep down in the ancestry graph it's highly infeasible to find the commit a ref is pointing to.
+  - GitKraken: Ok
+ 
+configuraion: honor Git config options. E.g. merge.conflictstyle, rename heurstic options
+  - Rationale: Else, it get's difficult to understand what the tool really does
+  
+working tree / index: quickly add/remove files or even hunks to/from index / working tree
+  - GitKraken: Apparently can't 'discard' changes in working tree when the file has conflicts
+  
+index editor: improved version of the previous point. graphical 3 way diff of current commit - index - working tree, whereas index and working tree are freely editable.
+  - GitKraken: Can only move hunks, but index / working tree is not freely editable.
+  - GitKraken: Has only a two way diff working tree - index, and a two way dif current commit - index. The two sides are not labeled, so as a user I don't know what either side represents.
+
+stash: option to keep index. Option to keep working tree. Option to also stash untracked files.
+  - Rationale for keeping index: to be able to test the future commit
+  - GitKraken: Can't do any of it. When applying a stash that was made by another tool and contains an index part, that index part is lost.
+  - SmartGit: Regarding untracked files, there's only a global option, but not one while creating a new stash.
+
+shash: stash only selected files/hunks
+  - Rationale: More convenient than first stash the files you don't want to stash, then do a stash with option 'keep index', especially if the stash you're going to make shall have index and working tree.
+  - SmartGit can only do it on file basis, but not on hunk basis
+
+interactive rebase possible at all. Better even if interactive rebase is interactive in the history graph by drag & drop commits, 'edit commit message' in context menu of a commit, 'squash commits' in context menu of two selected commits. In regular interactive rebase, in the initial dialog listing all commits, one can more or less directly edit the commit message (opposed to only while the interactive rebase is actually running).
+  - GitKraken: No drag & drop in the history.
+ 
+be able to checkout a commit, opposed to a branch, resulting in detached head state
+  - Rationale: To verify (e.g. build & run tests / productive binary) a given commit
+  - GitKraken: Ok
+ 
+reset has all the reset options/variants (mixed, soft, hard, keep, merge)
+  - GitKraken: Misses keep & merge
+
+Has annotate/blame view
+  - GitKraken: Ok
+  
+Follow the history of a line across moves/copies (as DeepGit (part of SmartGit) does)
+  - AFAIK, of the Git GUIs, only SmartGit can do that.
+ 
+be able to view and create and edit the review comments of our reviewing tools (apparently Bitbucket)
+  - I am not sure if SmartGit can do that. There seems to be some bitbucket integration. https://www.syntevo.com/doc/display/SG/Bitbucket+integration
+
+tool understands that reference names are hierarchical, in one single tree. Operations on a node in this tree affect the whole subree. Recall that refs/stash is actually a single ref, and the multiple stashes are in the reflog of ref/stash.
+  - GitKraken: Has no tree node for refs, refs/heads, refs/remotes, refs/tags, refs/stash, and special refs other than HEAD.
+  - GitKraken: HEAD is shown under tags despite it is not a tag, and only visible in detached head state
+  - SmartGit: Has no tree node for refs, refs/remotes, and special refs other than HEAD. Refs outside refs/(tags|stash|heads|remotes) are listed as flat list under node 'Other Refs'.
+
+working tree / index: be able to search for a file in working tree
+  - Rational: To be able to do any operation on it afterwards, like e.g. blame, rename, delete etc.
+  - GitKraken: Apparently can't do it
+
+history: option to show/hide unreachable commits
+  - Rationale: To recover accidentaly 'deleted' commits / branches / stashes
+  - Rationale: After an interactive rebase, to verify that the before and after state / commit are equal by seeing an empty diff
+  - AFAIK only SmartGit, git CLI, and gitk can do this.
+  - GitKraken: Nope
+  - Workaround for the 'verify interactive rebase' case: make a temporary dummy branch/tag before the interactive rebase
+
+history: A commit lists its parent and its child commits, i.e. their sha1 s. Each parent and each child is clickable, to goto the respective commit.
+  - Rational: To follow a path trough the commit graph. Note that often, a child or parent is far far away in the graph, not tractable by eye in the graph.
+  - GitKraken: Can't do it. It only shows parent commits. Doesn't show child commits. Is not clickable.
+
+Show renames in any diff (working tree, index, more generally between any two nodes in the graph). Show the old and the new path. Recall that Git doesn't store renames. It's only a heuristic of the viewer tool, maybe with help from underlying Git commands.
+
+history: In the graph view, have customizable columns what info is shown and let user define how it is ordered. Commit message, author/commiter date/name&email, SHA1.
+  - GitKraken: Only shows commit message. Apparently can't show sha1, commiter/author name/date. Sometimes it would really be helpfull to see the SHA1 within the graph view.
+
+be able to checkout (aka switch branches) while having dirty working tree (aka update in mercurial / svn)
+  - GitKraken: OK
+
+Cherry pick multiple commits 
+  - GitKraken: Apparently can only cherry pick a single commit at a time
+
+working tree & index view: have customizable columns  what info is shown and how it is ordered. Path name, old path name in case of rename, state (untracked, modified, missing, etc.), 'flags' (skip worktree, assume unchanged)
+  - GitKraken: View is not table based; its the list of dirty working tree files, and the list of dirty index files.
+
+Optionaly show ignored files
+  - Rationale: E.g. to delete all of them. E.g. to verify that ignore patterns work as intended.
+  - GitKraken: Doesn't seem to be able to do it
+  
+honor skip work tree and assume unchanged flags of files in index, better even to let user modify them. Also, optionaly allow to see changes to them nevertheless.
+  - Rationale: Skip worktree is useful to mark files
+  - GitKraken: honors these flags, but doesn't allow user to modify them, nor allows to show changes to them nevertheless
+
+be able to push a local branch to another remote than the default remote for that branch. Also be able to edit the ref on the remote.
+  - Rationale: E.g. I want to push my local work to one of my clones, or to a collegue
+  - GitKraken: Apparently can't do it.
+
+be able to push a specific commit (without having a local branch pointing to it)
+  - Rationale: Say I currently have 5 commits on my local branch, but only the first two are ready to be pushed
+  - GitKraken: Apparently can't do it
+  - SmartGit: Works only for commits not reachable by any remote tracking branch
+
+be able to merge an arbitray commit
+  - Rationale: It's really about merging two commits. In the context of merging, on the CLI, references make it just easier to name a commit.
+  - GitKraken: Can only merge branches
+
+working tree / index: be able to show all files, opposed to only the modified ones
+  - GitKraken: Apparently can't do it
+
+honor replaced objects and grafts
+  - Rationale: To be able to conveniently follow the history of a code fragment even back to the subversion days, I need to incorporate that history into the Git repository and attach them to the right place in the history.
+
+show that we're in merging / rebasing  / cherry picking / reverting / bisecting state
+
+buttons to abort/continue of merging / rebasing / cherry picking / reverting / bisecting state
+
+be able to force push
+  - Rationale: In rare cases I really want to force push, throwing something away on the remote repositry that I / somebody else has accidentaly pushed.
+
+be able to work with shallow repository
+  - Rationale: For faster clones, faster general working with repository.
+
+be able to work with bare repository
+
+show/edit reflog
+  - AFAIK, only Git CLI can do that
+  
+history: exclude commits reachable from a given ref/commit (the ^ operator of git log)
+  - AFAIK, only Git CLI / gitk can do that
+
+
+== GitKraken
+
+Generally SmartGit has more options in the preferences than GitKraken.
+
+=== Nice
+
+- Has undo/redo history. But then again apparently only a few commands are undo-able. 
+  * Ignores droping a stash
+  * Ignores deleting a branch
+  * Ignores cherry-pick
+  * Probably much more ...
+
+- If multiple remote tracking branches only differ by the remote name part, their shown as one 'label' with multiple icons, one icon per remote. Tool tip shows remote name.
+
+=== Quirks
+
+- Conflict resolution tool is IMHO effectively only a 2way diff, which makes resolving merge conflicts infeasible.
+
+- Can't create a branch without checking it out
+
+- HEAD reference is listed under tags, but it clearly is not a tag
+
+- In the left bar, there is no 'top level entry' for stashes if currently there is no stash. Personally, I then keep searching it until I remark that I currently don't have any stashes.
+
+- Message of annotated tag only as pop-up. Followingly the text is not copyable, say into the clipboard.
+
+- Can't push a local branch to a remote, without automatically creating a remote tracking branch in the process.
+
+- Doesn't display the upstream branch of a given local branch. As a workaround, one can say 'Set Upstream', but then it's not possible to know if there was no upstream set or if it was set to what is displayed in the edit field.
+
+- Can't create a local branch without checking it out at the same time. One disadvantage is that now more files are touched, i.e. a subsequent incremental build will take longer.
+
+- The upstream branch must be a remote tracking branch, whereas Git actually also allows local branches.
+
+- In the history, each non-merge commit is represented by the avatar of the author. But merge-commits are just a simple circle. Why making merge commits special in this respect?
+
+=== IMHO bugs
+
+- Only .gitignore at repository root is honored, but not nested ones
+
+- Working tree diff / index diff seems not to be always properly refresehed, not even after F5. E.g. after externally modiyfing hunk in index, that change is never reflected in GitKraken.
+
+
+
+== Source Tree
+
+- History
+  - Can't select refs (local/remote branches, tags, stashes) to be shown
+  - Can't select to show/hide unreachable commits
+  - History doesn't show working tree and index as separate nodes
+    - History can't show diff between index and arbitrart node
+    - History *can* show diff between working tree and arbitrat node
+
+- diff
+  - Diff shown in same window can only be unified diff
+
+- stashes
+  - Can't stash selected files
+  - Doesn't have option to keep working tree
+
+- working tree / index
+  - show renames?
+  

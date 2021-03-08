@@ -1,0 +1,127 @@
+!!! CTOBitmap::FromClipBoard (two redundant files!!!!!!!) does what we need ???
+!!! Also CNGOutputDialog::ImportPictureFromClipboard!!
+
+ERPCore\Installation\CTOInstaller\CTOBitmap.cpp, CTOBitmap::FromClipBoard: accesses memory object after closing handle
+
+Redundancy?
+ CTextEditClipboardService::Paste
+ GetClipboardContentAsUUID
+ GetClipboardContentAsDocument
+ GetClipboardContentAsViewportCuttingEntities
+ RtfTextInputDialog
+ how SHEdit::OnKeyDown reads/writes from/to the clipboard
+ In Pointline there are multiple getclipboarddata and setclipboarddata which should probably use the already existing helpers
+ ... more in this header?
+
+clipboard set data tips: https://social.msdn.microsoft.com/Forums/Windows/en-US/eac2af9f-6da2-4869-b8bb-ef4733710614/copying-bitmap-to-the-clipboard?forum=windowsgeneraldevelopmentissues
+
+
+BGBase/Picture.h defines CPicture
+
+it seems now to work, but ImageTools compare images still fails altough they visually look the same
+Bitmaps top level windows docu: https://docs.microsoft.com/en-us/windows/win32/gdi/bitmaps
+Color in Bitmaps: https://docs.microsoft.com/en-us/windows/win32/gdi/color-in-bitmaps
+Bitmaps, Device Contexts, and Drawing Surfaces: https://docs.microsoft.com/en-us/windows/win32/gdi/bitmaps--device-contexts--and-drawing-surfaces
+bitmap functions: https://docs.microsoft.com/en-us/windows/win32/gdi/bitmap-functions
+
+
+	handle???	 ------CxImage::CreateFromHandle--+
+				                                  |
+                +------CxImage::CreateFromHBITMAP-+--> CxImage ------Encode-----> FILE/CxFile/buffer
+                |    <-CxImage::MakeBitmap-                                       Size??
+                +------CImage::Attach---> CImage ---Save---> IStream/filename
+                |
+CF_BITMAP -> HBITMAP --GetObject--> BITMAP 
+                |                     |
+				|                     +--CBitmap::GetBitmap 
+				|                                  |
+				|                                  V
+				+------CBitmap::FromHandle----> CBitmap ---------CBitmap::GetBitmapBits------> Buffer
+																 !!! need size !!!!             ^
+H                                                                                                |
+																								|
+CF_DIB ----> handle??? ----GlobalLock-----> LPBITMAPINFO ----> BITMAPINFO ----Member bmiHeader---> BITMAPINFOHEADER ------------???????-----------+
+
+
+typedef struct tagDIBSECTION {
+  BITMAP           dsBm;
+  BITMAPINFOHEADER dsBmih;
+  DWORD            dsBitfields[3];
+  HANDLE           dshSection;
+  DWORD            dsOffset;
+} DIBSECTION, *LPDIBSECTION, *PDIBSECTION;
+
+// The BITMAP structure defines the type, width, height, color format, and bit values of a bitmap.
+// Sems *not* to be how a BMP file looks like
+typedef struct tagBITMAP {
+  LONG   bmType;
+  LONG   bmWidth;
+  LONG   bmHeight;
+  LONG   bmWidthBytes;
+  WORD   bmPlanes;
+  WORD   bmBitsPixel;
+  LPVOID bmBits;
+} BITMAP, *PBITMAP, *NPBITMAP, *LPBITMAP;
+
+// The BITMAPINFO structure defines the dimensions and color information for a DIB.
+typedef struct tagBITMAPINFO {
+  BITMAPINFOHEADER bmiHeader;
+  RGBQUAD          bmiColors[1];
+} BITMAPINFO, *LPBITMAPINFO, *PBITMAPINFO;
+
+
+// The BITMAPINFOHEADER structure contains information about the dimensions and color format of a device-independent bitmap (DIB).
+typedef struct tagBITMAPINFOHEADER {
+  DWORD biSize;
+  LONG  biWidth;
+  LONG  biHeight;
+  WORD  biPlanes;
+  WORD  biBitCount;
+  DWORD biCompression;
+  DWORD biSizeImage;
+  LONG  biXPelsPerMeter;
+  LONG  biYPelsPerMeter;
+  DWORD biClrUsed;
+  DWORD biClrImportant;
+} BITMAPINFOHEADER, *LPBITMAPINFOHEADER, *PBITMAPINFOHEADER;
+
+
+
+BMP File format
+
+DIB file format
+
+GDI = Windows Graphics Device Interface
+
+DIB = Deviced-independent bitmap
+
+DDB (aka GDI, aka compatible bitmap) = Device-dependent bitmap
+  BITMAP
+
+CBitmap
+
+
+This is *not* a proper review. It's about collaboratively discussing the implementation I currently have which has serious flaws. The hope is that the reviewers have inputs on how to considerably clean up the implementation, or at least bring it into a form we all genuinely understand.
+
+Copying an image into the Windows clipboard seems to be incredibly complicated. I could not get it to work by reading the Windows documentation of involved functions. I searched for help on the net but did not found anything I found truly trustworthy and that I also did truly understand. I ended up basing my work on https://social.msdn.microsoft.com/Forums/Windows/en-US/eac2af9f-6da2-4869-b8bb-ef4733710614/copying-bitmap-to-the-clipboard?forum=windowsgeneraldevelopmentissues. I somehow trust the author of the answer, Li Wang, since he's from Microsoft. However, I have to admit I don't properly understand his answer for the following reasons:
+
+- Li Wang says it's best to put the image as clipboard format CF_DIB, opposed to CF_BITMAP. But in his example, he uses CF_BITMAP.
+- I thought it's about making a DIB (device-independent bitmap), but what we do is creating a DBB (device dependent bitmap). Or am I mistaken?
+- Also, the Windows function CreateDIBitmap confuses me. To me, the function name says that a DIB is created, but the description sais a DDB is created from a DIB.
+
+The current implementation is in Image::CopyImageToClipboard and Image::Manager::GetHBitmapDdb. The current state is that it now works in practice: I can copy images into the Windows clipboard (e.g. using CopyImageToClipboard.sct), and can then paste it into an image editor (e.g. Windows Paint). But my current unit tests fail because the image in the clipboard allegedly has a different resolution than the source image. In one test also the height and width do not match. Also, I was forced to insert an unacceptable Sleep call in the test CopyImageToClipboard_LoadImageFromClipboard.
+
+Before the above implementation, I had an implementation that seemed natural to me: Open the image (from the in-memory stream) with CImage (or Bitmap or CBitmap), retrieve its HBITMAP, put that into the clipboard using CF_BITMAP. That works in unit tests (not the exact same unit tests as in the current code). But when tested in real life using CopyImageToClipboard.sct, every image editor (e.g. Windows Paint) threw an error that it can't paste the clipboard content.
+
+Also copying an image from the Windows clipboard into ImageTools is flawed. The current implementation is in Image::LoadImageFromClipboard and Image::Manager::LoadImageFromHBitmap. For unknown reasons, I have to save the clipboard's content as PNG (opposed to BMP), to an in-memory stream, which is then read from the ImageTools.
+
+Note that I cannot use CxImage. At least not trivially. That's because BGImageTools links ImageMagick. And ImageMagick seems to contain CxImage, or parts of it. Anyway, if I link the ximage library to BGImageTools, I get link errors because of many double definitions. I tried to dynamically link to the respective DLL, but then I get a link error "error lkn1107: invalid or corrupt file".
+
+There was a further complication I had while testing. It turned out that even our BGImageTools (or even ImageMagick) have the following bug: When I make a screenshot with Greenshot and save it as bmp file, then open that file with our BGImageTools, save it unmodified as bmp with our BGImageTools, then the resulting bmp cannot be read by most image editors (e.g. Windows Paint, Windows Photos), but the Windows File Explorer Preview works just fine.
+
+In the attachment is an overview I made for myself about Windows types and functions in the field of Windows clipboard and bitmaps and images.
+
+In the attachment are scripts to test coying images to/from the clipboard. File paths are hardcoded, see script source code. Should be simple enough to understand right away.
+
+CTOBitmap
+

@@ -1,0 +1,43 @@
+
+== Error handling
+
+- System Error == Last-Error Code ?????
+  * Error codes: https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes
+
+- Last-Error Code (DWORD)
+  * Per Thread
+  * SetLastError, SetLastErrorEx, GetLastError
+  * https://docs.microsoft.com/en-us/windows/win32/debug/last-error-code
+  
+- HRESULT
+  * Common HRESULT Values: https://docs.microsoft.com/en-us/windows/win32/seccrypto/common-hresult-values
+  * HRESULT_FROM_WIN32: HRESULT to Last-Error Code
+  
+- References
+  * https://stackoverflow.com/questions/19547419/errors-in-windows-dword-getlasterror-vs-hresult-vs-lstatus
+  * Handling Errors in COM+ https://docs.microsoft.com/en-us/windows/win32/cossdk/handling-errors-in-com-
+
+== Common Language Runtime (CLR)
+
+A managed execution environment. Code that is compiled to run on the CLR is called managed code.
+
+System::Exception also has a StackTrace property
+
+== DLLs
+
+MyDll.def vs \_\_declspec(dllexport): [https://docs.microsoft.com/en-us/cpp/build/determining-which-exporting-method-to-use?view=vs-2017, https://docs.microsoft.com/en-us/cpp/build/exporting-from-a-dll-using-def-files?view=vs-2017]
+
+BormScript external function: recal that the signature of a function is not
+stored in a DLL. Thus these declarations need to state the signature.
+
+tool: dependency walker
+
+== A gtest executable which can act as mfcext test
+
+- stdout(/stdin) doesn't seem to work in an MFC program: https://stackoverflow.com/questions/5094502/how-do-i-write-to-stdout-from-an-mfc-program. We need that for gtest's output
+  * Create a console using AllocConsole. But that opens a console window - I want to be able to run it as any other unittest with the output in visual studios output window -- It's probably ok, the other unit tests also open a console window
+  * Anyway, this seems not to be enough to be able to use std:cout. See https://stackoverflow.com/questions/15543571/allocconsole-not-displaying-cout. But also that I couldn't get to work.
+  
+- A "MFC console mode application" seems to be possible, but not very usefuel, e.g. because messame pump is not running. https://stackoverflow.com/questions/13989262/mfc-console-mode-application
+
+- "Smallest MFC window-programm": https://www.codeproject.com/Articles/1672/MFC-under-the-hood

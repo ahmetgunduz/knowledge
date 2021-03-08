@@ -468,6 +468,96 @@ References:
 - <<http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3055.pdf,n3055 >>
 - http://en.cppreference.com/w/cpp/language/value_category
 
+== Concepts
+
+A concept is a named constraint expression.
+
+Concept = 'template `< TemplateParams `> 'concept ConceptName `= ConstraintExpr `; ;
+
+A constraint, or more precisely a constraint expression, is a sequence of logical operations and operands that specifies requirements on template arguments.
+
+ConstraintExpr =
+  ConstraintExpr ( `&& | `|| ) ConstraintExpr |
+  AtomicConstraint;
+
+AtomicConstraint
+
+Requires clause / requires expression:
+
+FunctionTemplate = 'template `< TemplateParams `> [RequiresClause] FunctionNameAndSignature [RequiresClause] FunctionBody;
+RequiresClause = 'requires ConstantExpression
+
+ConstantExpression = ... | RequiresExpression
+
+
+Constraint violation itself is not a compilation failure. It could indirectly cause one later; for instance, if no other overload can be found. Violation is either because it evaluates to false or because it is not well formed. However, the type of the constraint expression must be exactly bool, otherwise it is an error (not a constraint violation).
+
+== Declaration & Definition
+ 
+defined / Definition
+  - delete: A special 'definition' is = delete, which explicitely means 'no defition'.
+  - default: Let the compiler come up with a default implementation, see implicitely defined
+  
+implicitely declared
+  - declared implicitely by the compiler.
+  - does not necessairily mean it is also defined
+  
+implicitely defined (aka defaulted)
+  - implicitely defined by the compiler
+  
+Not implicitely declared vs deleted implicitely declared  
+  - ?
+  
+Does "user declared" include deleting???
+  
+implicitely defined
+	Recall that since C++17, due to temporary materialization / mandatory copy/move elision, copy/move ctors are not required to exist
+	Copy constructor
+		
+	Move constructor
+		Not implicitely defined (i.e. either not implicitly-declared or deleted) if any of
+			User declard copy/move ctor/assignment / dtor
+			Non-static data members cannot be move constructed
+			Base class cannot be moved or destructed
+			...
+	Move assignment
+		Not implicitely defined (i.e. either not implicitly-declared or deleted) if any of
+			User declared copy/move ctor/assignment / dtor
+			Non-static data members cannot be move assigned (notably includes const or of reference type)
+			...
+	
+			
+
+
+== Formatting
+
+std::boost: has its own implementation. Quietly ignores the user specified precision that std::sprintf allows when precision in format string is '*'.
+
+std::format (C++20) for type T is based on a std::formatter<T>
+
+std::formatter<T> (C++20) has specializations for basic types and string types which are based on std::to_chars. For those the format specification is based on the format specification in Python.
+
+std::to_string (C++11) is *semantically* based on std::sprintf, using "%d" for ints, "%f" for floats and doubles etc.
+
+std::to_chars (C++17): For integrals, there is only type int; a base can be specified. For floating points it is *semantically* based on std::to_string, configured by an optional std::chars_format and an optional precision (int) parameter. If no precision is specified, the shortest value is printed which allows a roundtrip via std::from_chars. locale-independent, non-allocating, non-throwing, not many bells & whistles, intended to allow for the fastest possible implementation.
+
+C++Style I/O: Start at operator<<. Flags are of type type std::ios_base::fmtflags (probably some integral). Predefined values are std::ios_base:fixed scientific (floatfield = scientific|fixed). std::setprecision sets precision like mystream << setprecision(...).
+
+C-Style I/O: std::sprintf
+
+std::numeric_limits<T>::digits10/FLT_DIG/DBL_DIG/LDBL_DIG: If a decimal number has that many digits (*to-do* in exponent notation I guess), it can be exactly stored by the internal representation. Number of decimal digits required such that roundtrip decimal->internal->decimal is guaranteed to be the identity transformation. 6 for IEEE float and 15 for IEEE double.
+
+std::numeric_limits<T>::max_digits10/FLT_DECIMAL_DIG/DBL_DECIMAL_DIG/LDBL_DECIMAL_DIG/DECIMAL_DIG: Number of decimal digits (*to-do* in exponent notation I guess) required such that roundtrip internal->decimal->internal is guaranteed to be the identity transformation. In other words, number of decimal digits that are necessary to uniquely represent all distinct values of the type T. Note that the resulting number in decimal representation may *not* be equal the internal number. 9 for IEEE float and 17 for IEEE double.
+
+numeric_limits<T>::digits/FLT_MANT_DIG/DBL_MANT_DIG/LBL_MANT_DIG: Number of digits internally (i.e. typically base 2) used for the mantissa. For IEC 559/IEEE 754 implementations, this is the number of digits stored for the mantissa plus one, because the mantissa has an implicit leading 1 and binary point. To represent the number in decimal, you need the same amount of decimal digits: 0.5=5e-1(1 digit)=1/2^1, 0.25=2.5e-1(2 digits)=1/2^2, 0.125=1.25e-1(3digits)=1/2^3 etc.
+
+http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2006/n2005.pdf
+https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
+https://stackoverflow.com/questions/16839658/printf-width-specifier-to-maintain-precision-of-floating-point-value
+
+== Floating point numbers
+
+See development.adoc for floating point numbers in general.
 
 == Resources
 

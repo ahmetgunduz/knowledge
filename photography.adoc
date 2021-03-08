@@ -15,3 +15,9 @@
   - ?? Why cant this be a 1:1 trafo ??
 
 - Nearly all digital cameras can process the image from the sensor into a JPEG file using settings for white balance, colour saturation, contrast, and sharpness that are either selected automatically or entered by the photographer before taking the picture. Cameras that produce raw files save these settings in the file, but defer the processing
+
+== Lenses
+
+- Test if the image quality of smaller/lighter/travelfriendly lenses really is not good enough for me. I buy a good camera also because of its features (AF, view fiender, ...), because I need those to enjoy making pictures without missing anything, not only because of its image quality.
+- Focal length has more influence on DOF than aparture. With 2.8 and <70mm I can't get a decent bokeh anyway, so I can as well use 4 or even more? Mind also object distance. Larger COF at a given distance is more imortant than a shallow DOF?
+- For hikes alone I don't need a shallow DOF.

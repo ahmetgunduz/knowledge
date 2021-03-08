@@ -51,4 +51,8 @@ A _bookmark_ is pointer to a changeset. Similar to a Git branch. Can be shared.
 
 - Mercurial tutorial. Youtube playlist. https://www.youtube.com/playlist?list=PL4LQVbH6ePBgVVIbXlHaqpXX2Q3045k79
 
-- hg-git configured such as to work locally with git and talk to a hg repository: http://fatphil.org/linux/hg-git.html
+- git bridg
+  * the official one: git remote hg: https://github.com/felipec/git/wiki/git-remote-hg
+   ** https://stackoverflow.com/questions/15601246/using-git-remote-hg-on-windows
+  * comparison: https://github.com/felipec/git/wiki/Comparison-of-git-remote-hg-alternatives
+  * hg-git: Is for mercurial, not Git. configured such as to work locally with git and talk to a hg repository: http://fatphil.org/linux/hg-git.html

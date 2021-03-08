@@ -18,7 +18,7 @@ Diff of two revisions::
 Commit logs::
   ++git log++ (++git-rev-list++ as the low level alternative from the plumbing section).
 
-Status of working tree / index file::
+Status of working tree and staging area::
   ++git status++
 
 == Transitions
@@ -26,7 +26,7 @@ Status of working tree / index file::
 The following copy files between the following three participants: the working
 tree, the index aka the staging area and the repository.
 
-.Working tree -> Index, aka stage
+.Working tree -> index, aka stage
 - all (modified, new, deleted): ++git add -A++
 - single files: ++git add <pathspec>...++
 
@@ -36,7 +36,7 @@ Its not possible to only copy to repository but not also to index.
 - all (which are also in index): ++git commit -a++
 - single files (which must also be in index): ++git commit <file>...++
 
-.Remove from working tree, aka (filesystem) remove
+.Remove from working tree
 - single files: ++/bin/rm <file>...++
 - untracked files: ++git clean -n++ to test, ++git clean -f++ to actually unrecoverably do it, ++git clean -i++ to interactively select files to be removed, or trash them with ++git ls-files --others --exclude-standard -z | xargs -0 trash ++
 
@@ -51,11 +51,11 @@ I.e. additionally HEAD is modified
 .Remove from Index
 - single files: ++git rm --cache <file>...++
 
-.Repository -> Index, aka unstage
+.Current commit -> index, aka unstage
 - all: ??
 - single files: ++git reset -- <file>...++
 
-.Repository aka HEAD -> working tree, aka discard(-to-HEAD)
+.Repository -> working tree, aka discard(-to-HEAD)
 - all: ++git checkout -- .++  !!!! really ??? only when exec from repo root ???
 - single files: ++git checkout -- <file>...++
 
@@ -135,13 +135,16 @@ Refspec for fetch::
   remote? I made a clone, didn't I?
 - upstream branch?
 - From http://stackoverflow.com/questions/67699/how-do-i-clone-all-remote-branches-with-git
++
 ----------------------------------------------------------------------
 If you just want to take a quick peek at an upstream branch, you can check it out directly:
 $ git checkout origin/experimental
 But if you want to work on that branch, you'll need to create a local tracking branch:
 $ git checkout -b experimental origin/experimental
 ----------------------------------------------------------------------
++
 Why is the first checkout not good enough? what happens if i do git commit there?
+
 - difference ++git reset++ +--hard+/+--soft+. Now does both completely remove
   commits or not? Or is a new commit created which undoes the unwanted commits?
 - `You can check out those (remote) branches like a normal branch, but you should
@@ -162,27 +165,7 @@ git config merge.renameLimit 99999999
 git config --unset merge.renameLimit
 
 
-== Line endings
-
-The conversions occur when an object is put into the object data base, and when it is read from the object data base respectively.
-
-attribute text: Conditionally or unconditionally turns on/off line ending conversion. If conversion is on, the line ending used in the repository is always lf. If text attribute is set, conversion is on, and the eol attribute defines the line ending style used for files in the working directory. If (explicitly) unset, conversion is off. If unspecified, core.autocrlf is looked at. If auto, git uses a heuristic to determine if the file is text, and if it is, and the file in the repository uses lf, conversion is on (*to-do* but only on input, not output?).
-
-attribute eol: Sets line-ending style to be used for the file in the working directory. Overrides the text attribute, setting it. If value is crlf, convert to lf upon checkin, and convert to crlf upon checkout. If value is lf, convert to lf upon checkin (no conversio required upon checkout). If unspecified, the config variable core.eol is looked at.
-
-attribute diff: *to-do*
-
-attribute binary: alias for -text -diff
-
-config variable core.eol: For files that don't have an eol attribute. In addition to the values crlf and lf, the value native can be used which uses the OS' native line ending. Overridden by core.autocrlf.
-
-config variable core.autocrlf: If set to true, has same effect as setting the attribute text to auto on all files and core.eol to crlf (i.e. core.eol is overridden). If set to input, no output conversion is performed.
-
-core.safecrlf: *to-do*
-
-Tip: after changing config/attributes, to ensure the index reflects those changes, use git add --renormalize
-
-== submodules
+== Submodules
 
 gitlink: +git add path+ (without trailing slash), path being top-level directory of a git repository. Seems to work without respective  .gitmodules or .git/config config. Also subsequent commit, and later checkout of that commit.
 
@@ -195,9 +178,7 @@ repository. Mode (as reported by git status) of a gitlink entry is
 `registred submodule'). This allows for partial checkouts, i.e. not checking
 out submodules one doesn't need.
 
-+++git add+++ automatically creates a gitlink if a path argument is a
-directory (_without_ trailing slash) being the top-level directory of a git
-project.
++++git add+++ automatically creates a gitlink if a path argument is a directory (_without_ trailing slash) being the top-level directory of a git project. It really only does that and nothing else, say related to .gitmodules, .git/config, .git/modules.
 
 The +++.gitmodules+++ file in the superproject's top-level directory mainly
 defines +path+ and +url+. +path+ is the relativ path within the superprojects
@@ -221,5 +202,69 @@ procedures: `checkout', `rebase', `merge', `custom command', `none'.
 ++submodule init; ...; submodule update++ vs ++submodule update --init++. The
 former is intended for the case where you want to customize submodule related
 config in .git/config.
+
+++git submodule add [--name <name>] <url> [<path>]++: <name> is the logical name of the suprepo; it's probably seldom used. Adds given information to a new submodule.<name> section to .gitmodules and .git/config. If <path> does not already exist, clones from <url> and makes <path>/.git refer to a newly created directory .git/modules/<name>. Adds a gitlink at <path> to the index, pointing to the current commit of the repo at <path>. If not given, <name> and <path> are deduced: <path> from <url>, and <name> from <path>. Aborts if <path> exists but is not a valid Git repo (includes an empty directory), or if index already contains <path>, or if .git/modules/<name> already exits. Note that it silently overwrites submodule.<name>.url if it already exits in .git/config. Note that if there is already a valid Git repo at <path>, <url> is only used for the added content to .gitmodules. Note that submodule add also incorporates what submodule init does.
+
+++git submodule deinit <path>++ Maps <path> to <name> using .gitmodules in the index, removes the whole submodule.<name> section from .git/config (i.e. customizations are lost! (*to-do* is that what the active configuration is meant for?)), and removes all files from <path>, including ignored files! The <path> entry in the index, the submodule.<name> section in .gitmodules, and .git/modules/<name> remain unaffected. Aborts if <path>/.git is directly a Git repository, opposed to a file refering to .git/modules/<name>. Aborts if repo <path> has local modifications, which includes having another current commit than in superrepo's index <path> entry. Note that the repository .git/modules/<name> is unaffected, so no objects are removed.
+
+++git submodule init [<path>...]++ For the given <path>..., or if <path>... is not given, for all gitlinks (*to-do* only at toplevel?) in the index, map <path> to <name> using .gitmodule in the index, ensures an submodule.<name> section exists in .git/config, copies submodule.<name>.url from .gitmodule in the index if it doesn't already exist in .git/config, same for submodule.<name>.update. Aborts if for a gitlink the <path> does not exist in the index' .gitmodule. Note that it does not create .git/modules/<name> and it does not create <path>.
+
+++git submodule update [--init] [<path>...]++ Without --init, aborts if submodule is not initialized (i.e. roughly, if .git/config has no submodule.<name> section; submodule.<name>.url seems not to be required, apparently it can use the one from .gitmodules, probably just the regular way the multiple Git config files work together). *to-so* does not care about untracked files lying around, does not modify files which are modified
+
+
+++git rm <path>++. Note that it does not remove the respective section in .git/config.
+
+
+++git status++ / ++git diff --submodule++ / ++git submodule status++. submodule status lists submodules (gitlinks in index and submodule.<path> section in .gitmodule of working tree) in the form "[+-]<commitid> <path> [(current-branch-or-commit)]". A "-" prefix means uninitialized, a " " or "+" means initialized, a "+" prefix means the submodule's current commit does not match the SHA1 of the superprojekts gitlink in the index. If the submodule is initialized but there is no "(current-branch-or-commit)" shown, that means the submodule does not yet have a repository (i.e. you need to do submodule update).
+
+
+??? howto: 'add subrepo' resulting in deinitialized state, if I only want to add subrepo without working copy ???
+
+??? howto: git rm <path> to really remove subrepository ??? Ignored files are lost
+
+??? reset does not seem to affect ./git/modules/... ???
+
+??? do all or only some commands abort if .gitmodules has unstaged modifications ???
+
+??? AFAI the repository is in an invalid state if .gitmodules in the index does not match 1:1 with the gitlinks in the index. No, if that was so, the `git add <path>' where <path> is some git repository would not do what it does.  ???
+
+=== submodule states
+
+active:: submodule.<name>.active is true (e.g. in .git/config, not in .gitmodules), or submodule's path matches submodule.active, submodule.<name>.url is set, checked in this order. If submodule.<name>.active is set to false or submodule.active is set and excluedes submodule's path, submodule.<name>.url is ignored. (*to-do* orthogonal to registered/deinitialized?).
+
+registered (*to-do* same as initialized?):: State after between submodule init and submodule deinit.
+
+deinitialized (*to-do* same as unregistred?):: The index has the a gitlink entry for <path> and a .gitmodules entry, but in the working directory there's no <path> or it is an empty directory. For cases where you don't need the working tree of the subrepository, which is actually Git's default.
+
+deleted:: .gitmodules no longer contains a submodule.<name> section, index has no <path> entry. However .git/modules/<name> still exists, so what we can checkout old commits which refer to the submodule at <path>.   ?? .git/config ???
+
+never-existed / not yet existent:: As deleted, but .git/modules/<name> does not exists. *to-do* Also in .git/config, submodule.<locialname> does not exist, which it might for `improperly' deleted subrepositories.
+
+??? what if at one point in time, <path> points to suberpository `foo', but at another time to a completely different subrepository `bar'? AFAIU, always the *current* .git/modules/<name> is used. *to-do* how to get to <name> - via .gitmodules in index?
+
+
+==== Reference
+
+- gitsubmodules(7): General info
+- git-submodule(1): The git submodule commands
+- gitmodules(5): The .gitmodules file, the config variables it can contain.
+- https://git-scm.com/book/en/v2/Git-Tools-Submodules
+
+
+== Maintenance
+
+gitglossary(7) says `unreachble object' means `An object which is not reachable from a branch, tag, or any other reference.'. It also says `ref' means `A name that begins with refs/ ... There are a few special-purpose refs that do not begin with refs/. The most notable example is HEAD'. Thus apparently the term ref(erence) does not include reflogs.
+
+== Talking to Mercurial
+
+=== Bidirectional bridge
+
+https://github.com/felipec/git-remote-hg
+
+
+=== Migrate from Mercurial
+
+https://github.com/frej/fast-export/
+
 
 //  LocalWords:  pathspec

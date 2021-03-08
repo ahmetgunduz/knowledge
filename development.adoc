@@ -29,7 +29,6 @@ Order statistic tree
 
 - What is ``cache-friendly'' code?
 
-
 == Performance measurements
 
 - Glen suggests the tool `code performance'
@@ -64,14 +63,14 @@ Order statistic tree
   - Reduce waiting time on locks
 
 * Use all ressources which can accomplish work
- - All cores / cpus. 
+ - All cores / cpus.
  - All io devices
  - All of faster storage before using slower storage (register, cpu cache, ram, disk, network)
 
 * Make use of ressources efficiently. Use ressources the way they can operate the fastest
  - Sequencial access (disk, ram)
  - CPU / branche prediction: Conditional branches shall take the same branch in a row, and only seldom switch to taking the other one.
- 
+
 
 === perf
 
@@ -104,7 +103,7 @@ perf report -g -T
 
 - Instructions for a function call
  * Push registers on stack which are used by caller and might be modified by callee
- * Pass paremeters: Some are passed in registers, others by pushing them on the stack. For some, what is passed is not the object itself, but it's address. 
+ * Pass paremeters: Some are passed in registers, others by pushing them on the stack. For some, what is passed is not the object itself, but it's address.
  * Pass return object's address as implicit parameter, see above.
  * Frame stuff, push IP (i.e. return addr), ...
  * Actuall call instruction
@@ -114,7 +113,7 @@ perf report -g -T
 
 - What does virtual add to the above?
 
-- When inlining, (much) more optimizations can be done. 
+- When inlining, (much) more optimizations can be done.
 
 - When the produced code at call site for inlining is larger than the produced code for a function call (both times the optimized result). A larger footprint is the result. It's possible that more cpu cache misses result.
 
@@ -158,16 +157,16 @@ frames     stack                         registers   text
 f2's    35    local 2 of f2               <-- SP     .. ...
 frame   36    local 1 of f2                   IP---->.. ...
         37 /--prev frame / f1's pushed BP <-- BP     .. ...
-        38 |  ret addr / f1's pushed IP ------+      .. ...      
+        38 |  ret addr / f1's pushed IP ------+      .. ...
         39 |  param 2 for f2                  |      .. ...
-        3A |  param 1 for f2                  |      ---------- 
+        3A |  param 1 for f2                  |      ----------
 --------   |                                  |      f1:
 f1's    3B |  local 2 of f1                   |      .. ...
 frame   3C \  local 1 of f1                   +----->.. call f2
         3D  =>prev frame / f0's pushed BP            .. ...
-        3E /  ret addr / f0's pushed IP ------+      .. ...      
+        3E /  ret addr / f0's pushed IP ------+      .. ...
         3F |  param 2 for f1                  |      ----------
-        40 |  param 1 for f1                  |      f0: 
+        40 |  param 1 for f1                  |      f0:
 --------   |                                  |      .. ...
 ...     41 |  ...                             +----->.. call f1
         42 \=>BP ...                                 .. ...
@@ -354,6 +353,39 @@ build system: cmake, ant, maven
 tcmalloc
 
 
+== Floating-point numbers
+
+Is a representation for a subset of the real numbers and has the form p×ß^e^, where p is the _significant_ (or _coefficient_ or _fraction_), ß the _base_ (or _radix_) and e is the _exponent_. The number of digits in the significant is called _precision_. The range of the exponent is e~min~≤e≤e~max~. The real numbers that are exactly representable are called _machine numbers_.
+
+In a _normalized_ floating-point representation, the leading digit of the significant is non-zero. A normalized representation is _unique_. In contrast, 1.20×10^0^ and 0.12×10^-1^ represent the same number. A normalized representation cannot directly represent zero. A natural way to _represent zero_ is 1×ß^e~min~-1^, since this preserves the fact that the numerical ordering of nonnegative real numbers corresponds to the lexicographic ordering of their floating-point representations. As a consequence, when the exponent is stored in a k bit field, only 2^k^-1 values are available for use as exponents.
+
+The smallest positive normalized number is _UFL_ = 1×ß^e~min~^ and is called the _underflow level_. The largest positive normalized number is _OFL_ = ß^e~max~+1^(1-ß^-p^) and is called the _overflow level_.
+
+A disadvantage of normalized numbers is the relatively large empty gap (0, UFL), called _underflow gap_. Note that this gap is much (*to-do* prove) larger than the gap between the UFL and the next larger float. (*to-do* talk about _machine epsilon_ and _underflow level_ (aka _UFL_).) _Underflow_ (or _arithmetic underflow_ or _floating point underflow_) is when a result falls into the underflow gap. It is then truncated to zero, which is called _flush to zero_. That can lead to large relative errors.
+
+Any number lying in the underflow gap is called _denormalized number_ (or _subnormal number_ or _denormal _number_). It is one with an exponent of e~min~ and a zero leading bit, i.e. it is not normalized. E.g. when e~min~=-5 (and p=3, ß=10), the smallest positive number is 0.01×10^-5^ instead of 1.00×10^-5^. When a result falls in the underflow gap, the result can be rounded to one of the denormalized numbers, which is called _gradual underflow_. Denormalized numbers ensure x=y ⇔ x-y=0 even for small numbers. That is arguably important to reason about the program. E.g. only then "if (x!=y) z=1/(x-y)" really never ends up in a division by zero. Also, without denormalized numbers, x-y with normalized inputs can have a large relative error. Opponents of denormalized numbers argue that they are too complicated given that they are only occasionally used. Even today some IEEE compliant HW supports them only in SW via traps.
+
+When the base is 2, often an _implicit leading_ (aka _hidden leading_) bit is used. It is 1 if e~stored~≥e~min~ (1.xx×2^e~stored~^), and, if denormalized numbers are used, 0 if e~stored~=e~min~-1 (0.xx×2^e~min~^).
+
+If a real number x is not exactly representable, then it is approximated by a "nearby" floating-point number _fl(x)_. This process is called _rounding_, and error introduced called _rounding error_.
+
+=== IEEE
+
+IEEE 754: Base is 2 or 10. e~min~ = 1 - e~max~.
+
+Signed zero: There are multiple good reasons that a distinction is made bewteen
++0 and -0. See chapter "signed zero" in https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html.
+
+
+An attempt to generate a nonzero floating–point number that is too tiny to represent in the usual way precipitates _Underflow_.
+
+*to-do* Epsilon comparison. Isn't relative error better than absolute?
+
+References:
+
+- https://bitbashing.io/comparing-floats.html
+- https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
+- http://www.maths.lth.se/na/courses/FMN140/FMN140-05/float.pdf
 
 == Information managers / note taking
 

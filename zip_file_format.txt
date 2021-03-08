@@ -1,0 +1,55 @@
+= Zip file format
+
+With a focus on character encoding.
+
+== Structure
+
+File header
+	general purpose bit flag
+Extensible data fields / 
+      Header ID 0x0008      Reserved for extended language encoding data (PFS)           (see APPENDIX D)
+							!! Currently there exists no formal set of allowed values and their meaning !!
+general purpose bit 11 is unset: SHOULD conform to IBM PC character encoding set (aka IBM Code Page 437)
+                            set: MUST be UTF-8 (Unicode Version 4.1.0 or greater) without BOM
+							
+Encoding/Characteristcs can apparently even be mixed among filenames. I started with a zip that apparently did not use UTF8 (but FAT based something). Then added ①֍π.txt. 7zip showed Host OS = FAT and no characteristics for the original filenames, and same Host OS but characteristics = NTFS:UTF8 for the ①֍π.txt. Opening new crbx (i.e. zip) in windows explorer had no problems.
+
+== Windows Explorer's Zip 
+
+- Seems to handle encoding badly, at least up to including windows 7
+	- https://stackoverflow.com/questions/30888205/encoding-filenames-in-zip-archive-to-correct-displaying-in-windows-explorer
+	- https://superuser.com/questions/476740/error-while-zipping-files-with-unicode-characters-in-names-with-win7s-send-to
+
+
+== Info-ZIP / zipinfo
+
+Der Dateiname der angezeigt wird ist nicht byte für byte was im Zip file steht. E.g. precomposed ä wurde zu
+
+== 7Zip
+
+7Zip (und PeaZip) scheinen Dateinamen nur dann in UTF-8 abzuspeichern, wenn Zeichen enthalten sind, die nicht in der active OEM code page enthalten sind. Ich weiss nicht ob die system oder die user gemeint ist.
+
+Um rauszufinden, in welchem Encoding ein Filename im Zip gespeichert ist: 
+- Besser einfach Zip im hexeditor anschauen, nur dann hat man die Wahrheit. In moment scheint mir, man kann bei keinem Tool (7Zip, Zip windows, zipinfo linux) drauf gehen was die einem als Filenamen angeben.
+- Auf "characteristics" (bei Properties) schauen. Wenn nicht explizit UTF-8 / NTFS:UTF-8 steht ist's Scheisse. Das Text Popup, zumindest wenn daraus der Dateiname rauskopiert wird, hat anscheinen immer UTF-8, auch wenn Dateiname in einem anderen Encoding gespeichert ist.
+
+== System.IO.Compression (.NET library)
+
+**Are the following with OEM-850 encoded input or UTF-8 encoded input?????
+
+System::IO::Compression::ZipFile::ExtractToDirectory (.NET library):
+	The overload without Encoding parameter:
+		replaces precomposed ö by 'RIGHT DOUBLE QUOTATION MARK' (U+201D) (”), π by U+00e3 'ã'
+		understands combining character, ①, ֍, 
+
+	Passing System::Text::Encoding::UTF8 as Encoding argument
+		does NOT understand: procomposed ö, π, 
+		understands combining characters, ①, ֍, puts them as such in the outupt
+		uses replacement character 0xfffd '�'
+		Since after using replacement char in conversion there are filename collisions, results in an error the file '...?...' already exists. Note it's an ASCII '?', not 0xfffd '�'
+	
+== References
+
+- https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT (https://en.wikipedia.org/wiki/Zip_(file_format) says this is the standard): 26.4.2019
+- https://devblogs.microsoft.com/oldnewthing/?p=98755 Why is Windows Compressed Folders (Zip folders) support stuck at the turn of the century?
+- See the list with links in https://superuser.com/questions/476740/error-while-zipping-files-with-unicode-characters-in-names-with-win7s-send-to from Micheael Kaplan

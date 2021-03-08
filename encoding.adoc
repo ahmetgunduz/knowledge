@@ -65,6 +65,25 @@ From N4140\[lex.phases]:
 - relevant gcc / clang command line options: -finput-charset -fexec-charset -fwide-exec-charset
 
 
+=== Windows
+
+* Active ANSI code page (aka default ANSI code page) / active OEM code page: Note that just 'active/default code page' does not specify whether it refers to ANSI or OEM. In general, most probably ANSI ist meant. 
+ ** Find out active ANSI and OEM code page: In Powershell:
+	Get-WinSystemLocale | Select-Object Name, DisplayName, 
+        @{ n='OEMCP'; e={ $_.TextInfo.OemCodePage } }, 
+        @{ n='ACP';   e={ $_.TextInfo.AnsiCodePage } }
+ ** https://serverfault.com/questions/80635/how-can-i-manually-determine-the-codepage-and-locale-of-the-current-os/836221
+
+* Book "writing secure code" (on google books) says That WC_NO_BEST_FIT_CHARS is available only on Windows 2000, XP, .NET Server 2003.
+
+* Note that https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-widechartomultibyte says: When codepage is 65001 (UTF-8, CP_UTF8), then flags must be 0 or WC_ERR_INVALID_CHARS.
+
+
+=== Visual Studio Compiler
+
+- Set source character set: /source-charset[IANA_Name|.CPID] or /utf-8 (which also affects execution charset). If not given, looks at file. If that has a BOM, use the respective UTF. Otherwise, assume ACP.
+
+
 == Glossary
 
 Grapheme:: A grapheme is an abstract concept, e.g. the `latin capital letter A'.  Seems to pretty much the same thing as abstract character, at least for the purpose of this document.
